@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using conViver.Core.Entities;
 using conViver.Core.DTOs;
+using conViver.Application;
 
 namespace conViver.API.Controllers;
 
@@ -8,27 +9,32 @@ namespace conViver.API.Controllers;
 [Route("adm/condominios")]
 public class CondominiosController : ControllerBase
 {
-    private static readonly List<Condominio> Condos = new();
+    private readonly CondominioService _condos;
+
+    public CondominiosController(CondominioService condos)
+    {
+        _condos = condos;
+    }
 
     [HttpGet]
-    public ActionResult<IEnumerable<CondominioDto>> GetAll()
+    public async Task<ActionResult<IEnumerable<CondominioDto>>> GetAll()
     {
-        return Ok(Condos.Select(c => new CondominioDto { Id = c.Id, Nome = c.Nome }));
+        var items = await _condos.GetAllAsync();
+        return Ok(items);
     }
 
     [HttpGet("{id}")]
-    public ActionResult<CondominioDto> GetById(Guid id)
+    public async Task<ActionResult<CondominioDto?>> GetById(Guid id)
     {
-        var c = Condos.FirstOrDefault(x => x.Id == id);
+        var c = await _condos.GetByIdAsync(id);
         if (c == null) return NotFound();
         return Ok(new CondominioDto { Id = c.Id, Nome = c.Nome });
     }
 
     [HttpPost]
-    public ActionResult<CondominioDto> Create(CreateCondominioRequest request)
+    public async Task<ActionResult<CondominioDto>> Create(CreateCondominioRequest request)
     {
-        var cond = new Condominio { Id = Guid.NewGuid(), Nome = request.Nome };
-        Condos.Add(cond);
-        return CreatedAtAction(nameof(GetById), new { id = cond.Id }, new CondominioDto { Id = cond.Id, Nome = cond.Nome });
+        var dto = await _condos.CreateAsync(request);
+        return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
     }
 }
