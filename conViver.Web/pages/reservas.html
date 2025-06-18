@@ -18,22 +18,22 @@
         <a href="comunicacao.html" class="cv-nav__link">Comunicação</a>
     </nav>
     <main class="cv-container">
-        <section class="reservas__calendar">
+        <section class="reservas__calendar js-calendario">
             <h2 class="reservas__title">Agenda das Áreas Comuns</h2>
             <div class="cv-card reservas__day">Dia 1</div>
             <div class="cv-card reservas__day">Dia 2</div>
         </section>
         <section class="reservas__solicitar">
             <h2 class="reservas__title">Solicitar Reserva</h2>
-            <form class="reservas__form">
+            <form class="reservas__form js-reserva-form">
                 <label class="reservas__label">
                     Data:
-                    <input type="date" class="reservas__input" />
+                    <input type="date" class="reservas__input js-reserva-data" />
                 </label>
                 <button class="reservas__button" type="submit">Enviar</button>
             </form>
         </section>
     </main>
-    <script src="../js/reservas.js"></script>
+    <script type="module" src="../js/reservas.js"></script>
 </body>
 </html>
