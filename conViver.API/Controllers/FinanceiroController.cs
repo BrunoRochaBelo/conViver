@@ -1,12 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using conViver.Core.Entities;
-using conViver.Application;
+using conViver.Application.Services; // Corrected namespace
 using Microsoft.AspNetCore.Authorization;
+using conViver.Core.DTOs; // Added for DTOs
+using System.Collections.Generic; // Added for IEnumerable
+using System.Threading.Tasks; // Added for Task
+using System; // Added for Guid
 
 namespace conViver.API.Controllers;
 
 [ApiController]
-[Route("syndic/finance")]
+[Route("api/v1/financeiro")] // Changed route
 [Authorize(Roles = "Sindico")]
 public class FinanceiroController : ControllerBase
 {
@@ -17,48 +21,119 @@ public class FinanceiroController : ControllerBase
         _financeiro = financeiro;
     }
 
-    [HttpGet("boletos")]
-    public async Task<ActionResult<IEnumerable<Boleto>>> GetBoletos([FromQuery] string? status)
+    [HttpGet("cobrancas/dashboard")]
+    public async Task<ActionResult<DashboardFinanceiroCobrancasDto>> GetDashboardCobrancas()
     {
-        var itens = await _financeiro.ListarAsync(status);
+        // TODO: Obter condominioId do contexto do usuário
+        var condominioId = Guid.NewGuid(); // Placeholder
+        var dashboardData = await _financeiro.GetDashboardCobrancasAsync(condominioId);
+        if (dashboardData == null)
+        {
+            return NotFound("Dados do dashboard financeiro não encontrados.");
+        }
+        return Ok(dashboardData);
+    }
+
+    [HttpGet("cobrancas")]
+    public async Task<ActionResult<IEnumerable<CobrancaDto>>> GetCobrancas([FromQuery] string? status)
+    {
+        // TODO: Obter condominioId do contexto do usuário ou similar para filtrar cobranças
+        var condominioId = Guid.NewGuid(); // Placeholder
+        var itens = await _financeiro.ListarCobrancasAsync(condominioId, status);
         return Ok(itens);
     }
 
-    [HttpGet("boletos/{id}")]
-    public async Task<ActionResult<Boleto?>> GetBoleto(Guid id)
+    [HttpGet("cobrancas/{id}")]
+    public async Task<ActionResult<CobrancaDto>> GetCobranca(Guid id)
     {
-        var boleto = await _financeiro.GetByIdAsync(id);
-        if (boleto == null) return NotFound();
-        return Ok(boleto);
+        var cobranca = await _financeiro.GetCobrancaByIdAsync(id);
+        if (cobranca == null) return NotFound();
+        return Ok(cobranca);
     }
 
-    public record CreateBoletoRequest(Guid UnidadeId, decimal Valor, DateTime DataVencimento);
+    [HttpPost("cobrancas")]
+    public async Task<ActionResult<CobrancaDto>> CreateCobranca([FromBody] NovaCobrancaDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        try
+        {
+            // TODO: Obter condominioId/userId do contexto para associar a cobrança
+            var condominioId = Guid.NewGuid(); // Placeholder
+            var cobranca = await _financeiro.CriarCobrancaAsync(condominioId, request);
+            return CreatedAtAction(nameof(GetCobranca), new { id = cobranca.Id }, cobranca);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = "INVALID_OPERATION", message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // Log exception (ex)
+            return StatusCode(500, "Ocorreu um erro interno ao criar a cobrança.");
+        }
+    }
 
-    [HttpPost("boletos")]
-    public async Task<ActionResult<Boleto>> CreateBoleto(CreateBoletoRequest request)
+    [HttpPost("cobrancas/gerar-lote")]
+    public async Task<ActionResult<ResultadoOperacaoDto>> GerarCobrancasEmLote([FromBody] GeracaoLoteRequestDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        // TODO: Obter condominioId do contexto do usuário
+        var condominioId = Guid.NewGuid(); // Placeholder
+        var resultado = await _financeiro.GerarCobrancasEmLoteAsync(condominioId, request);
+        if (!resultado.Sucesso)
+        {
+            return BadRequest(resultado);
+        }
+        return Ok(resultado);
+    }
+
+    [HttpGet("cobrancas/{id}/segunda-via")]
+    public async Task<ActionResult<string>> GetSegundaVia(Guid id)
     {
         try
         {
-            var boleto = await _financeiro.CriarBoletoAsync(request.UnidadeId, request.Valor, request.DataVencimento);
-            return CreatedAtAction(nameof(GetBoleto), new { id = boleto.Id }, boleto);
+            var link = await _financeiro.ObterLinkSegundaViaAsync(id);
+            if (string.IsNullOrEmpty(link))
+            {
+                return NotFound("Link para segunda via não encontrado ou não aplicável.");
+            }
+            // Pode ser um JSON com o link ou um redirecionamento, dependendo da implementação.
+            // Por simplicidade, retornando o link como string.
+            return Ok(new { url = link });
         }
-        catch (InvalidOperationException)
+        catch (Exception ex)
         {
-            return BadRequest(new { error = "INVALID_DUE_DATE" });
+            // Log exception (ex)
+            return StatusCode(500, "Erro ao obter link da segunda via.");
         }
     }
 
-    [HttpPut("boletos/{id}/cancel")]
-    public async Task<ActionResult> Cancel(Guid id)
+    [HttpPut("cobrancas/{id}/cancelar")] // Route updated
+    public async Task<ActionResult> CancelarCobranca(Guid id) // Method name updated
     {
         try
         {
-            await _financeiro.CancelarAsync(id);
-            return Ok();
+            var resultado = await _financeiro.CancelarCobrancaAsync(id);
+            if (!resultado.Sucesso)
+            {
+                return BadRequest(resultado); // Ou Conflict se for o caso
+            }
+            return Ok(resultado);
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException ex) // Específico para regras de negócio como "boleto pago"
         {
-            return Conflict(new { error = "BOLETO_PAID" });
+            return Conflict(new { error = "INVALID_OPERATION", message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+             // Log exception (ex)
+            return StatusCode(500, "Erro ao cancelar a cobrança.");
         }
     }
 }
