@@ -69,9 +69,9 @@ public class FinanceiroController : ControllerBase
         {
             return BadRequest(new { error = "INVALID_OPERATION", message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            // Log exception (ex)
+            // Log exception
             return StatusCode(500, "Ocorreu um erro interno ao criar a cobrança.");
         }
     }
@@ -107,9 +107,9 @@ public class FinanceiroController : ControllerBase
             // Por simplicidade, retornando o link como string.
             return Ok(new { url = link });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            // Log exception (ex)
+            // Log exception
             return StatusCode(500, "Erro ao obter link da segunda via.");
         }
     }
@@ -130,9 +130,9 @@ public class FinanceiroController : ControllerBase
         {
             return Conflict(new { error = "INVALID_OPERATION", message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-             // Log exception (ex)
+             // Log exception
             return StatusCode(500, "Erro ao cancelar a cobrança.");
         }
     }
