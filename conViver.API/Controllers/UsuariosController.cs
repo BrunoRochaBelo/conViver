@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using conViver.Core.Entities;
 using conViver.Core.Enums;
 using conViver.Core.DTOs;
+using conViver.Application;
+using conViver.Infrastructure.Authentication;
 
 namespace conViver.API.Controllers;
 
@@ -9,12 +11,20 @@ namespace conViver.API.Controllers;
 [Route("auth")]
 public class UsuariosController : ControllerBase
 {
-    private static readonly List<Usuario> Usuarios = new();
+    private readonly UsuarioService _usuarios;
+    private readonly JwtService _jwt;
+
+    public UsuariosController(UsuarioService usuarios, JwtService jwt)
+    {
+        _usuarios = usuarios;
+        _jwt = jwt;
+    }
 
     [HttpPost("signup")]
-    public ActionResult<UsuarioResponse> Signup(SignupRequest request)
+    public async Task<ActionResult<UsuarioResponse>> Signup(SignupRequest request)
     {
-        if (Usuarios.Any(u => u.Email.Equals(request.Email, StringComparison.OrdinalIgnoreCase)))
+        var existing = await _usuarios.GetByEmailAsync(request.Email);
+        if (existing != null)
         {
             return Conflict(new { error = "EMAIL_EXISTS" });
         }
@@ -27,7 +37,7 @@ public class UsuariosController : ControllerBase
             SenhaHash = request.Senha,
             Perfil = PerfilUsuario.Morador
         };
-        Usuarios.Add(usuario);
+        await _usuarios.AddAsync(usuario);
 
         return Created(string.Empty, new UsuarioResponse
         {
@@ -38,12 +48,15 @@ public class UsuariosController : ControllerBase
     }
 
     [HttpPost("login")]
-    public ActionResult<object> Login(LoginRequest request)
+    public async Task<ActionResult<object>> Login(LoginRequest request)
     {
-        var usuario = Usuarios.FirstOrDefault(u => u.Email == request.Email && u.SenhaHash == request.Senha);
+        var usuario = await _usuarios.GetByEmailAsync(request.Email);
         if (usuario == null) return Unauthorized();
 
-        var token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        var valid = await _usuarios.ValidatePasswordAsync(usuario, request.Senha);
+        if (!valid) return Unauthorized();
+
+        var token = _jwt.GenerateToken(usuario.Id, usuario.Perfil.ToString());
         return Ok(new { accessToken = token });
     }
 }

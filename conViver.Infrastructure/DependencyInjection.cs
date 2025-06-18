@@ -28,6 +28,8 @@ public static class DependencyInjection
 
         services.AddScoped<INotificacaoService, NotificationService>();
         services.AddScoped<IFinanceiroService, PaymentGatewayService>();
+
+        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IRepository<Condominio>, CondominioRepository>();
         services.AddScoped<IRepository<Usuario>, UsuarioRepository>();
 

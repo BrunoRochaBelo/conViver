@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using conViver.Core.Entities;
+using conViver.Application;
 
 namespace conViver.API.Controllers;
 
@@ -7,61 +8,60 @@ namespace conViver.API.Controllers;
 [Route("app/reservas")]
 public class ReservasController : ControllerBase
 {
-    private static readonly List<Reserva> Reservas = new();
+    private readonly ReservaService _reservas;
+
+    public ReservasController(ReservaService reservas)
+    {
+        _reservas = reservas;
+    }
 
     [HttpGet("agenda")]
-    public ActionResult<IEnumerable<Reserva>> Agenda([FromQuery] string mesAno)
+    public async Task<ActionResult<IEnumerable<Reserva>>> Agenda([FromQuery] string mesAno)
     {
         if (!DateTime.TryParse($"{mesAno}-01", out var mes))
             return BadRequest(new { error = "INVALID_DATE" });
 
-        var items = Reservas.Where(r => r.Inicio.Month == mes.Month && r.Inicio.Year == mes.Year);
+        var items = await _reservas.AgendaAsync(mes);
         return Ok(items);
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Reserva> GetById(Guid id)
+    public async Task<ActionResult<Reserva?>> GetById(Guid id)
     {
-        var reserva = Reservas.FirstOrDefault(r => r.Id == id);
-        return reserva is null ? NotFound() : Ok(reserva);
+        var reserva = await _reservas.AgendaAsync(DateTime.UtcNow);
+        var item = reserva.FirstOrDefault(r => r.Id == id);
+        return item is null ? NotFound() : Ok(item);
     }
 
     public record CreateReservaRequest(Guid UnidadeId, string Area, DateTime Inicio, DateTime Fim);
 
     [HttpPost]
-    public ActionResult<Reserva> Criar(CreateReservaRequest request)
+    public async Task<ActionResult<Reserva>> Criar(CreateReservaRequest request)
     {
-        var reserva = new Reserva
-        {
-            Id = Guid.NewGuid(),
-            UnidadeId = request.UnidadeId,
-            Area = request.Area,
-            Inicio = request.Inicio,
-            Fim = request.Fim
-        };
-        Reservas.Add(reserva);
+        var reserva = await _reservas.CriarAsync(request.UnidadeId, request.Area, request.Inicio, request.Fim);
         return CreatedAtAction(nameof(GetById), new { id = reserva.Id }, reserva);
     }
 
     public record UpdateReservaRequest(string Status);
 
     [HttpPut("{id}")]
-    public ActionResult<Reserva> Atualizar(Guid id, UpdateReservaRequest request)
+    public async Task<ActionResult> Atualizar(Guid id, UpdateReservaRequest request)
     {
-        var reserva = Reservas.FirstOrDefault(r => r.Id == id);
-        if (reserva == null) return NotFound();
-
-        reserva.Status = request.Status;
-        reserva.UpdatedAt = DateTime.UtcNow;
-        return Ok(reserva);
+        try
+        {
+            await _reservas.AtualizarStatusAsync(id, request.Status);
+            return Ok();
+        }
+        catch (InvalidOperationException)
+        {
+            return NotFound();
+        }
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
-        var reserva = Reservas.FirstOrDefault(r => r.Id == id);
-        if (reserva == null) return NotFound();
-        Reservas.Remove(reserva);
+        await _reservas.ExcluirAsync(id);
         return NoContent();
     }
 }

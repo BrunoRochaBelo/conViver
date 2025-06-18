@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using conViver.Core.Entities;
+using conViver.Application;
 
 namespace conViver.API.Controllers;
 
@@ -7,49 +8,47 @@ namespace conViver.API.Controllers;
 [Route("syndic/os")]
 public class OrdensServicoController : ControllerBase
 {
-    private static readonly List<OrdemServico> Ordens = new();
+    private readonly OrdemServicoService _ordens;
+
+    public OrdensServicoController(OrdemServicoService ordens)
+    {
+        _ordens = ordens;
+    }
 
     [HttpGet]
-    public ActionResult<IEnumerable<OrdemServico>> GetAll()
-        => Ok(Ordens);
+    public async Task<ActionResult<IEnumerable<OrdemServico>>> GetAll()
+        => Ok(await _ordens.GetAllAsync());
 
     [HttpGet("{id}")]
-    public ActionResult<OrdemServico> GetById(Guid id)
+    public async Task<ActionResult<OrdemServico?>> GetById(Guid id)
     {
-        var os = Ordens.FirstOrDefault(o => o.Id == id);
+        var os = await _ordens.GetByIdAsync(id);
         return os is null ? NotFound() : Ok(os);
     }
 
     public record CreateOrdemRequest(Guid UnidadeId, string? Descricao);
 
     [HttpPost]
-    public ActionResult<OrdemServico> Create(CreateOrdemRequest request)
+    public async Task<ActionResult<OrdemServico>> Create(CreateOrdemRequest request)
     {
-        var os = new OrdemServico
-        {
-            Id = Guid.NewGuid(),
-            UnidadeId = request.UnidadeId,
-            Descricao = request.Descricao,
-            CriadoEm = DateTime.UtcNow
-        };
-        Ordens.Add(os);
+        var os = await _ordens.CriarAsync(request.UnidadeId, request.Descricao);
         return CreatedAtAction(nameof(GetById), new { id = os.Id }, os);
     }
 
     public record UpdateOrdemRequest(string Status);
 
     [HttpPut("{id}")]
-    public ActionResult<OrdemServico> Update(Guid id, UpdateOrdemRequest request)
+    public async Task<ActionResult> Update(Guid id, UpdateOrdemRequest request)
     {
-        var os = Ordens.FirstOrDefault(o => o.Id == id);
-        if (os == null) return NotFound();
-
-        os.Status = request.Status;
-        os.UpdatedAt = DateTime.UtcNow;
-        if (request.Status == "concluida")
-            os.ConcluidoEm = DateTime.UtcNow;
-
-        return Ok(os);
+        try
+        {
+            await _ordens.AtualizarStatusAsync(id, request.Status);
+            return Ok();
+        }
+        catch (InvalidOperationException)
+        {
+            return NotFound();
+        }
     }
 }
 
