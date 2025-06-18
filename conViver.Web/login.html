@@ -15,14 +15,14 @@
             <form id="loginForm" class="login-form">
                 <div class="login-form__input-group">
                     <label for="email" class="login-form__label">Email:</label>
-                    <input type="email" id="email" name="email" class="login-form__input" placeholder="seu@email.com" required>
+                    <input type="email" id="email" name="email" class="cv-input" placeholder="seu@email.com" required>
                 </div>
                 <div class="login-form__input-group">
                     <label for="password" class="login-form__label">Senha:</label>
-                    <input type="password" id="password" name="password" class="login-form__input" placeholder="Sua senha" required>
+                    <input type="password" id="password" name="password" class="cv-input" placeholder="Sua senha" required>
                 </div>
                 <button type="submit" id="loginButton" class="login-form__button cv-button cv-button--primary">Entrar</button>
-                <div id="loginFeedback" class="login-form__feedback" aria-live="polite"></div>
+                <div id="loginFeedback" class="cv-alert cv-alert--error" style="display: none;" aria-live="polite"></div>
             </form>
         </div>
     </div>

@@ -1,7 +1,7 @@
 .cv-button {
     /* ... existing display, text-align, etc. ... */
     font-family: var(--cv-font-family-sans-serif);
-    font-weight: 500; /* Medium weight */
+    font-weight: 600; /* Changed from 500 to use OpenSansSemibold */
     padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* e.g., 8px 16px */
     border-radius: var(--cv-border-radius-md); /* e.g., 8px */
     border: var(--cv-border-width) solid transparent;
@@ -153,6 +153,41 @@
     }
 }
 
+/* === Alert Component Styles === */
+.cv-alert {
+    padding: var(--cv-spacing-md); /* 16px */
+    margin-bottom: var(--cv-spacing-md); /* 16px */
+    border: var(--cv-border-width) solid transparent;
+    border-radius: var(--cv-border-radius-md); /* 8px */
+    font-size: 0.9rem;
+    text-align: left; /* Default to left, can be overridden */
+}
+
+.cv-alert--error {
+    color: var(--current-semantic-error);
+    background-color: var(--current-color-error-bg);
+    border-color: var(--current-semantic-error);
+}
+
+.cv-alert--success {
+    color: var(--current-semantic-success);
+    background-color: var(--current-color-success-bg);
+    border-color: var(--current-semantic-success);
+}
+
+.cv-alert--warning {
+    color: var(--current-semantic-warning);
+    background-color: var(--current-color-warning-bg);
+    border-color: var(--current-semantic-warning);
+}
+
+.cv-alert--info {
+    color: var(--current-semantic-info);
+    background-color: var(--current-color-info-bg);
+    border-color: var(--current-semantic-info);
+}
+/* === End Alert Component Styles === */
+
 @keyframes animatetop {
     from {top: -300px; opacity: 0}
     to {top: 0; opacity: 1}
@@ -213,7 +248,7 @@
 .cv-nav__link {
     color: var(--current-text-link);
     text-decoration: none;
-    font-weight: 500; /* Medium */
+    font-weight: normal; /* Was 500, OpenSans has no 500. Use normal for non-active links. */
     display: block; /* Make links take full width for easier tapping */
     width: 100%;
     text-align: left;
