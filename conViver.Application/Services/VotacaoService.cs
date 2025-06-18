@@ -22,8 +22,9 @@ public class VotacaoService
         {
             Id = Guid.NewGuid(),
             CondominioId = condominioId,
-            Assunto = assunto,
-            CriadoEm = DateTime.UtcNow
+            Titulo = assunto, // Changed from Assunto to Titulo
+            DataInicio = DateTime.UtcNow // Changed from CriadoEm to DataInicio
+            // Descricao, DataFim, and Ativa will use default values or be set elsewhere
         };
 
         await _votacoes.AddAsync(vot, ct);
