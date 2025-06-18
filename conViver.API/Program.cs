@@ -13,6 +13,27 @@ builder.Services.AddControllers();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<DashboardService>(); // Register DashboardService
+
+// CORS Configuration
+var AllowDevOrigins = "_allowDevOrigins";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: AllowDevOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("http://localhost:5500",
+                                             "http://127.0.0.1:5500",
+                                             "http://localhost:3000",
+                                             "http://127.0.0.1:3000",
+                                             "http://localhost:8080",
+                                             "http://127.0.0.1:8080",
+                                             "http://localhost:4200",
+                                             "http://127.0.0.1:4200")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+                      });
+});
+
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
     {
@@ -77,6 +98,9 @@ app.UsePathBase("/api/v1");
 
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
+
+// Enable CORS
+app.UseCors(AllowDevOrigins);
 
 app.UseAuthentication();
 app.UseAuthorization();
