@@ -26,10 +26,7 @@ public class FinanceiroService
             Id = Guid.NewGuid(),
             UnidadeId = unidadeId,
             Valor = valor,
-            DataVencimento = vencimento.Date,
-            NossoNumero = Guid.NewGuid().ToString("N").Substring(0, 10),
-            CodigoBanco = "999",
-            Status = BoletoStatus.Gerado
+            DataVencimento = vencimento.Date
         };
 
         await _boletos.AddAsync(boleto, ct);
@@ -66,8 +63,7 @@ public class FinanceiroService
         if (boleto == null) return;
         if (boleto.Status == BoletoStatus.Pago)
             throw new InvalidOperationException("Boleto pago");
-        boleto.Status = BoletoStatus.Cancelado;
-        boleto.UpdatedAt = DateTime.UtcNow;
+        boleto.Cancelar();
         await _boletos.UpdateAsync(boleto, ct);
         await _boletos.SaveChangesAsync(ct);
     }
