@@ -19,9 +19,36 @@ public class ExceptionMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception");
-            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-            await context.Response.WriteAsJsonAsync(new { error = "INTERNAL_ERROR" });
+            _logger.LogError(ex, "Unhandled exception details: Type={ExceptionType}, Message={ExceptionMessage}", ex.GetType().Name, ex.Message);
+
+            context.Response.ContentType = "application/json";
+
+            if (ex is FluentValidation.ValidationException validationException)
+            {
+                _logger.LogWarning(ex, "Validation error occurred.");
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                var errors = validationException.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage });
+                await context.Response.WriteAsJsonAsync(new { code = "VALIDATION_ERROR", message = "Um ou mais erros de validação ocorreram.", errors });
+            }
+            else if (ex is conViver.Application.Exceptions.NotFoundException notFoundException)
+            {
+                _logger.LogWarning(ex, "Resource not found: {NotFoundMessage}", notFoundException.Message);
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                await context.Response.WriteAsJsonAsync(new { code = "NOT_FOUND", message = notFoundException.Message });
+            }
+            // Example for another specific exception type, e.g. UnauthorizedAccessException
+            // else if (ex is UnauthorizedAccessException unauthEx)
+            // {
+            //     _logger.LogWarning(unauthEx, "Unauthorized access attempt.");
+            //     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            //     await context.Response.WriteAsJsonAsync(new { code = "UNAUTHORIZED_ACCESS", message = "Acesso não autorizado." });
+            // }
+            else // Fallback for unhandled exceptions
+            {
+                _logger.LogError(ex, "An unhandled exception has occurred.");
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                await context.Response.WriteAsJsonAsync(new { code = "INTERNAL_SERVER_ERROR", message = "Ocorreu um erro inesperado no servidor. Por favor, tente novamente mais tarde." });
+            }
         }
     }
 }

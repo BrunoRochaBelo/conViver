@@ -59,14 +59,74 @@ export function showGlobalError(message) {
   alert(`Erro: ${message}`);
 }
 
+// /**
+//  * Exibe uma mensagem de sucesso global para o usuário.
+//  * @param {string} message A mensagem de sucesso.
+//  */
+// export function showGlobalSuccess(message) {
+//     // Poderia ser um modal ou um toast no futuro.
+//     console.log(`SUCESSO GLOBAL: ${message}`);
+//     alert(message);
+// }
+
 /**
- * Exibe uma mensagem de sucesso global para o usuário.
- * @param {string} message A mensagem de sucesso.
+ * Container for global feedback messages.
+ * Ensures messages are stacked and easily managed.
  */
-export function showGlobalSuccess(message) {
-    // Poderia ser um modal ou um toast no futuro.
-    console.log(`SUCESSO GLOBAL: ${message}`);
-    alert(message);
+let feedbackContainer = null;
+
+function ensureFeedbackContainer() {
+    if (!feedbackContainer) {
+        feedbackContainer = document.createElement('div');
+        feedbackContainer.className = 'global-feedback-container';
+        document.body.appendChild(feedbackContainer);
+    }
+}
+
+/**
+ * Displays a global feedback message.
+ * @param {string} message The message to display.
+ * @param {'success' | 'error' | 'info' | 'warning'} type The type of message.
+ * @param {number} [duration] Optional duration in ms. If not provided, message stays until manually closed.
+ */
+export function showGlobalFeedback(message, type = 'info', duration) {
+    ensureFeedbackContainer();
+
+    const feedbackElement = document.createElement('div');
+    feedbackElement.className = `global-feedback-toast global-feedback-toast--${type}`;
+    feedbackElement.setAttribute('role', 'alert');
+
+    const messageSpan = document.createElement('span');
+    messageSpan.textContent = message;
+    feedbackElement.appendChild(messageSpan);
+
+    const closeButton = document.createElement('button');
+    closeButton.innerHTML = '&times;'; // Using HTML entity for '×'
+    closeButton.className = 'global-feedback-toast__close-btn';
+    closeButton.setAttribute('aria-label', 'Fechar');
+    closeButton.onclick = () => {
+        feedbackElement.classList.add('global-feedback-toast--hiding');
+        // Remove after animation
+        setTimeout(() => feedbackElement.remove(), 300);
+    };
+    feedbackElement.appendChild(closeButton);
+
+    feedbackContainer.appendChild(feedbackElement);
+
+    // Trigger animation
+    setTimeout(() => {
+        feedbackElement.classList.add('global-feedback-toast--visible');
+    }, 10); // Small delay to allow CSS transition to take effect
+
+    if (duration && duration > 0) {
+        setTimeout(() => {
+            // Check if element still exists (wasn't closed manually)
+            if (feedbackElement.parentElement) {
+                feedbackElement.classList.add('global-feedback-toast--hiding');
+                setTimeout(() => feedbackElement.remove(), 300);
+            }
+        }, duration);
+    }
 }
 
 

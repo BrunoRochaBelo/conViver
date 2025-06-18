@@ -153,6 +153,86 @@
     }
 }
 
+/* === Global Feedback Toast Styles === */
+.global-feedback-container {
+    position: fixed;
+    top: var(--cv-spacing-md, 16px); /* Use CSS variable or fallback */
+    right: var(--cv-spacing-md, 16px);
+    z-index: 1050; /* Ensure it's above most other content */
+    display: flex;
+    flex-direction: column;
+    gap: var(--cv-spacing-sm, 8px);
+    max-width: 350px; /* Or whatever width is desired */
+}
+
+.global-feedback-toast {
+    background-color: var(--current-bg-white, #fff);
+    color: var(--current-text-primary, #333);
+    padding: var(--cv-spacing-md, 16px);
+    border-radius: var(--cv-border-radius-md, 8px);
+    box-shadow: var(--current-shadow-lg, 0 4px 12px rgba(0,0,0,0.15));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    min-width: 280px; /* Minimum width */
+    border-left: 5px solid transparent; /* For type indication */
+}
+
+.global-feedback-toast--visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.global-feedback-toast--hiding {
+    opacity: 0;
+    transform: translateX(110%); /* Move a bit further out when hiding */
+}
+
+.global-feedback-toast__close-btn {
+    background: none;
+    border: none;
+    color: var(--current-text-secondary, #777);
+    font-size: 1.5rem;
+    line-height: 1;
+    padding: 0 var(--cv-spacing-xs, 4px);
+    margin-left: var(--cv-spacing-md, 16px);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.global-feedback-toast__close-btn:hover {
+    color: var(--current-text-primary, #333);
+}
+
+/* Type-specific styles */
+/* Using existing semantic color variables where appropriate */
+.global-feedback-toast--success {
+    border-left-color: var(--current-semantic-success, green);
+    /* background-color: var(--current-color-success-bg, #e6fffa); */ /* Optional: subtle background */
+}
+.global-feedback-toast--success .global-feedback-toast__close-btn {
+    /* color: var(--current-semantic-success, green); */ /* Optional: themed close button */
+}
+
+.global-feedback-toast--error {
+    border-left-color: var(--current-semantic-error, red);
+    /* background-color: var(--current-color-error-bg, #ffe6e6); */
+}
+
+.global-feedback-toast--warning {
+    border-left-color: var(--current-semantic-warning, orange);
+    /* background-color: var(--current-color-warning-bg, #fff0e6); */
+}
+
+.global-feedback-toast--info {
+    border-left-color: var(--current-semantic-info, blue);
+    /* background-color: var(--current-color-info-bg, #e6f7ff); */
+}
+/* === End Global Feedback Toast Styles === */
+
 /* === Alert Component Styles === */
 .cv-alert {
     padding: var(--cv-spacing-md); /* 16px */
