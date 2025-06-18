@@ -67,6 +67,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\conViver.Core\conViver.Core.csproj" />
 	  <ProjectReference Include="..\conViver.Application\conViver.Application.csproj" />
+	  <ProjectReference Include="..\conViver.API\conViver.API.csproj" />
 	</ItemGroup>
 
 </Project>

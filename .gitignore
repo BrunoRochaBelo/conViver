@@ -1,42 +1,43 @@
-﻿# Build artifacts
+﻿# Build artefacts
 **/bin/
 **/obj/
-*/bin/
-*/obj/
 
-# Visual Studio & IDE
+# Visual Studio
 .vs/
-.vscode/
-.idea/
-
-# User-specific files
-*.suo
 *.user
-*.userosscache
-*.userprefs
-*.sln.docstates
+*.suo
 
 # Rider
-*.rider.*
+.idea/
 
-# .NET Core tools & packages
-*.nupkg
-packages/
-project.lock.json
-project.fragment.lock.json
-.artifacts/
-.dotnet-tools.json
+# .NET
+*.dll
+*.exe
+*.pdb
 
-# EF Core Migrations snapshot
-Migrations/
+# MAUI
+*.xamarin.*
+**/platforms/
 
-# ASP.NET Core launch settings
-**/launchSettings.json
+# Local secrets
+.env
+.env.*
 
-# Node (if usar linters/live-server)
+# OneDrive/temp
+~\$*
+
+# IDE settings
+*.userprefs
+
+# Logs
+*.log
+
+# npm
 node_modules/
 
-# OS files
-.DS_Store
-Thumbs.db
-Desktop.ini
+# Docker
+docker-compose.override.yml
+*.dockerfile
+
+# Coverage
+coverage.*.xml
