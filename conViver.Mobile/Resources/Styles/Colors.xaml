@@ -32,6 +32,18 @@
     <Color x:Key="CvSemanticError">#FF3B30</Color>
     <Color x:Key="CvSemanticInfo">#007AFF</Color>
 
+    <Color x:Key="CvBorderColor">#C7C7CC</Color> <!-- Added for Light theme card borders -->
+
+    <!-- Semantic Background Colors for Validation States -->
+    <Color x:Key="CvColorErrorBgLight">#ffebee</Color>
+    <Color x:Key="CvColorErrorBgDark">#33FF453A</Color> <!-- rgba(255, 69, 58, 0.2) -->
+    <Color x:Key="CvColorSuccessBgLight">#e8f5e9</Color>
+    <Color x:Key="CvColorSuccessBgDark">#3330D158</Color> <!-- rgba(48, 209, 88, 0.2) -->
+    <Color x:Key="CvColorWarningBgLight">#fff8e1</Color>
+    <Color x:Key="CvColorWarningBgDark">#33FFD60A</Color> <!-- rgba(255, 214, 10, 0.2) -->
+    <Color x:Key="CvColorInfoBgLight">#e7f5ff</Color>
+    <Color x:Key="CvColorInfoBgDark">#330A84FF</Color> <!-- rgba(10, 132, 255, 0.2) -->
+
     <!-- Brushes -->
     <SolidColorBrush x:Key="CvPrimaryBlueBrush" Color="{StaticResource CvPrimaryBlue}"/>
     <SolidColorBrush x:Key="CvPrimaryGreenBrush" Color="{StaticResource CvPrimaryGreen}"/>

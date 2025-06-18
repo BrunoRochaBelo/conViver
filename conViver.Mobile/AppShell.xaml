@@ -8,8 +8,16 @@
     Title="conViver.Mobile">
 
     <ShellContent
+        Title="Login"
+        ContentTemplate="{DataTemplate local:LoginPage}"
+        Route="LoginPage" />
+
+    <!-- Original MainPage route, can be added later as a Tab or FlyoutItem if needed -->
+    <!--
+    <ShellContent
         Title="Home"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
+    -->
 
 </Shell>

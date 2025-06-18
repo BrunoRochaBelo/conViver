@@ -27,11 +27,11 @@
     <Style TargetType="Button">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource CvTextOnPrimary}, Dark={StaticResource CvTextOnPrimaryDark}}" />
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CvPrimaryBlue}, Dark={StaticResource CvPrimaryBlueDark}}" />
-        <Setter Property="FontFamily" Value="OpenSansRegular"/>
+        <Setter Property="FontFamily" Value="OpenSansSemibold"/>
         <Setter Property="FontSize" Value="16"/>
         <Setter Property="BorderWidth" Value="0"/>
         <Setter Property="CornerRadius" Value="8"/>
-        <Setter Property="Padding" Value="12,10"/>
+        <Setter Property="Padding" Value="16,8"/>
         <Setter Property="MinimumHeightRequest" Value="44"/>
         <Setter Property="MinimumWidthRequest" Value="44"/>
         <Setter Property="VisualStateManager.VisualStateGroups">
@@ -104,9 +104,9 @@
         <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource CvTextPlaceholder}, Dark={StaticResource CvTextPlaceholderDark}}" />
         <Setter Property="MinimumHeightRequest" Value="44"/>
         <Setter Property="MinimumWidthRequest" Value="44"/>
-        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="Padding" Value="16,8"/>
         <Setter Property="CornerRadius" Value="8"/>
-        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource CvGray400}, Dark={StaticResource CvBorderColorDark}}"/>
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource CvBorderColor}, Dark={StaticResource CvBorderColorDark}}"/>
         <Setter Property="BorderWidth" Value="1"/>
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
@@ -132,9 +132,9 @@
         <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource CvTextPlaceholder}, Dark={StaticResource CvTextPlaceholderDark}}" />
         <Setter Property="MinimumHeightRequest" Value="44"/>
         <Setter Property="MinimumWidthRequest" Value="44"/>
-        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="Padding" Value="16,8"/>
         <Setter Property="CornerRadius" Value="8"/>
-        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource CvGray400}, Dark={StaticResource CvBorderColorDark}}"/>
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource CvBorderColor}, Dark={StaticResource CvBorderColorDark}}"/>
         <Setter Property="BorderWidth" Value="1"/>
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
@@ -154,7 +154,7 @@
 
     <Style TargetType="Frame">
         <Setter Property="HasShadow" Value="True" />
-        <Setter Property="BorderColor" Value="{AppThemeBinding Light=Transparent, Dark={StaticResource CvBorderSubtleDark}}" />
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource CvBorderColor}, Dark={StaticResource CvBorderColorDark}}" />
         <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="16" />
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CvBackgroundWhite}, Dark={StaticResource CvBackgroundElementDark}}" />
@@ -205,15 +205,51 @@
     </Style>
 
     <Style TargetType="Label" x:Key="Headline" BasedOn="{StaticResource Label}">
-        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource CvTextPrimary}, Dark={StaticResource CvTextPrimaryDark}}" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
         <Setter Property="FontSize" Value="24" />
-        <Setter Property="FontAttributes" Value="Bold" />
+        <!-- Corresponds to H3 on Web (24px, Semibold) -->
     </Style>
 
     <Style TargetType="Label" x:Key="SubHeadline" BasedOn="{StaticResource Label}">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource CvTextSecondary}, Dark={StaticResource CvTextSecondaryDark}}" />
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
         <Setter Property="FontSize" Value="18" />
+        <!-- Corresponds to LG on Web (18px, Regular) -->
     </Style>
+
+    <!-- New Standardized Typographic Styles -->
+    <Style TargetType="Label" x:Key="H1LabelStyle" BasedOn="{StaticResource Label}">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="32" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="H2LabelStyle" BasedOn="{StaticResource Label}">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="28" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="H3LabelStyle" BasedOn="{StaticResource Label}">
+        <!-- This key is essentially what 'Headline' became. Keeping for explicit H3. -->
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="24" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="H4LabelStyle" BasedOn="{StaticResource Label}">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="20" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="BodyLabelStyle" BasedOn="{StaticResource Label}">
+        <!-- Explicit style for Body, matches implicit Label -->
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
+        <Setter Property="FontSize" Value="16" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="SmallLabelStyle" BasedOn="{StaticResource Label}">
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+    <!-- End New Typographic Styles -->
 
     <Style TargetType="ListView">
         <Setter Property="SeparatorColor" Value="{AppThemeBinding Light={StaticResource CvGray300}, Dark={StaticResource CvBorderSubtleDark}}" />
@@ -229,9 +265,9 @@
         <Setter Property="FontSize" Value="16"/>
         <Setter Property="MinimumHeightRequest" Value="44"/>
         <Setter Property="MinimumWidthRequest" Value="44"/>
-        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="Padding" Value="16,8"/>
         <Setter Property="CornerRadius" Value="8"/>
-        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource CvGray400}, Dark={StaticResource CvBorderColorDark}}"/>
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource CvBorderColor}, Dark={StaticResource CvBorderColorDark}}"/>
         <Setter Property="BorderWidth" Value="1"/>
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
@@ -315,7 +351,7 @@
 
     <Style TargetType="Shadow">
         <Setter Property="Radius" Value="12" />
-        <Setter Property="Opacity" Value="{AppThemeBinding Light=0.1, Dark=0.3}" /> <!-- Adjusted opacity for dark -->
+        <Setter Property="Opacity" Value="{AppThemeBinding Light=0.15, Dark=0.3}" /> <!-- Adjusted light opacity -->
         <Setter Property="Brush" Value="{AppThemeBinding Light={StaticResource CvBlack}, Dark={StaticResource CvBlack}}" />
         <Setter Property="Offset" Value="0,4" />
     </Style>
@@ -402,14 +438,14 @@
 
     <Style TargetType="Shell" ApplyToDerivedTypes="True">
         <!-- NavBar (Top Bar) -->
-        <Setter Property="Shell.BackgroundColor" Value="{AppThemeBinding Light={StaticResource CvBackgroundWhite}, Dark={StaticResource CvShellNavBarBgDark}}" />
+        <Setter Property="Shell.BackgroundColor" Value="{AppThemeBinding Light={StaticResource CvBackgroundWhite}, Dark={StaticResource CvBackgroundElementDark}}" />
         <Setter Property="Shell.ForegroundColor" Value="{AppThemeBinding Light={StaticResource CvTextPrimary}, Dark={StaticResource CvTextPrimaryDark}}" />
         <Setter Property="Shell.TitleColor" Value="{AppThemeBinding Light={StaticResource CvTextPrimary}, Dark={StaticResource CvTextPrimaryDark}}" />
         <Setter Property="Shell.NavBarHasShadow" Value="True" />
         <Setter Property="Shell.NavBarIsVisible" Value="True" />
 
         <!-- TabBar (Bottom Tabs) -->
-        <Setter Property="Shell.TabBarBackgroundColor" Value="{AppThemeBinding Light={StaticResource CvBackgroundWhite}, Dark={StaticResource CvShellTabBarBgDark}}" />
+        <Setter Property="Shell.TabBarBackgroundColor" Value="{AppThemeBinding Light={StaticResource CvGray100}, Dark={StaticResource CvShellTabBarBgDark}}" />
         <Setter Property="Shell.TabBarForegroundColor" Value="{AppThemeBinding Light={StaticResource CvPrimaryBlue}, Dark={StaticResource CvPrimaryBlueDark}}" />
         <Setter Property="Shell.TabBarTitleColor" Value="{AppThemeBinding Light={StaticResource CvPrimaryBlue}, Dark={StaticResource CvPrimaryBlueDark}}" />
         <Setter Property="Shell.TabBarUnselectedColor" Value="{AppThemeBinding Light={StaticResource CvGray600}, Dark={StaticResource CvTextSecondaryDark}}" />
@@ -432,5 +468,34 @@
         <Setter Property="UnselectedTabColor" Value="{AppThemeBinding Light={StaticResource CvGray600}, Dark={StaticResource CvTextSecondaryDark}}" />
         <Setter Property="SelectedTabColor" Value="{AppThemeBinding Light={StaticResource CvPrimaryBlue}, Dark={StaticResource CvPrimaryBlueDark}}" />
     </Style>
+
+    <!-- Alert Message Container Styles -->
+    <Style x:Key="AlertBaseStyle" TargetType="Border">
+        <Setter Property="Padding" Value="12"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Margin" Value="0,0,0,16"/>
+    </Style>
+
+    <Style x:Key="ErrorAlertStyle" TargetType="Border" BasedOn="{StaticResource AlertBaseStyle}">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CvColorErrorBgLight}, Dark={StaticResource CvColorErrorBgDark}}"/>
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource CvSemanticError}, Dark={StaticResource CvSemanticErrorDark}}"/>
+    </Style>
+
+    <Style x:Key="SuccessAlertStyle" TargetType="Border" BasedOn="{StaticResource AlertBaseStyle}">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CvColorSuccessBgLight}, Dark={StaticResource CvColorSuccessBgDark}}"/>
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource CvSemanticSuccess}, Dark={StaticResource CvSemanticSuccessDark}}"/>
+    </Style>
+
+    <Style x:Key="WarningAlertStyle" TargetType="Border" BasedOn="{StaticResource AlertBaseStyle}">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CvColorWarningBgLight}, Dark={StaticResource CvColorWarningBgDark}}"/>
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource CvSemanticWarning}, Dark={StaticResource CvSemanticWarningDark}}"/>
+    </Style>
+
+    <Style x:Key="InfoAlertStyle" TargetType="Border" BasedOn="{StaticResource AlertBaseStyle}">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CvColorInfoBgLight}, Dark={StaticResource CvColorInfoBgDark}}"/>
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource CvSemanticInfo}, Dark={StaticResource CvSemanticInfoDark}}"/>
+    </Style>
+    <!-- End Alert Message Container Styles -->
 
 </ResourceDictionary>

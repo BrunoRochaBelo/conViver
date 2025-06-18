@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="conViver.Mobile.LoginPage"
+             Title="Login"
+             Shell.NavBarIsVisible="False">
+    <VerticalStackLayout
+        VerticalOptions="Center"
+        HorizontalOptions="Center"
+        Padding="24"
+        Spacing="16"
+        WidthRequest="{OnPlatform Android=300, iOS=300, WinUI=400, MacCatalyst=400}">
+
+        <Label
+            Text="Bem-vindo!"
+            Style="{StaticResource H2LabelStyle}"
+            HorizontalOptions="Center" />
+
+        <Label
+            Text="Acesse sua conta para continuar."
+            Style="{StaticResource BodyLabelStyle}"
+            HorizontalOptions="Center"
+            Margin="0,0,0,12" />
+
+        <Entry
+            x:Name="EmailEntry"
+            Placeholder="Email"
+            Keyboard="Email"
+            Style="{StaticResource Entry}" />
+
+        <Entry
+            x:Name="PasswordEntry"
+            Placeholder="Senha"
+            IsPassword="True"
+            Style="{StaticResource Entry}" />
+
+        <Border
+            x:Name="FeedbackBorder"
+            IsVisible="False"
+            Style="{StaticResource ErrorAlertStyle}"
+            Margin="0,10">
+            <Label x:Name="FeedbackLabel" Style="{StaticResource SmallLabelStyle}" TextColor="{AppThemeBinding Light={StaticResource CvSemanticError}, Dark={StaticResource CvSemanticErrorDark}}" />
+        </Border>
+
+        <Button
+            x:Name="LoginButton"
+            Text="Login"
+            Style="{StaticResource Button}"
+            HorizontalOptions="Fill"
+            Margin="0,10,0,0"/>
+
+    </VerticalStackLayout>
+</ContentPage>
