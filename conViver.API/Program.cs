@@ -27,6 +27,38 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "conViver API", Version = "v1" });
+
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (System.IO.File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = JwtBearerDefaults.AuthenticationScheme,
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Insira 'Bearer {token}' no campo de autorização"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 var app = builder.Build();
