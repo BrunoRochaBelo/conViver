@@ -1,0 +1,25 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f8f9fa;
+}
+.dashboard__metrics {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.dashboard__metric {
+    flex: 1 1 200px;
+}
+.financial__section {
+    margin-top: 1rem;
+}
+.reservas__calendar {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.portaria__visit-list,
+.communication__mural {
+    margin-top: 1rem;
+}
