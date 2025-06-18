@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using conViver.Core.Entities;
 using conViver.Application;
+using Microsoft.AspNetCore.Authorization;
 
 namespace conViver.API.Controllers;
 
 [ApiController]
 [Route("app/reservas")]
+[Authorize]
 public class ReservasController : ControllerBase
 {
     private readonly ReservaService _reservas;

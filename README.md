@@ -98,12 +98,13 @@ docker run -d --name pgconviver -e POSTGRES_PASSWORD=devpass -p 5432:5432 postgr
 dotnet ef database update --project src/Infrastructure
 
 3. Rodar API
-cd src/WebApi
+cd conViver.API
 dotnet run        # localhost:5000  (Swagger em /swagger)
 
 4. Front Web
 # Abrir um simple static server (ex. live-server)
-npx serve src/WebFrontend --single
+npx serve conViver.Web --single
+# Acesse http://localhost:3000/login.html para autenticar e usar o dashboard
 
 5. Mobile MAUI
 cd src/MobileApp.Maui
@@ -119,7 +120,7 @@ REDIS_CONNECTION	Redis	localhost:6379,abortConnect=false
 BASE_URL	URL pública da API	https://localhost:5000/api/v1
 
 
-src/WebApi/appsettings.Development.json possui defaults seguros p/ dev.
+conViver.API/appsettings.Development.json possui defaults seguros p/ dev.
 > Usuário de teste: `teste@conviver.local` / `123456`.
 
 

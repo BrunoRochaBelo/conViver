@@ -1,5 +1,6 @@
 using conViver.Core.Entities;
 using conViver.Core.Interfaces;
+using conViver.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace conViver.Application;
@@ -28,7 +29,7 @@ public class FinanceiroService
             DataVencimento = vencimento.Date,
             NossoNumero = Guid.NewGuid().ToString("N").Substring(0, 10),
             CodigoBanco = "999",
-            Status = "gerado"
+            Status = BoletoStatus.Gerado
         };
 
         await _boletos.AddAsync(boleto, ct);
@@ -45,8 +46,8 @@ public class FinanceiroService
     public async Task<IEnumerable<Boleto>> ListarAsync(string? status, CancellationToken ct = default)
     {
         var query = _boletos.Query();
-        if (!string.IsNullOrWhiteSpace(status))
-            query = query.Where(b => b.Status == status);
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<BoletoStatus>(status, true, out var st))
+            query = query.Where(b => b.Status == st);
         return await query.ToListAsync(ct);
     }
 
@@ -63,9 +64,9 @@ public class FinanceiroService
     {
         var boleto = await _boletos.GetByIdAsync(boletoId, ct);
         if (boleto == null) return;
-        if (boleto.Status == "pago")
+        if (boleto.Status == BoletoStatus.Pago)
             throw new InvalidOperationException("Boleto pago");
-        boleto.Status = "cancelado";
+        boleto.Status = BoletoStatus.Cancelado;
         boleto.UpdatedAt = DateTime.UtcNow;
         await _boletos.UpdateAsync(boleto, ct);
         await _boletos.SaveChangesAsync(ct);

@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using conViver.Core.Entities;
 using conViver.Core.DTOs;
 using conViver.Application;
+using Microsoft.AspNetCore.Authorization;
 
 namespace conViver.API.Controllers;
 
 [ApiController]
 [Route("adm/condominios")]
+[Authorize(Roles = "Administrador")]
 public class CondominiosController : ControllerBase
 {
     private readonly CondominioService _condos;

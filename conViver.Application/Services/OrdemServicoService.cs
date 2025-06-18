@@ -1,5 +1,6 @@
 using conViver.Core.Entities;
 using conViver.Core.Interfaces;
+using conViver.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace conViver.Application;
@@ -37,9 +38,10 @@ public class OrdemServicoService
     public async Task AtualizarStatusAsync(Guid id, string status, CancellationToken ct = default)
     {
         var os = await _ordens.GetByIdAsync(id, ct) ?? throw new InvalidOperationException("OS nao encontrada");
-        os.Status = status;
+        if (Enum.TryParse<OrdemServicoStatus>(status, true, out var st))
+            os.Status = st;
         os.UpdatedAt = DateTime.UtcNow;
-        if (status == "concluida")
+        if (os.Status == OrdemServicoStatus.Concluida)
             os.ConcluidoEm = DateTime.UtcNow;
         await _ordens.UpdateAsync(os, ct);
         await _ordens.SaveChangesAsync(ct);

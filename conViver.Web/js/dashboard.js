@@ -1,6 +1,8 @@
 import apiClient from './apiClient.js';
+import { requireAuth } from './auth.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    requireAuth();
     try {
         const metrics = await apiClient.get('/syndic/reports/dashboard');
         if (metrics.inadimplencia !== undefined) {

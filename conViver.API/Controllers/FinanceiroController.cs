@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using conViver.Core.Entities;
 using conViver.Application;
+using Microsoft.AspNetCore.Authorization;
 
 namespace conViver.API.Controllers;
 
 [ApiController]
 [Route("syndic/finance")]
+[Authorize(Roles = "Sindico")]
 public class FinanceiroController : ControllerBase
 {
     private readonly FinanceiroService _financeiro;

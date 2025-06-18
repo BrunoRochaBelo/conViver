@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using conViver.Core.Entities;
 using conViver.Application;
+using Microsoft.AspNetCore.Authorization;
 
 namespace conViver.API.Controllers;
 
 [ApiController]
 [Route("syndic/os")]
+[Authorize(Roles = "Sindico")]
 public class OrdensServicoController : ControllerBase
 {
     private readonly OrdemServicoService _ordens;
