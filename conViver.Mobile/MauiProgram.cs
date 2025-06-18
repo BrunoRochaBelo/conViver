@@ -18,6 +18,10 @@ public static class MauiProgram
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif
+		// Register Pages and Services
+		builder.Services.AddSingleton<MainPage>();
+		builder.Services.AddSingleton<LoginPage>();
+		builder.Services.AddSingleton<Services.IFeedbackService, Services.FeedbackService>();
 
 		return builder.Build();
 	}

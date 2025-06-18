@@ -11,9 +11,14 @@ const loginFeedback = document.getElementById('loginFeedback');
  * Displays a feedback message in the login form.
  * @param {string} message The message to display.
  * @param {'error' | 'success' | 'loading'} type The type of message.
+ * @param {string} [details] Optional details to append to the message.
  */
-function showFeedback(message, type = 'error') {
-    loginFeedback.textContent = message;
+function showFeedback(message, type = 'error', details = '') {
+    let fullMessage = message;
+    if (details) {
+        fullMessage += `: ${details}`;
+    }
+    loginFeedback.textContent = fullMessage;
     loginFeedback.className = 'login-form__feedback'; // Reset classes
     loginFeedback.classList.add(`login-form__feedback--${type}`);
 }
@@ -33,6 +38,7 @@ if (loginForm) {
 
         // Show loading state
         showFeedback('Autenticando...', 'loading');
+        document.body.classList.add('loading-active'); // Add loading class to body
         loginButton.disabled = true;
         emailInput.disabled = true;
         passwordInput.disabled = true;
@@ -45,6 +51,7 @@ if (loginForm) {
             setToken(response.accessToken);
 
             showFeedback('Login bem-sucedido! Redirecionando...', 'success');
+            document.body.classList.remove('loading-active'); // Remove loading class from body
             // Button remains disabled while redirecting
 
             // Redirect to the main page (index.html or dashboard)
@@ -52,18 +59,40 @@ if (loginForm) {
             window.location.href = 'index.html';
 
         } catch (error) {
-            let errorMessage = 'Falha no login. Verifique suas credenciais ou tente novamente mais tarde.';
+            document.body.classList.remove('loading-active'); // Remove loading class from body
+            let errorMessage = 'Falha no login.';
+            let errorDetails = 'Verifique suas credenciais ou tente novamente mais tarde.';
+
             if (error instanceof ApiError) {
-                // Use message from ApiError if available and specific
-                if (error.message && error.message !== 'API request failed') {
-                    errorMessage = error.message;
-                } else if (error.status === 401) {
+                // Try to get detailed message from API response
+                if (error.data && error.data.message) {
+                    errorDetails = error.data.message;
+                } else if (error.data && error.data.detail) {
+                    errorDetails = error.data.detail;
+                } else if (error.message && error.message !== 'API request failed') {
+                    // Fallback to ApiError message if specific details are not available
+                    errorDetails = error.message;
+                }
+
+                // Set a general message based on status if details are too generic
+                if (error.status === 401) {
                     errorMessage = 'E-mail ou senha inválidos.';
+                    // Keep specific details if available, otherwise use a default
+                    if (errorDetails === 'Invalid credentials' || errorDetails === error.message) {
+                        errorDetails = 'Por favor, verifique os dados inseridos.';
+                    }
                 } else if (error.status === 400) {
-                    errorMessage = 'Requisição inválida. Verifique os dados fornecidos.';
+                    errorMessage = 'Requisição inválida.';
+                     if (errorDetails === error.message) { // Avoid redundant message
+                        errorDetails = 'Verifique os dados fornecidos.';
+                    }
+                } else if (error.status >= 500) {
+                    errorMessage = 'Erro no servidor.';
+                    errorDetails = 'Por favor, tente novamente mais tarde.';
                 }
             }
-            showFeedback(errorMessage, 'error');
+
+            showFeedback(errorMessage, 'error', errorDetails);
             loginButton.disabled = false; // Re-enable button on error
             emailInput.disabled = false;
             passwordInput.disabled = false;

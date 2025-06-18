@@ -1,6 +1,6 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth } from './auth.js';
-import { formatCurrency, formatDate, showGlobalError, showGlobalSuccess } from './main.js';
+import { formatCurrency, formatDate, showGlobalFeedback } from './main.js'; // Updated import
 
 document.addEventListener('DOMContentLoaded', () => {
     requireAuth();
@@ -87,9 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const form = event.target;
         const submitButton = form.querySelector('button[type="submit"]');
+        showGlobalFeedback('Processando...', 'info', 2000);
         submitButton.disabled = true;
-        showGlobalSuccess('Enviando dados da cobrança...');
-
 
         const unidadeId = form.unidadeId.value.trim();
         const valor = parseFloat(form.valor.value);
@@ -97,18 +96,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const descricao = form.descricao.value.trim();
 
         if (!unidadeId || !valor || !dataVencimento) {
-            showGlobalError('Por favor, preencha todos os campos obrigatórios.');
+            showGlobalFeedback('Por favor, preencha todos os campos obrigatórios.', 'error');
             submitButton.disabled = false;
             return;
         }
         if (isNaN(valor) || valor <= 0) {
-            showGlobalError('O valor da cobrança deve ser um número positivo.');
+            showGlobalFeedback('O valor da cobrança deve ser um número positivo.', 'error');
             submitButton.disabled = false;
             return;
         }
         const hoje = new Date().toISOString().split('T')[0];
         if (dataVencimento < hoje) {
-            showGlobalError('A data de vencimento não pode ser no passado.');
+            showGlobalFeedback('A data de vencimento não pode ser no passado.', 'error');
             submitButton.disabled = false;
             return;
         }
@@ -117,16 +116,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             await apiClient.post('/financeiro/cobrancas', novaCobrancaDto);
-            showGlobalSuccess('Cobrança emitida com sucesso!');
+            showGlobalFeedback('Cobrança emitida com sucesso!', 'success', 5000);
             closeModal();
             fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
             fetchAndRenderDashboard();
         } catch (error) {
             console.error('Erro ao criar cobrança:', error);
+            const defaultMessage = 'Ocorreu um erro inesperado ao emitir a cobrança.';
             if (error instanceof ApiError) {
-                showGlobalError(`Erro ao emitir cobrança: ${error.message}`);
+                showGlobalFeedback(`Erro ao emitir cobrança: ${error.message || defaultMessage}`, 'error');
             } else {
-                showGlobalError('Ocorreu um erro inesperado ao emitir a cobrança.');
+                showGlobalFeedback(defaultMessage, 'error');
             }
         } finally {
             submitButton.disabled = false;
@@ -145,9 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!confirm('Tem certeza que deseja gerar as cobranças em lote para o mês atual? Esta ação pode levar alguns instantes.')) {
                 return;
             }
-
+            showGlobalFeedback('Processando...', 'info', 2000);
             btnGerarLote.disabled = true;
-            showGlobalSuccess('Processando geração de lote...');
 
             const hoje = new Date();
             const requestBody = {
@@ -158,18 +157,19 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const resultado = await apiClient.post('/financeiro/cobrancas/gerar-lote', requestBody);
                 if (resultado.sucesso) {
-                    showGlobalSuccess(resultado.mensagem || 'Lote gerado com sucesso!');
+                    showGlobalFeedback(resultado.mensagem || 'Lote gerado com sucesso!', 'success', 5000);
                     fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
                     fetchAndRenderDashboard();
                 } else {
-                    showGlobalError(resultado.mensagem || 'Falha ao gerar lote.');
+                    showGlobalFeedback(resultado.mensagem || 'Falha ao gerar lote.', 'error');
                 }
             } catch (error) {
                 console.error('Erro ao gerar lote:', error);
+                const defaultMessage = 'Ocorreu um erro inesperado ao gerar o lote de cobranças.';
                 if (error instanceof ApiError) {
-                    showGlobalError(`Erro da API ao gerar lote: ${error.message}`);
+                    showGlobalFeedback(`Erro da API ao gerar lote: ${error.message || defaultMessage}`, 'error');
                 } else {
-                    showGlobalError('Ocorreu um erro inesperado ao gerar o lote de cobranças.');
+                    showGlobalFeedback(defaultMessage, 'error');
                 }
             } finally {
                 btnGerarLote.disabled = false;
@@ -188,40 +188,43 @@ document.addEventListener('DOMContentLoaded', () => {
             if (target.classList.contains('js-btn-detalhes-cobranca')) {
                 openModal(`Detalhes da Cobrança ${cobrancaId.substring(0,8)}...`, `<p>Detalhes completos da cobrança ${cobrancaId} serão exibidos aqui... (Funcionalidade a ser implementada)</p>`);
             } else if (target.classList.contains('js-btn-segunda-via')) {
+                showGlobalFeedback('Processando...', 'info', 2000);
                 target.disabled = true;
                 try {
                     const response = await apiClient.get(`/financeiro/cobrancas/${cobrancaId}/segunda-via`);
                     if (response && response.url) {
                         window.open(response.url, '_blank');
-                        showGlobalSuccess('Link da 2ª via aberto em nova aba.');
+                        showGlobalFeedback('Link da 2ª via aberto em nova aba.', 'success', 5000);
                     } else {
-                        showGlobalError('Não foi possível obter o link da 2ª via ou o link não foi fornecido.');
+                        showGlobalFeedback('Não foi possível obter o link da 2ª via ou o link não foi fornecido.', 'error');
                     }
                 } catch (error) {
                     console.error('Erro ao obter 2ª via:', error);
-                    showGlobalError(`Erro ao obter 2ª via: ${error.message || 'Tente novamente.'}`);
+                    showGlobalFeedback(`Erro ao obter 2ª via: ${error.message || 'Tente novamente.'}`, 'error');
                 } finally {
                     target.disabled = false;
                 }
             } else if (target.classList.contains('js-btn-cancelar-cobranca')) {
                 if (!confirm('Tem certeza que deseja cancelar esta cobrança?')) return;
+                showGlobalFeedback('Processando...', 'info', 2000);
                 target.disabled = true;
                 try {
                     // Assuming PUT request for cancel, adjust if it's POST or DELETE
                     const resultado = await apiClient.put(`/financeiro/cobrancas/${cobrancaId}/cancelar`, {});
                     if (resultado && resultado.sucesso) {
-                        showGlobalSuccess(resultado.mensagem || 'Cobrança cancelada com sucesso!');
+                        showGlobalFeedback(resultado.mensagem || 'Cobrança cancelada com sucesso!', 'success', 5000);
                         fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
                         fetchAndRenderDashboard();
                     } else {
-                        showGlobalError(resultado.mensagem || 'Falha ao cancelar cobrança.');
+                        showGlobalFeedback(resultado.mensagem || 'Falha ao cancelar cobrança.', 'error');
                     }
                 } catch (error) {
                     console.error('Erro ao cancelar cobrança:', error);
+                    const defaultMessage = 'Ocorreu um erro inesperado ao cancelar a cobrança.';
                     if (error instanceof ApiError) {
-                        showGlobalError(`Erro ao cancelar cobrança: ${error.message}`);
+                        showGlobalFeedback(`Erro ao cancelar cobrança: ${error.message || defaultMessage}`, 'error');
                     } else {
-                        showGlobalError('Ocorreu um erro inesperado ao cancelar a cobrança.');
+                        showGlobalFeedback(defaultMessage, 'error');
                     }
                 } finally {
                     target.disabled = false;
@@ -309,10 +312,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Erro ao buscar cobranças:', error);
             tbodyCobrancas.innerHTML = '<tr><td colspan="6" class="text-center error-message">Erro ao carregar cobranças. Tente novamente.</td></tr>';
+            const defaultMessage = 'Ocorreu um erro inesperado ao buscar cobranças.';
             if (error instanceof ApiError) {
-                showGlobalError(`Erro ao buscar cobranças: ${error.message}`);
+                showGlobalFeedback(`Erro ao buscar cobranças: ${error.message || defaultMessage}`, 'error');
             } else {
-                showGlobalError('Ocorreu um erro inesperado ao buscar cobranças.');
+                showGlobalFeedback(defaultMessage, 'error');
             }
         }
     }
@@ -328,10 +332,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Erro ao buscar dados do dashboard financeiro:', error);
             renderDashboardFinanceiro(null);
+            const defaultMessage = 'Ocorreu um erro inesperado ao buscar dados do dashboard.';
             if (error instanceof ApiError) {
-                showGlobalError(`Erro ao buscar dados do dashboard: ${error.message}`);
+                showGlobalFeedback(`Erro ao buscar dados do dashboard: ${error.message || defaultMessage}`, 'error');
             } else {
-                showGlobalError('Ocorreu um erro inesperado ao buscar dados do dashboard.');
+                showGlobalFeedback(defaultMessage, 'error');
             }
         }
     }

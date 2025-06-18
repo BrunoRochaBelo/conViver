@@ -1,6 +1,6 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth } from './auth.js';
-import { formatCurrency, formatDate, showGlobalError } from './main.js';
+import { formatCurrency, formatDate, showGlobalFeedback } from './main.js'; // Updated import
 
 document.addEventListener('DOMContentLoaded', async () => {
     requireAuth(); // Ensures user is authenticated before proceeding
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const inadimplenciaChartCanvas = document.getElementById('inadimplenciaChart');
     let inadimplenciaChartInstance = null; // Para manter a instância do gráfico
 
-    // Loading indicator (simple text for now, could be a spinner)
+    // Loading indicator (simple text for now, could be a spinner) - Kept for local loading messages if still desired
     const showLoading = (container, message = "Carregando...") => {
         if (container) container.innerHTML = `<p class="loading-message">${message}</p>`;
     };
@@ -219,51 +219,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function carregarDadosDashboard() {
-        // Set loading states for all sections
-        showLoading(inadimplenciaPercentEl.parentNode, 'Carregando métricas...'); // Target parent for broader loading text
+        showGlobalFeedback('Carregando dados do dashboard...', 'info', 3000);
+
+        // Set loading states for all sections (local indicators can remain or be removed if global is sufficient)
+        showLoading(inadimplenciaPercentEl.parentNode, 'Carregando métricas...');
         showLoading(alertasEl, '<p>Carregando alertas...</p>');
-        showLoading(ultimosChamadosEl.parentNode.parentNode, 'Carregando atividades...'); // Target parent for broader loading text
+        showLoading(ultimosChamadosEl.parentNode.parentNode, 'Carregando atividades...');
 
         // Clear previous chart if any
         if (inadimplenciaChartInstance) {
             inadimplenciaChartInstance.destroy();
             inadimplenciaChartInstance = null;
         }
-        // Ensure canvas is clear if no data comes
-         if (inadimplenciaChartCanvas) {
+        if (inadimplenciaChartCanvas) {
             const ctx = inadimplenciaChartCanvas.getContext('2d');
             ctx.clearRect(0, 0, inadimplenciaChartCanvas.width, inadimplenciaChartCanvas.height);
         }
-
 
         try {
             console.log('Buscando dados do dashboard...');
             const dados = await apiClient.get('/dashboard/geral');
             console.log('Dados recebidos:', dados);
 
-            // Clear loading messages before rendering actual content or "no data" messages
-            clearLoading(inadimplenciaPercentEl.parentNode, ''); // Clear by setting empty, render functions will fill
-            clearLoading(alertasEl, '<p>Nenhum alerta no momento.</p>');
-            clearLoading(ultimosChamadosEl.parentNode.parentNode, '');
-
+            // Clear local loading messages (optional, as global feedback is present)
+            // clearLoading(inadimplenciaPercentEl.parentNode, '');
+            // clearLoading(alertasEl, '<p>Nenhum alerta no momento.</p>');
+            // clearLoading(ultimosChamadosEl.parentNode.parentNode, '');
 
             if (dados) {
-                renderMetricas(dados.metricas || null); // Pass null if metricas is undefined
+                renderMetricas(dados.metricas || null);
                 renderAlertas(dados.alertas, alertasEl);
                 renderAtividades(dados.atividadesRecentes, ultimosChamadosEl, "Chamado", "Nenhum chamado recente.");
                 renderAtividades(dados.atividadesRecentes, ultimosAvisosEl, "Aviso", "Nenhum aviso recente.");
+                showGlobalFeedback('Dashboard carregado com sucesso!', 'success', 3000);
             } else {
-                showGlobalError("Não foi possível carregar os dados do dashboard. Resposta vazia.");
+                showGlobalFeedback("Não foi possível carregar os dados do dashboard. Resposta vazia.", 'error');
                 clearAllSections();
             }
         } catch (error) {
             console.error('Erro ao carregar o dashboard:', error);
             clearAllSections();
+            let errorMessage = 'Ocorreu um erro inesperado ao carregar o dashboard.';
             if (error instanceof ApiError) {
-                showGlobalError(`Erro da API (${error.status || 'Rede'}): ${error.message}`);
-            } else {
-                showGlobalError('Ocorreu um erro inesperado ao carregar o dashboard.');
+                errorMessage = `Erro da API (${error.status || 'Rede'}): ${error.message || 'Não foi possível conectar à API.'}`;
+            } else if (error.message) {
+                errorMessage = error.message;
             }
+            showGlobalFeedback(errorMessage, 'error');
         }
     }
 

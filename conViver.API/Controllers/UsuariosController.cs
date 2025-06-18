@@ -51,10 +51,16 @@ public class UsuariosController : ControllerBase
     public async Task<ActionResult<object>> Login(LoginRequest request)
     {
         var usuario = await _usuarios.GetByEmailAsync(request.Email);
-        if (usuario == null) return Unauthorized();
+        if (usuario == null)
+        {
+            return Unauthorized(new { code = "INVALID_CREDENTIALS", message = "E-mail ou senha inválidos." });
+        }
 
         var valid = await _usuarios.ValidatePasswordAsync(usuario, request.Senha);
-        if (!valid) return Unauthorized();
+        if (!valid)
+        {
+            return Unauthorized(new { code = "INVALID_CREDENTIALS", message = "E-mail ou senha inválidos." });
+        }
 
         var token = _jwt.GenerateToken(usuario.Id, usuario.Perfil.ToString());
         return Ok(new { accessToken = token });
