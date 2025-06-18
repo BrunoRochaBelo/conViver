@@ -241,8 +241,7 @@ namespace conViver.Application.Services // Changed namespace to match convention
                     Id = Guid.NewGuid(),
                     UnidadeId = unidade.Id,
                     Valor = valorTotalLote, // Assuming the same total value for all units in this batch
-                    DataVencimento = dataVencimento,
-                    Status = BoletoStatus.Gerado // Default status
+                    DataVencimento = dataVencimento
                 };
                 novosBoletos.Add(boleto);
                 Console.WriteLine($"Boleto preparado para Unidade {unidade.Identificacao}, Valor: {boleto.Valor}, Vencimento: {boleto.DataVencimento:yyyy-MM-dd}");
