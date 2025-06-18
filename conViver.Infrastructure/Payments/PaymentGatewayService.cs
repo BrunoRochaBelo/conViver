@@ -17,9 +17,7 @@ public class PaymentGatewayService : IFinanceiroService
     public Task RegistrarPagamentoAsync(Boleto boleto, decimal valor, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Pagamento registrado para boleto {NossoNumero}", boleto.NossoNumero);
-        boleto.Status = BoletoStatus.Pago;
-        boleto.ValorPago = valor;
-        boleto.DataPagamento = DateTime.UtcNow;
+        boleto.RegistrarPagamento(valor, DateTime.UtcNow);
         return Task.CompletedTask;
     }
 }
