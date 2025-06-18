@@ -1,6 +1,7 @@
 using conViver.API.Middleware;
 using conViver.Application;
 using conViver.Infrastructure;
+using conViver.Infrastructure.Data.Contexts;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -62,6 +63,13 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ConViverDbContext>();
+    db.Database.EnsureCreated();
+    DataSeeder.Seed(db);
+}
 
 app.UsePathBase("/api/v1");
 
