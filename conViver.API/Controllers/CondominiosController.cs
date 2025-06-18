@@ -5,7 +5,7 @@ using conViver.Core.DTOs;
 namespace conViver.API.Controllers;
 
 [ApiController]
-[Route("adm/condominios")]
+[Route("api/v1/adm/condominios")]
 public class CondominiosController : ControllerBase
 {
     private static readonly List<Condominio> Condos = new();
@@ -27,6 +27,11 @@ public class CondominiosController : ControllerBase
     [HttpPost]
     public ActionResult<CondominioDto> Create(CreateCondominioRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.Nome))
+        {
+            return UnprocessableEntity(new { error = "VALIDATION_ERROR" });
+        }
+
         var cond = new Condominio { Id = Guid.NewGuid(), Nome = request.Nome };
         Condos.Add(cond);
         return CreatedAtAction(nameof(GetById), new { id = cond.Id }, new CondominioDto { Id = cond.Id, Nome = cond.Nome });
