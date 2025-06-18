@@ -15,9 +15,9 @@ public static class DataSeeder
             {
                 Id = Guid.NewGuid(),
                 Nome = "Usuário Teste",
-                Email = "teste@conviver.local",
-                SenhaHash = BCrypt.Net.BCrypt.HashPassword("123456"),
-                Perfil = PerfilUsuario.Morador
+                Email = "admin@conviver.local",
+                SenhaHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
+                Perfil = PerfilUsuario.Administrador
             };
             db.Usuarios.Add(user);
             db.SaveChanges();
