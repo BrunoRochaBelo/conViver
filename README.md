@@ -83,8 +83,9 @@ conViver/
 
 ## Guia Rápido de Uso Local
 
-> Com Docker (`docker compose up -d`) você já sobe **PostgreSQL, Redis e API** num tapa.  
-> Mas se quiser rodar tudo manualmente, segue o passo-a-passo:
+> Com Docker (`docker compose up -d`) você já sobe **PostgreSQL, Redis e API** num tapa.
+> Para algo ainda mais simples, a API também funciona em **SQLite** por padrão em desenvolvimento.
+> Apenas execute `dotnet run` na pasta da API e um arquivo `conviver.db` será criado com um usuário de teste (`teste@conviver.local` / `123456`).
 
 ### 1. Clone & restaure pacotes
 ```bash
@@ -92,7 +93,7 @@ git clone https://github.com/seu-usuario/conViver.git
 cd conViver
 dotnet restore
 
-2. Banco de dados
+2. Banco de dados (opcional para PostgreSQL)
 docker run -d --name pgconviver -e POSTGRES_PASSWORD=devpass -p 5432:5432 postgres:16
 dotnet ef database update --project src/Infrastructure
 
@@ -112,12 +113,14 @@ dotnet build -t:Run -f net8.0-android
 Variáveis de Ambiente
 Nome	Descrição	Exemplo
 DB_CONNECTION	string PostgreSQL	Host=localhost;Port=5432;Username=postgres;Password=devpass;Database=conviver;
+DB_CONNECTION   string SQLite           Data Source=conviver.db
 JWT_SECRET	Chave HMAC-SHA256	super-secret-at-least-32chars
 REDIS_CONNECTION	Redis	localhost:6379,abortConnect=false
-BASE_URL	URL pública da API	https://localhost:5000
+BASE_URL	URL pública da API	https://localhost:5000/api/v1
 
 
 src/WebApi/appsettings.Development.json possui defaults seguros p/ dev.
+> Usuário de teste: `teste@conviver.local` / `123456`.
 
 
 Scripts & Automação

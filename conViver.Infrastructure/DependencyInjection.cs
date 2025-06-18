@@ -18,7 +18,17 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<ConViverDbContext>(options =>
-            options.UseNpgsql(configuration["DB_CONNECTION"]));
+        {
+            var connection = configuration["DB_CONNECTION"] ?? "Data Source=conViver.db";
+            if (connection.Contains("Data Source="))
+            {
+                options.UseSqlite(connection);
+            }
+            else
+            {
+                options.UseNpgsql(connection);
+            }
+        });
 
         services.AddSingleton(AuthConfiguration.FromConfiguration(configuration));
         services.AddSingleton<JwtService>();
