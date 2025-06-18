@@ -1,287 +1,286 @@
-/* === Layout Utilities === */
-.cv-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1rem;
-}
-
-/* === Header === */
-.cv-header {
-    background-color: #2c3e50;
-    color: #fff;
-    padding: 1rem;
-    display: flex; /* Added for alignment */
-    justify-content: space-between; /* Added for alignment */
-    align-items: center; /* Added for alignment */
-}
-
-.cv-header__title {
-    margin: 0; /* Remove default margin from h1 */
-    font-size: 1.8rem; /* Adjust size as needed */
-}
-
-.cv-header__logout {
-    /* Styles specific to logout button positioning if needed, cv-button provides appearance */
-    padding: 0.5rem 1rem; /* Smaller padding for header button */
-    font-size: 0.9rem;
-}
-
-/* === Navigation === */
-.cv-nav {
-    display: flex;
-    gap: 1rem;
-    background-color: #34495e;
-    padding: 0.5rem 1rem; /* Add horizontal padding */
-    /* Example of a potential element: .cv-nav__list */
-}
-
-.cv-nav__link {
-    color: #fff;
-    text-decoration: none;
-    font-weight: bold;
-    padding: 0.5rem 0.75rem;
-    border-radius: 4px;
-    transition: background-color 0.2s ease-in-out;
-}
-
-.cv-nav__link:hover {
-    text-decoration: none; /* Remove underline for a more button-like feel */
-    background-color: #46627f;
-}
-
-.cv-nav__link--active {
-    background-color: #1abc9c; /* Active link color (teal) */
-    color: #fff;
-}
-
-.cv-nav__link--active:hover {
-    background-color: #16a085;
-}
-
-/* === Card === */
-/*
-  Reusable card component.
-  Use modifiers for variations, e.g., .cv-card--highlighted
-  Use elements for internal parts, e.g., .cv-card__title, .cv-card__content
-*/
-.cv-card {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-}
-
-/* === Table === */
-/*
-  Reusable table component.
-  Use elements for specific parts if needed, e.g., .cv-table__header, .cv-table__row, .cv-table__cell
-*/
-.cv-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.cv-table th,
-.cv-table td {
-    border: 1px solid #ddd;
-    padding: 0.5rem;
-    text-align: left;
-}
-
-/* === Button === */
-/*
-  Reusable button component.
-  Use modifiers for variations, e.g., .cv-button--secondary, .cv-button--danger
-*/
 .cv-button {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    font-weight: bold;
-    text-align: center;
-    text-decoration: none;
-    border: 1px solid transparent;
-    border-radius: 4px;
+    /* ... existing display, text-align, etc. ... */
+    font-family: var(--cv-font-family-sans-serif);
+    font-weight: 500; /* Medium weight */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* e.g., 8px 16px */
+    border-radius: var(--cv-border-radius-md); /* e.g., 8px */
+    border: var(--cv-border-width) solid transparent;
     cursor: pointer;
-    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
-    background-color: #e0e0e0; /* Default gray */
-    color: #333;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.15s ease-in-out;
+    background-color: var(--current-button-default-bg);
+    color: var(--current-text-primary);
 }
-
 .cv-button:hover {
-    background-color: #d0d0d0;
+    background-color: var(--current-button-default-hover-bg);
+    box-shadow: var(--current-shadow-sm);
 }
-
+.cv-button:active {
+    transform: scale(0.97);
+    box-shadow: none;
+}
 .cv-button--primary {
-    background-color: #3498db; /* A pleasant blue */
-    color: #fff;
-    border-color: #3498db;
+    background-color: var(--current-primary-blue);
+    color: var(--current-text-on-primary);
+    border-color: var(--current-primary-blue);
 }
-
 .cv-button--primary:hover {
-    background-color: #2980b9;
-    border-color: #2980b9;
+    /* For hover on primary, typically a slightly darker shade of its current color.
+       This requires either predefined darker shades for both light/dark primary blue,
+       or using filter: brightness(90%); which is simpler. Let's try filter. */
+    filter: brightness(90%);
+    box-shadow: var(--current-shadow-sm);
 }
-
+.cv-button--primary:active {
+    filter: brightness(80%); /* Even darker for active */
+    transform: scale(0.97);
+    box-shadow: none; /* Keep box-shadow none for primary active */
+}
+/* Add similar updates for --secondary, --danger, --info, :disabled states */
+/* Example for a generic secondary button, if it exists, or other variants */
 .cv-button--secondary {
-    background-color: #7f8c8d; /* Grayish blue */
-    color: #fff;
-    border-color: #7f8c8d;
+    background-color: var(--current-button-secondary-bg);
+    color: var(--current-text-on-primary); /* Assuming secondary buttons also have light text */
+    border-color: var(--current-button-secondary-bg);
 }
-
 .cv-button--secondary:hover {
-    background-color: #6c7a7b;
-    border-color: #6c7a7b;
+    background-color: var(--current-button-secondary-hover-bg);
+    border-color: var(--current-button-secondary-hover-bg);
+    box-shadow: var(--current-shadow-sm);
+}
+.cv-button--secondary:active {
+    filter: brightness(90%); /* Similar to primary, slightly darker on active */
+    transform: scale(0.97);
+    box-shadow: none;
 }
 
 .cv-button:disabled,
 .cv-button--primary:disabled,
 .cv-button--secondary:disabled {
-    background-color: #ccc;
-    color: #888;
+    background-color: var(--current-button-disabled-bg);
+    color: var(--current-button-disabled-text);
     cursor: not-allowed;
-    border-color: #ccc;
+    border-color: var(--current-button-disabled-border);
+    box-shadow: none;
+    filter: none; /* Ensure no brightness filter on disabled state */
 }
 
-.cv-button--info {
-    background-color: #17a2b8; /* Info blue/teal */
-    color: #fff;
-    border-color: #17a2b8;
+.cv-card {
+    background-color: var(--current-bg-white);
+    border: var(--cv-border-width) solid var(--current-border-color);
+    border-radius: var(--cv-border-radius-lg);
+    padding: var(--cv-spacing-md);
+    margin-bottom: var(--cv-spacing-md);
+    box-shadow: var(--current-shadow-md);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 
-.cv-button--info:hover {
-    background-color: #138496;
-    border-color: #117a8b;
+.cv-card--clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--current-shadow-lg);
 }
 
-.cv-button--danger {
-    background-color: #dc3545; /* Danger red */
-    color: #fff;
-    border-color: #dc3545;
+.cv-card__title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--current-text-primary);
+    margin-bottom: var(--cv-spacing-sm);
 }
 
-.cv-button--danger:hover {
-    background-color: #c82333;
-    border-color: #bd2130;
-}
-
-.cv-button--small {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    border-radius: 0.2rem;
-}
-
-/* === Input === */
-.cv-input {
-    padding: 0.5rem;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    font-size: 1rem;
-    line-height: 1.5;
-}
-
-.cv-input:focus {
-    border-color: #80bdff;
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-}
-
-
-/* === Input === */
-.cv-input {
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 0.25rem;
-    font-size: 1rem;
-    line-height: 1.5;
-    box-sizing: border-box; /* Ensure padding doesn't add to width */
-    width: 100%; /* Make inputs take full width of their container by default */
-}
-
-.cv-input:focus {
-    border-color: #80bdff;
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-}
-
-/* === Form Groups for Modals and other forms === */
-.cv-form__group {
-    margin-bottom: 1rem;
-}
-
-.cv-form__label {
-    display: block;
-    margin-bottom: 0.25rem;
-    font-weight: bold;
+.cv-card__subtitle {
     font-size: 0.9rem;
-    color: #333;
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-md);
 }
 
-.cv-form__actions {
-    margin-top: 1.5rem;
-    display: flex;
-    justify-content: flex-end; /* Alinha botões à direita */
-    gap: 0.5rem; /* Espaço entre os botões */
+.cv-input {
+    font-family: var(--cv-font-family-sans-serif);
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
+    border: var(--cv-border-width) solid var(--current-border-color);
+    border-radius: var(--cv-border-radius-md);
+    font-size: 1rem;
+    line-height: 1.5;
+    background-color: var(--current-bg-white);
+    color: var(--current-text-primary);
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.cv-input::placeholder {
+    color: var(--current-text-placeholder);
+}
+.cv-input:focus {
+    border-color: var(--current-primary-blue);
+    outline: 0;
+    box-shadow: 0 0 0 3px var(--current-input-focus-shadow);
 }
 
-
-/* === Modal === */
-.cv-modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+.cv-input--error {
+    border-color: var(--current-semantic-error);
+    background-color: var(--current-color-error-bg);
+}
+.cv-input--error:focus {
+    border-color: var(--current-semantic-error);
+    /* Assuming --current-input-focus-shadow is adaptable or we need a semantic error focus shadow */
+    box-shadow: 0 0 0 3px var(--current-input-focus-shadow); /* This might need adjustment if focus shadow is always blue */
+}
+.cv-input--success {
+    border-color: var(--current-semantic-success);
+    background-color: var(--current-color-success-bg);
+}
+.cv-input--success:focus {
+    border-color: var(--current-semantic-success);
+    /* Assuming --current-input-focus-shadow is adaptable or we need a semantic success focus shadow */
+    box-shadow: 0 0 0 3px var(--current-input-focus-shadow); /* This might need adjustment */
 }
 
 .cv-modal__content {
-    background-color: #fefefe;
-    margin: 10% auto; /* 10% from the top and centered */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Could be more specific depending on the modal's purpose */
-    max-width: 500px; /* Maximum width */
-    border-radius: 8px;
+    background-color: var(--current-bg-white);
+    margin: 5% auto;
+    padding: var(--cv-spacing-lg);
+    border: none;
+    width: 90%;
+    max-width: 500px;
+    border-radius: var(--cv-border-radius-lg);
     position: relative;
-    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    box-shadow: var(--current-shadow-lg);
     animation-name: animatetop;
-    animation-duration: 0.4s
+    animation-duration: 0.4s;
+    animation-timing-function: ease-out;
+}
+@media (min-width: 768px) {
+    .cv-modal__content {
+        margin: 10% auto;
+    }
 }
 
-/* Add Animation */
 @keyframes animatetop {
     from {top: -300px; opacity: 0}
     to {top: 0; opacity: 1}
 }
 
 .cv-modal__close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
+    color: var(--current-text-placeholder); /* Was --cv-gray-500 */
+    /* Consider using an SVG icon or a styled '×' */
 }
-
 .cv-modal__close:hover,
 .cv-modal__close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
+    color: var(--current-text-primary);
 }
-
 .cv-modal__title {
-    margin-top: 0;
-    margin-bottom: 1rem;
     font-size: 1.5rem;
-    color: #333;
+    font-weight: 600;
+    color: var(--current-text-primary);
+    margin-bottom: var(--cv-spacing-md);
 }
 
-.cv-modal__body {
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+.cv-header {
+    background-color: var(--current-bg-white);
+    color: var(--current-text-primary);
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: var(--cv-border-width) solid var(--current-border-color);
+}
+@media (min-width: 768px) {
+    .cv-header {
+        padding: var(--cv-spacing-md) var(--cv-spacing-lg); /* Desktop padding */
+        flex-wrap: nowrap;
+    }
+}
+.cv-header__title {
+    margin: 0;
+    font-size: 1.5rem; /* Mobile title size */
+    font-weight: 600;
+}
+@media (min-width: 768px) {
+    .cv-header__title {
+        font-size: 1.75rem; /* Desktop title size */
+    }
+}
+
+.cv-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    gap: var(--cv-spacing-xs);
+    background-color: var(--current-nav-bg); /* Was --cv-gray-100 */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
+    border-bottom: var(--cv-border-width) solid var(--current-border-color);
+}
+.cv-nav__link {
+    color: var(--current-text-link);
+    text-decoration: none;
+    font-weight: 500; /* Medium */
+    display: block; /* Make links take full width for easier tapping */
+    width: 100%;
+    text-align: left;
+    padding: var(--cv-spacing-sm); /* Larger padding for easier tapping */
+    border-radius: var(--cv-border-radius-sm);
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+@media (min-width: 768px) {
+    .cv-nav {
+        flex-direction: row;
+        align-items: center;
+        width: auto; /* Revert to auto width for desktop */
+        gap: var(--cv-spacing-sm); /* Restore original gap */
+        /* padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Ensure this is suitable or adjust */
+    }
+    .cv-nav__link {
+        display: inline-block; /* Revert for desktop */
+        width: auto;
+        text-align: center; /* Or left, depending on design */
+        padding: var(--cv-spacing-xs) var(--cv-spacing-sm); /* Restore original padding */
+    }
+}
+.cv-nav__link:hover {
+    background-color: var(--current-bg-element); /* Was --cv-gray-200, now maps to element bg */
+    color: var(--current-primary-blue);
+    transform: translateY(-1px);
+}
+.cv-nav__link--active {
+    background-color: var(--current-primary-blue);
+    color: var(--current-text-on-primary);
+    font-weight: 600;
+}
+.cv-nav__link--active:hover {
+    filter: brightness(90%); /* Similar to primary button hover */
+}
+
+/* Responsive Table Wrapper */
+.cv-table-responsive-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    margin-bottom: var(--cv-spacing-md); /* Space below scrollable table */
+}
+
+/* Apply to actual <table> elements, ensure it can be overridden for specific table needs */
+.cv-table {
+    width: 100%; /* Default to full width within its container */
+    border-collapse: collapse; /* Common practice */
+    /* min-width: 600px; */ /* Example: if table content is wide, forces scrollbar.
+                              This should be set based on table content, or on specific table instances.
+                              Avoid setting a global min-width here unless all tables are complex. */
+}
+
+/* Utility Classes for Responsiveness */
+.hide-on-mobile {
+    display: none !important; /* Use !important to ensure override if needed, use sparingly */
+}
+@media (min-width: 768px) { /* Tablet and up */
+    .hide-on-mobile {
+        display: block !important; /* Or flex, inline, etc., as appropriate to restore */
+    }
+}
+
+.hide-on-desktop {
+    display: block !important; /* Or flex, etc. */
+}
+@media (min-width: 768px) { /* Tablet and up */
+    .hide-on-desktop {
+        display: none !important;
+    }
 }
