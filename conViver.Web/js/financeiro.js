@@ -1,6 +1,8 @@
 import apiClient from './apiClient.js';
+import { requireAuth } from './auth.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    requireAuth();
     try {
         const boletos = await apiClient.get('/syndic/finance/boletos');
         const tbody = document.querySelector('.js-boletos');

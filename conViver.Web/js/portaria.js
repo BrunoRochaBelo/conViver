@@ -1,6 +1,8 @@
 import apiClient from './apiClient.js';
+import { requireAuth } from './auth.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    requireAuth();
     await carregarVisitantes();
     await carregarEncomendas();
 });

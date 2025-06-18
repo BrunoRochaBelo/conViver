@@ -1,5 +1,6 @@
 using conViver.Core.Entities;
 using conViver.Core.Interfaces;
+using conViver.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace conViver.Application;
@@ -40,7 +41,8 @@ public class ReservaService
     {
         var reserva = await _reservas.GetByIdAsync(id, ct);
         if (reserva == null) throw new InvalidOperationException("Reserva nao encontrada");
-        reserva.Status = status;
+        if (Enum.TryParse<ReservaStatus>(status, true, out var st))
+            reserva.Status = st;
         reserva.UpdatedAt = DateTime.UtcNow;
         await _reservas.UpdateAsync(reserva, ct);
         await _reservas.SaveChangesAsync(ct);
