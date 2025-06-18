@@ -1,0 +1,17 @@
+using conViver.Core.Enums;
+
+namespace conViver.Core.Entities;
+
+public class Usuario
+{
+    public Guid Id { get; set; }
+    public string Nome { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string SenhaHash { get; set; } = string.Empty;
+    public string? Telefone { get; set; }
+    public PerfilUsuario Perfil { get; set; } = PerfilUsuario.Morador;
+    public bool Ativo { get; set; } = true;
+    public string? TwoFaSecret { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
