@@ -13,13 +13,13 @@ A solução **conViver** adota uma arquitetura em camadas isoladas, inspirada em
 
 ┌──────────────────────────────────────────────────────────┐
 │ Presentation │
-│ ┌───────────────┐ ┌───────────────┐ ┌───────────────┐│
-│ │ WebAPI │ │ Front Web JS │ │ Mobile MAUI ││
-│ └───────┬───────┘ └───────┬───────┘ └───────┬───────┘│
-│ │ │ │ │
-│ ┌───────▼────────────────────────────────────────►│ │
-│ │ Application │ │
-│ └───────┬──────────────────────────────────────────┘ │
+│ ┌───────────────────┐ ┌──────────────────┐ ┌───────────────────┐│
+│ │  conViver.API   │ │  conViver.Web  │ │ conViver.Mobile ││
+│ └─────────┬─────────┘ └────────┬─────────┘ └─────────┬─────────┘│
+│           │                    │                     │          │
+│ ┌─────────▼──────────────────────────────────────────► │          │
+│ │                       Application                    │          │
+│ └─────────┬──────────────────────────────────────────┘          │
 │ │ │
 │ ┌───────▼───────────────────────────────────────────────────┐│
 │ │ Domain / Core ││
@@ -52,100 +52,115 @@ A solução **conViver** adota uma arquitetura em camadas isoladas, inspirada em
   - **Enums** & **Exceptions**  
   - **Interfaces** (repositórios, serviços de domínio)
 
-### 3.2 Application
+### 3.2 Application (`conViver.Application`)
 - **Responsabilidade**: orquestra casos de uso e transações.
 - **Conteúdo**:  
-  - **Services** (BoletoService, CobrancaService, etc)  
-  - **DTOs** e **Validators**  
-  - **Interfaces** de Application  
+  - **Services** (`UsuarioService`, `CondominioService`, `FinanceiroService`, `VotacaoService`, etc.)
+  - **DTOs** e **Validators** (FluentValidation)
+  - **Interfaces** de Application (`IUsuarioService`, etc.)
   - Configuração de **DependencyInjection**
 
-### 3.3 Infrastructure
+### 3.3 Infrastructure (`conViver.Infrastructure`)
 - **Responsabilidade**: implementação concreta de persistência, mensageria, cache, logs e integrações externas.
 - **Conteúdo**:  
-  - **EF Core** `DbContext`, Migrations, Repositórios  
-  - **JWT/Auth**, **RedisCache**, **Serilog**, **Push Notification**  
-  - **Adapters** para APIs bancárias, armazenamento de arquivos
+  - **EF Core** `ConViverDbContext`, Migrations, Repositórios (`UsuarioRepository`, `CondominioRepository`, etc.)
+  - **Autenticação** (JWT), **Cache** (Redis - `RedisCacheService`), **Logging** (Serilog)
+  - **Adapters** para APIs bancárias (simulado/genérico), armazenamento de arquivos (local/blob storage)
+  - **Notificações Push** (Planejado/Futuro - `NotificationService` pode ser um placeholder)
 
 ### 3.4 Presentation
-- **WebApi**: controllers RESTful, middlewares (erro, logging, autenticação).  
-- **Front Web JS**: páginas HTML semânticas, CSS responsivo, módulos ES6 e consumo via Fetch.  
-- **Mobile MAUI**: MVVM com Community Toolkit, navegação e serviços HTTP.
+- **`conViver.API`**: Controllers RESTful, Middlewares (erro, logging, autenticação).
+- **`conViver.Web`**: Páginas HTML semânticas, CSS responsivo, módulos ES6 e consumo via Fetch API.
+- **`conViver.Mobile`**: .NET MAUI com MVVM (Community Toolkit), navegação e serviços HTTP.
 
 ---
 
-## 4. Fluxo de Requisição
+## 4. Fluxo de Requisição (Exemplo)
 
-1. **WebApi** recebe `HTTP /api/v1/...` → Middleware valida JWT e scopes.  
-2. Controller injeta **IApplicationService** e chama caso de uso.  
-3. **ApplicationService** inicia transação, chama métodos de domínio (entidades, VO).  
-4. Chamada a **IRepository** abstraído via interface.  
-5. **Infrastructure** implementa `EF Core` e persiste dados; fecha transação.  
-6. Response sobe pela WebApi retornando JSON apropriado.
+1. **`conViver.API`** recebe `HTTP /api/v1/...` → Middleware valida JWT e scopes.
+2. Controller injeta interface do serviço da camada de aplicação (ex: `IVotacaoService`) e chama o caso de uso.
+3. Serviço na **`conViver.Application`** inicia transação (se necessário), utiliza entidades e VOs do Core, e pode chamar outros serviços de aplicação ou domínio.
+4. Chamada a interfaces de repositório (ex: `IVotacaoRepository`) definidas no Core e implementadas na Infrastructure.
+5. **`conViver.Infrastructure`** implementa o repositório usando `EF Core` para persistir dados; fecha transação.
+6. Response (geralmente um DTO) sobe pela `conViver.API` retornando JSON apropriado.
 
 ---
 
 ## 5. Modelo de Domínio (DDD)
 
-- **Agregado**: Boleto agrega Pagamentos e Regras de Cobrança.  
-- **Raiz de Agregado**: Unidade, Boleto, Reserva, OrdemServico.  
-- **Repositório**: `IBoletoRepository`, `IUnitRepository` – expõe métodos de consulta e persistência.  
-- **Serviço de Domínio**: regras complexas (cálculo de juros, geração de lote, régua de cobrança) vivem em `Domain/Services` ou `Application/Services`.
+- **Exemplos de Agregados e Raízes de Agregado**:
+    - `Condominio` (Raiz): Agrega `Unidade`, `Aviso`, `Documento`. Endereço é um ValueObject de `Condominio`.
+    - `Usuario` (Raiz): Representa um usuário da plataforma, vinculado a uma `Unidade` principal.
+    - `Unidade` (Raiz): Pode agregar informações sobre seus `Moradores` (que são `Usuario` com vínculo específico).
+    - `Boleto` (Raiz): Representa uma cobrança.
+    - `Reserva` (Raiz): Para áreas comuns.
+    - `OrdemServico` (Raiz): Pode agregar histórico de atualizações.
+    - `PrestadorServico` (Raiz): Agrega `AvaliacaoPrestador`.
+    - `Votacao` (Raiz): Agrega `OpcaoVotacao`, que por sua vez agrega `VotoRegistrado`.
+    - `Chamado` (Raiz): Representa um chamado de helpdesk.
+- **Repositórios**: `ICondominioRepository`, `IUsuarioRepository`, `IVotacaoRepository` etc. – expõem métodos de consulta e persistência para raízes de agregado. Definidos em `conViver.Core` e implementados em `conViver.Infrastructure`.
+- **Serviços de Domínio/Aplicação**: Regras complexas que não se encaixam em uma única entidade (ex: geração de lote de boletos, apuração de votação, processamento de inadimplência) residem em `conViver.Application/Services`. O conceito de "Régua de Cobrança" (mencionado anteriormente) dependeria de uma entidade `RegrasCobranca` que não está implementada atualmente.
 
 ---
 
 ## 6. Dependências entre Projetos
 
-| Projeto          | Depende de             |
-|------------------|------------------------|
-| **Core**         | —                      |
-| **Application**  | Core                   |
-| **Infrastructure** | Core, Application     |
-| **WebApi**       | Core, Application, Infrastructure |
-| **FrontWeb**     | WebApi (via HTTP)      |
-| **MobileApp.Maui** | WebApi (via HTTP)    |
+| Projeto                   | Depende de                                  |
+|---------------------------|---------------------------------------------|
+| **conViver.Core**         | —                                           |
+| **conViver.Application**  | `conViver.Core`                             |
+| **conViver.Infrastructure** | `conViver.Core`, `conViver.Application`     |
+| **conViver.API**          | `conViver.Core`, `conViver.Application`, `conViver.Infrastructure` |
+| **conViver.Web**          | `conViver.API` (via HTTP)                   |
+| **conViver.Mobile**       | `conViver.API` (via HTTP)                   |
+| **conViver.Tests**        | `conViver.Core`, `conViver.Application`, `conViver.API`, `conViver.Infrastructure` (para testes de diferentes camadas) |
+
 
 ---
 
 ## 7. Diagrama de Componentes (resumido)
 
-/docs/diagrams/architecture.png (sugestão: exportar de draw.io)
+*(A imagem /docs/diagrams/architecture.png não existe no repositório. Um diagrama textual simplificado abaixo)*
 
 ```text
-[FrontWeb]    [MobileMAUI]
-     \             /
-      \           /
-       --> [WebApi] --> [Application] --> [Domain]
-                                 \
-                                  --> [Infrastructure]
+[conViver.Web]  [conViver.Mobile]
+      \             /
+       \           /
+        -> [conViver.API] -> [conViver.Application] -> [conViver.Core]
+                                          \         (Domain)
+                                           -> [conViver.Infrastructure]
+```
+
+## 8. Tecnologias & Justificativas
+Camada          | Projeto Relacionado     | Tecnologia Principal   | Por quê?
+----------------|-------------------------|------------------------|----------------------------------------------------
+Domínio         | `conViver.Core`         | C# (.NET 8)            | Lógica de negócio pura, performance, tipagem forte
+Aplicação       | `conViver.Application`  | C# (.NET 8)            | Orquestração de casos de uso, TDD, DI
+Persistência    | `conViver.Infrastructure` | EF Core + PostgreSQL   | Produtividade, ORM robusto, escalável
+Cache           | `conViver.Infrastructure` | Redis                  | Baixa latência, cache distribuído
+Autenticação    | `conViver.Infrastructure` | ASP.NET Core Identity (implícito), JWT | Padrões de segurança
+API             | `conViver.API`          | ASP.NET Core           | Framework web moderno, Swagger para documentação
+Frontend Web    | `conViver.Web`          | HTML5, CSS3, JS ES6 puro | Leve, sem dependências complexas, fácil integração
+Mobile          | `conViver.Mobile`       | .NET MAUI + MVVM Toolkit | Reuso de código C#, UI nativa cross-platform
+DevOps          | (Configuração Externa)  | GitHub Actions, Azure  | Integração contínua, deploy automatizado
 
 
-8. Tecnologias & Justificativas
-Camada	Tecnologia	Por quê?
-Core	C# (.NET 8)	Performance, tipagem forte
-Application	C# (.NET 8)	TDD, DI, orquestração
-Persistence	EF Core + PostgreSQL	Produtividade + escalável
-Cache	Redis	Baixa latência, distribuição
-Auth / API	ASP.NET Core, JWT, Swagger	Segurança, documentação
-Front Web	HTML5, CSS3, JS ES6 puro	Leve, sem dependências, fácil integração
-Mobile	.NET MAUI + MVVM Toolkit	Reuso de código C#, cross-platform
-DevOps	GitHub Actions, Azure	Integração contínua, deploy automatizado
+## 9. Evolução & Escalabilidade
 
+- **Sharding / Particionamento**: Considerar para tabelas de alto volume como `boletos`, `lancamentos`, `visitantes` por `condominio_id` e/ou período.
+- **Event Sourcing**: Para um histórico completo e auditabilidade de certas entidades críticas, poderia ser introduzido (ex: usando Kafka ou Azure Service Bus).
+- **Micro-serviços**: Módulos mais complexos ou com requisitos de escalabilidade distintos (ex: processamento de pagamentos, notificações) poderiam ser extraídos para micro-serviços no futuro.
+- **Cache de Segundo Nível / Cache Otimizado**: Expandir o uso de Redis para cache de consultas frequentes e dados de dashboard.
 
-9. Evolução & Escalabilidade
+## 10. Links Úteis
 
-Sharding / Particionamento de tabelas boletos e pagamentos por condomínio/mês.  
-Event Sourcing para histórico completo (via Kafka ou Azure Service Bus).  
-Micro-services: extrair módulos pesados (e.g., gateway bancário) no futuro.  
-Cache de Segundo Nível: implementar Redis para consultas frequentes (dashboard, relatórios).  
+- 📑 **Modelo de Dados:** [`DATABASE_SCHEMA.MD`](DATABASE_SCHEMA.md)
+- 📖 **Referência da API:** [`API_REFERENCE.MD`](API_REFERENCE.md)
+- 🧪 **Guia de Testes:** [`TEST_GUIDE.MD`](TEST_GUIDE.md)
+- ⚙️ **Guia de Deploy:** [`DEPLOY_GUIDE.MD`](DEPLOY_GUIDE.md)
+- 🚀 **Roadmap & Funcionalidades:** [`README.MD`](README.md) (Seção Roadmap)
 
-10. Links Úteis
-
-📄 Regras de Negócio (BUSINESS_RULES.md)  
-📑 Modelo de Dados (DATABASE_SCHEMA.md)  
-🧪 Guia de Testes (TEST_GUIDE.md)  
-⚙️ Guia de Deploy (DEPLOY_GUIDE.md)  
-
+*Nota: `BUSINESS_RULES.MD` não foi encontrado no repositório.*
 
 Fim – Este documento serve como referência central para toda a equipe de desenvolvimento.
 Qualquer dúvida ou sugestão, abra issue ou PR no repositório! 😉

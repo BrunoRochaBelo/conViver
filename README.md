@@ -32,12 +32,13 @@ Principais módulos:
 
 | Módulo | Highlights |
 |--------|------------|
-| **Financeiro** | Geração de boletos/Pix, conciliação bancária, acordos de inadimplência |
-| **Comunicação** | Mural digital, avisos, votações online |
-| **Portaria & Segurança** | Visitantes, encomendas, QR Code, histórico |
-| **Reservas & Agenda** | Áreas comuns, manutenções programadas |
-| **Prestadores & OS** | Cadastro, ordens de serviço, avaliações |
-| **Gamificação** | Pontos, níveis, metas (opcional) |
+| **Financeiro** | Geração de boletos, conciliação via webhook (genérico), gestão de despesas, balancetes. Acordos de inadimplência implementados. (*PIX específico e relatórios avançados como DIRF são futuros*) |
+| **Comunicação** | Mural digital (Avisos), Votações Online |
+| **Portaria & Segurança** | Registro de Visitantes (com pré-autorização e QR code), Encomendas (registro e retirada) |
+| **Reservas & Agenda** | Reservas de áreas comuns com aprovação |
+| **Prestadores & OS** | Cadastro de Prestadores, Ordens de Serviço, Avaliações de Prestadores |
+| **Documentos** | Biblioteca de documentos com upload e download |
+| **Gamificação** | Pontos, níveis, metas (Planejado/Futuro) |
 
 ---
 
@@ -57,15 +58,15 @@ Principais módulos:
 
 conViver/
 ├─ src/
-│ ├─ Core/ ⟵ Entidades DDD, ValueObjects, Interfaces
-│ ├─ Application/ ⟵ Services, Validators, CQRS futuro
-│ ├─ Infrastructure/ ⟵ EF Core, Auth, Cache, Logging
-│ ├─ WebApi/ ⟵ ASP.NET Core REST (/api/v1)
-│ ├─ WebFrontend/ ⟵ HTML + CSS + JS (assets, pages)
-│ └─ MobileApp.Maui/ ⟵ .NET MAUI cross-platform
-├─ tests/ ⟵ xUnit unit/integration suites
+│ ├─ conViver.Core/ ⟵ Entidades DDD, ValueObjects, Interfaces
+│ ├─ conViver.Application/ ⟵ Services, Validators, CQRS futuro
+│ ├─ conViver.Infrastructure/ ⟵ EF Core, Auth, Cache, Logging
+│ ├─ conViver.API/ ⟵ ASP.NET Core REST (/api/v1)
+│ ├─ conViver.Web/ ⟵ HTML + CSS + JS (assets, pages)
+│ └─ conViver.Mobile/ ⟵ .NET MAUI cross-platform
+├─ conViver.Tests/ ⟵ xUnit unit/integration suites
 ├─ docker-compose.yml ⟵ PostgreSQL + Redis + API
-└─ docs/ ⟵ Arquitetura, Regras de Negócio, Swagger
+└─ API_REFERENCE.md, DATABASE_SCHEMA.md, etc. ⟵ Documentação na raiz
 
 ---
 
@@ -95,12 +96,12 @@ dotnet restore
 
 2. Banco de dados (opcional para PostgreSQL)
 docker run -d --name pgconviver -e POSTGRES_PASSWORD=devpass -p 5432:5432 postgres:16
-dotnet ef database update --project src/Infrastructure
+dotnet ef database update --project src/conViver.Infrastructure
 
 3. Rodar API
-cd conViver.API
+cd src/conViver.API
 # Linux/macOS
-ASPNETCORE_ENVIRONMENT=Development dotnet run  # localhost:5000  (Swagger em /api/v1/swagger somente em Development)
+ASPNETCORE_ENVIRONMENT=Development dotnet run  # localhost:5000  (Swagger em /swagger somente em Development)
 # Windows PowerShell
 $env:ASPNETCORE_ENVIRONMENT="Development"
 dotnet run
@@ -108,7 +109,7 @@ dotnet run
 set ASPNETCORE_ENVIRONMENT=Development
 dotnet run
 
-# /auth/signup é um POST – veja API_REFERENCE.md
+# /auth/signup é um POST – veja API_REFERENCE.md atualizado para DTOs corretos.
 
 4. Front Web
 # Abrir um simple static server (ex. live-server)
@@ -128,39 +129,59 @@ dotnet build -t:Run -f net8.0-android
 | `REDIS_CONNECTION`            | String de conexão para o Redis.                                                                                                         | `localhost:6379,abortConnect=false`                       |
 | `BASE_URL`                    | URL base pública da API, usada em contextos como geração de links em emails.                                                            | `https://sua-api.com/api/v1`                              |
 | `API_CORS_ALLOWED_ORIGINS`    | Define as origens permitidas para CORS na API. Valor em `conViver.API/appsettings.json` (ex: `CorsSettings:AllowedOrigins`).            | `http://localhost:3000;https://yourdomain.com`            |
-| `WEB_API_BASE_URL`            | Define a URL base da API para o cliente web. Valor em `conViver.Web/js/config.js` (ex: `window.APP_CONFIG.API_BASE_URL`).                | `http://localhost:5000/api/v1`                            |
+| `WEB_API_BASE_URL`            | Define a URL base da API para o cliente web. Valor em `src/conViver.Web/js/config.js` (ex: `window.APP_CONFIG.API_BASE_URL`).                | `http://localhost:5000/api/v1`                            |
 
-`conViver.API/appsettings.Development.json` possui defaults seguros para desenvolvimento.
-> Usuário de teste: `teste@conviver.local` / `123456`.
+`src/conViver.API/appsettings.Development.json` possui defaults seguros para desenvolvimento.
+> Usuário de teste: `teste@conviver.local` / `123456` (verificar se ainda válido após migrações e seeders).
 
-
-Scripts & Automação
+<!-- Seção Removida: Scripts & Automação
+## Scripts & Automação
+A pasta `/scripts` não foi encontrada no projeto. Se scripts forem adicionados, documentar aqui.
 Script	O que faz
 ./scripts/create-migration.ps1 "AddBoleto"	Cria migration EF Core
 ./scripts/dev-up.ps1	Start Docker Compose (PG + Redis)
 ./scripts/test-all.ps1	Roda todos os testes unitários/integrados
+-->
 
+## Testes
 
-Testes
+Unit: `src/conViver.Tests/Application/Services` e outros.
+Integration: `src/conViver.Tests/API` (exemplos).
+*Nota: A estrutura de testes em `conViver.Tests` pode conter mais tipos de testes. A referência a Testcontainers é aspiracional se não implementada.*
+`dotnet test` mostra cobertura (coverlet) → badge no README via CI (se configurado).
 
-Unit: tests/Core.Tests, tests/Application.Tests  
-Integration: tests/Infrastructure.Tests (usa Testcontainers p/ PG/Redis)  
-dotnet test mostra cobertura (coverlet) → badge no README via CI.  
+## CI/CD
 
-CI/CD
+GitHub Actions `ci.yml` – build + testes + sonar (se configurado).
+`cd.yml` – docker build, push registry, deploy Azure (se configurado).
+Infra (Exemplo): Azure App Service (API), Azure Storage (front), Azure AD B2C (auth).
 
-GitHub Actions ci.yml – build + testes + sonar  
-cd.yml – docker build, push registry, deploy Azure    
-Infra: Azure App Service (API), Azure Storage (front), Azure ADB2C (auth)  
+## Roadmap
 
-Roadmap
+### Implementado Recentemente / Confirmado
+*   **Gestão Financeira Base**: Cadastro de Despesas, Balancete. Geração de Cobranças (Boletos) e Geração em Lote. Webhook de Pagamento genérico. Acordos de Inadimplência.
+*   **Comunicação**: Mural de Avisos, Votações Online completas.
+*   **Portaria & Segurança**: Registro de Visitantes (com pré-autorização e QR code), Encomendas (registro e retirada).
+*   **Reservas de Áreas Comuns**: Funcionalidade completa com aprovação.
+*   **Prestadores & Ordens de Serviço**: Cadastro de Prestadores, OS, Avaliações de Prestadores.
+*   **Documentos**: Biblioteca de documentos com upload e download.
+*   **Autenticação**: Login, Signup, Refresh Token, Forgot/Reset Password (simulado), Gestão de Usuários (Admin), Gestão de Membros de Unidades (Síndico).
 
-WebSocket 👁️ painel tempo-real (SignalR) 
-Integração Pix instantânea (webhook Dia-bolinha) 
-Chatbot IA (OpenAI Assist) para dúvidas de síndico 
-White-label multi-condomínio para administradoras grandes 
+### Próximos Passos & Melhorias (Sugestões)
+*   **Financeiro Avançado**: Integração específica PIX, relatórios financeiros detalhados (DIRF, etc.), regras de cobrança configuráveis.
+*   **Notificações & Tempo-Real**: Implementar notificações Push (FCM/APNS) e WebSockets (SignalR) para atualizações em tempo-real. (Endpoint `/app/notify/subscribe` e Hubs não implementados).
+*   **Configurações Detalhadas**: Módulos de configuração para síndico (taxas, regras de reserva, etc.) e admin (gateway de pagamento). (Maioria dos endpoints de `/settings` não implementados).
+*   **Autenticação Avançada**: Finalizar implementação de 2FA.
+*   **Gestão de Unidades**: Implementar CRUD completo para Unidades (blocos/apartamentos) pelo Síndico (API Ref. Sec 3.1 não implementada).
+*   **Módulo Condômino para Encomendas**: `GET /app/encomendas` para o condômino ver suas encomendas.
+*   **Testes**: Expandir cobertura de testes unitários e de integração.
+*   **Gamificação**: Desenvolver módulo de gamificação (pontos, níveis, metas).
 
-Contribuindo
+### Futuro Distante / Ideias
+*   Chatbot IA (OpenAI Assist) para dúvidas de síndico.
+*   White-label multi-condomínio para administradoras grandes.
+
+## Contribuindo
 
 Fork + branch feat/alguma-coisa  
 Rode dotnet format antes de commitar  

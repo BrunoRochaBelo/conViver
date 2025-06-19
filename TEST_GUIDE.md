@@ -8,11 +8,13 @@ Este documento descreve como estruturar, escrever e executar testes em todos os 
 
 ## 1. Visão Geral
 
-| Tipo de Teste       | Projeto(s)                                | Ferramenta(s)                   |
-|---------------------|-------------------------------------------|---------------------------------|
-| **Unitários**       | `tests/Core.Tests`<br>`tests/Application.Tests` | xUnit, Moq                      |
-| **Integração**      | `tests/Infrastructure.Tests`              | xUnit, Testcontainers, EF Core In-Memory / Testcontainers para PostgreSQL & Redis |
-| **End-to-End (E2E)**| (opcional) pasta `tests/E2E.Tests`       | Playwright / Cypress / Selenium |
+A solução utiliza um projeto de teste principal: `conViver.Tests`. Dentro deste projeto, os testes são organizados por namespaces e pastas que refletem as camadas da arquitetura (e.g., `conViver.Tests.Application.Services`, `conViver.Tests.API`).
+
+| Tipo de Teste       | Localização (dentro de `conViver.Tests`) | Ferramenta(s)                                   |
+|---------------------|-------------------------------------------|-------------------------------------------------|
+| **Unitários**       | Pastas como `Application/Services/`, `Core/` (se existir) | xUnit, Moq                                      |
+| **Integração**      | Pastas como `Infrastructure/`, `API/`      | xUnit, Testcontainers (para PostgreSQL & Redis), EF Core In-Memory (opcional) |
+| **End-to-End (E2E)**| (Opcional) Pode ser um projeto separado ou pasta `E2E/` | Playwright / Cypress / Selenium                 |
 
 ---
 
@@ -26,51 +28,58 @@ Este documento descreve como estruturar, escrever e executar testes em todos os 
    export JWT_SECRET="test-secret-32chars"
 
 
-Docker rodando para testes de integração com Testcontainers. 
+Docker rodando para testes de integração com Testcontainers (se utilizados).
 
-3. Executando Testes Localmente
-3.1 Unitários
-dotnet test tests/Core.Tests \
-  --configuration Release \
-  --no-build
-dotnet test tests/Application.Tests \
-  --configuration Release \
-  --no-build
+## 3. Executando Testes Localmente
 
-3.2 Integração
-dotnet test tests/Infrastructure.Tests \
-  --configuration Release \
-  --no-build
+Navegue até a raiz do repositório ou a pasta do projeto `conViver.Tests`.
 
+### 3.1. Executar Todos os Testes
+```bash
+# A partir da raiz da solução
+dotnet test src/conViver.Tests/conViver.Tests.csproj --configuration Release --no-build
 
-Esses testes usam Testcontainers para subir um PostgreSQL e um Redis isolados; aguarde alguns segundos para que os containers fiquem prontos.
+# Ou, a partir da pasta conViver.Tests
+# cd src/conViver.Tests
+# dotnet test --configuration Release --no-build
+```
+*Remova `--no-build` se as alterações não foram compiladas.*
 
-3.3 Cobertura de Código (Coverlet)
-Para gerar relatório de cobertura:
-dotnet test tests/Core.Tests \
+### 3.2. Filtrar Testes (Opcional)
+Você pode filtrar testes por namespace, nome da classe, ou atributos (Traits) usando a opção `--filter`.
+```bash
+# Exemplo: Rodar apenas testes de Application.Services
+dotnet test src/conViver.Tests/conViver.Tests.csproj --filter "FullyQualifiedName~Application.Services"
+```
+
+### 3.3. Cobertura de Código (Coverlet)
+Para gerar relatório de cobertura para o projeto `conViver.Tests`:
+```bash
+dotnet test src/conViver.Tests/conViver.Tests.csproj \
   --collect:"XPlat Code Coverage" \
-  --results-directory ./coverage/Core
+  --results-directory ./coverage_results
+  # O arquivo de cobertura XML será gerado dentro de ./coverage_results/{guid}/coverage.cobertura.xml
+```
 
-dotnet test tests/Application.Tests \
-  --collect:"XPlat Code Coverage" \
-  --results-directory ./coverage/Application
-
-Depois use ReportGenerator:
+Depois, para gerar um relatório HTML a partir do XML coletado:
+```bash
+# Instale a ferramenta globalmente se ainda não o fez: dotnet tool install --global dotnet-reportgenerator-globaltool
 reportgenerator \
-  -reports:coverage/**/*.xml \
-  -targetdir:coverage/report \
+  -reports:./coverage_results/**/coverage.cobertura.xml \
+  -targetdir:./coverage_report \
   -reporttypes:Html
+```
+Abra `coverage_report/index.html` no navegador.
 
-Abra coverage/report/index.html no navegador.
-3.4 End-to-End (opcional)
-Se implementado, rodar via CLI da ferramenta E2E escolhida:
-cd tests/E2E.Tests
-npx playwright test
-# ou
-npx cypress run
+### 3.4. Testes End-to-End (Opcional)
+Se implementado (ex: em `conViver.Tests/E2E` ou projeto separado):
+```bash
+# Exemplo com Playwright, ajuste conforme a ferramenta
+# cd src/conViver.Tests/E2E
+# npx playwright test
+```
 
-
-4. Ferramentas & Frameworks
+## 4. Ferramentas & Frameworks
 
 xUnit: runner principal para .NET.  
 Moq: para mocks e stubs em testes unitários.  
@@ -117,33 +126,48 @@ jobs:
         with:
           dotnet-version: '8.0.x'
       - name: Restore & Build
-        run: dotnet build --no-restore --configuration Release
-      - name: Run Unit Tests
-        run: dotnet test tests/Core.Tests --no-build --configuration Release
-      - name: Run Application Tests
-        run: dotnet test tests/Application.Tests --no-build --configuration Release
-      - name: Run Integration Tests
-        run: dotnet test tests/Infrastructure.Tests --no-build --configuration Release
-      - name: Report Coverage
+        run: dotnet build ./src --no-restore --configuration Release # Builda a solução inteira
+      - name: Run Tests with Coverage
         run: |
-          reportgenerator -reports:tests/**/coverage.cobertura.xml \
-                          -targetdir:coverage-report \
-                          -reporttypes:Html
+          dotnet test ./src/conViver.Tests/conViver.Tests.csproj \
+            --no-build \
+            --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage_results \
+            --logger "trx;LogFileName=test-results.trx"
+      - name: Generate Coverage Report
+        run: |
+          reportgenerator \
+            -reports:./coverage_results/**/coverage.cobertura.xml \
+            -targetdir:./coverage_report \
+            -reporttypes:Html_Inline_AzurePipelines;Cobertura # Adiciona Cobertura para sumário no GH Actions
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        if: always() # Sempre fazer upload, mesmo se os testes falharem
+        with:
+          name: test-results
+          path: ./coverage_results/**/*.trx
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v3
+        if: always()
         with:
-          name: coverage-report
-          path: coverage-report
+          name: html-coverage-report
+          path: ./coverage_report
 
-Defina coverage threshold mínimo (ex.: 80%) na etapa de reportgenerator ou via Coverlet settings; falhar o job se abaixo do limite.
+# Opcional: Adicionar um passo para verificar o threshold de cobertura e falhar o build
+# - name: Check code coverage
+#   uses: ... (pode ser um script customizado ou uma action de mercado)
 
-7. Troubleshooting
+## 7. Troubleshooting
 
-Containers não iniciam: verifique logs (docker logs <container>), ajuste versão da imagem.  
-Timeout de DB: aumente Testcontainers startup timeout.  
-Faltou migrations: execute dotnet ef migrations add … antes de rodar os testes de integração.  
-Cobertura zero: assegure que o projeto de testes referencia o projeto alvo e que a opção <IsTestProject>true</IsTestProject> esteja no .csproj.  
-
+- **Containers não iniciam (Testcontainers)**: Verifique logs do Docker (`docker logs <container_id>`), ajuste versão da imagem no código de teste se necessário.
+- **Timeout de DB em Testes de Integração**: Aumente o timeout de startup do Testcontainers se a máquina de CI for lenta.
+- **Falhas de Migrations em Testes**: Certifique-se que os testes de integração aplicam migrações (`_dbContext.Database.MigrateAsync()`) em um banco de teste limpo.
+- **Cobertura de Código Zero ou Incorreta**:
+    - Assegure que o projeto de teste (`conViver.Tests.csproj`) referencia os projetos da aplicação (`conViver.Core`, `conViver.Application`, etc.).
+    - Verifique se `<DebugType>Full</DebugType>` ou `<DebugType>Portable</DebugType>` está definido no `.csproj` dos projetos testados para geração de PDBs.
+    - Confirme se a opção `<IsTestProject>true</IsTestProject>` está no `.csproj` do projeto de testes.
+    - Cheque os filtros do Coverlet se estiverem sendo usados.
 
 Seguindo este guia, a equipe garante qualidade, confiabilidade e rapidez na entrega de funcionalidades. Bons testes! 🚀
 
