@@ -3,25 +3,47 @@ import { requireAuth, logout, getUserInfo, isUserInRole } from './auth.js';
 // Assuming showGlobalFeedback is in main.js, adjust path if necessary
 // import { showGlobalFeedback } from './main.js';
 // For now, let's define a placeholder if main.js is not part of this scope
+// const domElements = { globalFeedbackArea: document.getElementById('global-feedback-area') };
+// It's better if globalFeedbackArea is part of the main domElements cache.
+
+let feedbackTimeout = null; // To manage the timeout
+
 const showGlobalFeedback = (message, type = 'info', duration = 3000) => {
-    console.log(`[${type.toUpperCase()}] Feedback: ${message} (duration: ${duration}ms)`);
-    // In a real app, this would update a visible UI element.
-    const feedbackArea = document.getElementById('global-feedback-area'); // Assuming such an element exists
+    // Attempt to get the element if not already cached or if cacheDOMElements hasn't run
+    const feedbackArea = domElements.globalFeedbackArea || document.getElementById('global-feedback-area');
+
     if (feedbackArea) {
+        // Clear any existing timeout to prevent premature clearing if called rapidly
+        if (feedbackTimeout) {
+            clearTimeout(feedbackTimeout);
+        }
+
         feedbackArea.textContent = message;
-        feedbackArea.className = `feedback-message feedback-${type}`;
-        setTimeout(() => {
-            if (feedbackArea.textContent === message) {
-                feedbackArea.textContent = '';
-                feedbackArea.className = 'feedback-message';
-            }
-        }, duration);
+        // Reset classes first, then add the specific type and a general 'visible' class (or rely on type for display:block)
+        feedbackArea.className = 'feedback-message'; // Reset
+        feedbackArea.classList.add(\`feedback-\${type}\`);
+        // feedbackArea.style.display = 'block'; // Or manage display via CSS classes as done above
+
+        if (duration > 0) { // Allow indefinite display if duration is 0 or less
+            feedbackTimeout = setTimeout(() => {
+                // Check if the message is still the one we set, to avoid clearing a newer message
+                if (feedbackArea.textContent === message) {
+                    feedbackArea.textContent = '';
+                    feedbackArea.className = 'feedback-message'; // Hide it again
+                    // feedbackArea.style.display = 'none';
+                }
+            }, duration);
+        }
+    } else {
+        // Fallback to console if UI element not found
+        console.log(\`[GLOBAL FEEDBACK - \${type.toUpperCase()}]: \${message}\`);
     }
 };
 
 
 let currentUser = null;
 let commonSpaces = []; // Cache for common spaces
+let calendarInstance = null; // Declare calendar instance globally
 
 // --- DOM Elements (cache them for performance) ---
 const domElements = {};
@@ -79,6 +101,7 @@ function cacheDOMElements() {
     domElements.adminActionPrompt = document.getElementById('admin-action-prompt');
     domElements.adminActionJustificativa = document.getElementById('admin-action-justificativa');
     domElements.adminActionModalFeedback = document.getElementById('admin-action-modal-feedback');
+    domElements.globalFeedbackArea = document.getElementById('global-feedback-area');
 }
 
 
@@ -200,14 +223,23 @@ async function handleEspacoSelectChangeInModal(event) {
 
 // --- Agenda View (Calendar/List) ---
 let currentAgendaView = 'month'; // 'month' or 'list'
-// TODO: Implement FullCalendar or similar for month view
-async function loadAgendaView() {
+
+async function loadAgendaView(mesAnoParam = null) { // Accept optional parameter
     showGlobalFeedback("Carregando agenda...", "info");
     const espacoId = domElements.filtroEspacoAgenda?.value || null;
-    const mesAno = new Date().toISOString().slice(0, 7); // Current month
+
+    // Use mesAnoParam if provided, otherwise default to current month
+    // Also, store the current mesAno being viewed, perhaps on a data attribute of a relevant element
+    let mesAnoToLoad;
+    if (mesAnoParam) {
+        mesAnoToLoad = mesAnoParam;
+        if(domElements.calendarContainer) domElements.calendarContainer.dataset.currentMesAnoForView = mesAnoToLoad; // Store it
+    } else {
+        mesAnoToLoad = domElements.calendarContainer?.dataset.currentMesAnoForView || new Date().toISOString().slice(0, 7);
+    }
 
     try {
-        let url = \`/app/reservas/agenda?mesAno=\${mesAno}\`;
+        let url = \`/app/reservas/agenda?mesAno=\${mesAnoToLoad}\`;
         if (espacoId) {
             url += \`&espacoComumId=\${espacoId}\`;
         }
@@ -242,23 +274,109 @@ function switchAgendaView(viewType) {
     loadAgendaView(); // Reload data for the new view
 }
 
-function renderCalendar(events) { // Placeholder for FullCalendar rendering
-    if(!domElements.calendarContainer) return;
-    domElements.calendarContainer.innerHTML = ''; // Clear placeholder
-    if (!events || events.length === 0) {
-        domElements.calendarContainer.innerHTML = '<p>Nenhuma reserva encontrada para este período na visão de calendário.</p>';
+function renderCalendar(agendaEvents) { // agendaEvents are from API (AgendaReservaDto)
+    if (!domElements.calendarContainer) {
+        console.error("Calendar container not found for FullCalendar rendering.");
         return;
     }
-    // This is where FullCalendar initialization and event rendering would go.
-    // For now, just a simple list:
-    const ul = document.createElement('ul');
-    events.forEach(event => {
-        const li = document.createElement('li');
-        li.textContent = \`\${new Date(event.inicio).toLocaleDateString()} \${new Date(event.inicio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - \${new Date(event.fim).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}: \${event.tituloReserva}\`;
-        ul.appendChild(li);
+    domElements.calendarContainer.innerHTML = ''; // Clear any placeholder text
+
+    // Transform agendaEvents to FullCalendar event format
+    const fcEvents = agendaEvents.map(event => ({
+        id: event.id, // Reserva ID
+        title: event.tituloReserva, // e.g., "Salão de Festas - Apto 101"
+        start: event.inicio, // ISO string from backend
+        end: event.fim,     // ISO string from backend
+        extendedProps: {
+            espacoComumId: event.espacoComumId,
+            nomeAreaComum: event.nomeAreaComum,
+            nomeUnidade: event.nomeUnidade,
+            status: event.status
+            // Add any other original event data you might need on click
+        }
+        // Potentially add color based on space or status here
+    }));
+
+    if (calendarInstance) {
+        calendarInstance.destroy(); // Destroy previous instance if exists (e.g., on filter change)
+    }
+
+    calendarInstance = new FullCalendar.Calendar(domElements.calendarContainer, {
+        locale: 'pt-br',
+        initialView: 'dayGridMonth', // Standard month view
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' // Add more views if needed
+        },
+        events: fcEvents,
+        eventClick: function(info) {
+            // Handle event click - e.g., open modal with reservation details
+            console.log('Event clicked:', info.event);
+            showGlobalFeedback(\`Reserva clicada: \${info.event.title}\`, 'info');
+            // Example: Open the reservation modal in read-only or edit mode
+            // First, find the original full reservation DTO if needed, or use extendedProps.
+            // This might require fetching full ReservaDto if extendedProps are not enough.
+            // For now, just log it. If we want to edit, we need the full ReservaInputDto structure.
+            // Let's try to open the modal for viewing/editing (if admin).
+            // We need to fetch the full ReservaDto for editing.
+            // For now, we don't have a "read-only" modal view distinct from edit.
+            // So, if admin, open for edit. If user, maybe just show basic info.
+
+            // This is a simplified example. In a real app, you'd fetch full details
+            // or have enough in extendedProps to show a summary.
+            // If the user is an admin, they might be able to edit it.
+            // Let's assume for now clicking an event on the calendar could open it for editing if admin.
+            // We would need to fetch the full ReservaDto for this.
+            // For this subtask, let's make it simple: just log and show feedback.
+            // A more complex action would be to fetch the full ReservaDto using info.event.id
+            // and then call openReservaModal(fullReservaDtoForEdit);
+
+            // Example: If you want to open the modal for editing (assuming admin)
+            // This requires fetching the full details first.
+            // For now, just an alert or console log.
+            // alert(\`Evento: \${info.event.title}\nInício: \${info.event.start.toLocaleString()}\nFim: \${info.event.end?.toLocaleString()}\`);
+
+            // Let's try to open the admin action modal to view details, or main modal if editable by current user
+            const reservaId = info.event.id;
+            if (isUserInRole("Sindico") || isUserInRole("Administrador")) {
+                // Admins might want to edit. Fetch full details then open.
+                // For now, we'll just show a generic prompt.
+                // Or, find the original event from agendaEvents to pass more data.
+                const originalEvent = agendaEvents.find(e => e.id === reservaId);
+                if (originalEvent) {
+                     // Simplification: open the main reserva modal if it's an admin or their own.
+                     // This needs the full ReservaInputDto structure if we are to edit.
+                     // The AgendaReservaDto is not enough.
+                     // So, for now, this click will be informational.
+                     // A "Detalhes" button on the event popover would be better.
+                    console.log("Original event data:", originalEvent);
+                    // If we had a function like showReservaDetailsModal(originalEvent), we'd call it.
+                    // For now, let's assume clicking an event should allow an admin to potentially edit it
+                    // by fetching the full data and then calling openReservaModal.
+                    // This is a placeholder for that more complex interaction.
+                    showGlobalFeedback(\`Detalhes: \${info.event.title} (\${info.event.startStr} - \${info.event.endStr})\`, 'info', 5000);
+                }
+            } else {
+                // Non-admin user clicked an event.
+                 showGlobalFeedback(\`Reserva: \${info.event.title} (\${info.event.startStr} - \${info.event.endStr})\`, 'info', 5000);
+            }
+        },
+        datesSet: function(dateInfo) {
+            const newMesAno = dateInfo.view.currentStart.toISOString().slice(0, 7);
+            // Check if the month actually changed to avoid redundant loads if only view type changed
+            const displayedMesAno = domElements.calendarContainer?.dataset.currentMesAnoForView;
+            if (newMesAno !== displayedMesAno) {
+                console.log(\`Calendar view changed to month: \${newMesAno}\`);
+                loadAgendaView(newMesAno); // Call with the new month
+            }
+        }
+        // Add other FullCalendar options as needed:
+        // navLinks: true, // can click day/week names to navigate views
+        // editable: true, // if you want drag-and-drop (requires backend updates)
+        // dayMaxEvents: true, // allow "more" link when too many events
     });
-    domElements.calendarContainer.appendChild(ul);
-    console.log("TODO: Implement FullCalendar rendering with events:", events);
+    calendarInstance.render();
 }
 
 function renderAgendaList(items) {
@@ -286,18 +404,231 @@ function renderAgendaList(items) {
 
 // --- "Minhas Reservas" ---
 async function loadMinhasReservas() {
-    // Stub: Implement fetching and rendering logic
-    if(!domElements.minhasReservasList) return;
-    domElements.minhasReservasList.innerHTML = '<p>TODO: Carregar e exibir "Minhas Reservas".</p>';
-    showGlobalFeedback("TODO: Carregar Minhas Reservas", "info");
+    if (!domElements.minhasReservasList) {
+        console.error("Elemento #minhas-reservas-list não encontrado.");
+        return;
+    }
+    domElements.minhasReservasList.innerHTML = '<p>Carregando suas reservas...</p>';
+    showGlobalFeedback("Carregando suas reservas...", "info", 2000);
+
+    try {
+        const filtroPayload = {
+            espacoComumId: domElements.filtroEspacoMinhas?.value || null,
+            status: domElements.filtroStatusMinhas?.value || null,
+            // Add PeriodoInicio, PeriodoFim if filters are added to HTML
+        };
+        // Clean null/empty values from payload if backend expects them to be absent
+        Object.keys(filtroPayload).forEach(key => {
+            if (filtroPayload[key] === null || filtroPayload[key] === '') {
+                delete filtroPayload[key];
+            }
+        });
+        const queryString = new URLSearchParams(filtroPayload).toString();
+
+        const minhasReservas = await apiClient.get(\`/app/reservas/minhas?\${queryString}\`);
+
+        if (!minhasReservas || minhasReservas.length === 0) {
+            domElements.minhasReservasList.innerHTML = '<p>Você não possui nenhuma reserva no momento ou com os filtros selecionados.</p>';
+            showGlobalFeedback("Nenhuma reserva sua encontrada.", "info");
+            return;
+        }
+
+        renderMinhasReservasList(minhasReservas);
+        showGlobalFeedback("Suas reservas foram carregadas.", "success");
+
+    } catch (error) {
+        console.error("Erro ao carregar minhas reservas:", error);
+        const errorMessage = error.data?.message || error.message || "Falha ao carregar suas reservas.";
+        domElements.minhasReservasList.innerHTML = \`<p class="error-message">\${errorMessage}</p>\`;
+        showGlobalFeedback(errorMessage, "error");
+    }
+}
+
+function renderMinhasReservasList(reservas) {
+    if (!domElements.minhasReservasList) return;
+    domElements.minhasReservasList.innerHTML = ''; // Clear loading/previous
+
+    const ul = document.createElement('ul');
+    ul.className = 'cv-list cards-list'; // Added cards-list for potential styling
+
+    reservas.forEach(reserva => {
+        const li = document.createElement('li');
+        li.className = 'cv-list-item cv-card'; // Added cv-card
+        li.dataset.reservaId = reserva.id;
+
+        let actionsHtml = '';
+        const canCancel = (reserva.status === 'Pendente' || reserva.status === 'Aprovada') && new Date(reserva.inicio) > new Date();
+
+        if (canCancel) {
+            actionsHtml += \`<button class="cv-button-outline btn-cancelar-minha-reserva" data-id="\${reserva.id}">Cancelar</button>\`;
+        }
+        // Button to view details/edit (if applicable for user)
+        // actionsHtml += \`<button class="cv-button-outline btn-detalhes-minha-reserva" data-id="\${reserva.id}">Detalhes</button>\`;
+
+
+        li.innerHTML = \`
+            <div class="card-header">
+                <h4>\${reserva.nomeAreaComum}</h4>
+                <span class="status status-\${reserva.status?.toLowerCase()}">\${reserva.status}</span>
+            </div>
+            <div class="card-body">
+                <p><strong>Data:</strong> \${new Date(reserva.inicio).toLocaleDateString()}</p>
+                <p><strong>Horário:</strong> \${new Date(reserva.inicio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - \${new Date(reserva.fim).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                <p><strong>Solicitante:</strong> \${reserva.nomeUsuarioSolicitante}</p>
+                \${reserva.observacoes ? \`<p><strong>Obs:</strong> \${reserva.observacoes}</p>\` : ''}
+            </div>
+            <div class="card-actions">
+                \${actionsHtml}
+            </div>
+        \`;
+        ul.appendChild(li);
+    });
+    domElements.minhasReservasList.appendChild(ul);
+
+    // Add event listeners for the newly created buttons
+    ul.querySelectorAll('.btn-cancelar-minha-reserva').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const reservaId = e.target.dataset.id;
+            openAdminActionModal(reservaId, 'user_self_cancel', 'Confirmar cancelamento da sua reserva?');
+        });
+    });
 }
 
 // --- Admin: "Todas Reservas" ---
 async function loadTodasReservasAdmin() {
-    // Stub: Implement fetching and rendering logic for admin
-    if(!domElements.todasReservasList) return;
-    domElements.todasReservasList.innerHTML = '<p>TODO: Carregar e exibir "Todas Reservas" para Admin.</p>';
-    showGlobalFeedback("TODO: Carregar Todas Reservas (Admin)", "info");
+    if (!domElements.todasReservasList) {
+        console.error("Elemento #todas-reservas-list não encontrado.");
+        return;
+    }
+    if (!isUserInRole("Sindico") && !isUserInRole("Administrador")) {
+        // This function should only be called if user is admin, but as a safeguard:
+        domElements.todasReservasList.innerHTML = ''; // Clear if somehow visible to non-admin
+        return;
+    }
+
+    domElements.todasReservasList.innerHTML = '<p>Carregando todas as reservas (admin)...</p>';
+    showGlobalFeedback("Carregando todas as reservas...", "info", 2000);
+
+    try {
+        const filtroPayload = {
+            espacoComumId: domElements.filtroEspacoAdmin?.value || null,
+            unidadeId: domElements.filtroUnidadeAdminText?.value || null, // Assuming text input gives Guid or parsable ID
+            status: domElements.filtroStatusAdmin?.value || null,
+            // Add PeriodoInicio, PeriodoFim if date filters are added to admin HTML
+        };
+        // Clean null/empty/whitespace values from payload
+        Object.keys(filtroPayload).forEach(key => {
+            if (filtroPayload[key] === null || String(filtroPayload[key]).trim() === '') {
+                delete filtroPayload[key];
+            }
+        });
+        const queryString = new URLSearchParams(filtroPayload).toString();
+
+        const todasReservas = await apiClient.get(\`/syndic/reservas/todas?\${queryString}\`);
+
+        if (!todasReservas || todasReservas.length === 0) {
+            domElements.todasReservasList.innerHTML = '<p>Nenhuma reserva encontrada com os filtros selecionados.</p>';
+            showGlobalFeedback("Nenhuma reserva encontrada (admin).", "info");
+            return;
+        }
+
+        renderTodasReservasListAdmin(todasReservas);
+        showGlobalFeedback("Todas as reservas foram carregadas (admin).", "success");
+
+    } catch (error) {
+        console.error("Erro ao carregar todas as reservas (admin):", error);
+        const errorMessage = error.data?.message || error.message || "Falha ao carregar todas as reservas (admin).";
+        domElements.todasReservasList.innerHTML = \`<p class="error-message">\${errorMessage}</p>\`;
+        showGlobalFeedback(errorMessage, "error");
+    }
+}
+
+function renderTodasReservasListAdmin(reservas) {
+    if (!domElements.todasReservasList) return;
+    domElements.todasReservasList.innerHTML = ''; // Clear loading/previous
+
+    const ul = document.createElement('ul');
+    ul.className = 'cv-list cards-list admin-reservas-list';
+
+    reservas.forEach(reserva => {
+        const li = document.createElement('li');
+        li.className = 'cv-list-item cv-card';
+        li.dataset.reservaId = reserva.id;
+
+        let adminActionsHtml = '';
+        if (reserva.status === 'Pendente') {
+            adminActionsHtml += \`<button class="cv-button-small btn-approve-reserva" data-id="\${reserva.id}">Aprovar</button> \`;
+            adminActionsHtml += \`<button class="cv-button-small cv-button-dangeroutline btn-reject-reserva" data-id="\${reserva.id}">Rejeitar</button> \`;
+        }
+        if (reserva.status === 'Pendente' || reserva.status === 'Aprovada') {
+             // Allow editing for Pendente or Aprovada (before start)
+            if (new Date(reserva.inicio) > new Date()) {
+                adminActionsHtml += \`<button class="cv-button-small cv-button-outline btn-edit-reserva" data-id="\${reserva.id}">Editar</button> \`;
+            }
+        }
+        if (reserva.status !== 'Cancelada' && reserva.status !== 'Recusada' && reserva.status !== 'Bloqueada') {
+             // Allow cancelling for non-finalized states (Bloqueada might be unblocked, not cancelled by admin this way)
+            adminActionsHtml += \`<button class="cv-button-small cv-button-dangeroutline btn-admin-cancel-reserva" data-id="\${reserva.id}">Cancelar (Admin)</button>\`;
+        }
+
+        // For Bloqueada, an "Unblock" button might be more appropriate, handled by EspacosComunsController.
+        // Or if we want to manage blocks here too:
+        // if (reserva.status === 'Bloqueada') {
+        //    adminActionsHtml += \`<button class="cv-button-small btn-unblock-reserva" data-id="\${reserva.id}">Desbloquear</button> \`;
+        // }
+
+
+        li.innerHTML = \`
+            <div class="card-header">
+                <h4>\${reserva.nomeAreaComum} (Unid: \${reserva.nomeUnidade || reserva.unidadeId})</h4>
+                <span class="status status-\${reserva.status?.toLowerCase()}">\${reserva.status}</span>
+            </div>
+            <div class="card-body">
+                <p><strong>Solicitante:</strong> \${reserva.nomeUsuarioSolicitante}</p>
+                <p><strong>Data:</strong> \${new Date(reserva.inicio).toLocaleDateString()}</p>
+                <p><strong>Horário:</strong> \${new Date(reserva.inicio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - \${new Date(reserva.fim).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                \${reserva.observacoes ? \`<p><strong>Obs:</strong> \${reserva.observacoes}</p>\` : ''}
+                \${reserva.justificativaStatus ? \`<p><strong>Just./Status:</strong> \${reserva.justificativaStatus}</p>\` : ''}
+                \${reserva.nomeAprovador ? \`<p><strong>Aprov./Edit. por:</strong> \${reserva.nomeAprovador}</p>\` : ''}
+            </div>
+            <div class="card-actions">
+                \${adminActionsHtml || 'Nenhuma ação disponível'}
+            </div>
+        \`;
+        ul.appendChild(li);
+    });
+    domElements.todasReservasList.appendChild(ul);
+
+    // Add event listeners for the newly created admin buttons
+    ul.querySelectorAll('.btn-approve-reserva').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const reservaId = e.target.dataset.id;
+            openAdminActionModal(reservaId, 'approve', 'Aprovar esta reserva?');
+        });
+    });
+    ul.querySelectorAll('.btn-reject-reserva').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const reservaId = e.target.dataset.id;
+            openAdminActionModal(reservaId, 'reject', 'Rejeitar esta reserva? (Justificativa será obrigatória)');
+        });
+    });
+    ul.querySelectorAll('.btn-edit-reserva').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const reservaId = e.target.dataset.id;
+            const reservaParaEditar = reservas.find(r => r.id === reservaId);
+            if (reservaParaEditar) {
+                openReservaModal(reservaParaEditar); // Open main modal for editing
+            } else {
+                showGlobalFeedback("Erro: Reserva não encontrada para edição.", "error");
+            }
+        });
+    });
+    ul.querySelectorAll('.btn-admin-cancel-reserva').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const reservaId = e.target.dataset.id;
+            openAdminActionModal(reservaId, 'admin_cancel', 'Cancelar esta reserva como Administrador? (Justificativa será obrigatória)');
+        });
+    });
 }
 
 // --- Reserva Modal & Form Submission ---
@@ -305,7 +636,10 @@ function openReservaModal(reserva = null) { // Pass reserva object for editing
     if(!domElements.reservaModal || !domElements.formNovaReserva) return;
 
     domElements.formNovaReserva.reset(); // Clear form
-    if(domElements.reservaModalFeedback) domElements.reservaModalFeedback.textContent = '';
+    if(domElements.reservaModalFeedback) {
+       domElements.reservaModalFeedback.textContent = '';
+       domElements.reservaModalFeedback.className = 'feedback-message';
+    }
     if(domElements.reservaIdEdit) domElements.reservaIdEdit.value = '';
 
     if (reserva) { // Editing existing reserva
@@ -359,6 +693,14 @@ async function handleReservaFormSubmit(event) {
         return;
     }
 
+    if (payload.inicio && payload.fim && new Date(payload.fim) <= new Date(payload.inicio)) {
+        if(domElements.reservaModalFeedback) {
+            domElements.reservaModalFeedback.textContent = "A data/hora de término deve ser posterior à data/hora de início.";
+            domElements.reservaModalFeedback.className = "feedback-message feedback-error";
+        }
+        return;
+    }
+
     try {
         showGlobalFeedback(reservaId ? "Atualizando reserva..." : "Criando reserva...", "info");
         if (reservaId) { // Editing
@@ -388,7 +730,10 @@ function openAdminActionModal(reservaId, actionType, promptMessage) {
     if(!domElements.adminActionModal || !domElements.formAdminAction) return;
 
     domElements.formAdminAction.reset();
-    if(domElements.adminActionModalFeedback) domElements.adminActionModalFeedback.textContent = '';
+    if(domElements.adminActionModalFeedback) {
+       domElements.adminActionModalFeedback.textContent = '';
+       domElements.adminActionModalFeedback.className = 'feedback-message';
+    }
     if(domElements.adminActionReservaId) domElements.adminActionReservaId.value = reservaId;
     if(domElements.adminActionType) domElements.adminActionType.value = actionType;
     if(domElements.adminActionPrompt) domElements.adminActionPrompt.textContent = promptMessage || "Confirmar ação?";
@@ -434,10 +779,17 @@ async function handleAdminActionFormSubmit(event) {
             };
             await apiClient.put(\`/syndic/reservas/\${reservaId}/status\`, statusPayload);
             showGlobalFeedback(\`Reserva \${actionType === 'approve' ? 'aprovada' : 'rejeitada'} com sucesso!\`, "success");
-        } else if (actionType === 'admin_cancel') {
+        } else if (actionType === 'admin_cancel' || actionType === 'user_self_cancel') { // Modified condition
             const cancelPayload = { justificativa: justificativa };
-            await apiClient.deleteApi(\`/app/reservas/\${reservaId}\`, cancelPayload); // apiClient needs deleteApi method that accepts body
-            showGlobalFeedback("Reserva cancelada pelo administrador com sucesso!", "success");
+            if (actionType === 'user_self_cancel' && !justificativa) {
+                // For self-cancel, justification might be truly optional. API must handle null.
+                // If API expects the DTO even if justificativa is null, then send { justificativa: null } or {}.
+                // For now, send as is, assuming API handles optional justificativa in DTO.
+            }
+            // Assumes apiClient.deleteApi can send a JSON body with a DELETE request.
+            // Standard fetch 'DELETE' may not support this directly without custom handling in apiClient.
+            await apiClient.deleteApi(\`/app/reservas/\${reservaId}\`, cancelPayload); // Assumes deleteApi handles body
+            showGlobalFeedback("Reserva cancelada com sucesso!", "success");
         }
         closeAdminActionModal();
         await loadTodasReservasAdmin(); // Refresh admin list
