@@ -17,8 +17,12 @@ public class PrestadorInputDto
     [StringLength(100, ErrorMessage = "O e-mail não pode exceder 100 caracteres.")]
     public string? Email { get; set; }
 
+    public string? RazaoSocial { get; set; }
+
     [StringLength(20, ErrorMessage = "O documento (CNPJ/CPF) não pode exceder 20 caracteres.")]
-    public string? Documento { get; set; } // CNPJ ou CPF
+    public string? CpfCnpj { get; set; } // CNPJ ou CPF
+
+    public string? DocumentosObrigatorios { get; set; }
 
     [StringLength(100, ErrorMessage = "A especialidade não pode exceder 100 caracteres.")]
     public string? Especialidade { get; set; }
@@ -31,14 +35,17 @@ public class PrestadorDto
 {
     public Guid Id { get; set; }
     public string Nome { get; set; } = string.Empty;
+    public string? RazaoSocial { get; set; }
     public string? Telefone { get; set; }
     public string? Email { get; set; }
-    public string? Documento { get; set; }
+    public string? CpfCnpj { get; set; }
+    public string? DocumentosObrigatorios { get; set; }
     public string? Especialidade { get; set; }
     public string? EnderecoCompleto { get; set; }
     public double? RatingMedio { get; set; }
     public int TotalAvaliacoes { get; set; }
     public List<AvaliacaoPrestadorDto> DetalhesAvaliacoes { get; set; } = new List<AvaliacaoPrestadorDto>(); // Adicionado
+    public List<OrdemServicoResumoDto> HistoricoServicos { get; set; } = new List<OrdemServicoResumoDto>();
     // public bool Ativo { get; set; } // Pode ser útil retornar o status Ativo
 }
 

@@ -1,6 +1,7 @@
 using conViver.Core.Entities;
 using conViver.Core.Interfaces;
 using conViver.Core.DTOs;
+using conViver.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -14,28 +15,35 @@ public class PrestadorService
 {
     private readonly IRepository<PrestadorServico> _prestadorRepository;
     private readonly IRepository<AvaliacaoPrestador> _avaliacaoRepository; // Adicionado
+    private readonly IRepository<OrdemServico> _ordemServicoRepository;
 
     // IRepository<AvaliacaoPrestador> _avaliacaoRepository não é explicitamente usado abaixo
     // porque o cálculo de rating e total é feito via Include() e LINQ no _prestadorRepository.
     // Se fosse necessário criar/atualizar avaliações de forma isolada, seria injetado.
     // AGORA É NECESSÁRIO PARA SALVAR AVALIAÇÕES.
 
-    public PrestadorService(IRepository<PrestadorServico> prestadorRepository, IRepository<AvaliacaoPrestador> avaliacaoRepository) // Modificado
+    public PrestadorService(
+        IRepository<PrestadorServico> prestadorRepository,
+        IRepository<AvaliacaoPrestador> avaliacaoRepository,
+        IRepository<OrdemServico> ordemServicoRepository) // Add this
     {
         _prestadorRepository = prestadorRepository;
         _avaliacaoRepository = avaliacaoRepository; // Adicionado
+        _ordemServicoRepository = ordemServicoRepository; // Add this
     }
 
-    public async Task<PrestadorServico> CadastrarPrestadorAsync(Guid condominioId, PrestadorInputDto input, CancellationToken ct = default)
+    public async Task<PrestadorDto> CadastrarPrestadorAsync(Guid condominioId, PrestadorInputDto input, CancellationToken ct = default)
     {
         var prestador = new PrestadorServico
         {
             Id = Guid.NewGuid(),
             CondominioId = condominioId,
             Nome = input.Nome,
+            RazaoSocial = input.RazaoSocial,
             Telefone = input.Telefone,
             Email = input.Email,
-            Documento = input.Documento,
+            CpfCnpj = input.CpfCnpj,
+            DocumentosObrigatorios = input.DocumentosObrigatorios,
             Especialidade = input.Especialidade,
             EnderecoCompleto = input.EnderecoCompleto,
             Ativo = true, // Padrão ao cadastrar
@@ -47,7 +55,7 @@ public class PrestadorService
         await _prestadorRepository.AddAsync(prestador, ct);
         await _prestadorRepository.SaveChangesAsync(ct);
 
-        return prestador;
+        return await this.MapToPrestadorDto(prestador); // Call the instance method and return the DTO
     }
 
     public async Task<IEnumerable<PrestadorDto>> ListarPrestadoresAsync(Guid condominioId, string? especialidade, CancellationToken ct = default)
@@ -64,27 +72,21 @@ public class PrestadorService
             .Include(p => p.Avaliacoes)
             .ToListAsync(ct);
 
-        // Mapeamento para DTO com cálculo de RatingMedio e TotalAvaliacoes
-        return prestadores.Select(p => new PrestadorDto
+        var dtos = new List<PrestadorDto>();
+        foreach (var prestador in prestadores)
         {
-            Id = p.Id,
-            Nome = p.Nome,
-            Telefone = p.Telefone,
-            Email = p.Email,
-            Documento = p.Documento,
-            Especialidade = p.Especialidade,
-            EnderecoCompleto = p.EnderecoCompleto,
-            TotalAvaliacoes = p.Avaliacoes.Count,
-            RatingMedio = p.Avaliacoes.Any() ? p.Avaliacoes.Average(a => a.Nota) : (double?)null
-        })
-        .OrderByDescending(p => p.RatingMedio ?? 0.0) // Ordena por rating, depois por nome
-        .ThenBy(p => p.Nome)
-        .ToList();
+            dtos.Add(await this.MapToPrestadorDto(prestador)); // Await the async call
+        }
+
+        return dtos
+            .OrderByDescending(p => p.RatingMedio ?? 0.0)
+            .ThenBy(p => p.Nome)
+            .ToList();
     }
 
     // Método auxiliar para mapear PrestadorServico para PrestadorDto
     // Pode ser útil se precisarmos retornar um único PrestadorDto com os cálculos.
-    public static PrestadorDto MapToPrestadorDto(PrestadorServico prestador)
+    public async Task<PrestadorDto> MapToPrestadorDto(PrestadorServico prestador)
     {
         if (prestador == null) throw new ArgumentNullException(nameof(prestador));
 
@@ -92,9 +94,11 @@ public class PrestadorService
         {
             Id = prestador.Id,
             Nome = prestador.Nome,
+            RazaoSocial = prestador.RazaoSocial,
             Telefone = prestador.Telefone,
             Email = prestador.Email,
-            Documento = prestador.Documento,
+            CpfCnpj = prestador.CpfCnpj,
+            DocumentosObrigatorios = prestador.DocumentosObrigatorios,
             Especialidade = prestador.Especialidade,
             EnderecoCompleto = prestador.EnderecoCompleto,
             TotalAvaliacoes = prestador.Avaliacoes?.Count ?? 0,
@@ -110,6 +114,30 @@ public class PrestadorService
                 OrdemServicoId = a.OrdemServicoId
             }).ToList() ?? new List<AvaliacaoPrestadorDto>()
         };
+
+        var historicoServicos = new List<OrdemServicoResumoDto>();
+        if (_ordemServicoRepository != null && prestador.Id != Guid.Empty) // Check repository and valid prestador Id
+        {
+            // Assuming OrdemServico entity has a nullable Guid PrestadorId field
+            var osDoPrestador = await _ordemServicoRepository.Query()
+                .Where(os => os.PrestadorId == prestador.Id) // Uses current OrdemServico.PrestadorId
+                .OrderByDescending(os => os.CriadoEm) // Order by creation date or relevant date
+                .ToListAsync(); // Ensure using Microsoft.EntityFrameworkCore for ToListAsync
+
+            foreach (var os in osDoPrestador)
+            {
+                historicoServicos.Add(new OrdemServicoResumoDto
+                {
+                    Id = os.Id,
+                    // DataServico: Use ConcluidoEm if available, otherwise CriadoEm. DataAgendamento will be added later.
+                    DataServico = os.ConcluidoEm ?? os.CriadoEm,
+                    // DescricaoBreve: Use Descricao. Titulo/DescricaoServico will be added later.
+                    DescricaoBreve = os.Descricao?.Length > 100 ? os.Descricao.Substring(0, 100) + "..." : os.Descricao,
+                    Status = os.Status.ToString()
+                });
+            }
+        }
+        dto.HistoricoServicos = historicoServicos;
         return dto;
     }
 
@@ -124,7 +152,7 @@ public class PrestadorService
         {
             return null;
         }
-        return MapToPrestadorDto(prestador);
+        return await this.MapToPrestadorDto(prestador);
     }
 
     public async Task<PrestadorDto?> AtualizarPrestadorAsync(Guid prestadorId, Guid condominioId, PrestadorInputDto input, CancellationToken ct = default)
@@ -140,9 +168,11 @@ public class PrestadorService
 
         // Atualiza os campos
         prestador.Nome = input.Nome;
+        prestador.RazaoSocial = input.RazaoSocial;
         prestador.Telefone = input.Telefone;
         prestador.Email = input.Email;
-        prestador.Documento = input.Documento;
+        prestador.CpfCnpj = input.CpfCnpj;
+        prestador.DocumentosObrigatorios = input.DocumentosObrigatorios;
         prestador.Especialidade = input.Especialidade;
         prestador.EnderecoCompleto = input.EnderecoCompleto;
         prestador.UpdatedAt = DateTime.UtcNow;
@@ -152,7 +182,7 @@ public class PrestadorService
         await _prestadorRepository.UpdateAsync(prestador, ct);
         await _prestadorRepository.SaveChangesAsync(ct);
 
-        return MapToPrestadorDto(prestador); // Recalcula DTO com base nos dados atualizados
+        return await this.MapToPrestadorDto(prestador); // Recalcula DTO com base nos dados atualizados
     }
 
     public async Task<bool> DesativarPrestadorAsync(Guid prestadorId, Guid condominioId, CancellationToken ct = default)
@@ -162,7 +192,22 @@ public class PrestadorService
 
         if (prestador == null)
         {
-            return false;
+            return false; // Or throw NotFoundException
+        }
+
+        // Check for active Ordens de Servico
+        // Assuming OrdemServicoStatus enum has Concluida and Cancelada
+        // Encerrada will be added in Phase 2. For now, check against existing final states.
+        var pendingOs = await _ordemServicoRepository.Query()
+            .AnyAsync(os => os.PrestadorId == prestadorId &&
+                             os.Status != OrdemServicoStatus.Concluida &&
+                             os.Status != OrdemServicoStatus.Cancelada, // Add other final states here if they exist
+                             ct);
+
+        if (pendingOs)
+        {
+            // Consider using a custom exception or a more specific one if available
+            throw new InvalidOperationException("Prestador não pode ser desativado pois possui Ordens de Serviço pendentes ou em andamento.");
         }
 
         if (!prestador.Ativo) // Já desativado

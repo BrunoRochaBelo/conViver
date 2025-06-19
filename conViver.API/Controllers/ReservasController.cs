@@ -1,183 +1,252 @@
-using Microsoft.AspNetCore.Mvc;
-using conViver.Core.Entities; // Será substituído por DTOs na maioria dos retornos
-using conViver.Application;    // Assumindo que ReservaService está aqui
-using conViver.Core.DTOs;      // Adicionado para DTOs
-using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Security.Claims;  // Adicionado
-using System.ComponentModel.DataAnnotations; // Para [Required]
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using conViver.Application.Services; // For ReservaService
+using conViver.Core.DTOs;
+using conViver.Application.Exceptions; // For NotFoundException, etc.
+using System.ComponentModel.DataAnnotations; // For [Required]
 
-namespace conViver.API.Controllers;
-
-[ApiController]
-[Route("api/v1")] // Rota base ajustada para consistência, endpoints especificarão o resto
-[Authorize]
-public class ReservasController : ControllerBase
+namespace conViver.API.Controllers
 {
-    private readonly ReservaService _reservas;
-
-    public ReservasController(ReservaService reservas)
+    [ApiController]
+    [Route("api/v1")]
+    [Authorize] // Default authorization for the controller
+    public class ReservasController : ControllerBase
     {
-        _reservas = reservas;
-    }
+        private readonly ReservaService _reservaService;
 
-    /// <summary>
-    /// Obtém a agenda de reservas para um determinado mês/ano.
-    /// </summary>
-    /// <param name="mesAno">O mês e ano no formato YYYY-MM.</param>
-    /// <returns>Uma lista de reservas para o período.</returns>
-    /// <response code="200">Retorna a agenda de reservas.</response>
-    /// <response code="400">Formato de data inválido.</response>
-    /// <response code="401">Usuário não autorizado ou CondominioId inválido.</response>
-    [HttpGet("app/reservas/agenda")] // Rota completa: /api/v1/app/reservas/agenda
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
-    public async Task<ActionResult<IEnumerable<AgendaReservaDto>>> GetAgenda([FromQuery, Required] string mesAno)
-    {
-        if (!DateTime.TryParse($"{mesAno}-01", out var mes))
-            return BadRequest(new { error = "INVALID_DATE", message = "Formato de mesAno deve ser YYYY-MM." });
-
-        var condominioIdClaim = User.FindFirstValue("condominioId");
-        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        public ReservasController(ReservaService reservaService)
         {
-            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+            _reservaService = reservaService;
         }
 
-        // Assumindo que _reservas.GetAgendaAsync foi atualizado para receber condominioId e retornar DTOs
-        var items = await _reservas.GetAgendaAsync(condominioId, mes);
-        return Ok(items);
-    }
-
-    /// <summary>
-    /// Obtém detalhes de uma reserva específica.
-    /// </summary>
-    /// <param name="id">ID da reserva.</param>
-    /// <returns>Detalhes da reserva.</returns>
-    /// <response code="200">Retorna os detalhes da reserva.</response>
-    /// <response code="401">Usuário não autorizado ou não tem permissão para ver esta reserva.</response>
-    /// <response code="404">Reserva não encontrada.</response>
-    [HttpGet("app/reservas/{id:guid}")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
-    public async Task<ActionResult<ReservaDto>> GetReservaPorId(Guid id)
-    {
-        var condominioIdClaim = User.FindFirstValue("condominioId");
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
-            string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
+        // --- Claim Helper Methods ---
+        private Guid GetCondominioIdClaim()
         {
-            return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
+            var claim = User.FindFirstValue("condominioId");
+            if (string.IsNullOrEmpty(claim) || !Guid.TryParse(claim, out Guid id))
+                throw new UnauthorizedAccessException("CondominioId não encontrado ou inválido no token.");
+            return id;
         }
 
-        // Assumindo que _reservas.GetByIdAsync foi atualizado para receber condominioId e userId (para verificação de permissão)
-        var reservaDto = await _reservas.GetByIdAsync(id, condominioId, userId);
-        if (reservaDto == null) return NotFound("Reserva não encontrada ou acesso não permitido.");
-        return Ok(reservaDto);
-    }
-
-    /// <summary>
-    /// Cria uma nova solicitação de reserva para uma área comum.
-    /// </summary>
-    /// <param name="inputDto">Dados da reserva.</param>
-    /// <returns>A reserva criada.</returns>
-    /// <response code="201">Retorna a reserva criada.</response>
-    /// <response code="400">Dados de entrada inválidos.</response>
-    /// <response code="401">Usuário não autorizado ou claims inválidas.</response>
-    [HttpPost("app/reservas")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
-    public async Task<ActionResult<ReservaDto>> SolicitarReserva([FromBody] ReservaInputDto inputDto)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var condominioIdClaim = User.FindFirstValue("condominioId");
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
-            string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid usuarioId))
+        private Guid GetUserIdClaim()
         {
-            return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
+            var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(claim) || !Guid.TryParse(claim, out Guid id))
+                throw new UnauthorizedAccessException("UserId não encontrado ou inválido no token.");
+            return id;
         }
 
-        // Assumindo que _reservas.SolicitarAsync foi atualizado
-        var reservaDto = await _reservas.SolicitarAsync(condominioId, usuarioId, inputDto);
-        if (reservaDto == null)
+        private Guid GetUnidadeIdClaim()
         {
-            // Pode ocorrer se, por exemplo, a área não existir, já estiver reservada, etc.
-            return BadRequest("Não foi possível criar a reserva. Verifique os dados e a disponibilidade.");
-        }
-        return CreatedAtAction(nameof(GetReservaPorId), new { id = reservaDto.Id }, reservaDto);
-    }
-
-    /// <summary>
-    /// (Síndico) Aprova ou recusa uma solicitação de reserva.
-    /// </summary>
-    /// <param name="id">ID da reserva a ser atualizada.</param>
-    /// <param name="updateDto">Novo status e justificativa.</param>
-    /// <returns>Nenhum conteúdo ou a reserva atualizada.</returns>
-    /// <response code="200">Reserva atualizada com sucesso (se retornar o objeto).</response>
-    /// <response code="204">Reserva atualizada com sucesso (se não retornar corpo).</response>
-    /// <response code="400">Dados de entrada inválidos (ex: status inválido).</response>
-    /// <response code="401">Usuário não autorizado ou CondominioId inválido.</response>
-    /// <response code="403">Usuário não tem permissão (não é Síndico).</response>
-    /// <response code="404">Reserva não encontrada.</response>
-    [HttpPut("syndic/reservas/{id:guid}")] // Rota ajustada para API Ref 6.3
-    [Authorize(Roles = "Sindico")]
-    public async Task<IActionResult> AtualizarStatusReserva(Guid id, [FromBody] ReservaStatusUpdateDto updateDto)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var condominioIdClaim = User.FindFirstValue("condominioId");
-        var sindicoUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
-            string.IsNullOrEmpty(sindicoUserIdClaim) || !Guid.TryParse(sindicoUserIdClaim, out Guid sindicoUserId))
-        {
-            return Unauthorized("CondominioId ou UserId do síndico não encontrado ou inválido no token.");
+            // Assuming "unidadeId" is a claim available for residents.
+            // This might need adjustment based on actual claim setup.
+            var claim = User.FindFirstValue("unidadeId");
+            if (string.IsNullOrEmpty(claim) || !Guid.TryParse(claim, out Guid id))
+                throw new UnauthorizedAccessException("UnidadeId não encontrada ou inválida no token.");
+            return id;
         }
 
-        try
-        {
-            // Assumindo que _reservas.AtualizarStatusAsync foi atualizado
-            var reservaAtualizadaDto = await _reservas.AtualizarStatusAsync(id, condominioId, sindicoUserId, updateDto);
-            if(reservaAtualizadaDto == null) return NotFound("Reserva não encontrada ou não pôde ser atualizada.");
-            return Ok(reservaAtualizadaDto); // Retornar DTO atualizado
-        }
-        catch (InvalidOperationException ex) // Ex: tentativa de aprovar reserva já cancelada
-        {
-            return BadRequest(new { error="INVALID_OPERATION", message = ex.Message });
-        }
-    }
+        private bool IsUserSindico() => User.IsInRole("Sindico") || User.IsInRole("Administrador");
 
-    /// <summary>
-    /// Cancela uma reserva (solicitada pelo próprio usuário ou síndico).
-    /// </summary>
-    /// <param name="id">ID da reserva a ser cancelada.</param>
-    /// <returns>Nenhum conteúdo.</returns>
-    /// <response code="204">Reserva cancelada com sucesso.</response>
-    /// <response code="401">Usuário não autorizado ou claims inválidas.</response>
-    /// <response code="403">Usuário não tem permissão para cancelar esta reserva.</response>
-    /// <response code="404">Reserva não encontrada.</response>
-    [HttpDelete("app/reservas/{id:guid}")] // Rota para API Ref 6.4
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")] // Síndico também pode cancelar
-    public async Task<IActionResult> CancelarReserva(Guid id)
-    {
-        var condominioIdClaim = User.FindFirstValue("condominioId");
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
-            string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid usuarioId))
+        // --- Endpoints ---
+
+        // GET /api/v1/app/reservas/agenda
+        [HttpGet("app/reservas/agenda")]
+        [Authorize(Roles = "Sindico,Administrador,Condomino,Inquilino")]
+        public async Task<ActionResult<IEnumerable<AgendaReservaDto>>> GetAgendaComunitaria([FromQuery, Required] string mesAno, [FromQuery] Guid? espacoComumId)
         {
-            return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
+            if (!DateTime.TryParse($"{mesAno}-01", out var parsedMesAno))
+                return BadRequest(new { message = "Formato de mesAno deve ser YYYY-MM." });
+            try
+            {
+                var condominioId = GetCondominioIdClaim();
+                var items = await _reservaService.GetAgendaComunitariaAsync(condominioId, parsedMesAno, espacoComumId);
+                return Ok(items);
+            }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (Exception ex) { return StatusCode(500, $"Erro interno ao buscar agenda: {ex.Message}"); }
         }
 
-        // Assumindo que _reservas.CancelarAsync foi atualizado
-        var sucesso = await _reservas.CancelarAsync(id, condominioId, usuarioId, User.IsInRole("Sindico"));
-        if (!sucesso)
+        // GET /api/v1/app/reservas/minhas
+        [HttpGet("app/reservas/minhas")]
+        [Authorize(Roles = "Condomino,Inquilino,Sindico,Administrador")] // Sindico can also see their own if they have a unit
+        public async Task<ActionResult<IEnumerable<ReservaDto>>> GetMinhasReservas([FromQuery] FiltroReservaDto filtro)
         {
-            // Pode ser NotFound ou Forbidden dependendo do motivo da falha
-            return NotFound("Reserva não encontrada ou não pôde ser cancelada (verifique permissões).");
+            try
+            {
+                var condominioId = GetCondominioIdClaim();
+                var usuarioId = GetUserIdClaim();
+                var unidadeId = GetUnidadeIdClaim(); // Assumes user has one UnidadeId in claims.
+                                                     // If a user (like Sindico) can have multiple or no direct UnidadeId, this needs adjustment.
+                                                     // For now, proceed with this assumption.
+
+                var reservas = await _reservaService.ListarMinhasReservasAsync(usuarioId, condominioId, unidadeId, filtro);
+                return Ok(reservas);
+            }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (Exception ex) { return StatusCode(500, $"Erro interno ao buscar minhas reservas: {ex.Message}"); }
         }
-        return NoContent();
+
+        // GET /api/v1/syndic/reservas/todas
+        [HttpGet("syndic/reservas/todas")]
+        [Authorize(Roles = "Sindico,Administrador")]
+        public async Task<ActionResult<IEnumerable<ReservaDto>>> GetTodasReservas([FromQuery] FiltroReservaDto filtro)
+        {
+            try
+            {
+                var condominioId = GetCondominioIdClaim();
+                var reservas = await _reservaService.ListarTodasReservasAsync(condominioId, filtro);
+                return Ok(reservas);
+            }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (Exception ex) { return StatusCode(500, $"Erro interno ao buscar todas as reservas: {ex.Message}"); }
+        }
+
+        // GET /api/v1/app/reservas/mural
+        [HttpGet("app/reservas/mural")]
+        [AllowAnonymous] // Or specific roles if mural has restricted access
+        // [Authorize(Roles = "Sindico,Administrador,Condomino,Inquilino")] // If mural is not public
+        public async Task<ActionResult<IEnumerable<MuralReservaDto>>> GetReservasMural()
+        {
+            // If mural is per-condominio and not globally anonymous:
+            // var condominioId = GetCondominioIdClaim();
+            // For now, assuming it might be for a specific condominio if user is authenticated,
+            // or a default/public one if AllowAnonymous. Let's assume it requires auth for a condominio.
+             if (!User.Identity.IsAuthenticated) return Unauthorized("Acesso ao mural requer autenticação para definir o condomínio.");
+
+            try
+            {
+                var condominioId = GetCondominioIdClaim(); // Requires auth
+                var items = await _reservaService.GetReservasParaMuralAsync(condominioId);
+                return Ok(items);
+            }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); } // If GetCondominioIdClaim fails
+            catch (Exception ex) { return StatusCode(500, $"Erro interno ao buscar reservas para o mural: {ex.Message}"); }
+        }
+
+
+        // GET /api/v1/app/reservas/{id}
+        [HttpGet("app/reservas/{id:guid}")]
+        [Authorize(Roles = "Sindico,Administrador,Condomino,Inquilino")]
+        public async Task<ActionResult<ReservaDto>> GetReservaDetalhes(Guid id)
+        {
+            try
+            {
+                var condominioId = GetCondominioIdClaim();
+                var usuarioId = GetUserIdClaim();
+                var isSindico = IsUserSindico();
+
+                var reservaDto = await _reservaService.GetReservaDetalhesAsync(id, condominioId, usuarioId, isSindico);
+                if (reservaDto == null) return NotFound(new { message = "Reserva não encontrada ou acesso não permitido." });
+                return Ok(reservaDto);
+            }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (Exception ex) { return StatusCode(500, $"Erro interno ao buscar detalhes da reserva: {ex.Message}"); }
+        }
+
+        // POST /api/v1/app/reservas
+        [HttpPost("app/reservas")]
+        [Authorize(Roles = "Sindico,Administrador,Condomino,Inquilino")]
+        public async Task<ActionResult<ReservaDto>> SolicitarReserva([FromBody] ReservaInputDto inputDto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var condominioId = GetCondominioIdClaim();
+                var usuarioId = GetUserIdClaim();
+                var unidadeId = GetUnidadeIdClaim(); // Critical: user must have a unidadeId claim.
+
+                var reservaDto = await _reservaService.SolicitarReservaAsync(condominioId, usuarioId, unidadeId, inputDto);
+                if (reservaDto == null) return BadRequest(new { message = "Não foi possível criar a reserva. Verifique os dados e a disponibilidade."});
+                return CreatedAtAction(nameof(GetReservaDetalhes), new { id = reservaDto.Id }, reservaDto);
+            }
+            catch (NotFoundException ex) { return NotFound(new { message = ex.Message }); }
+            catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (Exception ex) { return StatusCode(500, $"Erro interno ao solicitar reserva: {ex.Message}"); }
+        }
+
+        // PUT /api/v1/syndic/reservas/{id}/status
+        [HttpPut("syndic/reservas/{id:guid}/status")]
+        [Authorize(Roles = "Sindico,Administrador")]
+        public async Task<ActionResult<ReservaDto>> AtualizarStatusReserva(Guid id, [FromBody] ReservaStatusUpdateDto updateDto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var condominioId = GetCondominioIdClaim();
+                var sindicoUserId = GetUserIdClaim();
+
+                var reservaDto = await _reservaService.AtualizarStatusReservaAsync(id, condominioId, sindicoUserId, updateDto);
+                if (reservaDto == null) return NotFound(new { message = "Reserva não encontrada ou não pôde ser atualizada."});
+                return Ok(reservaDto);
+            }
+            catch (NotFoundException ex) { return NotFound(new { message = ex.Message }); }
+            catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (Exception ex) { return StatusCode(500, $"Erro interno ao atualizar status da reserva: {ex.Message}"); }
+        }
+
+        // PUT /api/v1/syndic/reservas/{id}
+        [HttpPut("syndic/reservas/{id:guid}")]
+        [Authorize(Roles = "Sindico,Administrador")]
+        public async Task<ActionResult<ReservaDto>> EditarReserva(Guid id, [FromBody] ReservaInputDto inputDto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var condominioId = GetCondominioIdClaim();
+                var sindicoUserId = GetUserIdClaim();
+
+                var reservaDto = await _reservaService.EditarReservaAsync(id, condominioId, sindicoUserId, inputDto);
+                if (reservaDto == null) return NotFound(new { message = "Reserva não encontrada ou não pôde ser editada."});
+                return Ok(reservaDto);
+            }
+            catch (NotFoundException ex) { return NotFound(new { message = ex.Message }); }
+            catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (Exception ex) { return StatusCode(500, $"Erro interno ao editar reserva: {ex.Message}"); }
+        }
+
+        // DTO for CancelarReserva (if justification is in body)
+        public class CancelamentoInputDto
+        {
+            [MaxLength(500, ErrorMessage = "A justificativa para cancelamento não pode exceder 500 caracteres.")]
+            public string? Justificativa { get; set; }
+        }
+
+        // DELETE /api/v1/app/reservas/{id}
+        [HttpDelete("app/reservas/{id:guid}")]
+        [Authorize(Roles = "Sindico,Administrador,Condomino,Inquilino")]
+        public async Task<ActionResult<ReservaDto>> CancelarReserva(Guid id, [FromBody] CancelamentoInputDto? cancelamentoDto) // DTO is optional for GET-like DELETEs, but good for justification
+        {
+            // For DELETE, body is not always standard. Could also be query param.
+            // If DTO is null and body is expected, it might fail. Consider making DTO required or using FromQuery for justificativa.
+            // For now, assuming DTO can be null if no body is sent.
+            string? justificativa = cancelamentoDto?.Justificativa;
+
+            try
+            {
+                var condominioId = GetCondominioIdClaim();
+                var usuarioId = GetUserIdClaim();
+                var isSindico = IsUserSindico();
+
+                var reservaDto = await _reservaService.CancelarReservaAsync(id, condominioId, usuarioId, isSindico, justificativa);
+                if (reservaDto == null) return NotFound(new { message = "Reserva não encontrada ou falha ao cancelar."}); // Or BadRequest depending on service logic
+                return Ok(reservaDto); // Returning the cancelled reserva DTO
+            }
+            catch (NotFoundException ex) { return NotFound(new { message = ex.Message }); }
+            catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+            catch (Exception ex) { return StatusCode(500, $"Erro interno ao cancelar reserva: {ex.Message}"); }
+        }
     }
 }
-

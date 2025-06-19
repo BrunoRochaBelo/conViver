@@ -1,5 +1,6 @@
 using conViver.Core.Entities;
 using conViver.Core.Interfaces;
+using conViver.Core.Notifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace conViver.Application;
@@ -7,12 +8,16 @@ namespace conViver.Application;
 public class AvisoService
 {
     private readonly IRepository<Aviso> _avisos;
-    private readonly INotificacaoService _notify;
+    private readonly IRepository<AvisoLeitura> _leituras;
+    private readonly IAuditService _audit;
+    private readonly INotificationQueue _queue;
 
-    public AvisoService(IRepository<Aviso> avisos, INotificacaoService notify)
+    public AvisoService(IRepository<Aviso> avisos, IRepository<AvisoLeitura> leituras, INotificationQueue queue, IAuditService audit)
     {
         _avisos = avisos;
-        _notify = notify;
+        _leituras = leituras;
+        _queue = queue;
+        _audit = audit;
     }
 
     public Task<List<Aviso>> ListarAsync(Guid condominioId, CancellationToken ct = default)
@@ -38,7 +43,7 @@ public class AvisoService
 
         await _avisos.AddAsync(aviso, ct);
         await _avisos.SaveChangesAsync(ct);
-        await _notify.SendAsync($"condo:{condominioId}", $"Novo aviso: {titulo}", ct);
+        await _queue.QueueAsync(new NotificationMessage("aviso", null, "Novo aviso", titulo), ct);
         return aviso;
     }
 
@@ -83,6 +88,31 @@ public class AvisoService
         await _avisos.SaveChangesAsync(ct);
 
         return true;
+    }
+
+    public async Task RegistrarLeituraAsync(Guid avisoId, Guid usuarioId, string? ip, string? deviceId, CancellationToken ct = default)
+    {
+        var registro = new AvisoLeitura
+        {
+            Id = Guid.NewGuid(),
+            AvisoId = avisoId,
+            UsuarioId = usuarioId,
+            Ip = ip,
+            DeviceId = deviceId,
+            LidoEm = DateTime.UtcNow
+        };
+        await _leituras.AddAsync(registro, ct);
+        await _leituras.SaveChangesAsync(ct);
+
+        await _audit.RegistrarAsync(new LogAuditoria
+        {
+            Id = Guid.NewGuid(),
+            UsuarioId = usuarioId,
+            Acao = "leitura_aviso",
+            Entidade = nameof(Aviso),
+            EntityId = avisoId,
+            CriadoEm = DateTime.UtcNow
+        }, ct);
     }
 }
 

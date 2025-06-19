@@ -40,16 +40,9 @@ public class PrestadoresController : ControllerBase
             return Unauthorized("CondominioId não encontrado ou inválido no token.");
         }
 
-        var novoPrestadorEntidade = await _prestadorService.CadastrarPrestadorAsync(condominioId, inputDto);
+        var novoPrestadorDto = await _prestadorService.CadastrarPrestadorAsync(condominioId, inputDto);
 
-        // Para o CreatedAtAction, precisaríamos de um endpoint GetById.
-        // Por simplicidade e como o PrestadorDto calculado (com rating) é útil,
-        // vamos mapear e retornar diretamente.
-        // Se um GetById for criado, podemos mudar para CreatedAtAction.
-        // O MapToPrestadorDto no serviço lida com a coleção de Avaliacoes (que estará vazia para um novo prestador).
-        var prestadorDto = PrestadorService.MapToPrestadorDto(novoPrestadorEntidade);
-
-        return CreatedAtAction(nameof(ObterPrestadorPorId), new { id = prestadorDto.Id }, prestadorDto);
+        return CreatedAtAction(nameof(ObterPrestadorPorId), new { id = novoPrestadorDto.Id }, novoPrestadorDto);
     }
 
     /// <summary>
@@ -155,12 +148,26 @@ public class PrestadoresController : ControllerBase
             return Unauthorized("CondominioId não encontrado ou inválido no token.");
         }
 
-        var sucesso = await _prestadorService.DesativarPrestadorAsync(id, condominioId);
-        if (!sucesso)
+        try
         {
-            return NotFound("Prestador de serviço não encontrado.");
+            var sucesso = await _prestadorService.DesativarPrestadorAsync(id, condominioId);
+            if (!sucesso)
+            {
+                return NotFound("Prestador de serviço não encontrado.");
+            }
+            return NoContent();
         }
-        return NoContent();
+        catch (InvalidOperationException ex)
+        {
+            // Log the exception ex if logger is available
+            return Conflict(new { message = ex.Message }); // HTTP 409 Conflict is suitable here
+        }
+        catch (Exception ex) // Catch other potential exceptions
+        {
+            // Log the exception ex
+            // Consider returning a generic error message for unexpected issues
+            return StatusCode(500, "Ocorreu um erro ao tentar desativar o prestador.");
+        }
     }
 
     /// <summary>

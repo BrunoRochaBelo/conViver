@@ -6,6 +6,7 @@ using conViver.Infrastructure.Data.Contexts;
 using conViver.Infrastructure.Data.Repositories;
 using conViver.Infrastructure.Notifications;
 using conViver.Infrastructure.Payments;
+using conViver.Core.Notifications;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +38,10 @@ public static class DependencyInjection
         services.AddSingleton<RedisCacheService>();
 
         services.AddScoped<INotificacaoService, NotificationService>();
+        services.AddSingleton<INotificationSender, NotificationService>();
+        services.AddSingleton<INotificationQueue, NotificationQueue>();
+        services.AddHostedService<NotificationQueue>(sp => (NotificationQueue)sp.GetRequiredService<INotificationQueue>());
+        services.AddScoped<IAuditService, AuditLogRepository>();
         services.AddScoped<IFinanceiroService, PaymentGatewayService>();
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));

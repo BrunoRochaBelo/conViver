@@ -14,6 +14,7 @@ public class ConViverDbContext : DbContext
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Boleto> Boletos => Set<Boleto>();
     public DbSet<Reserva> Reservas => Set<Reserva>();
+    public DbSet<EspacoComum> EspacosComuns { get; set; }
     public DbSet<Aviso> Avisos => Set<Aviso>();
     public DbSet<Visitante> Visitantes => Set<Visitante>();
     public DbSet<Encomenda> Encomendas => Set<Encomenda>();
@@ -26,6 +27,10 @@ public class ConViverDbContext : DbContext
     public DbSet<VotoRegistrado> VotosRegistrados => Set<VotoRegistrado>();
     public DbSet<Chamado> Chamados => Set<Chamado>();
     public DbSet<AvaliacaoPrestador> AvaliacoesPrestadores { get; set; } = null!; // Adicionado DbSet para AvaliacaoPrestador
+    public DbSet<AvisoLeitura> AvisosLidos => Set<AvisoLeitura>();
+    public DbSet<LogAuditoria> LogsAuditoria => Set<LogAuditoria>();
+    public DbSet<CirculacaoSolicitacao> Circulacoes => Set<CirculacaoSolicitacao>();
+    public DbSet<OcorrenciaSeguranca> Ocorrencias => Set<OcorrenciaSeguranca>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

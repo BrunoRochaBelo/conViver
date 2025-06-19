@@ -10,6 +10,8 @@ public class Usuario
     public string SenhaHash { get; set; } = string.Empty;
     public string? Telefone { get; set; }
     public PerfilUsuario Perfil { get; set; } = PerfilUsuario.Morador;
+    public Guid? CondominioId { get; set; }
+    public Guid? UnidadeId { get; set; }
     public bool Ativo { get; set; } = true;
     public string? TwoFaSecret { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
