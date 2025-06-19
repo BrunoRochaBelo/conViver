@@ -97,7 +97,7 @@ public class OrdensServicoController : ControllerBase
     /// <returns>A Ordem de Serviço atualizada.</returns>
     [HttpPut("syndic/os/{id:guid}")]
     [Authorize(Roles = "Sindico")]
-    public async Task<ActionResult<OrdemServicoDto>> UpdateOSStatusSindico(Guid id, [FromBody] OrdemServicoStatusUpdateDto updateDto)
+    public async Task<ActionResult<OrdemServicoDto>> UpdateOSStatusSindico(Guid id, [FromBody] OrdemServicoUpdateSindicoDto updateDto)
     {
         if(!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -111,7 +111,7 @@ public class OrdensServicoController : ControllerBase
 
         try
         {
-            await _ordensService.AtualizarOSStatusPorSindicoAsync(id, condominioId, sindicoUserId, updateDto);
+            await _ordensService.AtualizarOSPorSindicoAsync(id, condominioId, sindicoUserId, updateDto);
             return NoContent();
         }
         catch (InvalidOperationException ex)

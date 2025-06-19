@@ -5,7 +5,7 @@ using conViver.Core.DTOs;
 using Microsoft.EntityFrameworkCore;
 using conViver.Application.Exceptions; // Add if not present
 
-namespace conViver.Application;
+namespace conViver.Application.Services;
 
 public class ReservaService
 {

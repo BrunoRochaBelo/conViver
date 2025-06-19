@@ -113,7 +113,7 @@ public class OrdemServicoService
         };
     }
 
-    public Task AtualizarOSStatusPorSindicoAsync(Guid id, Guid condominioId, Guid sindicoUserId, OrdemServicoUpdateSindicoDto dto, CancellationToken ct = default) // DTO type changed
+    public Task AtualizarOSPorSindicoAsync(Guid id, Guid condominioId, Guid sindicoUserId, OrdemServicoUpdateSindicoDto dto, CancellationToken ct = default) // DTO type changed
         => AtualizarStatusAsync(id, dto.Status, ct); // Basic passthrough for now
 
     public async Task<OrdemServicoDto> CriarOSPorUsuarioAsync(Guid condominioId, Guid usuarioId, OrdemServicoInputUserDto inputDto, CancellationToken ct = default)
