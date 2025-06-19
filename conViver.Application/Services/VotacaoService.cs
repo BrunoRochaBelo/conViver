@@ -104,7 +104,7 @@ public class VotacaoService
         };
     }
 
-    public async Task<bool> RegistrarVotoAsync(Guid votacaoId, Guid opcaoId, Guid condominioId, Guid usuarioId, CancellationToken ct = default)
+    public async Task<bool> RegistrarVotoAsync(Guid votacaoId, Guid opcaoId, Guid condominioId, Guid usuarioId, Guid unidadeId, string? ip, string? deviceId, CancellationToken ct = default)
     {
         // Usar FirstOrDefaultAsync para poder verificar se a votação ou opção existem
         var votacao = await _votacoes.Query()
@@ -137,7 +137,8 @@ public class VotacaoService
             return false;
         }
 
-        bool jaVotou = votacao.Opcoes.SelectMany(o => o.VotosRecebidos).Any(vr => vr.UsuarioId == usuarioId);
+        bool jaVotou = votacao.Opcoes.SelectMany(o => o.VotosRecebidos)
+            .Any(vr => vr.UsuarioId == usuarioId || vr.UnidadeId == unidadeId);
         if (jaVotou)
         {
             throw new InvalidOperationException("Usuário já votou nesta votação.");
@@ -148,6 +149,9 @@ public class VotacaoService
             Id = Guid.NewGuid(),
             OpcaoVotacaoId = opcaoId,
             UsuarioId = usuarioId,
+            UnidadeId = unidadeId,
+            Ip = ip,
+            DeviceId = deviceId,
             DataVoto = DateTime.UtcNow
             // A OpcaoVotacao navigation property será ligada pelo EF Core se necessário,
             // mas adicionar à lista OpcaoVotacao.VotosRecebidos é mais direto.
