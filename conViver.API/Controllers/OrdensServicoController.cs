@@ -97,7 +97,7 @@ public class OrdensServicoController : ControllerBase
     /// <returns>A Ordem de Serviço atualizada.</returns>
     [HttpPut("syndic/os/{id:guid}")]
     [Authorize(Roles = "Sindico")]
-    public async Task<ActionResult<OrdemServicoDto>> UpdateOSStatusSindico(Guid id, [FromBody] OrdemServicoUpdateSindicoDto updateDto)
+    public async Task<ActionResult<OrdemServicoDto>> UpdateOSStatusSindico(Guid id, [FromBody] OrdemServicoStatusUpdateDto updateDto)
     {
         if(!ModelState.IsValid) return BadRequest(ModelState);
 
