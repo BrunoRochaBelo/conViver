@@ -52,16 +52,17 @@ public class PrestadorService
 
     public async Task<IEnumerable<PrestadorDto>> ListarPrestadoresAsync(Guid condominioId, string? especialidade, CancellationToken ct = default)
     {
-        var query = _prestadorRepository.Query()
-            .Where(p => p.CondominioId == condominioId && p.Ativo == true)
-            .Include(p => p.Avaliacoes); // Eager load avaliações para cálculo
+        IQueryable<PrestadorServico> query = _prestadorRepository.Query()
+            .Where(p => p.CondominioId == condominioId && p.Ativo == true);
 
         if (!string.IsNullOrEmpty(especialidade))
         {
             query = query.Where(p => p.Especialidade != null && p.Especialidade.ToLower().Contains(especialidade.ToLower()));
         }
 
-        var prestadores = await query.ToListAsync(ct);
+        var prestadores = await query
+            .Include(p => p.Avaliacoes)
+            .ToListAsync(ct);
 
         // Mapeamento para DTO com cálculo de RatingMedio e TotalAvaliacoes
         return prestadores.Select(p => new PrestadorDto
@@ -227,10 +228,10 @@ public class PrestadorService
         // Isso assume que a relação está configurada e o objeto `prestador` ainda está rastreado ou é o mesmo contexto.
         // Uma forma mais segura seria recarregar o prestador ou suas avaliações.
 
-        // Opção 1: Adicionar à coleção em memória (se o objeto prestador ainda estiver sendo rastreado corretamente)
-        // prestador.Avaliacoes.Add(novaAvaliacao);
-        // Opção 2: Recarregar as avaliações (mais seguro para garantir consistência)
-        await _prestadorRepository.Entry(prestador).Collection(p => p.Avaliacoes).LoadAsync(ct);
+        // Recarrega as avaliações para garantir que o cálculo considere a nova avaliação
+        prestador = await _prestadorRepository.Query()
+            .Include(p => p.Avaliacoes)
+            .FirstAsync(p => p.Id == prestadorId && p.CondominioId == condominioId, ct);
 
 
         if (prestador.Avaliacoes.Any())
