@@ -124,21 +124,22 @@ namespace conViver.Tests.Application.Services
                 .Returns(usersList.AsQueryable());
 
             _mockUsuarioRepository
-                .Setup(r => r.Update(It.IsAny<Usuario>())); // Assuming Update is void or its return is not critical here
+                .Setup(r => r.UpdateAsync(It.IsAny<Usuario>(), default))
+                .Returns(Task.CompletedTask);
 
             _mockUsuarioRepository
                 .Setup(r => r.SaveChangesAsync(default))
                 .ReturnsAsync(1);
 
             Usuario capturedUsuario = null;
-            _mockUsuarioRepository.Setup(r => r.Update(It.IsAny<Usuario>()))
-                                 .Callback<Usuario>(u => capturedUsuario = u);
+            _mockUsuarioRepository.Setup(r => r.UpdateAsync(It.IsAny<Usuario>(), default))
+                                 .Callback<Usuario, System.Threading.CancellationToken>((u, ct) => capturedUsuario = u);
 
             // Act
-            await _usuarioService.SolicitarResetSenhaAsync(usuario.Email);
+            await _usuarioService.SolicitarResetSenhaAsync(usuario.Email, default);
 
             // Assert
-            _mockUsuarioRepository.Verify(r => r.Update(It.IsAny<Usuario>()), Times.Once);
+            _mockUsuarioRepository.Verify(r => r.UpdateAsync(It.IsAny<Usuario>(), default), Times.Once);
              Assert.NotNull(capturedUsuario);
             Assert.NotNull(capturedUsuario.PasswordResetToken);
             Assert.True(capturedUsuario.PasswordResetTokenExpiry.HasValue);
@@ -158,10 +159,10 @@ namespace conViver.Tests.Application.Services
                 .Returns(usersList.AsQueryable());
 
             // Act
-            await _usuarioService.SolicitarResetSenhaAsync("nonexistent@example.com");
+            await _usuarioService.SolicitarResetSenhaAsync("nonexistent@example.com", default);
 
             // Assert
-            _mockUsuarioRepository.Verify(r => r.Update(It.IsAny<Usuario>()), Times.Never);
+            _mockUsuarioRepository.Verify(r => r.UpdateAsync(It.IsAny<Usuario>(), default), Times.Never);
             _mockUsuarioRepository.Verify(r => r.SaveChangesAsync(default), Times.Never);
         }
 
@@ -188,17 +189,18 @@ namespace conViver.Tests.Application.Services
             _mockUsuarioRepository.Setup(r => r.SaveChangesAsync(default)).ReturnsAsync(1);
 
             Usuario capturedUsuario = null;
-            _mockUsuarioRepository.Setup(r => r.Update(It.IsAny<Usuario>()))
-                                 .Callback<Usuario>(u => capturedUsuario = u);
+            _mockUsuarioRepository.Setup(r => r.UpdateAsync(It.IsAny<Usuario>(), default))
+                                 .Returns(Task.CompletedTask) // Important: UpdateAsync now returns a Task
+                                 .Callback<Usuario, System.Threading.CancellationToken>((u, ct) => capturedUsuario = u);
 
             var novaSenha = "newPassword123";
 
             // Act
-            var result = await _usuarioService.ResetarSenhaAsync(resetToken, novaSenha);
+            var result = await _usuarioService.ResetarSenhaAsync(resetToken, novaSenha, default);
 
             // Assert
             Assert.True(result);
-            _mockUsuarioRepository.Verify(r => r.Update(It.IsAny<Usuario>()), Times.Once);
+            _mockUsuarioRepository.Verify(r => r.UpdateAsync(It.IsAny<Usuario>(), default), Times.Once);
             Assert.NotNull(capturedUsuario);
             Assert.NotEqual(originalPasswordHash, capturedUsuario.SenhaHash);
             Assert.True(BCryptNet.Verify(novaSenha, capturedUsuario.SenhaHash));
@@ -240,11 +242,11 @@ namespace conViver.Tests.Application.Services
             var novaSenha = "newPassword123";
 
             // Act
-            var result = await _usuarioService.ResetarSenhaAsync(tokenToTest, novaSenha);
+            var result = await _usuarioService.ResetarSenhaAsync(tokenToTest, novaSenha, default);
 
             // Assert
             Assert.False(result);
-            _mockUsuarioRepository.Verify(r => r.Update(It.IsAny<Usuario>()), Times.Never);
+            _mockUsuarioRepository.Verify(r => r.UpdateAsync(It.IsAny<Usuario>(), default), Times.Never);
             _mockUsuarioRepository.Verify(r => r.SaveChangesAsync(default), Times.Never);
         }
     }
