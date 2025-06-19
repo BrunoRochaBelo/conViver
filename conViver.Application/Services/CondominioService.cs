@@ -21,9 +21,18 @@ public class CondominioService
             .ToListAsync(cancellationToken);
     }
 
+    public Task<IEnumerable<CondominioDto>> ListarTodosAsync(CancellationToken cancellationToken = default)
+        => GetAllAsync(cancellationToken);
+
     public Task<Condominio?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return _condos.GetByIdAsync(id, cancellationToken);
+    }
+
+    public async Task<CondominioDto?> ObterPorIdDetalhadoAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var cond = await _condos.GetByIdAsync(id, cancellationToken);
+        return cond == null ? null : new CondominioDto { Id = cond.Id, Nome = cond.Nome };
     }
 
     public async Task<CondominioDto> CreateAsync(CreateCondominioRequest request, CancellationToken cancellationToken = default)
@@ -39,6 +48,31 @@ public class CondominioService
         await _condos.SaveChangesAsync(cancellationToken);
 
         return new CondominioDto { Id = cond.Id, Nome = cond.Nome };
+    }
+
+    public Task<CondominioDto> CriarCondominioAsync(CondominioInputDto input, CancellationToken cancellationToken = default)
+    {
+        var req = new CreateCondominioRequest { Nome = input.Nome };
+        return CreateAsync(req, cancellationToken);
+    }
+
+    public async Task<CondominioDto?> AtualizarCondominioAsync(Guid id, CondominioInputDto input, CancellationToken cancellationToken = default)
+    {
+        var cond = await _condos.GetByIdAsync(id, cancellationToken);
+        if (cond == null) return null;
+        cond.Nome = input.Nome;
+        await _condos.UpdateAsync(cond, cancellationToken);
+        await _condos.SaveChangesAsync(cancellationToken);
+        return new CondominioDto { Id = cond.Id, Nome = cond.Nome };
+    }
+
+    public async Task<bool> DeletarCondominioAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var cond = await _condos.GetByIdAsync(id, cancellationToken);
+        if (cond == null) return false;
+        await _condos.DeleteAsync(cond, cancellationToken);
+        await _condos.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }
 

@@ -101,15 +101,8 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
         // mas sim para a resposta do DTO.
 
         // Simulação de dados para o token (o JwtService deveria lidar com isso de forma mais robusta)
-        var claims = new Dictionary<string, string>();
-        if (usuario.CondominioId.HasValue) // Supondo que Usuario tem CondominioId diretamente
-             claims.Add("condominioId", usuario.CondominioId.Value.ToString());
-        // if (usuario.UnidadeId.HasValue) // Supondo que Usuario tem UnidadeId diretamente
-        //    claims.Add("unidadeId", usuario.UnidadeId.Value.ToString());
-
-
-        // O JwtService.GenerateToken idealmente retorna um objeto mais completo ou os componentes do token
-        var accessTokenString = _jwt.GenerateToken(usuario.Id, usuario.Perfil.ToString(), claims);
+        // O JwtService.GenerateToken idealmente retornaria claims adicionais, mas o serviço atual aceita apenas o condominioId opcional
+        var accessTokenString = _jwt.GenerateToken(usuario.Id, usuario.Perfil.ToString(), null);
 
         // Placeholder para Refresh Token e Expiration - JwtService deveria fornecer isso
         var refreshTokenString = "dummyRefreshToken_jwtService_needs_to_implement_this_" + Guid.NewGuid().ToString();
@@ -120,9 +113,7 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
             Id = usuario.Id,
             Nome = usuario.Nome,
             Email = usuario.Email,
-            Perfil = usuario.Perfil.ToString().ToLowerInvariant(),
-            CondominioId = usuario.CondominioId, // Assumindo que Usuario tem CondominioId
-            UnidadeId = usuario.UnidadeId     // Assumindo que Usuario tem UnidadeId
+            Perfil = usuario.Perfil.ToString().ToLowerInvariant()
         };
 
         return Ok(new AuthResponseDto
@@ -157,23 +148,12 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
         }
 
         // Extrair outras claims se necessário para popular o UserDto completamente
-        var condominioIdClaim = User.FindFirstValue("condominioId");
-        Guid? condominioId = null;
-        if (!string.IsNullOrEmpty(condominioIdClaim) && Guid.TryParse(condominioIdClaim, out Guid parsedCondoId))
-        {
-            condominioId = parsedCondoId;
-        }
-        // Similar para UnidadeId se estiver na claim
-        // Guid? unidadeId = ... User.FindFirstValue("unidadeId");
-
         var userDto = new UserDto
         {
             Id = usuario.Id,
             Nome = usuario.Nome,
             Email = usuario.Email,
-            Perfil = usuario.Perfil.ToString().ToLowerInvariant(),
-            CondominioId = condominioId ?? usuario.CondominioId, // Prioriza claim, depois entidade
-            UnidadeId = usuario.UnidadeId // Assumindo que Usuario tem UnidadeId
+            Perfil = usuario.Perfil.ToString().ToLowerInvariant()
         };
         return Ok(userDto);
     }
@@ -202,11 +182,8 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
         PerfilUsuario mockPerfil = PerfilUsuario.Morador;
         Guid? mockCondominioId = Guid.NewGuid();
 
-        var claims = new Dictionary<string, string>();
-        if (mockCondominioId.HasValue)
-             claims.Add("condominioId", mockCondominioId.Value.ToString());
 
-        var newAccessTokenString = _jwt.GenerateToken(mockUserId, mockPerfil.ToString(), claims);
+        var newAccessTokenString = _jwt.GenerateToken(mockUserId, mockPerfil.ToString(), mockCondominioId);
         var newRefreshTokenString = "new_dummyRefreshToken_" + Guid.NewGuid().ToString();
         var newAccessTokenExpiration = DateTime.UtcNow.AddHours(1);
         var userDto = new UserDto {
@@ -424,7 +401,7 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
         // Simulação
         await Task.CompletedTask;
         var usuarios = new List<AdminUserListDto> {
-            new AdminUserListDto { Id = Guid.NewGuid(), Nome = "Admin User 1", Email = "admin1@example.com", PerfilGeral = PerfilUsuario.AdministradorCondominio, IsAtivoPlataforma = true, DataCriacao = DateTime.UtcNow.AddDays(-10) },
+            new AdminUserListDto { Id = Guid.NewGuid(), Nome = "Admin User 1", Email = "admin1@example.com", PerfilGeral = PerfilUsuario.Administrador, IsAtivoPlataforma = true, DataCriacao = DateTime.UtcNow.AddDays(-10) },
             new AdminUserListDto { Id = Guid.NewGuid(), Nome = "Sindico User 1", Email = "sindico1@example.com", PerfilGeral = PerfilUsuario.Sindico, IsAtivoPlataforma = true, DataCriacao = DateTime.UtcNow.AddDays(-5) },
             new AdminUserListDto { Id = Guid.NewGuid(), Nome = "Morador User 1", Email = "morador1@example.com", PerfilGeral = PerfilUsuario.Morador, IsAtivoPlataforma = false, DataCriacao = DateTime.UtcNow.AddDays(-1) }
         };

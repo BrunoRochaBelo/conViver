@@ -20,6 +20,11 @@ public class UsuarioService : IUsuarioService
             .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower(), cancellationToken);
     }
 
+    public Task<Usuario?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return _usuarios.GetByIdAsync(id, cancellationToken);
+    }
+
     public async Task AddAsync(Usuario usuario, CancellationToken cancellationToken = default)
     {
         usuario.SenhaHash = BCrypt.Net.BCrypt.HashPassword(usuario.SenhaHash);

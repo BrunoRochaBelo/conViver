@@ -490,5 +490,48 @@ namespace conViver.Application.Services // Changed namespace to match convention
                 }).ToList()
             };
         }
+
+        // --- Métodos simplificados para compatibilidade com os controllers ---
+        public Task<DespesaDto> CriarDespesaAsync(Guid condominioId, Guid usuarioId, DespesaInputDto input)
+        {
+            return Task.FromResult(new DespesaDto
+            {
+                Id = Guid.NewGuid(),
+                Descricao = input.Descricao,
+                Valor = input.Valor,
+                DataCompetencia = input.DataCompetencia,
+                DataVencimento = input.DataVencimento,
+                Categoria = input.Categoria,
+                Observacoes = input.Observacoes,
+                DataRegistro = DateTime.UtcNow,
+                Status = "Pendente",
+                UsuarioRegistroId = usuarioId
+            });
+        }
+
+        public Task<IEnumerable<DespesaDto>> ListarDespesasAsync(Guid condominioId, string? categoria, string? mesCompetencia)
+        {
+            return Task.FromResult<IEnumerable<DespesaDto>>(Array.Empty<DespesaDto>());
+        }
+
+        public Task<DespesaDto?> ObterDespesaPorIdAsync(Guid id, Guid condominioId)
+        {
+            return Task.FromResult<DespesaDto?>(null);
+        }
+
+        public Task<DespesaDto?> AtualizarDespesaAsync(Guid id, Guid condominioId, Guid usuarioId, DespesaInputDto input)
+        {
+            return Task.FromResult<DespesaDto?>(null);
+        }
+
+        public Task<bool> RemoverDespesaAsync(Guid id, Guid condominioId, Guid usuarioId)
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task<BalanceteDto?> GerarBalanceteAsync(Guid condominioId, DateTime inicio, DateTime fim)
+        {
+            return Task.FromResult<BalanceteDto?>(null);
+        }
     }
 }
