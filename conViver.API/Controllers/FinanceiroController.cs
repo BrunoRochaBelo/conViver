@@ -7,6 +7,7 @@ using System.Collections.Generic; // Added for IEnumerable
 using System.Threading.Tasks; // Added for Task
 using System; // Added for Guid
 using System.Security.Claims; // Added for ClaimTypes
+using System.ComponentModel.DataAnnotations; // Para [Required]
 
 namespace conViver.API.Controllers;
 

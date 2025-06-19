@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Security.Claims;  // Adicionado
+using System.ComponentModel.DataAnnotations; // Para [Required]
 
 namespace conViver.API.Controllers;
 
