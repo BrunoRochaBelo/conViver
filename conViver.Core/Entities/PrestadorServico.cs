@@ -8,11 +8,9 @@ public class PrestadorServico
     public Guid Id { get; set; }
     public Guid CondominioId { get; set; } // Adicionado
     public string Nome { get; set; } = string.Empty;
-    public string? RazaoSocial { get; set; }
     public string? Telefone { get; set; }
     public string? Email { get; set; } // Adicionado
-    public string? CpfCnpj { get; set; } // Adicionado - CNPJ ou CPF
-    public string? DocumentosObrigatorios { get; set; }
+    public string? Documento { get; set; } // Adicionado - CNPJ ou CPF
     public string? Especialidade { get; set; }
     public string? EnderecoCompleto { get; set; } // Adicionado
     public double? RatingMedio { get; set; } // Ajustado de Rating (decimal?) para double?

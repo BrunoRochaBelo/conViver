@@ -1,80 +1,60 @@
-using System;
-using System.Threading.Tasks;
-using conViver.Core.Entities;
-using conViver.Core.Enums;
 using conViver.Core.Interfaces;
-// Potentially add: using Microsoft.Extensions.Logging; if you want to use ILogger
+using Microsoft.Extensions.Logging;
 
-using conViver.Core.Notifications;
+namespace conViver.Infrastructure.Notifications;
 
-namespace conViver.Infrastructure.Notifications
+public class NotificationService : INotificacaoService
 {
-    public class NotificationService : INotificacaoService, INotificationSender
+    private readonly ILogger<NotificationService> _logger;
+
+    public NotificationService(ILogger<NotificationService> logger)
     {
-        // Example: Optional ILogger for more structured logging
-        // private readonly ILogger<NotificationService> _logger;
-        // public NotificationService(ILogger<NotificationService> logger)
-        // {
-        //     _logger = logger;
-        // }
-        // For simplicity, this subtask will use Console.WriteLine directly.
+        _logger = logger;
+    }
 
-        public Task EnviarNotificacaoReservaCriadaAsync(Reserva reserva)
-        {
-            string mensagem = $"[NOTIFICACAO] Reserva CRIADA: ID {reserva.Id} para Espaço {reserva.EspacoComumId} por Usuário {reserva.UsuarioId} das {reserva.Inicio} às {reserva.Fim}. Status: {reserva.Status}.";
-            Console.WriteLine(mensagem);
-            // _logger?.LogInformation(mensagem);
-            return Task.CompletedTask;
-        }
+    public Task SendAsync(string destino, string mensagem, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Sending notification to {destino}: {msg}", destino, mensagem);
+        return Task.CompletedTask;
+    }
 
-        public Task EnviarNotificacaoReservaStatusAlteradoAsync(Reserva reserva, ReservaStatus statusAnterior)
-        {
-            string mensagem = $"[NOTIFICACAO] Reserva STATUS ALTERADO: ID {reserva.Id}. Status anterior: {statusAnterior}, Novo Status: {reserva.Status}. Justificativa: {reserva.JustificativaStatus ?? "N/A"}.";
-            Console.WriteLine(mensagem);
-            return Task.CompletedTask;
+    public Task NotificarChegadaVisitanteAsync(Guid unidadeId, string nomeVisitante, string? motivoVisita)
+    {
+        string mensagem = $"[NOTIFICACAO] Unidade {unidadeId}: Visitante '{nomeVisitante}' chegou.";
+        if (!string.IsNullOrEmpty(motivoVisita)) {
+            mensagem += $" Motivo: {motivoVisita}.";
         }
+        _logger.LogInformation(mensagem);
+        return Task.CompletedTask;
+    }
 
-        public Task EnviarNotificacaoReservaAlteradaAsync(Reserva reserva, string detalhesAlteracao)
-        {
-            string mensagem = $"[NOTIFICACAO] Reserva ALTERADA: ID {reserva.Id}. Detalhes: {detalhesAlteracao}. Novo período: {reserva.Inicio} às {reserva.Fim}.";
-            Console.WriteLine(mensagem);
-            return Task.CompletedTask;
+    public Task NotificarVisitantePreAutorizadoAsync(Guid unidadeId, string nomeVisitante, string? qrCodeValue, DateTime? validadeQRCode)
+    {
+        string mensagem = $"[NOTIFICACAO] Unidade {unidadeId}: Visitante '{nomeVisitante}' foi pré-autorizado.";
+        if (!string.IsNullOrEmpty(qrCodeValue)) {
+            mensagem += $" QR Code: {qrCodeValue}.";
         }
+        if (validadeQRCode.HasValue) {
+            mensagem += $" Válido até: {validadeQRCode.Value.ToString("g")}."; // "g" for general short date/time
+        }
+        _logger.LogInformation(mensagem);
+        return Task.CompletedTask;
+    }
 
-        public Task EnviarNotificacaoReservaCanceladaAsync(Reserva reserva)
-        {
-            string mensagem = $"[NOTIFICACAO] Reserva CANCELADA: ID {reserva.Id}. Espaço {reserva.EspacoComumId}. Período: {reserva.Inicio} às {reserva.Fim}. Cancelado por: {reserva.CanceladoPorId}. Motivo: {reserva.JustificativaStatus ?? "N/A"}.";
-            Console.WriteLine(mensagem);
-            return Task.CompletedTask;
+    public Task NotificarFalhaQRCodeAsync(Guid? unidadeId, string qrCodeValue, string motivoFalha)
+    {
+        string mensagem = $"[NOTIFICACAO] Falha na validação do QR Code '{qrCodeValue}'. Motivo: {motivoFalha}.";
+        if (unidadeId.HasValue) {
+            mensagem += $" Associado à tentativa de visita à unidade {unidadeId.Value}.";
         }
+        _logger.LogWarning(mensagem); // Use Warning for failures
+        return Task.CompletedTask;
+    }
 
-        public Task EnviarLembreteReservaAsync(Reserva reserva)
-        {
-            // This would typically be triggered by a scheduled job.
-            string mensagem = $"[LEMBRETE] Reserva Próxima: ID {reserva.Id} para Espaço {reserva.EspacoComumId} amanhã/hoje das {reserva.Inicio} às {reserva.Fim}.";
-            Console.WriteLine(mensagem);
-            return Task.CompletedTask;
-        }
-
-        public Task EnviarNotificacaoAdminReservaPendenteAsync(Reserva reserva)
-        {
-            string mensagem = $"[ADMIN NOTIFICACAO] Reserva PENDENTE: ID {reserva.Id} para Espaço {reserva.EspacoComumId} por Usuário {reserva.UsuarioId} aguardando aprovação.";
-            Console.WriteLine(mensagem);
-            return Task.CompletedTask;
-        }
-
-        public Task EnviarNotificacaoAdminConflitoReservaAsync(Reserva reservaConflitante, Reserva novaTentativa)
-        {
-            // This is a more complex scenario.
-            string mensagem = $"[ADMIN NOTIFICACAO] CONFLITO DE RESERVA: Nova tentativa ({novaTentativa.Inicio}-{novaTentativa.Fim} por Usuário {novaTentativa.UsuarioId}) para Espaço {novaTentativa.EspacoComumId} conflita com Reserva existente ID {reservaConflitante.Id}.";
-            Console.WriteLine(mensagem);
-            return Task.CompletedTask;
-        }
-
-        public Task SendAsync(NotificationMessage message, CancellationToken ct = default)
-        {
-            Console.WriteLine($"[QUEUE] Tipo:{message.Tipo} Usuario:{message.UsuarioId} {message.Titulo} - {message.Corpo}");
-            return Task.CompletedTask;
-        }
+    public Task NotificarSaidaVisitanteAsync(Guid unidadeId, string nomeVisitante)
+    {
+        string mensagem = $"[NOTIFICACAO] Unidade {unidadeId}: Visitante '{nomeVisitante}' registrou saída.";
+        _logger.LogInformation(mensagem);
+        return Task.CompletedTask;
     }
 }
