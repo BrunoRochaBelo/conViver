@@ -6,6 +6,7 @@ using conViver.Core.DTOs; // Added
 using System; // Added
 using System.Collections.Generic; // Added
 using System.Linq; // Added
+using System.Security.Cryptography; // Added for token generation
 using System.Threading; // Added
 using System.Threading.Tasks; // Added
 
@@ -75,6 +76,51 @@ public class UsuarioService : IUsuarioService
             return new List<Guid> { usuario.UnidadeId };
         }
         return Enumerable.Empty<Guid>();
+    }
+
+    public async Task SolicitarResetSenhaAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var usuario = await GetByEmailAsync(email, cancellationToken);
+
+        if (usuario != null)
+        {
+            // Generate a cryptographically secure unique reset token
+            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+            usuario.PasswordResetToken = token;
+            usuario.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1); // Token valid for 1 hour
+
+            // Update the user in the repository
+            _usuarioRepository.Update(usuario); // Assuming IRepository has an Update method
+            await _usuarioRepository.SaveChangesAsync(cancellationToken);
+
+            // Simulate sending an email
+            Console.WriteLine($"Simulating email sending to: {usuario.Email}");
+            Console.WriteLine($"Password Reset Token: {token}");
+            // In a real application, you would use an email service here.
+            // e.g., await _emailService.SendPasswordResetEmailAsync(usuario.Email, token);
+        }
+        // If user is null, do nothing. The controller will return a generic message.
+    }
+
+    public async Task<bool> ResetarSenhaAsync(string resetToken, string novaSenha, CancellationToken cancellationToken = default)
+    {
+        var usuario = await _usuarioRepository.Query()
+            .FirstOrDefaultAsync(u => u.PasswordResetToken == resetToken, cancellationToken);
+
+        if (usuario == null || usuario.PasswordResetTokenExpiry == null || usuario.PasswordResetTokenExpiry <= DateTime.UtcNow)
+        {
+            return false; // Token not found, or expired
+        }
+
+        usuario.SenhaHash = BCrypt.Net.BCrypt.HashPassword(novaSenha);
+        usuario.PasswordResetToken = null;
+        usuario.PasswordResetTokenExpiry = null;
+        usuario.UpdatedAt = DateTime.UtcNow;
+
+        _usuarioRepository.Update(usuario);
+        await _usuarioRepository.SaveChangesAsync(cancellationToken);
+
+        return true;
     }
 }
 

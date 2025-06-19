@@ -1404,3 +1404,21 @@ main {
     resize: vertical;
     min-height: 100px;
 }
+
+/* Links for Login, Forgot Password, Register pages */
+.login-form__links {
+    text-align: center;
+    margin-top: 15px;
+}
+.login-form__link {
+    color: var(--current-text-link); /* Use theme's link color */
+    text-decoration: none;
+    font-size: 0.9em;
+}
+.login-form__link:hover {
+    text-decoration: underline;
+}
+.login-form__link-separator {
+    margin: 0 5px;
+    color: var(--cv-gray-400); /* Or a suitable separator color from theme */
+}

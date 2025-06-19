@@ -14,4 +14,6 @@ public interface IUsuarioService
     Task<bool> ValidatePasswordAsync(Usuario usuario, string senha);
     Task<UsuarioResponse?> GetUsuarioByIdAsync(Guid id, CancellationToken ct = default); // Changed UserDto to UsuarioResponse
     Task<IEnumerable<Guid>> GetUnidadesIdDoUsuarioAsync(Guid usuarioId, CancellationToken ct = default);
+    Task SolicitarResetSenhaAsync(string email, CancellationToken cancellationToken = default);
+    Task<bool> ResetarSenhaAsync(string resetToken, string novaSenha, CancellationToken cancellationToken = default);
 }

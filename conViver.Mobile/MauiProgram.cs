@@ -25,6 +25,11 @@ public static class MauiProgram
 		builder.Services.AddSingleton<LoginPage>();
 		builder.Services.AddSingleton<Services.IFeedbackService, Services.FeedbackService>();
 
+        // New pages for auth flow
+        builder.Services.AddTransient<ForgotPasswordPage>();
+        builder.Services.AddTransient<ResetPasswordPage>();
+        builder.Services.AddTransient<RegisterPage>();
+
 		return builder.Build();
 	}
 }

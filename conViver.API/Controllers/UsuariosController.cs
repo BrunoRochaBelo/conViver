@@ -209,12 +209,12 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        // await _usuarios.SolicitarResetSenhaAsync(request.Email);
+        await _usuarios.SolicitarResetSenhaAsync(request.Email);
         // O serviço cuidaria de gerar um token, salvar e enviar e-mail.
         // Por segurança, não se deve confirmar se o e-mail existe ou não.
 
         // Simulação
-        await Task.CompletedTask;
+        // await Task.CompletedTask; // No longer needed as we call the actual service
         return Ok(new { message = "Se um usuário com este e-mail existir em nosso sistema, um link para redefinição de senha foi enviado." });
     }
 
@@ -230,17 +230,10 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        // var sucesso = await _usuarios.ResetarSenhaAsync(request.ResetToken, request.NovaSenha);
-        // if (!sucesso)
-        // {
-        //     return BadRequest(new { error = "RESET_FAILED", message = "Não foi possível redefinir a senha. O token pode ser inválido ou ter expirado." });
-        // }
-
-        // Simulação
-        await Task.CompletedTask;
-        if (request.ResetToken == "invalid_token_simulado") // Simular falha
+        var sucesso = await _usuarios.ResetarSenhaAsync(request.ResetToken, request.NovaSenha);
+        if (!sucesso)
         {
-             return BadRequest(new { error = "RESET_FAILED", message = "Não foi possível redefinir a senha. O token pode ser inválido ou ter expirado." });
+            return BadRequest(new { error = "RESET_FAILED", message = "Não foi possível redefinir a senha. O token pode ser inválido ou ter expirado." });
         }
 
         return Ok(new { message = "Senha redefinida com sucesso." });

@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using conViver.Core.DTOs; // For LoginRequest and potentially a LoginResponse DTO
 using FluentAssertions; // For assertions
 using Microsoft.Extensions.DependencyInjection; // For GetService
-using Microsoft.EntityFrameworkCore; // For DbContextOptions
+using Microsoft.EntityFrameworkCore; // For DbContextOptions and AsNoTracking() etc.
 using conViver.Infrastructure.Data.Contexts; // For ConViverDbContext
 using System.Linq; // For Linq operations on services
 using Microsoft.Extensions.Hosting; // For IHost
+using System; // For Guid
+using BCryptNet = BCrypt.Net.BCrypt; // Alias for BCrypt
 
 // Define a placeholder for the API's Program class if it's not directly accessible
 // or if a specific namespace is needed. For now, assume conViver.API.Program.
@@ -74,9 +76,11 @@ namespace conViver.Tests.API
     public class AuthControllerTests : IClassFixture<CustomWebApplicationFactory<Program>> // Assuming Program from conViver.API
     {
         private readonly HttpClient _client;
+        private readonly CustomWebApplicationFactory<Program> _factory; // Store factory to access services
 
         public AuthControllerTests(CustomWebApplicationFactory<Program> factory)
         {
+            _factory = factory; // Store factory
             _client = factory.CreateClient(new WebApplicationFactoryClientOptions
             {
                 BaseAddress = new System.Uri("http://localhost/api/v1/") // Set base address
@@ -100,7 +104,7 @@ namespace conViver.Tests.API
             response.EnsureSuccessStatusCode(); // Status Code 200-299
             response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
 
-            var loginResponse = await response.Content.ReadFromJsonAsync<TestLoginResponse>(); // Corrected to TestLoginResponse
+            var loginResponse = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
             loginResponse.Should().NotBeNull();
             loginResponse?.AccessToken.Should().NotBeNullOrEmpty();
 
@@ -109,16 +113,10 @@ namespace conViver.Tests.API
             loginResponse?.Usuario?.Email.Should().Be(loginRequest.Email);
             // Assuming UsuarioResponse.Perfil is a string, and admin profile is "Administrador"
             // Adjust if Perfil is an enum or has different string representation in UsuarioResponse
-            // loginResponse?.Usuario?.Perfil.Should().Be("Administrador");
+            // loginResponse?.Usuario?.Perfil.Should().Be("Administrador"); // UserDto.Perfil is string
         }
 
-        // Placeholder for LoginResponse if not already defined in Core.DTOs
-        // Local DTO for test deserialization if not available globally or structure is specific
-        public class TestLoginResponse
-        {
-            public string AccessToken { get; set; }
-            public UsuarioResponse? Usuario { get; set; } // Assuming UsuarioResponse is from Core.DTOs
-        }
+        // TestLoginResponse class removed, using AuthResponseDto from Core.DTOs
 
         [Fact]
         public async Task Login_WithInvalidPassword_ShouldReturnUnauthorized()
@@ -153,6 +151,185 @@ namespace conViver.Tests.API
             // Assert
             response.StatusCode.Should().Be(System.Net.HttpStatusCode.Unauthorized);
         }
+
+        [Fact]
+        public async Task Signup_WithValidData_ShouldReturnCreatedAndUser()
+        {
+            // Arrange
+            var uniqueEmail = $"newuser_{Guid.NewGuid()}@example.com";
+            var signupRequest = new SignupRequestDto
+            {
+                Nome = "New User",
+                Email = uniqueEmail,
+                Senha = "password123"
+                // UnidadeId and CondominioId might be needed if your DTO requires them
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("auth/signup", signupRequest);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.Created);
+
+            var signupResponse = await response.Content.ReadFromJsonAsync<SignupResponseDto>();
+            signupResponse.Should().NotBeNull();
+            signupResponse?.Email.Should().Be(uniqueEmail);
+            signupResponse?.Id.Should().NotBeEmpty();
+
+            // Optional: Verify user in DB
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ConViverDbContext>();
+            var userInDb = await dbContext.Usuarios.FirstOrDefaultAsync(u => u.Email == uniqueEmail);
+            userInDb.Should().NotBeNull();
+            userInDb?.Nome.Should().Be(signupRequest.Nome);
+        }
+
+        [Fact]
+        public async Task Signup_WithExistingEmail_ShouldReturnConflict()
+        {
+            // Arrange
+            var existingEmail = $"existinguser_{Guid.NewGuid()}@example.com";
+            var firstSignupRequest = new SignupRequestDto
+            {
+                Nome = "Existing User",
+                Email = existingEmail,
+                Senha = "password123"
+            };
+            // First, create the user
+            var firstResponse = await _client.PostAsJsonAsync("auth/signup", firstSignupRequest);
+            firstResponse.EnsureSuccessStatusCode();
+
+            var secondSignupRequest = new SignupRequestDto
+            {
+                Nome = "Another User",
+                Email = existingEmail, // Same email
+                Senha = "password456"
+            };
+
+            // Act
+            var secondResponse = await _client.PostAsJsonAsync("auth/signup", secondSignupRequest);
+
+            // Assert
+            secondResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.Conflict);
+        }
+
+        [Fact]
+        public async Task ForgotPassword_WithExistingEmail_ShouldReturnOk()
+        {
+            // Arrange
+            // Ensure admin user is seeded, or create one
+            var adminEmail = "admin@conviver.local"; // Assuming this user exists from DataSeeder
+            var forgotPasswordDto = new ForgotPasswordRequestDto { Email = adminEmail };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("auth/forgot-password", forgotPasswordDto);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+            var messageResponse = await response.Content.ReadFromJsonAsync<MessageResponseDto>(); // Assuming a generic DTO for messages
+            messageResponse?.Message.Should().Be("Se um usuário com este e-mail existir em nosso sistema, um link para redefinição de senha foi enviado.");
+
+            // Verify in DB
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ConViverDbContext>();
+            var userInDb = await dbContext.Usuarios.FirstOrDefaultAsync(u => u.Email == adminEmail);
+            userInDb.Should().NotBeNull();
+            userInDb?.PasswordResetToken.Should().NotBeNullOrEmpty();
+            userInDb?.PasswordResetTokenExpiry.Should().HaveValue().And.BeCloseTo(DateTime.UtcNow.AddHours(1), TimeSpan.FromMinutes(5));
+        }
+
+        [Fact]
+        public async Task ForgotPassword_WithNonExistingEmail_ShouldReturnOk()
+        {
+            // Arrange
+            var forgotPasswordDto = new ForgotPasswordRequestDto { Email = "nonexistent@example.com" };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("auth/forgot-password", forgotPasswordDto);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+            var messageResponse = await response.Content.ReadFromJsonAsync<MessageResponseDto>();
+            messageResponse?.Message.Should().Be("Se um usuário com este e-mail existir em nosso sistema, um link para redefinição de senha foi enviado.");
+        }
+
+        [Fact]
+        public async Task ResetPassword_WithValidTokenAndNewPassword_ShouldReturnOk()
+        {
+            // Arrange
+            var userEmail = $"reset_user_{Guid.NewGuid()}@example.com";
+            var signupRequest = new SignupRequestDto { Nome = "Reset User", Email = userEmail, Senha = "oldPassword123" };
+            await _client.PostAsJsonAsync("auth/signup", signupRequest); // 1. Create user
+
+            await _client.PostAsJsonAsync("auth/forgot-password", new ForgotPasswordRequestDto { Email = userEmail }); // 2. Generate token
+
+            string resetToken;
+            string oldPasswordHash;
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ConViverDbContext>();
+                var user = await dbContext.Usuarios.AsNoTracking().FirstAsync(u => u.Email == userEmail); // Use AsNoTracking if just reading
+                resetToken = user.PasswordResetToken;
+                oldPasswordHash = user.SenhaHash;
+            } // 3. Retrieve token
+
+            resetToken.Should().NotBeNullOrEmpty();
+
+            var newPassword = "newPassword456!";
+            var resetPasswordDto = new ResetPasswordRequestDto { ResetToken = resetToken, NovaSenha = newPassword };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("auth/reset-password", resetPasswordDto);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+            var messageResponse = await response.Content.ReadFromJsonAsync<MessageResponseDto>();
+            messageResponse?.Message.Should().Be("Senha redefinida com sucesso.");
+
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ConViverDbContext>();
+                var updatedUser = await dbContext.Usuarios.FirstAsync(u => u.Email == userEmail);
+                updatedUser.PasswordResetToken.Should().BeNull();
+                updatedUser.PasswordResetTokenExpiry.Should().BeNull();
+                updatedUser.SenhaHash.Should().NotBe(oldPasswordHash);
+                BCryptNet.Verify(newPassword, updatedUser.SenhaHash).Should().BeTrue();
+            }
+        }
+
+        [Fact]
+        public async Task ResetPassword_WithInvalidToken_ShouldReturnBadRequest()
+        {
+            // Arrange
+            var resetPasswordDto = new ResetPasswordRequestDto { ResetToken = "invalid_token", NovaSenha = "newPassword123" };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("auth/reset-password", resetPasswordDto);
+
+            // Assert
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+            var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponseDto>(); // Assuming a generic error DTO
+            errorResponse?.Error.Should().Be("RESET_FAILED"); // Or check message if more consistent
+            errorResponse?.Message.Should().Be("Não foi possível redefinir a senha. O token pode ser inválido ou ter expirado.");
+        }
+    }
+
+    // Helper DTOs for deserializing responses, if not already in Core.DTOs
+    // It's better to use actual DTOs from Core.DTOs if they match.
+    public class MessageResponseDto
+    {
+        public string Message { get; set; }
+    }
+
+    public class ErrorResponseDto
+    {
+        public string Error { get; set; } // Or "code", "type", etc.
+        public string Message { get; set; }
+        // public Dictionary<string, string[]> Errors { get; set; } // For validation errors
     }
 }
 
