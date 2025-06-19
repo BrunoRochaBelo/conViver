@@ -129,10 +129,10 @@ public class PrestadorService
                 historicoServicos.Add(new OrdemServicoResumoDto
                 {
                     Id = os.Id,
-                    // DataServico: Use ConcluidoEm if available, otherwise CriadoEm. DataAgendamento will be added later.
-                    DataServico = os.ConcluidoEm ?? os.CriadoEm,
-                    // DescricaoBreve: Use Descricao. Titulo/DescricaoServico will be added later.
-                    DescricaoBreve = os.Descricao?.Length > 100 ? os.Descricao.Substring(0, 100) + "..." : os.Descricao,
+                    // DataServico: Use DataConclusao if available, otherwise CriadoEm. DataAgendamento will be added later.
+                    DataServico = os.DataConclusao ?? os.CriadoEm,
+                    // DescricaoBreve: Use DescricaoProblema. Titulo/DescricaoServico will be added later.
+                    DescricaoBreve = os.DescricaoProblema?.Length > 100 ? os.DescricaoProblema.Substring(0, 100) + "..." : os.DescricaoProblema,
                     Status = os.Status.ToString()
                 });
             }
