@@ -811,3 +811,596 @@ main {
 .message-banner.info {
     background-color: #2196F3;
 }
+
+/* Tab System Styles */
+.cv-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
+}
+
+.cv-tab-button {
+    padding: 10px 20px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    font-size: var(--cv-font-size-md, 16px); /* Use variable or fallback */
+    font-family: var(--cv-font-family-sans-serif);
+    color: var(--current-text-secondary);
+    margin-right: 5px; /* Optional: spacing between tabs */
+    border-bottom: 2px solid transparent; /* For active indicator */
+    transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.cv-tab-button:hover {
+    color: var(--current-primary-blue, #007bff); /* Use variable or fallback */
+}
+
+.cv-tab-button.active {
+    border-bottom-color: var(--current-primary-blue, #007bff); /* Use variable or fallback */
+    font-weight: 600; /* Using OpenSansSemibold effectively */
+    color: var(--current-primary-blue, #007bff); /* Use variable or fallback */
+}
+
+.cv-tab-content {
+    padding: var(--cv-spacing-md, 15px); /* Use variable or fallback */
+    /* border: 1px solid var(--current-border-color, #ddd); */ /* Optional */
+    /* border-top: none; */ /* Optional */
+}
+
+/* Ensure communication__title is styled if not already */
+/* This might already be covered by .db-section__title or similar, but let's ensure it has base styling */
+.communication__title {
+    font-size: var(--cv-font-size-h2, 1.75rem); /* Use variable or fallback */
+    margin-bottom: var(--cv-spacing-md, 15px); /* Use variable or fallback */
+    color: var(--current-text-primary);
+    font-weight: 600; /* From OpenSansSemibold */
+}
+
+/* Styles for new elements in Mural Digital */
+.sticky-notices-container {
+    margin-bottom: var(--cv-spacing-lg, 20px);
+    /* Consider adding a subtle background or border if it needs to be visually distinct */
+}
+
+.sticky-notices-container .communication__post {
+    background-color: var(--cv-color-warning-bg, #fff3cd); /* Light yellow, using variable */
+    border-left: 5px solid var(--cv-primary-orange, #ffeeba); /* Orange accent, using variable */
+    /* Add a specific class if sticky posts need more differentiation from regular posts */
+}
+.sticky-notices-container .communication__post .communication__post-title::before {
+    content: "📌 "; /* Add a pin emoji before the title of sticky notes */
+}
+
+
+.filters-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: var(--cv-spacing-md, 15px); /* Spacing between filter elements */
+    align-items: center;
+    margin-bottom: var(--cv-spacing-lg, 20px);
+    padding: var(--cv-spacing-md, 15px);
+    background-color: var(--current-bg-white, #f8f9fa); /* Use theme variable or fallback */
+    border-radius: var(--cv-border-radius-md, 8px); /* Use theme variable */
+    box-shadow: var(--current-shadow-sm);
+}
+
+.filters-container label {
+    margin-right: var(--cv-spacing-xs, 5px);
+    font-weight: 500; /* Slightly bolder labels */
+    color: var(--current-text-secondary);
+}
+
+.filters-container .cv-input,
+.filters-container .cv-button {
+    flex-grow: 1; /* Allow inputs/button to grow */
+    min-width: 150px; /* Minimum width for inputs/button */
+}
+
+@media (min-width: 768px) {
+    .filters-container .cv-input,
+    .filters-container .cv-button {
+        flex-grow: 0; /* Prevent growing too much on larger screens */
+    }
+}
+
+
+.fab {
+    position: fixed;
+    bottom: var(--cv-spacing-lg, 20px);
+    right: var(--cv-spacing-lg, 20px);
+    width: 56px;
+    height: 56px;
+    background-color: var(--current-primary-blue, #007bff);
+    color: var(--cv-text-on-primary, white);
+    border: none;
+    border-radius: 50%;
+    font-size: var(--cv-font-size-xl, 24px); /* Using theme variable */
+    line-height: 56px; /* Center the '+' vertically */
+    text-align: center;
+    box-shadow: var(--current-shadow-md, 0 2px 10px rgba(0,0,0,0.2)); /* Use theme variable */
+    cursor: pointer;
+    z-index: 1050; /* Ensure it's above most content, Bootstrap modals are often 1040/1050 */
+    display: none; /* Initially hidden, JS will show it based on conditions */
+    transition: background-color 0.3s ease, transform 0.2s ease-out;
+}
+
+.fab:hover {
+    background-color: var(--cv-dark-primary-blue, #0056b3); /* Darken for hover, use theme variable if available */
+    transform: translateY(-2px); /* Slight lift on hover */
+}
+
+.fab:active {
+    transform: translateY(0px); /* Press down effect */
+}
+
+
+/* Helper class for loading messages if not already present */
+.cv-loading-message, .cv-error-message, .cv-no-more-message {
+    padding: var(--cv-spacing-md);
+    text-align: center;
+    color: var(--current-text-secondary);
+    font-style: italic;
+}
+.cv-error-message {
+    color: var(--current-semantic-error);
+}
+
+/* Modal Styles */
+.cv-modal {
+    /* display: none; */ /* JS handles display */
+    position: fixed;
+    z-index: 1051; /* Higher than FAB */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Enable scroll if content is too long */
+    background-color: rgba(0,0,0,0.5); /* Dim background */
+    display: flex; /* Added for centering */
+    align-items: center; /* Added for centering */
+    justify-content: center; /* Added for centering */
+}
+
+.cv-modal-content {
+    background-color: var(--current-bg-white, #fefefe);
+    /* margin: 10% auto; */ /* Replaced by flex centering on .cv-modal */
+    padding: var(--cv-spacing-lg, 20px);
+    border: 1px solid var(--current-border-color, #888);
+    width: 80%;
+    max-width: 600px;
+    border-radius: var(--cv-border-radius-lg, 8px);
+    position: relative;
+    box-shadow: var(--current-shadow-lg);
+    max-height: 90vh; /* Limit height to 90% of viewport height */
+    overflow-y: auto; /* Allow internal scrolling if content exceeds max-height */
+}
+
+.cv-modal-content h2 {
+    margin-top: 0;
+    font-size: var(--cv-font-size-h3);
+    color: var(--current-text-primary);
+    border-bottom: 1px solid var(--current-border-subtle);
+    padding-bottom: var(--cv-spacing-sm);
+    margin-bottom: var(--cv-spacing-md);
+}
+
+.cv-modal-close {
+    color: var(--current-text-placeholder, #aaa);
+    position: absolute;
+    top: var(--cv-spacing-sm, 10px);
+    right: var(--cv-spacing-md, 15px);
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.cv-modal-close:hover,
+.cv-modal-close:focus {
+    color: var(--current-text-primary, black);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Styling for form elements within modal, assuming .cv-form, .cv-form-group, .cv-input, .cv-button are globally styled */
+#form-criar-aviso .cv-form-group {
+    margin-bottom: var(--cv-spacing-md, 15px);
+}
+
+#form-criar-aviso label {
+    display: block;
+    margin-bottom: var(--cv-spacing-xs, 5px);
+    font-weight: 500; /* Or OpenSansSemibold */
+    color: var(--current-text-secondary);
+}
+#form-criar-aviso .cv-input {
+    width: 100%; /* Make inputs take full width of their container */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+#form-criar-aviso textarea.cv-input {
+    resize: vertical; /* Allow vertical resize, disable horizontal */
+    min-height: 80px;
+}
+#form-criar-aviso select[multiple].cv-input {
+    min-height: 100px; /* Make multiple select more usable */
+}
+#form-criar-aviso .cv-form-group small {
+    display: block;
+    font-size: 0.85em;
+    color: var(--current-text-placeholder);
+    margin-top: var(--cv-spacing-xs);
+}
+
+
+.cv-form-actions {
+    margin-top: var(--cv-spacing-lg, 20px);
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: var(--cv-spacing-sm, 10px); /* Space between buttons */
+}
+/* .cv-form-actions .cv-button {} */ /* General button styling is applied */
+
+/* Notice Card Action Buttons */
+.communication__post-actions {
+    margin-top: var(--cv-spacing-md, 15px); /* Use theme variable */
+    padding-top: var(--cv-spacing-sm, 10px); /* Use theme variable */
+    border-top: 1px solid var(--current-border-subtle, #eee); /* Use theme variable */
+    text-align: right;
+    display: flex; /* Added for better alignment if needed */
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: var(--cv-spacing-sm, 8px); /* Space between buttons */
+}
+
+.cv-button-link {
+    background: none;
+    border: none;
+    color: var(--current-text-link, #007bff); /* Use theme variable */
+    cursor: pointer;
+    padding: var(--cv-spacing-xs, 4px) var(--cv-spacing-sm, 8px); /* Use theme variable */
+    margin-left: var(--cv-spacing-sm, 8px); /* Use theme variable */
+    font-size: 0.9em; /* Slightly smaller than main buttons */
+    font-family: var(--cv-font-family-sans-serif); /* Ensure font consistency */
+    text-decoration: none; /* Remove default underline for links */
+    border-radius: var(--cv-border-radius-sm); /* Consistent border radius */
+    transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition */
+}
+
+.cv-button-link:hover {
+    text-decoration: underline;
+    background-color: var(--cv-gray-100); /* Subtle background on hover */
+}
+
+.cv-button-link.danger {
+    color: var(--current-semantic-error, #FF3B30); /* Use theme variable for error/danger color */
+}
+.cv-button-link.danger:hover {
+    color: var(--current-semantic-error, #FF3B30); /* Keep color on hover for danger */
+    background-color: var(--cv-color-error-bg); /* Light red background for danger hover */
+}
+
+/* Meta information in notice card */
+.communication__post-meta {
+    font-size: 0.85em;
+    color: var(--current-text-secondary);
+    margin-top: var(--cv-spacing-md);
+    padding-top: var(--cv-spacing-sm);
+    border-top: 1px dashed var(--current-border-subtle);
+}
+
+/* Enquetes Tab Specific Styles */
+#content-enquetes .cv-section {
+    margin-bottom: var(--cv-spacing-xl, 30px); /* Use theme variable */
+    padding-bottom: var(--cv-spacing-lg, 20px); /* Use theme variable */
+    border-bottom: 1px solid var(--current-border-subtle, #eee); /* Use theme variable */
+}
+#content-enquetes .cv-section:last-of-type { /* Use last-of-type for better specificity */
+    border-bottom: none;
+}
+#content-enquetes .cv-section h3 { /* Sub-section titles */
+    font-size: var(--cv-font-size-h4); /* Use theme variable */
+    color: var(--current-text-primary);
+    margin-bottom: var(--cv-spacing-md);
+}
+
+
+.enquetes-list .cv-card { /* Assuming polls are displayed in cards */
+    margin-bottom: var(--cv-spacing-md, 15px); /* Use theme variable */
+    padding: var(--cv-spacing-md, 15px); /* Use theme variable */
+    background-color: var(--current-bg-white); /* Use theme variable */
+    border-radius: var(--cv-border-radius-md); /* Use theme variable */
+    box-shadow: var(--current-shadow-sm); /* Use theme variable */
+}
+
+.enquetes-list .cv-card h4 { /* Poll question */
+    font-size: var(--cv-font-size-lg); /* Use theme variable */
+    color: var(--current-text-primary);
+    margin-top: 0; /* Remove default margin if any */
+    margin-bottom: var(--cv-spacing-sm, 10px); /* Use theme variable */
+}
+
+.enquetes-list .cv-card p { /* Poll metadata like deadline, author */
+    font-size: 0.9em;
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-xs, 5px); /* Use theme variable */
+}
+.enquetes-list .cv-card p:last-of-type {
+    margin-bottom: var(--cv-spacing-sm); /* More space after last metadata before options/actions */
+}
+
+
+.enquetes-list .cv-card .poll-options {
+    margin-top: var(--cv-spacing-sm);
+    margin-bottom: var(--cv-spacing-md);
+}
+.enquetes-list .cv-card .poll-options .cv-button { /* If options are buttons */
+    margin-right: var(--cv-spacing-xs, 5px); /* Use theme variable */
+    margin-bottom: var(--cv-spacing-xs, 5px); /* Use theme variable */
+}
+/* Example styling for radio/checkbox options if not buttons */
+.enquetes-list .cv-card .poll-options label {
+    display: block;
+    margin-bottom: var(--cv-spacing-xs);
+}
+
+
+.enquetes-list .cv-card .poll-status {
+    font-size: 0.9em;
+    margin-top: var(--cv-spacing-sm);
+}
+.enquetes-list .cv-card .poll-status.voted {
+    color: var(--current-semantic-success, green); /* Use theme variable */
+    font-weight: 600; /* OpenSansSemibold */
+}
+.enquetes-list .cv-card .poll-status.not-voted {
+    color: var(--current-semantic-warning, orange); /* Use theme variable */
+}
+.enquetes-list .cv-card .poll-status.closed {
+    color: var(--current-text-placeholder, #888);
+}
+
+
+.enquete-resultados-details {
+    padding: var(--cv-spacing-md, 15px); /* Use theme variable */
+    background-color: var(--cv-gray-100, #f9f9f9); /* Use theme variable for light bg */
+    border-radius: var(--cv-border-radius-md); /* Use theme variable */
+    min-height: 100px;
+    margin-bottom: var(--cv-spacing-md);
+}
+.enquete-resultados-details h4 { /* Title for results, e.g., "Resultados para: [Poll Question]" */
+    font-size: var(--cv-font-size-lg);
+    margin-bottom: var(--cv-spacing-sm);
+}
+/* Styles for charts or result bars would go here */
+
+
+.js-back-to-active-enquetes {
+    margin-top: var(--cv-spacing-sm, 10px); /* Use theme variable */
+}
+
+/* FAB for enquetes - .fab class should cover it unless specific icon/color is needed */
+/* .js-fab-enquetes {} */
+
+/* Modal for Enquetes - .cv-modal and .cv-modal-content should cover it */
+/* #modal-criar-enquete .cv-modal-content {} */
+/* Specific form styling for Enquete modal, if different from Aviso modal */
+#form-criar-enquete .cv-form-group {
+    margin-bottom: var(--cv-spacing-md, 15px);
+}
+#form-criar-enquete label {
+    display: block;
+    margin-bottom: var(--cv-spacing-xs, 5px);
+    font-weight: 500;
+    color: var(--current-text-secondary);
+}
+#form-criar-enquete .cv-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+#form-criar-enquete textarea.cv-input {
+    resize: vertical;
+    min-height: 80px; /* Same as aviso form */
+}
+#form-criar-enquete input[type="datetime-local"].cv-input {
+    /* Specific styling for datetime-local if needed */
+}
+
+/* Enhancements for Poll Cards and Results Display */
+.communication__poll-card { /* This is the new class for individual poll cards */
+    margin-bottom: var(--cv-spacing-lg, 20px); /* More spacing between poll cards */
+    /* .cv-card base styling is inherited. Add specific overrides if needed */
+}
+
+.communication__poll-card h4 { /* Poll Question */
+    font-size: var(--cv-font-size-lg); /* Already in .enquetes-list .cv-card h4, ensure it applies if class is different */
+    color: var(--current-text-primary);
+    margin-bottom: var(--cv-spacing-sm, 10px);
+}
+
+.communication__poll-card p { /* Metadata like deadline, status */
+    font-size: 0.9em;
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-xs, 4px);
+}
+.communication__poll-card p.poll-status {
+    margin-top: var(--cv-spacing-sm, 8px);
+    margin-bottom: var(--cv-spacing-md, 15px); /* More space after status before options/results link */
+}
+
+
+.poll-options { /* Container for vote buttons or chosen option text */
+    margin-top: var(--cv-spacing-md, 15px);
+    margin-bottom: var(--cv-spacing-md, 15px);
+}
+
+.poll-options .cv-button.vote-option { /* Specific class for vote buttons */
+    margin-right: var(--cv-spacing-sm, 8px);
+    margin-bottom: var(--cv-spacing-sm, 8px);
+}
+.poll-options p strong { /* Styling for the "Sua escolha: XYZ" text */
+    color: var(--current-text-primary);
+}
+
+
+.view-results { /* Class for "Ver Resultados Parciais" button */
+    font-size: 0.9em; /* Match other link buttons */
+}
+
+/* Poll Result Bar Styling */
+.poll-result-item { /* Container for one option's result */
+    margin-bottom: var(--cv-spacing-sm, 10px);
+}
+.poll-result-option-text {
+    display: block;
+    font-size: 0.95em;
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-xs, 4px);
+}
+.poll-result-bar-container {
+    width: 100%;
+    background-color: var(--cv-gray-200, #e9ecef); /* Light gray background for the track */
+    border-radius: var(--cv-border-radius-sm, 4px);
+    overflow: hidden; /* Ensure inner bar respects border radius */
+}
+.poll-result-bar {
+    height: 22px;
+    line-height: 22px; /* Vertically center text */
+    color: var(--cv-text-on-primary, white);
+    text-align: center;
+    font-size: 0.85em;
+    font-weight: 600; /* Semibold */
+    border-radius: var(--cv-border-radius-sm, 4px); /* Match container, or slightly less if padding desired */
+    transition: width 0.5s ease-in-out; /* Animate bar width changes */
+    white-space: nowrap; /* Prevent text wrapping */
+    overflow: hidden; /* Hide text if bar is too small, though % should be visible */
+    padding: 0 var(--cv-spacing-xs); /* Small padding for text inside bar */
+    box-sizing: border-box;
+}
+
+/* Admin Actions for Poll Cards */
+.communication__poll-card .admin-actions {
+    margin-top: var(--cv-spacing-md, 15px);
+    padding-top: var(--cv-spacing-sm, 10px);
+    border-top: 1px solid var(--current-border-subtle, #eee);
+    text-align: right; /* Align buttons to the right */
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--cv-spacing-sm, 8px);
+}
+
+.communication__poll-card .admin-actions .cv-button-link {
+    /* Uses existing .cv-button-link styling */
+    /* Add specific overrides if needed, e.g., font size or padding */
+    font-size: 0.85em; /* Slightly smaller for admin actions */
+    margin-left: 0; /* Reset margin if .cv-button-link has default left margin */
+}
+
+/* Chamados Tab Specific Styles */
+#content-chamados .cv-section {
+    margin-bottom: var(--cv-spacing-xl, 30px);
+    padding-bottom: var(--cv-spacing-lg, 20px);
+    border-bottom: 1px solid var(--current-border-subtle, #eee);
+}
+#content-chamados .cv-section:last-of-type {
+    border-bottom: none;
+}
+#content-chamados .cv-section h3 {
+    font-size: var(--cv-font-size-h4);
+    color: var(--current-text-primary);
+    margin-bottom: var(--cv-spacing-md);
+}
+
+/* Styling for the list of chamados */
+.chamados-list .cv-card { /* Assuming chamados are displayed in cards */
+    margin-bottom: var(--cv-spacing-md, 15px);
+    padding: var(--cv-spacing-md, 15px);
+    background-color: var(--current-bg-white);
+    border-radius: var(--cv-border-radius-md);
+    box-shadow: var(--current-shadow-sm);
+    cursor: pointer; /* Indicate items are clickable to see details */
+    transition: box-shadow 0.2s ease-in-out;
+}
+.chamados-list .cv-card:hover {
+    box-shadow: var(--current-shadow-md);
+}
+.chamados-list .cv-card h4 { /* Chamado Title */
+    font-size: var(--cv-font-size-lg);
+    color: var(--current-text-primary);
+    margin: 0 0 var(--cv-spacing-xs, 4px) 0;
+}
+.chamados-list .cv-card p { /* metadata like status, date, category */
+    font-size: 0.9em;
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-xs, 4px);
+}
+.chamados-list .cv-card .chamado-status-aberto { color: var(--current-semantic-warning); font-weight: 600; }
+.chamados-list .cv-card .chamado-status-em_andamento { color: var(--current-semantic-info); font-weight: 600; }
+.chamados-list .cv-card .chamado-status-concluido { color: var(--current-semantic-success); font-weight: 600; }
+
+
+/* Styling for Chamado Detail View */
+.chamado-detail-content {
+    padding: var(--cv-spacing-md, 15px);
+    background-color: var(--current-bg-element, #f9f9f9); /* Slightly different bg */
+    border-radius: var(--cv-border-radius-md);
+    margin-bottom: var(--cv-spacing-lg, 20px);
+}
+.chamado-detail-content p {
+    margin-bottom: var(--cv-spacing-sm, 8px);
+    line-height: 1.6;
+}
+.chamado-detail-content strong { /* For labels like "Status:", "Categoria:" */
+    font-weight: 600; /* OpenSansSemibold */
+    color: var(--current-text-primary);
+}
+
+.chamado-interactions {
+    margin-top: var(--cv-spacing-lg, 20px);
+}
+.chamado-interactions h4 {
+    font-size: var(--cv-font-size-lg);
+    margin-bottom: var(--cv-spacing-sm);
+}
+.interaction-item {
+    padding: var(--cv-spacing-sm, 10px);
+    border: 1px solid var(--current-border-subtle, #eee);
+    border-radius: var(--cv-border-radius-sm, 5px);
+    margin-bottom: var(--cv-spacing-sm, 10px);
+    background-color: var(--current-bg-white);
+}
+.interaction-item p {
+    margin: 0 0 var(--cv-spacing-xs, 5px) 0;
+    white-space: pre-wrap; /* Preserve line breaks in comments */
+}
+.interaction-item .meta {
+    font-size: 0.8em;
+    color: var(--current-text-placeholder, #777);
+}
+.interaction-item .meta .author {
+    font-weight: 600; /* OpenSansSemibold */
+}
+
+/* Admin-only fields in modal - already have .admin-only-field class for JS control */
+#form-criar-chamado .admin-only-field {
+    border-top: 1px dashed var(--current-border-subtle);
+    margin-top: var(--cv-spacing-md);
+    padding-top: var(--cv-spacing-md);
+}
+
+/* Specific form styling for Chamado modal, if different */
+#form-criar-chamado .cv-form-group {
+    margin-bottom: var(--cv-spacing-md, 15px);
+}
+#form-criar-chamado label {
+    display: block;
+    margin-bottom: var(--cv-spacing-xs, 5px);
+    font-weight: 500;
+    color: var(--current-text-secondary);
+}
+#form-criar-chamado .cv-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+#form-criar-chamado textarea.cv-input {
+    resize: vertical;
+    min-height: 100px;
+}
