@@ -19,9 +19,9 @@ public class SignupRequestDto
     [StringLength(100, MinimumLength = 6, ErrorMessage = "A senha deve ter pelo menos 6 caracteres.")]
     public string Senha { get; set; } = string.Empty;
 
-    // Opcional: caso o usuário já esteja vinculado a um condomínio/unidade
-    public Guid? CondominioId { get; set; }
-    public Guid? UnidadeId { get; set; }
+    // Opcional: Se o signup já vincula a um condomínio/unidade
+    // public Guid? CondominioId { get; set; }
+    // public Guid? UnidadeId { get; set; }
     // public string? CodigoConvite { get; set; }
 }
 

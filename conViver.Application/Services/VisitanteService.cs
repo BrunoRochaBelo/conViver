@@ -103,7 +103,11 @@ public class VisitanteService
 
         await _visitanteRepository.AddAsync(novoVisitante, ct);
 
-        // TODO: Call _notificacaoService.NotificarChegadaVisitanteAsync(novoVisitante.UnidadeId, novoVisitante.Nome);
+        // novoVisitante is guaranteed to be non-null here as it was just instantiated.
+        await _notificacaoService.NotificarChegadaVisitanteAsync(
+            novoVisitante.UnidadeId,
+            novoVisitante.Nome,
+            novoVisitante.MotivoVisita);
 
         // It's better to call ObterVisitantePorIdAsync to ensure consistent DTO mapping
         var visitanteDto = await ObterVisitantePorIdAsync(novoVisitante.Id, ct);
@@ -137,7 +141,10 @@ public class VisitanteService
 
         await _visitanteRepository.UpdateAsync(visitante, ct);
 
-        // TODO: Optional: Call _notificacaoService for exit if needed
+        // 'visitante' is guaranteed non-null here due to the check at the beginning of the method.
+        await _notificacaoService.NotificarSaidaVisitanteAsync(
+            visitante.UnidadeId,
+            visitante.Nome);
 
         return await ObterVisitantePorIdAsync(visitante.Id, ct);
     }
@@ -259,7 +266,13 @@ public class VisitanteService
         };
 
         await _visitanteRepository.AddAsync(novoVisitantePreAutorizado, ct);
-        // TODO: Call _notificacaoService.NotificarVisitantePreAutorizadoAsync(novoVisitantePreAutorizado.UnidadeId, novoVisitantePreAutorizado.Nome, qrCodeValue);
+
+        // novoVisitantePreAutorizado is guaranteed to be non-null here.
+        await _notificacaoService.NotificarVisitantePreAutorizadoAsync(
+            novoVisitantePreAutorizado.UnidadeId,
+            novoVisitantePreAutorizado.Nome,
+            novoVisitantePreAutorizado.QRCode,
+            novoVisitantePreAutorizado.DataValidadePreAutorizacao);
 
         var resultDto = await ObterVisitantePorIdAsync(novoVisitantePreAutorizado.Id, ct);
         if (resultDto == null) throw new InvalidOperationException("Falha ao recuperar visitante pré-autorizado após criação.");
@@ -278,13 +291,17 @@ public class VisitanteService
 
         if (visitante == null)
         {
-            // TODO: Call _notificacaoService.NotificarFalhaQRCodeInvalidoAsync();
+            await _notificacaoService.NotificarFalhaQRCodeAsync(null, qrCodeValue, "Inválido ou não encontrado");
             return null;
         }
 
         if (visitante.DataValidadePreAutorizacao.HasValue && visitante.DataValidadePreAutorizacao.Value < DateTime.UtcNow)
         {
-            // TODO: Call _notificacaoService.NotificarFalhaQRCodeExpiradoAsync(visitante.UnidadeId);
+            await _notificacaoService.NotificarFalhaQRCodeAsync(
+                visitante.UnidadeId,
+                qrCodeValue,
+                "Expirado");
+
             visitante.Status = VisitanteStatus.Aguardando;
             await _visitanteRepository.UpdateAsync(visitante, ct);
             throw new InvalidOperationException("QR Code expirado.");
@@ -295,7 +312,11 @@ public class VisitanteService
         visitante.UpdatedAt = DateTime.UtcNow;
 
         await _visitanteRepository.UpdateAsync(visitante, ct);
-        // TODO: Call _notificacaoService.NotificarChegadaVisitanteAsync(visitante.UnidadeId, visitante.Nome);
+
+        await _notificacaoService.NotificarChegadaVisitanteAsync(
+            visitante.UnidadeId,
+            visitante.Nome,
+            visitante.MotivoVisita);
 
         return await ObterVisitantePorIdAsync(visitante.Id, ct);
     }
