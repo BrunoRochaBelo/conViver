@@ -20,22 +20,110 @@
     <main class="cv-container">
         <section class="portaria__visitantes">
             <h2 class="portaria__title">Controle de Visitantes</h2>
-            <table class="cv-table portaria__visit-list">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Unidade</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody class="js-visitantes">
-                    <tr>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                    </tr>
-                </tbody>
-            </table>
+
+            <div class="cv-tabs">
+                <button class="cv-tab-button active" data-tab="visitantes-atuais">Visitantes Atuais</button>
+                <button class="cv-tab-button" data-tab="registrar-visitante">Registrar Novo Visitante</button>
+                <button class="cv-tab-button" data-tab="historico-visitantes">Histórico de Visitantes</button>
+            </div>
+
+            <div id="visitantes-atuais" class="cv-tab-content active">
+                <h3>Visitantes Atuais no Condomínio</h3>
+                <div class="filters">
+                    <input type="text" id="filterUnidadeVisitantesAtuais" placeholder="Filtrar por Unidade (Ex: A101)">
+                    <button id="btnFiltrarVisitantesAtuais" class="cv-button cv-button--small">Filtrar</button>
+                    <button id="btnLimparFiltroVisitantesAtuais" class="cv-button cv-button--small">Limpar</button>
+                </div>
+                <table class="cv-table" id="tabelaVisitantesAtuais">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Unidade</th>
+                            <th>Documento</th>
+                            <th>Motivo</th>
+                            <th>Chegada</th>
+                            <th>Saída Prevista</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="js-visitantes-atuais-lista">
+                        <!-- Dados carregados via JS -->
+                    </tbody>
+                </table>
+                <p id="visitantesAtuaisLoadingMsg" style="display:none;">Carregando...</p>
+                <p id="visitantesAtuaisNoDataMsg" style.display:none;>Nenhum visitante encontrado.</p>
+            </div>
+
+            <div id="registrar-visitante" class="cv-tab-content">
+                <h3>Registrar Novo Visitante</h3>
+                <form id="formRegistrarVisitante" class="cv-form">
+                    <div class="cv-form-group">
+                        <label for="visNome">Nome Completo:</label>
+                        <input type="text" id="visNome" name="nome" required>
+                    </div>
+                    <div class="cv-form-group">
+                        <label for="visDocumento">Documento (RG/CPF):</label>
+                        <input type="text" id="visDocumento" name="documento">
+                    </div>
+                    <div class="cv-form-group">
+                        <label for="visUnidadeId">Unidade Destino (ID):</label>
+                        <input type="text" id="visUnidadeId" name="unidadeId" required placeholder="Cole o ID da Unidade aqui">
+                        <!-- Melhoria futura: Select com unidades carregadas da API -->
+                    </div>
+                    <div class="cv-form-group">
+                        <label for="visMotivo">Motivo da Visita:</label>
+                        <textarea id="visMotivo" name="motivoVisita"></textarea>
+                    </div>
+                    <div class="cv-form-group">
+                        <label for="visHorarioSaidaPrevisto">Horário Saída Previsto (Opcional):</label>
+                        <input type="datetime-local" id="visHorarioSaidaPrevisto" name="horarioSaidaPrevisto">
+                    </div>
+                    <div class="cv-form-group">
+                        <label for="visObservacoes">Observações (Opcional):</label>
+                        <textarea id="visObservacoes" name="observacoes"></textarea>
+                    </div>
+                    <div class="cv-form-group">
+                        <label for="visQRCodeEntrada">Entrada com QR Code (Pré-Autorizado):</label>
+                        <input type="text" id="visQRCodeEntrada" name="qrCodeEntrada" placeholder="Leia ou digite o QR Code">
+                        <button type="button" id="btnValidarQRCode" class="cv-button cv-button--secondary">Validar QR Code</button>
+                    </div>
+                    <div class="cv-form-actions">
+                        <button type="submit" class="cv-button cv-button--primary">Registrar Entrada Manual</button>
+                    </div>
+                </form>
+                <p id="registrarVisitanteMsg" class="feedback-message" style="display:none;"></p>
+            </div>
+
+            <div id="historico-visitantes" class="cv-tab-content">
+                <h3>Histórico de Visitantes</h3>
+                <div class="filters">
+                    <input type="text" id="filterHistUnidadeId" placeholder="ID da Unidade">
+                    <input type="date" id="filterHistDataInicio">
+                    <input type="date" id="filterHistDataFim">
+                    <input type="text" id="filterHistNome" placeholder="Nome do Visitante">
+                    <button id="btnFiltrarHistorico" class="cv-button cv-button--small">Filtrar Histórico</button>
+                    <button id="btnLimparFiltroHistorico" class="cv-button cv-button--small">Limpar Filtros</button>
+                </div>
+                <table class="cv-table" id="tabelaHistoricoVisitantes">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Unidade</th>
+                            <th>Documento</th>
+                            <th>Motivo</th>
+                            <th>Chegada</th>
+                            <th>Saída</th>
+                            <th>Status</th>
+                            <th>Observações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="js-historico-visitantes-lista">
+                        <!-- Dados carregados via JS -->
+                    </tbody>
+                </table>
+                <p id="historicoLoadingMsg" style="display:none;">Carregando histórico...</p>
+                <p id="historicoNoDataMsg" style="display:none;">Nenhum registro encontrado para os filtros aplicados.</p>
+            </div>
         </section>
         <section class="portaria__encomendas">
             <h2 class="portaria__title">Gestão de Encomendas</h2>
