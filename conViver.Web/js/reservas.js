@@ -54,7 +54,7 @@ async function criarReserva(evt) {
     evt.preventDefault();
     const form = evt.target;
     const dataInput = form.querySelector('.js-reserva-data');
-    const submitButton = form.querySelector('button[type="submit"]'); // Assuming there's a submit button
+    const submitButton = form.querySelector('button[type="submit"]');
 
     if (!dataInput || !dataInput.value) {
         showGlobalFeedback('Por favor, selecione uma data para a reserva.', 'error');
@@ -63,20 +63,23 @@ async function criarReserva(evt) {
     const data = dataInput.value;
     const inicio = `${data}T10:00:00`; // Exemplo, idealmente pegar do form
     const fim = `${data}T12:00:00`;   // Exemplo, idealmente pegar do form
-    const area = "Área Comum Teste"; // Exemplo, idealmente pegar do form
+    const area = "Área Comum Teste";  // Exemplo, idealmente pegar do form
 
     showGlobalFeedback('Criando reserva...', 'info', 2000);
     if (submitButton) submitButton.disabled = true;
 
     try {
-        await apiClient.post('/app/reservas', { area, inicio, fim });
+        // TODO: buscar o UnidadeId do usuário logado e preencher aqui
+        const payload = { AreaComumId: area, Inicio: inicio, Fim: fim, UnidadeId: null };
+        await apiClient.post('/api/v1/app/reservas', payload);
+
         showGlobalFeedback('Reserva criada com sucesso!', 'success', 5000);
         form.reset();
-        await carregarAgenda(); // Recarrega a agenda para mostrar a nova reserva
+        await carregarAgenda(); // Recarrega a agenda com a nova reserva
     } catch(err) {
         console.error('Erro ao criar reserva', err);
         let errorMessage = 'Erro ao criar reserva.';
-        if (err.data && err.data.message) { // Specific API message
+        if (err.data && err.data.message) {
             errorMessage += ` ${err.data.message}`;
         } else if (err.message) {
             errorMessage += ` ${err.message}`;
