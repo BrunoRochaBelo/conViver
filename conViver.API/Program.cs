@@ -101,7 +101,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ConViverDbContext>();
-    db.Database.EnsureCreated();
+    // db.Database.EnsureCreated(); // Commented out to allow migrations to handle schema creation
     DataSeeder.Seed(db);
 }
 

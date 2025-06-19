@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Threading; // Added
 using System.Threading.Tasks; // Added
 using System.Security.Claims; // Added for NameIdentifier
+using System.Linq; // Added for Linq methods like .Any() and .ToList()
+using conViver.Core.Interfaces; // Added for IUsuarioService
 
 namespace conViver.API.Controllers;
 
@@ -17,10 +19,12 @@ namespace conViver.API.Controllers;
 public class VisitantesController : ControllerBase
 {
     private readonly VisitanteService _visitanteService;
+    private readonly IUsuarioService _usuarioService; // Added
 
-    public VisitantesController(VisitanteService visitanteService)
+    public VisitantesController(VisitanteService visitanteService, IUsuarioService usuarioService) // Modified
     {
         _visitanteService = visitanteService;
+        _usuarioService = usuarioService; // Added
     }
 
     private Guid GetAuthenticatedUserId()
@@ -60,16 +64,17 @@ public class VisitantesController : ControllerBase
         {
             return NotFound($"Visitante com ID {id} não encontrado.");
         }
-        // TODO: Add logic for Condomino to only access their own pre-authorized or current visitors.
-        // Example: if (User.IsInRole("Condomino") && visitante.UnidadeId != GetCondominoUnidadeId()) return Forbid();
-        // Guid authenticatedUserId = GetAuthenticatedUserId(); // Needed for the check
-        // var userRoles = User.FindAll(ClaimTypes.Role).Select(r => r.Value);
-        // if (userRoles.Contains("Condomino"))
-        // {
-        //     // Placeholder: Assume a method to get the Condomino's UnidadeId or check against visitor's UnidadeId
-        //     // This requires knowing the Condomino's UnidadeId or if the Visitante is linked to them.
-        //     // For simplicity, this detailed check is deferred.
-        // }
+
+        if (User.IsInRole("Condomino"))
+        {
+            var authenticatedUserId = GetAuthenticatedUserId();
+            var userUnidadeIds = await _usuarioService.GetUnidadesIdDoUsuarioAsync(authenticatedUserId, ct);
+
+            if (!userUnidadeIds.Contains(visitante.UnidadeId) && visitante.PreAutorizadoPorCondominoId != authenticatedUserId)
+            {
+                return Forbid("Você não tem permissão para ver detalhes deste visitante.");
+            }
+        }
         return Ok(visitante);
     }
 
@@ -152,19 +157,27 @@ public class VisitantesController : ControllerBase
     [Authorize(Roles = "Sindico,Administrador,Porteiro,Condomino")]
     public async Task<ActionResult<IEnumerable<VisitanteDto>>> ListarVisitantesAtuais([FromQuery] Guid? unidadeId, CancellationToken ct)
     {
-        // TODO: If Condomino, ensure unidadeId (if provided) is their own, or filter results to their unit.
-        // Guid authenticatedUserId = GetAuthenticatedUserId();
-        // var userRoles = User.FindAll(ClaimTypes.Role).Select(r => r.Value);
-        // if (userRoles.Contains("Condomino"))
-        // {
-        //     // Placeholder: Get Condomino's UnidadeId
-        //     // Guid? condominoUnidadeId = await _usuarioService.GetUnidadePrincipalDoCondominoAsync(authenticatedUserId);
-        //     // if (condominoUnidadeId.HasValue) {
-        //     //    if (unidadeId.HasValue && unidadeId.Value != condominoUnidadeId.Value) return Forbid();
-        //     //    unidadeId = condominoUnidadeId;
-        //     // } else { return Forbid(); /* Should not happen if user is Condomino */ }
-        // }
-        var visitantes = await _visitanteService.ListarVisitantesAtuaisAsync(unidadeId, ct);
+        Guid? idParaFiltrar = unidadeId;
+        if (User.IsInRole("Condomino"))
+        {
+            var authenticatedUserId = GetAuthenticatedUserId();
+            var userUnidadeIds = (await _usuarioService.GetUnidadesIdDoUsuarioAsync(authenticatedUserId, ct)).ToList();
+
+            if (!userUnidadeIds.Any())
+            {
+                return Ok(Enumerable.Empty<VisitanteDto>());
+            }
+
+            Guid condominoUnidadePrincipal = userUnidadeIds.First();
+
+            if (idParaFiltrar.HasValue && idParaFiltrar.Value != condominoUnidadePrincipal)
+            {
+                return Forbid("Você só pode listar visitantes da sua unidade.");
+            }
+            idParaFiltrar = condominoUnidadePrincipal;
+        }
+
+        var visitantes = await _visitanteService.ListarVisitantesAtuaisAsync(idParaFiltrar, ct);
         return Ok(visitantes);
     }
 
@@ -187,15 +200,15 @@ public class VisitantesController : ControllerBase
         {
             if (preAuthDto.CondominoId != authenticatedUserId)
             {
-                // Condomino can only pre-authorize for themselves (CondominoId in DTO must be their own ID)
-                return Forbid("Condômino só pode pré-autorizar visitas para si mesmo (CondominoId no DTO deve ser o seu).");
+                return BadRequest(new { message = "O ID do condômino na requisição não corresponde ao usuário autenticado." });
             }
-            // TODO: Validate preAuthDto.UnidadeId against the Condomino's units.
-            // var userUnits = await _usuarioService.GetUnidadesDoUsuarioAsync(authenticatedUserId, ct);
-            // if (!userUnits.Any(u => u.Id == preAuthDto.UnidadeId))
-            //    return BadRequest(new { message = "Unidade inválida para este condômino." });
+
+            var userUnidadeIds = (await _usuarioService.GetUnidadesIdDoUsuarioAsync(authenticatedUserId, ct)).ToList();
+            if (!userUnidadeIds.Any() || !userUnidadeIds.Contains(preAuthDto.UnidadeId))
+            {
+                return BadRequest(new { message = "A unidade especificada não pertence a este condômino ou o condômino não possui unidade associada." });
+            }
         }
-        // Admin/Sindico can specify any CondominoId and UnidadeId as per DTO.
 
         try
         {
@@ -206,14 +219,9 @@ public class VisitantesController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (InvalidOperationException ex) // e.g. from service layer if something is wrong
+        catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception) // Removed 'ex'
-        {
-            // Log ex (TODO: Add actual logging)
-            return StatusCode(500, new { message = "Ocorreu um erro interno ao pré-autorizar a visita." });
+             return BadRequest(new { message = ex.Message });
         }
     }
 
