@@ -111,17 +111,18 @@ npx serve conViver.Web --single
 cd src/MobileApp.Maui
 dotnet build -t:Run -f net8.0-android
 
+## Variáveis de Ambiente
 
-Variáveis de Ambiente
-Nome	Descrição	Exemplo
-DB_CONNECTION	string PostgreSQL	Host=localhost;Port=5432;Username=postgres;Password=devpass;Database=conviver;
-DB_CONNECTION   string SQLite           Data Source=conviver.db
-JWT_SECRET	Chave HMAC-SHA256	super-secret-at-least-32chars
-REDIS_CONNECTION	Redis	localhost:6379,abortConnect=false
-BASE_URL	URL pública da API	https://localhost:5000/api/v1
+| Nome                          | Descrição                                                                                                                               | Exemplo                                                   |
+|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|
+| `DB_CONNECTION`               | String de conexão para PostgreSQL ou SQLite.                                                                                            | `Host=localhost;Database=conviver;Username=user;Password=pass` ou `Data Source=conviver.db` |
+| `JWT_SECRET`                  | Chave secreta para assinatura de tokens JWT (HMAC-SHA256). Mínimo 32 caracteres.                                                        | `uma-chave-secreta-muito-longa-e-segura-aqui`             |
+| `REDIS_CONNECTION`            | String de conexão para o Redis.                                                                                                         | `localhost:6379,abortConnect=false`                       |
+| `BASE_URL`                    | URL base pública da API, usada em contextos como geração de links em emails.                                                            | `https://sua-api.com/api/v1`                              |
+| `API_CORS_ALLOWED_ORIGINS`    | Define as origens permitidas para CORS na API. Valor em `conViver.API/appsettings.json` (ex: `CorsSettings:AllowedOrigins`).            | `http://localhost:3000;https://yourdomain.com`            |
+| `WEB_API_BASE_URL`            | Define a URL base da API para o cliente web. Valor em `conViver.Web/js/config.js` (ex: `window.APP_CONFIG.API_BASE_URL`).                | `http://localhost:5000/api/v1`                            |
 
-
-conViver.API/appsettings.Development.json possui defaults seguros p/ dev.
+`conViver.API/appsettings.Development.json` possui defaults seguros para desenvolvimento.
 > Usuário de teste: `teste@conviver.local` / `123456`.
 
 
@@ -160,11 +161,24 @@ Feedbacks welcome (português ou inglês)
 
 Dica nordestina: não se avexe não – toda PR é revisada com carinho!
 
+## Notas de Desenvolvimento Frontend
 
-Licença
+### Feedback Visual (Web)
+O cliente web (`conViver.Web`) utiliza um sistema de feedback visual global para operações de API:
+- Um overlay de carregamento (`<div id="global-loading-overlay">`) é exibido durante as requisições.
+- Mensagens de sucesso ou erro são exibidas em um banner (`<div id="global-message-banner">`).
+- Esta funcionalidade é gerenciada automaticamente por `js/apiClient.js`.
+
+### Feedback Visual (Mobile)
+O cliente móvel (`conViver.Mobile`) utiliza um serviço centralizado para feedback:
+- `Services/FeedbackService.cs` é responsável por exibir feedback.
+- Um indicador de carregamento global está definido em `AppShell.xaml` e é controlado pelo `FeedbackService`.
+- Mensagens de sucesso e informativas são exibidas usando `Snackbar` (do MAUI Community Toolkit). Erros críticos usam alertas modais.
+
+## Licença
 MIT
 
-Contato
+## Contato
 Bruno (maintainer) • ✉️ dev@conviver.app • 🐙 @bruno-dev • Recife-PE 🌞
 “Bora dominar o condomínio e deixar a gestão redondinha!” 🤝
 
