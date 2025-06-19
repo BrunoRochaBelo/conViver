@@ -3,8 +3,6 @@ using conViver.Core.Interfaces;
 using conViver.Core.Enums;
 using conViver.Core.DTOs;
 using Microsoft.EntityFrameworkCore;
-using conViver.Core.Entities; // For Usuario, Unidade, PrestadorServico if not already covered
-using conViver.Core.Interfaces; // For IRepository types
 
 namespace conViver.Application;
 
@@ -215,7 +213,7 @@ public class OrdemServicoService
         if (_unidadeRepository != null && os.UnidadeId != Guid.Empty)
         {
             var unidade = await _unidadeRepository.GetByIdAsync(os.UnidadeId, ct); // Assuming UnidadeId is non-nullable in DB if not Guid.Empty
-            dto.NomeUnidade = unidade?.Nome ?? "Unidade não encontrada";
+            dto.NomeUnidade = unidade?.Identificacao ?? "Unidade não encontrada";
         }
         else if (os.UnidadeId == Guid.Empty)
         {

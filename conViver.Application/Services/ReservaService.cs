@@ -36,7 +36,7 @@ public class ReservaService
 
        var query = _reservaRepository.Query()
                        .Include(r => r.EspacoComum)
-                       .Include(r => r.Unidade) // Assuming Unidade entity has a 'Nome' or similar identifier property
+                       .Include(r => r.Unidade) // Assuming Unidade entity has an identifier (Identificacao)
                        .Where(r => r.EspacoComum != null && r.EspacoComum.CondominioId == condominioIdClaim &&
                                    r.Inicio >= inicioMes && r.Inicio < inicioProximoMes &&
                                    r.Status == ReservaStatus.Aprovada);
@@ -57,8 +57,8 @@ public class ReservaService
            Fim = r.Fim,
            Status = r.Status.ToString(), // Will be "Aprovada"
            UnidadeId = r.UnidadeId,
-           NomeUnidade = r.Unidade?.Nome ?? $"Unidade ID {r.UnidadeId}", // Adjust Unidade.Nome if property differs
-           TituloReserva = $"{(r.EspacoComum?.Nome ?? "Espaço")} - {(r.Unidade?.Nome ?? $"Unid. {r.UnidadeId}")}"
+           NomeUnidade = r.Unidade?.Identificacao ?? $"Unidade ID {r.UnidadeId}", // Adjust Unidade.Identificacao if property differs
+           TituloReserva = $"{(r.EspacoComum?.Nome ?? "Espaço")} - {(r.Unidade?.Identificacao ?? $"Unid. {r.UnidadeId}")}"
        });
    }
 
@@ -68,7 +68,7 @@ public class ReservaService
 
        var query = _reservaRepository.Query()
                        .Include(r => r.EspacoComum)
-                       .Include(r => r.Unidade) // Assuming Unidade entity has a 'Nome' or similar identifier
+                       .Include(r => r.Unidade) // Load Unidade to access Identificacao
                        .Where(r => r.EspacoComum != null &&
                                    r.EspacoComum.CondominioId == condominioIdClaim &&
                                    r.EspacoComum.ExibirNoMural == true &&
@@ -81,10 +81,10 @@ public class ReservaService
        {
            Id = r.Id,
            NomeAreaComum = r.EspacoComum?.Nome ?? "Nome Indisponível",
-           NomeUnidade = r.Unidade?.Nome ?? $"Unidade ID {r.UnidadeId}", // Adjust Unidade.Nome if property differs
+           NomeUnidade = r.Unidade?.Identificacao ?? $"Unidade ID {r.UnidadeId}", // Adjust Unidade.Identificacao if property differs
            Inicio = r.Inicio,
            Fim = r.Fim,
-           TituloEvento = $"{(r.EspacoComum?.Nome ?? "Espaço")} reservado por {(r.Unidade?.Nome ?? $"Unid. {r.UnidadeId}")}"
+           TituloEvento = $"{(r.EspacoComum?.Nome ?? "Espaço")} reservado por {(r.Unidade?.Identificacao ?? $"Unid. {r.UnidadeId}")}"
            // Example alternative for TituloEvento:
            // TituloEvento = r.Observacoes // If Observacoes is used for event title by user, otherwise construct as above.
        });
@@ -500,9 +500,9 @@ public async Task<ReservaDto?> EditarReservaAsync(Guid reservaId, Guid condomini
            Id = reserva.Id,
            CondominioId = condominioId,
            UnidadeId = reserva.UnidadeId,
-           NomeUnidade = unidade?.Nome ?? $"Unidade ID: {reserva.UnidadeId}", // Adjust Unidade.Nome if property name is different
+           NomeUnidade = unidade?.Identificacao ?? $"Unidade ID: {reserva.UnidadeId}", // Adjust Unidade.Identificacao if property name is different
            UsuarioId = reserva.UsuarioId,
-           NomeUsuarioSolicitante = solicitante?.NomeCompleto ?? $"Usuário ID: {reserva.UsuarioId}", // Adjust Usuario.NomeCompleto if property name is different
+           NomeUsuarioSolicitante = solicitante?.Nome ?? $"Usuário ID: {reserva.UsuarioId}",
            EspacoComumId = reserva.EspacoComumId,
            NomeAreaComum = espacoComum?.Nome ?? $"Espaço ID: {reserva.EspacoComumId}",
            Inicio = reserva.Inicio,
@@ -512,11 +512,11 @@ public async Task<ReservaDto?> EditarReservaAsync(Guid reservaId, Guid condomini
            Observacoes = reserva.Observacoes,
            TermoDeUsoAceito = reserva.TermoDeUsoAceito,
            AprovadorId = reserva.AprovadorId,
-           NomeAprovador = aprovador?.NomeCompleto, // Adjust if property name is different
+           NomeAprovador = aprovador?.Nome,
            JustificativaStatus = reserva.JustificativaStatus,
            DataCancelamento = reserva.DataCancelamento,
            CanceladoPorId = reserva.CanceladoPorId,
-           NomeCanceladoPor = canceladoPor?.NomeCompleto // Adjust if property name is different
+           NomeCanceladoPor = canceladoPor?.Nome
            // Taxa might also be relevant here if it's part of ReservaDto
        };
    }
