@@ -6,6 +6,7 @@ using conViver.Core.DTOs; // Added for DTOs
 using System.Collections.Generic; // Added for IEnumerable
 using System.Threading.Tasks; // Added for Task
 using System; // Added for Guid
+using System.Security.Claims; // Added for ClaimTypes
 
 namespace conViver.API.Controllers;
 
@@ -21,11 +22,23 @@ public class FinanceiroController : ControllerBase
         _financeiro = financeiro;
     }
 
+    // --- Endpoints de Cobranças (Boletos) ---
+
+    /// <summary>
+    /// Obtém dados para o dashboard de cobranças do condomínio.
+    /// </summary>
+    /// <returns>Dados do dashboard de cobranças.</returns>
+    /// <response code="200">Retorna os dados do dashboard.</response>
+    /// <response code="401">Usuário não autorizado ou CondominioId inválido.</response>
+    /// <response code="404">Dados não encontrados.</response>
     [HttpGet("cobrancas/dashboard")]
     public async Task<ActionResult<DashboardFinanceiroCobrancasDto>> GetDashboardCobrancas()
     {
-        // TODO: Obter condominioId do contexto do usuário
-        var condominioId = Guid.NewGuid(); // Placeholder
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
         var dashboardData = await _financeiro.GetDashboardCobrancasAsync(condominioId);
         if (dashboardData == null)
         {
@@ -34,23 +47,51 @@ public class FinanceiroController : ControllerBase
         return Ok(dashboardData);
     }
 
+    /// <summary>
+    /// Lista as cobranças do condomínio.
+    /// </summary>
+    /// <param name="status">Filtra as cobranças por status (opcional).</param>
+    /// <returns>Uma lista de cobranças.</returns>
+    /// <response code="200">Retorna a lista de cobranças.</response>
+    /// <response code="401">Usuário não autorizado ou CondominioId inválido.</response>
     [HttpGet("cobrancas")]
     public async Task<ActionResult<IEnumerable<CobrancaDto>>> GetCobrancas([FromQuery] string? status)
     {
-        // TODO: Obter condominioId do contexto do usuário ou similar para filtrar cobranças
-        var condominioId = Guid.NewGuid(); // Placeholder
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
         var itens = await _financeiro.ListarCobrancasAsync(condominioId, status);
         return Ok(itens);
     }
 
-    [HttpGet("cobrancas/{id}")]
+    /// <summary>
+    /// Obtém detalhes de uma cobrança específica.
+    /// </summary>
+    /// <param name="id">ID da cobrança.</param>
+    /// <returns>Detalhes da cobrança.</returns>
+    /// <response code="200">Retorna os detalhes da cobrança.</response>
+    /// <response code="401">Usuário não autorizado.</response>
+    /// <response code="404">Cobrança não encontrada.</response>
+    [HttpGet("cobrancas/{id:guid}")] // Adicionado :guid para clareza
     public async Task<ActionResult<CobrancaDto>> GetCobranca(Guid id)
     {
+        // Validação de acesso à cobrança específica (pertence ao condomínio do usuário)
+        // deveria ser feita no serviço _financeiro.GetCobrancaByIdAsync(id, condominioId)
         var cobranca = await _financeiro.GetCobrancaByIdAsync(id);
-        if (cobranca == null) return NotFound();
+        if (cobranca == null) return NotFound("Cobrança não encontrada.");
         return Ok(cobranca);
     }
 
+    /// <summary>
+    /// Cria uma nova cobrança para uma unidade ou grupo de unidades.
+    /// </summary>
+    /// <param name="request">Dados da nova cobrança.</param>
+    /// <returns>A cobrança criada.</returns>
+    /// <response code="201">Retorna a cobrança criada.</response>
+    /// <response code="400">Dados de entrada inválidos ou falha na operação.</response>
+    /// <response code="401">Usuário não autorizado ou claims inválidas.</response>
     [HttpPost("cobrancas")]
     public async Task<ActionResult<CobrancaDto>> CreateCobranca([FromBody] NovaCobrancaDto request)
     {
@@ -60,8 +101,15 @@ public class FinanceiroController : ControllerBase
         }
         try
         {
-            // TODO: Obter condominioId/userId do contexto para associar a cobrança
-            var condominioId = Guid.NewGuid(); // Placeholder
+            var condominioIdClaim = User.FindFirstValue("condominioId");
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier); // Assumindo que o criador é o usuário logado
+
+            if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
+                string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
+            {
+                return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
+            }
+            // Ajustar _financeiro.CriarCobrancaAsync para aceitar userId se necessário, ou remover se não for usado.
             var cobranca = await _financeiro.CriarCobrancaAsync(condominioId, request);
             return CreatedAtAction(nameof(GetCobranca), new { id = cobranca.Id }, cobranca);
         }
@@ -83,8 +131,11 @@ public class FinanceiroController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-        // TODO: Obter condominioId do contexto do usuário
-        var condominioId = Guid.NewGuid(); // Placeholder
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
         var resultado = await _financeiro.GerarCobrancasEmLoteAsync(condominioId, request);
         if (!resultado.Sucesso)
         {
@@ -93,11 +144,20 @@ public class FinanceiroController : ControllerBase
         return Ok(resultado);
     }
 
-    [HttpGet("cobrancas/{id}/segunda-via")]
-    public async Task<ActionResult<string>> GetSegundaVia(Guid id)
+    /// <summary>
+    /// Obtém o link para a segunda via de um boleto/cobrança.
+    /// </summary>
+    /// <param name="id">ID da cobrança.</param>
+    /// <returns>URL para a segunda via.</returns>
+    /// <response code="200">Retorna a URL.</response>
+    /// <response code="404">Link não encontrado ou cobrança não permite segunda via.</response>
+    /// <response code="500">Erro interno.</response>
+    [HttpGet("cobrancas/{id:guid}/segunda-via")]
+    public async Task<ActionResult<object>> GetSegundaVia(Guid id) // Retornando object para { url: link }
     {
         try
         {
+            // Adicionar verificação de condominioId se o serviço precisar
             var link = await _financeiro.ObterLinkSegundaViaAsync(id);
             if (string.IsNullOrEmpty(link))
             {
@@ -117,14 +177,22 @@ public class FinanceiroController : ControllerBase
     [HttpPut("cobrancas/{id}/cancelar")] // Route updated
     public async Task<ActionResult> CancelarCobranca(Guid id) // Method name updated
     {
+        // Adicionar extração de condominioId se o CancelarCobrancaAsync precisar dele para validação de escopo.
+        // var condominioIdClaim = User.FindFirstValue("condominioId");
+        // if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        // {
+        //     return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        // }
+        // var resultado = await _financeiro.CancelarCobrancaAsync(id, condominioId); // Exemplo se precisar de condominioId
+
         try
         {
-            var resultado = await _financeiro.CancelarCobrancaAsync(id);
+            var resultado = await _financeiro.CancelarCobrancaAsync(id); // Mantendo como está se o serviço não precisa de condominioId
             if (!resultado.Sucesso)
             {
                 return BadRequest(resultado); // Ou Conflict se for o caso
             }
-            return Ok(resultado);
+            return Ok(resultado); // Idealmente NoContent() para PUT sem retorno de corpo, ou Ok(resultadoDto)
         }
         catch (InvalidOperationException ex) // Específico para regras de negócio como "boleto pago"
         {
@@ -136,5 +204,228 @@ public class FinanceiroController : ControllerBase
             return StatusCode(500, "Erro ao cancelar a cobrança.");
         }
     }
+
+    // --- Endpoints de Despesas ---
+
+    /// <summary>
+    /// Registra uma nova despesa para o condomínio.
+    /// </summary>
+    /// <param name="despesaInput">Dados da despesa.</param>
+    /// <returns>A despesa registrada.</returns>
+    /// <response code="201">Retorna a despesa criada.</response>
+    /// <response code="400">Dados de entrada inválidos.</response>
+    /// <response code="401">Usuário não autorizado ou claims inválidas.</response>
+    [HttpPost("despesas")]
+    public async Task<ActionResult<DespesaDto>> RegistrarDespesa([FromBody] DespesaInputDto despesaInput)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
+            string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid usuarioId))
+        {
+            return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
+        }
+
+        // Assumindo que o serviço FinanceiroService terá um método CriarDespesaAsync
+        // e que a Despesa é um tipo de LancamentoFinanceiro.
+        var novaDespesa = await _financeiro.CriarDespesaAsync(condominioId, usuarioId, despesaInput);
+        // O serviço deve retornar um DespesaDto ou a entidade para ser mapeada aqui.
+        // Por simplicidade, assumindo que o serviço retorna DespesaDto.
+
+        return CreatedAtAction(nameof(GetDespesa), new { id = novaDespesa.Id }, novaDespesa);
+    }
+
+    /// <summary>
+    /// Lista as despesas do condomínio.
+    /// </summary>
+    /// <param name="categoria">Filtra por categoria (opcional).</param>
+    /// <param name="mesCompetencia">Filtra por mês de competência (YYYY-MM) (opcional).</param>
+    /// <returns>Lista de despesas.</returns>
+    /// <response code="200">Retorna a lista de despesas.</response>
+    /// <response code="401">Usuário não autorizado ou CondominioId inválido.</response>
+    [HttpGet("despesas")]
+    public async Task<ActionResult<IEnumerable<DespesaDto>>> ListarDespesas([FromQuery] string? categoria, [FromQuery] string? mesCompetencia)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+        // Parse mesCompetencia para DateTime se necessário no serviço
+        var despesas = await _financeiro.ListarDespesasAsync(condominioId, categoria, mesCompetencia);
+        return Ok(despesas);
+    }
+
+    /// <summary>
+    /// Obtém detalhes de uma despesa específica.
+    /// </summary>
+    /// <param name="id">ID da despesa (LancamentoFinanceiro).</param>
+    /// <returns>Detalhes da despesa.</returns>
+    /// <response code="200">Retorna os detalhes da despesa.</response>
+    /// <response code="401">Usuário não autorizado.</response>
+    /// <response code="404">Despesa não encontrada.</response>
+    [HttpGet("despesas/{id:guid}")]
+    public async Task<ActionResult<DespesaDto>> GetDespesa(Guid id)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+        // O serviço deve validar se a despesa 'id' pertence ao 'condominioId'
+        var despesa = await _financeiro.ObterDespesaPorIdAsync(id, condominioId);
+        if (despesa == null) return NotFound("Despesa não encontrada.");
+        return Ok(despesa);
+    }
+
+    /// <summary>
+    /// Atualiza uma despesa existente.
+    /// </summary>
+    /// <param name="id">ID da despesa a ser atualizada.</param>
+    /// <param name="despesaInput">Dados para atualização.</param>
+    /// <returns>A despesa atualizada.</returns>
+    /// <response code="200">Retorna a despesa atualizada.</response>
+    /// <response code="400">Dados de entrada inválidos.</response>
+    /// <response code="401">Usuário não autorizado.</response>
+    /// <response code="404">Despesa não encontrada.</response>
+    [HttpPut("despesas/{id:guid}")]
+    public async Task<ActionResult<DespesaDto>> UpdateDespesa(Guid id, [FromBody] DespesaInputDto despesaInput)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier); // Para auditoria de quem atualizou
+
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
+            string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid usuarioId))
+        {
+            return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
+        }
+
+        var despesaAtualizada = await _financeiro.AtualizarDespesaAsync(id, condominioId, usuarioId, despesaInput);
+        if (despesaAtualizada == null) return NotFound("Despesa não encontrada ou não pôde ser atualizada.");
+
+        return Ok(despesaAtualizada);
+    }
+
+    /// <summary>
+    /// Remove (ou cancela) uma despesa.
+    /// </summary>
+    /// <param name="id">ID da despesa a ser removida/cancelada.</param>
+    /// <returns>Nenhum conteúdo.</returns>
+    /// <response code="204">Despesa removida/cancelada com sucesso.</response>
+    /// <response code="401">Usuário não autorizado.</response>
+    /// <response code="404">Despesa não encontrada.</response>
+    [HttpDelete("despesas/{id:guid}")]
+    public async Task<IActionResult> DeleteDespesa(Guid id)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier); // Para auditoria
+
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
+            string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid usuarioId))
+        {
+            return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
+        }
+
+        var sucesso = await _financeiro.RemoverDespesaAsync(id, condominioId, usuarioId);
+        if (!sucesso) return NotFound("Despesa não encontrada ou não pôde ser removida.");
+
+        return NoContent();
+    }
+
+    // --- Endpoints de Relatórios ---
+
+    /// <summary>
+    /// Gera o relatório de balancete para um período.
+    /// </summary>
+    /// <param name="dataInicio">Data de início do período (YYYY-MM-DD).</param>
+    /// <param name="dataFim">Data de fim do período (YYYY-MM-DD).</param>
+    /// <returns>O relatório de balancete.</returns>
+    /// <response code="200">Retorna o balancete.</response>
+    /// <response code="400">Datas inválidas.</response>
+    /// <response code="401">Usuário não autorizado.</response>
+    [HttpGet("relatorios/balancete")]
+    public async Task<ActionResult<BalanceteDto>> GetBalancete([FromQuery, Required] DateTime dataInicio, [FromQuery, Required] DateTime dataFim)
+    {
+        if (dataInicio > dataFim) return BadRequest("Data de início não pode ser maior que a data de fim.");
+
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+
+        var balancete = await _financeiro.GerarBalanceteAsync(condominioId, dataInicio, dataFim);
+        if (balancete == null) return NotFound("Não foi possível gerar o balancete para o período.");
+
+        return Ok(balancete);
+    }
+
+    // --- Placeholders para Endpoints Faltantes da API_REFERENCE.md (Seção 4 e 5) ---
+
+    /// <summary>
+    /// (Administradora) Criação de cobranças em lote. (API Ref 4.1)
+    /// </summary>
+    /// <remarks>Verificar se este endpoint é distinto de POST /cobrancas/gerar-lote ou se apenas o role muda.</remarks>
+    [HttpPost("/api/v1/adm/finance/batch")] // Rota absoluta conforme API Ref
+    [Authorize(Roles = "Administradora")] // Exemplo de role diferente
+    [ApiExplorerSettings(IgnoreApi = true)] // Esconder do Swagger por enquanto
+    public IActionResult AdminFinanceBatchPlaceholder() => StatusCode(501, "Endpoint não implementado.");
+
+    /// <summary>
+    /// (Síndico) Obtém detalhes de um boleto específico, possivelmente em formato PDF. (API Ref 4.4)
+    /// </summary>
+    [HttpGet("boletos/{id:guid}/pdf")] // Rota ajustada para indicar PDF
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public IActionResult GetBoletoPdfPlaceholder(Guid id) => StatusCode(501, "Endpoint de download de PDF de boleto não implementado.");
+
+    /// <summary>
+    /// (Síndico) Reenvia um boleto (2ª via) por e-mail. (API Ref 4.6)
+    /// </summary>
+    [HttpPost("boletos/{id:guid}/resend")]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public IActionResult ResendBoletoPlaceholder(Guid id) => StatusCode(501, "Endpoint de reenvio de boleto não implementado.");
+
+    /// <summary>
+    /// (Público/Webhook) Callback para notificação de pagamento bancário. (API Ref 5.1)
+    /// </summary>
+    [HttpPost("/api/v1/finance/callback")] // Rota absoluta
+    [AllowAnonymous] // Webhooks geralmente são anônimos mas validados por outros meios (IP, signature)
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public IActionResult FinanceCallbackPlaceholder() => StatusCode(501, "Endpoint de callback bancário não implementado.");
+
+    /// <summary>
+    /// (Síndico) Registra um pagamento manualmente. (API Ref 5.2)
+    /// </summary>
+    [HttpPost("manual-payment")]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public IActionResult ManualPaymentPlaceholder() => StatusCode(501, "Endpoint de registro de pagamento manual não implementado.");
+
+    /// <summary>
+    /// (Administradora) Solicita um estorno de pagamento. (API Ref 5.3)
+    /// </summary>
+    [HttpPost("/api/v1/adm/finance/refund")] // Rota absoluta
+    [Authorize(Roles = "Administradora")]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public IActionResult AdminFinanceRefundPlaceholder() => StatusCode(501, "Endpoint de solicitação de estorno não implementado.");
+
+    /// <summary>
+    /// (Síndico) Cria um novo plano de parcelamento (acordo) para débitos. (API Ref 5.4)
+    /// </summary>
+    [HttpPost("installment-plan")]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public IActionResult CreateInstallmentPlanPlaceholder() => StatusCode(501, "Endpoint de criação de acordo não implementado.");
+
+    /// <summary>
+    /// (Síndico) Obtém detalhes de um plano de parcelamento (acordo). (API Ref 5.5)
+    /// </summary>
+    [HttpGet("installment-plan/{id:guid}")]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public IActionResult GetInstallmentPlanPlaceholder(Guid id) => StatusCode(501, "Endpoint de detalhe de acordo não implementado.");
+
 }
 
