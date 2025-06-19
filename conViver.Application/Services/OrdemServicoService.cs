@@ -57,6 +57,9 @@ namespace conViver.Application
             await _ordens.SaveChangesAsync(ct);
         }
 
+        public Task AtualizarOSPorSindicoAsync(Guid id, Guid condominioId, Guid sindicoUserId, OrdemServicoUpdateSindicoDto dto, CancellationToken ct = default)
+            => AtualizarStatusAsync(id, dto.Status, ct);
+
         // --- Métodos adicionais para compatibilidade com os controllers ---
         public Task<List<OrdemServico>> ListarOSPorCondominioAsync(Guid condominioId, string? status, string? prioridade, CancellationToken ct = default)
         {
@@ -89,6 +92,6 @@ namespace conViver.Application
             => ListarOSPorCondominioAsync(Guid.Empty, status, null, ct);
 
         public Task<OrdemServico?> AtualizarOSProgressoPorPrestadorAsync(Guid id, Guid prestadorId, OrdemServicoProgressoUpdateDto dto, CancellationToken ct = default)
-            => GetOSByIdAsync(id, Guid.Empty, ct); // Sem implementação detalhada
+            => GetOSByIdAsync(id, Guid.Empty, ct); // Ainda sem implementação detalhada
     }
 }

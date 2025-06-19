@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace conViver.Application;
+namespace conViver.Application.Services;
 
 public class ReservaService
 {
