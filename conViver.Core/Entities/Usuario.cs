@@ -12,6 +12,11 @@ public class Usuario
     public PerfilUsuario Perfil { get; set; } = PerfilUsuario.Morador;
     public bool Ativo { get; set; } = true;
     public string? TwoFaSecret { get; set; }
+
+    // Relacionamento com Unidade
+    public Guid UnidadeId { get; set; } // Foreign Key
+    public virtual Unidade? Unidade { get; set; } // Navigation property
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

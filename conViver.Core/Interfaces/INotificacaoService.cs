@@ -1,21 +1,16 @@
+using System; // Added for Guid, DateTime
 using System.Threading.Tasks;
-using conViver.Core.Entities; // For Reserva entity
-using conViver.Core.Enums;   // For ReservaStatus
+// using conViver.Core.Entities; // Not strictly needed if using primitive types/DTOs for params
 
-namespace conViver.Core.Interfaces
+namespace conViver.Core.Interfaces;
+
+public interface INotificacaoService
 {
-    public interface INotificacaoService
-    {
-        Task EnviarNotificacaoReservaCriadaAsync(Reserva reserva);
-        Task EnviarNotificacaoReservaStatusAlteradoAsync(Reserva reserva, ReservaStatus statusAnterior);
-        Task EnviarNotificacaoReservaAlteradaAsync(Reserva reserva, string detalhesAlteracao);
-        Task EnviarNotificacaoReservaCanceladaAsync(Reserva reserva);
-        Task EnviarLembreteReservaAsync(Reserva reserva); // e.g., 24h before
+    Task SendAsync(string destino, string mensagem, CancellationToken cancellationToken = default);
 
-        // For admin notifications
-        Task EnviarNotificacaoAdminReservaPendenteAsync(Reserva reserva);
-        // Consider if this specific admin conflict notification is still needed,
-        // or if general failure notifications cover it. Keeping for now as per plan.
-        Task EnviarNotificacaoAdminConflitoReservaAsync(Reserva reservaConflitante, Reserva novaTentativa);
-    }
+    // Visitor Notifications
+    Task NotificarChegadaVisitanteAsync(Guid unidadeId, string nomeVisitante, string? motivoVisita);
+    Task NotificarVisitantePreAutorizadoAsync(Guid unidadeId, string nomeVisitante, string? qrCodeValue, DateTime? validadeQRCode);
+    Task NotificarFalhaQRCodeAsync(Guid? unidadeId, string qrCodeValue, string motivoFalha);
+    Task NotificarSaidaVisitanteAsync(Guid unidadeId, string nomeVisitante);
 }

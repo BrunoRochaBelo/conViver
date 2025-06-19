@@ -14,7 +14,6 @@ public class ConViverDbContext : DbContext
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Boleto> Boletos => Set<Boleto>();
     public DbSet<Reserva> Reservas => Set<Reserva>();
-    public DbSet<EspacoComum> EspacosComuns { get; set; }
     public DbSet<Aviso> Avisos => Set<Aviso>();
     public DbSet<Visitante> Visitantes => Set<Visitante>();
     public DbSet<Encomenda> Encomendas => Set<Encomenda>();
@@ -34,6 +33,13 @@ public class ConViverDbContext : DbContext
 
         modelBuilder.Entity<Condominio>().OwnsOne(c => c.Endereco);
         modelBuilder.Entity<Boleto>().HasIndex(b => new { b.NossoNumero, b.CodigoBanco }).IsUnique();
+
+        // Relacionamento Usuario <-> Unidade (Um-para-Muitos: Uma Unidade tem Muitos Usuarios)
+        modelBuilder.Entity<Usuario>()
+            .HasOne(u => u.Unidade) // Usuario tem uma Unidade (principal)
+            .WithMany(un => un.Usuarios) // Unidade tem muitos Usuarios
+            .HasForeignKey(u => u.UnidadeId) // Chave estrangeira em Usuario
+            .IsRequired(); // Define que UnidadeId é obrigatória em Usuario.
 
         // Relacionamento Votacao <-> OpcaoVotacao (Um-para-Muitos)
         modelBuilder.Entity<Votacao>()

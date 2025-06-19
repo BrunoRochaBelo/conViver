@@ -1,7 +1,11 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using conViver.Application.Services; // Ensure this line is present and correct
+using conViver.Core.Interfaces;
+// FluentValidation was already listed at the top
+// Microsoft.Extensions.DependencyInjection was already listed at the top
+using conViver.Application.Services; // This line covers the Services namespace
 
+// Removed duplicate usings that were here
 namespace conViver.Application;
 
 public static class DependencyInjection
@@ -9,7 +13,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddTransient<CondominioService>();
-        services.AddTransient<UsuarioService>();
+        services.AddTransient<IUsuarioService, UsuarioService>();
         services.AddTransient<FinanceiroService>();
         services.AddTransient<ReservaService>();
         services.AddTransient<OrdemServicoService>();

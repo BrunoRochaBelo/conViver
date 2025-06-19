@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using conViver.Core.Entities;
 using conViver.Core.Enums;
 using conViver.Core.DTOs;
-using conViver.Application;
+using conViver.Application.Services; // Changed
 using conViver.Infrastructure.Authentication;
 using Microsoft.AspNetCore.Authorization; // Adicionado
 using System.Security.Claims; // Adicionado
@@ -133,7 +133,7 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
     /// <response code="401">Usuário não autenticado.</response>
     [HttpGet("me")]
     [Authorize] // Requer autenticação
-    public async Task<ActionResult<UserDto>> GetMe()
+    public async Task<ActionResult<UsuarioResponse>> GetMe() // Changed UserDto to UsuarioResponse
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
@@ -141,21 +141,14 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
             return Unauthorized("Token de usuário inválido.");
         }
 
-        var usuario = await _usuarios.GetByIdAsync(userId); // Assumindo que GetByIdAsync existe
-        if (usuario == null)
+        var usuarioResponse = await _usuarios.GetUsuarioByIdAsync(userId); // Changed to GetUsuarioByIdAsync
+        if (usuarioResponse == null)
         {
             return NotFound("Usuário não encontrado.");
         }
 
-        // Extrair outras claims se necessário para popular o UserDto completamente
-        var userDto = new UserDto
-        {
-            Id = usuario.Id,
-            Nome = usuario.Nome,
-            Email = usuario.Email,
-            Perfil = usuario.Perfil.ToString().ToLowerInvariant()
-        };
-        return Ok(userDto);
+        // usuarioResponse is already the DTO we want to return
+        return Ok(usuarioResponse);
     }
 
     /// <summary>
@@ -186,12 +179,12 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
         var newAccessTokenString = _jwt.GenerateToken(mockUserId, mockPerfil.ToString(), mockCondominioId);
         var newRefreshTokenString = "new_dummyRefreshToken_" + Guid.NewGuid().ToString();
         var newAccessTokenExpiration = DateTime.UtcNow.AddHours(1);
-        var userDto = new UserDto {
+        var userDto = new UserDto { // This UserDto is from a different context (AuthResponseDto) and might be okay if defined locally or within AuthDtos
             Id = mockUserId,
             Nome = "Usuário Refrescado",
             Email = mockUserEmail,
-            Perfil = mockPerfil.ToString().ToLowerInvariant(),
-            CondominioId = mockCondominioId
+            Perfil = mockPerfil.ToString().ToLowerInvariant()
+            // CondominioId = mockCondominioId // CondominioId is not in the UserDto I defined/deleted. This UserDto might be different.
         };
         // --- Fim Simulação ---
 
