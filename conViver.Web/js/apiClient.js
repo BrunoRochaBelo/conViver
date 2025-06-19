@@ -1,4 +1,6 @@
-const API_BASE = '/api/v1';
+// Base path for the API. With app.UsePathBase("/api/v1") the
+// frontend must explicitly prefix requests with /api/v1.
+const API_BASE = '';
 
 /**
  * Custom error class for API requests.
