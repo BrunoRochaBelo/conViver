@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run conViver.API (dotnet watch run)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": ["watch", "run"],
+            "cwd": "${workspaceFolder}/conViver.API",
+            "console": "integratedTerminal",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        }
+    ]
+}
