@@ -23,7 +23,7 @@ async function carregarVisitantes() {
         const from = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 7)
             .toISOString().slice(0,10);
         const to = hoje.toISOString().slice(0,10);
-        const visitas = await apiClient.get(`/api/v1/syndic/visitantes?from=${from}&to=${to}`);
+        const visitas = await apiClient.get(`/syndic/visitantes?from=${from}&to=${to}`);
 
         tbody.innerHTML = ''; // Clear loading indicator
         if (visitas && visitas.length > 0) {
@@ -55,7 +55,7 @@ async function carregarEncomendas() {
     tbody.innerHTML = '<tr><td colspan="3">Carregando...</td></tr>'; // Local loading indicator
 
     try {
-        const encomendas = await apiClient.get('/api/v1/syndic/encomendas?status=recebida');
+        const encomendas = await apiClient.get('/syndic/encomendas?status=recebida');
 
         tbody.innerHTML = ''; // Clear loading indicator
         if (encomendas && encomendas.length > 0) {
