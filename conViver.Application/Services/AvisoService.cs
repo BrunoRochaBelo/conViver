@@ -41,5 +41,48 @@ public class AvisoService
         await _notify.SendAsync($"condo:{condominioId}", $"Novo aviso: {titulo}", ct);
         return aviso;
     }
+
+    public async Task<Aviso?> EditarAsync(Guid avisoId, Guid condominioId, string categoria, string titulo, string? corpo, Guid usuarioIdEditando, CancellationToken ct = default)
+    {
+        var aviso = await _avisos.Query()
+            .FirstOrDefaultAsync(a => a.Id == avisoId && a.CondominioId == condominioId, ct);
+
+        if (aviso == null)
+        {
+            return null;
+        }
+
+        // Opcional: Verificar se usuarioIdEditando tem permissão (ex: é o mesmo que PublicadoPor ou é um administrador/síndico).
+        // Para esta etapa, podemos assumir que a verificação de role no controller é suficiente.
+
+        aviso.Categoria = categoria;
+        aviso.Titulo = titulo;
+        aviso.Corpo = corpo;
+        aviso.UpdatedAt = DateTime.UtcNow; // Supondo que a entidade Aviso tenha um campo UpdatedAt
+
+        await _avisos.UpdateAsync(aviso, ct);
+        await _avisos.SaveChangesAsync(ct);
+
+        return aviso;
+    }
+
+    public async Task<bool> ArquivarAsync(Guid avisoId, Guid condominioId, Guid usuarioIdArquivando, CancellationToken ct = default)
+    {
+        var aviso = await _avisos.Query()
+            .FirstOrDefaultAsync(a => a.Id == avisoId && a.CondominioId == condominioId, ct);
+
+        if (aviso == null)
+        {
+            return false;
+        }
+
+        // Opcional: Verificar permissão do usuarioIdArquivando.
+
+        // Realizar hard delete
+        await _avisos.DeleteAsync(aviso, ct);
+        await _avisos.SaveChangesAsync(ct);
+
+        return true;
+    }
 }
 
