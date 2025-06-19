@@ -4,6 +4,7 @@ using conViver.Infrastructure;
 using conViver.Infrastructure.Data.Contexts;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using conViver.Application.Services; // Moved here
 
