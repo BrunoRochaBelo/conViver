@@ -18,6 +18,8 @@ public static class DependencyInjection
         services.AddTransient<VisitanteService>();
         services.AddTransient<EncomendaService>();
         services.AddTransient<DashboardService>(); // Add DashboardService registration
+        services.AddTransient<CirculacaoService>();
+        services.AddTransient<OcorrenciaService>();
 
         services.AddValidatorsFromAssemblyContaining<CondominioValidator>();
         // If CondominioValidator is in a different namespace, adjust accordingly
