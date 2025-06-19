@@ -85,8 +85,8 @@ conViver/
 ## Guia Rápido de Uso Local
 
 > Com Docker (`docker compose up -d`) você já sobe **PostgreSQL, Redis e API** num tapa.
-> Para algo ainda mais simples, a API também funciona em **SQLite** por padrão em desenvolvimento.
-> Apenas execute `dotnet run` na pasta da API e um arquivo `conviver.db` será criado com um usuário de teste (`teste@conviver.local` / `123456`).
+> Para desenvolvimento rápido, a API suporta **SQLite** (arquivo `conviver.db`).
+> Rode `dotnet ef database update --project src/conViver.Infrastructure` antes de `dotnet run` para criar o banco e popular o usuário de teste (`teste@conviver.local` / `123456`).
 
 ### 1. Clone & restaure pacotes
 ```bash
@@ -94,8 +94,10 @@ git clone https://github.com/seu-usuario/conViver.git
 cd conViver
 dotnet restore
 
-2. Banco de dados (opcional para PostgreSQL)
+2. Banco de dados
+# Se desejar usar PostgreSQL:
 docker run -d --name pgconviver -e POSTGRES_PASSWORD=devpass -p 5432:5432 postgres:16
+# Aplique as migrations (SQLite ou PostgreSQL)
 dotnet ef database update --project src/conViver.Infrastructure
 
 3. Rodar API
