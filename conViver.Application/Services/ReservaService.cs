@@ -1,3 +1,4 @@
+using conViver.Core.Enums;
 using conViver.Core.Entities;
 using conViver.Core.Interfaces;
 using conViver.Core.DTOs;
