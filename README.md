@@ -99,7 +99,15 @@ dotnet ef database update --project src/Infrastructure
 
 3. Rodar API
 cd conViver.API
+# Linux/macOS
 ASPNETCORE_ENVIRONMENT=Development dotnet run  # localhost:5000  (Swagger em /api/v1/swagger somente em Development)
+# Windows PowerShell
+$env:ASPNETCORE_ENVIRONMENT="Development"
+dotnet run
+# Windows CMD
+set ASPNETCORE_ENVIRONMENT=Development
+dotnet run
+
 # /auth/signup é um POST – veja API_REFERENCE.md
 
 4. Front Web
