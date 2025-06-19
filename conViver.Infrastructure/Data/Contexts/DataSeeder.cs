@@ -46,16 +46,29 @@ public static class DataSeeder
             db.SaveChanges();
 
             // Now create the admin user linked to the Unidade
-            var user = new Usuario
+            var adminUser = new Usuario
             {
                 Id = Guid.NewGuid(),
-                Nome = "Usuário Teste",
+                Nome = "Usuário Administrador",
                 Email = "admin@conviver.local",
                 SenhaHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
                 Perfil = PerfilUsuario.Administrador,
                 UnidadeId = unidade.Id
             };
-            db.Usuarios.Add(user);
+            db.Usuarios.Add(adminUser);
+
+            // Additional regular test user as referenced in README
+            var testUser = new Usuario
+            {
+                Id = Guid.NewGuid(),
+                Nome = "Usuário de Teste",
+                Email = "teste@conviver.local",
+                SenhaHash = BCrypt.Net.BCrypt.HashPassword("123456"),
+                Perfil = PerfilUsuario.Morador,
+                UnidadeId = unidade.Id
+            };
+            db.Usuarios.Add(testUser);
+
             db.SaveChanges();
         }
     }

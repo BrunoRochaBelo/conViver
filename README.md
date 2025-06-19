@@ -86,7 +86,7 @@ conViver/
 
 > Com Docker (`docker compose up -d`) você já sobe **PostgreSQL, Redis e API** num tapa.
 > Para desenvolvimento rápido, a API suporta **SQLite** (arquivo `conviver.db`).
-> Rode `dotnet ef database update --project src/conViver.Infrastructure` antes de `dotnet run` para criar o banco e popular o usuário de teste (`teste@conviver.local` / `123456`).
+> Rode `dotnet ef database update --project src/conViver.Infrastructure` antes de `dotnet run` para criar o banco e popular usuários de exemplo (`admin@conviver.local` / `admin123` e `teste@conviver.local` / `123456`).
 
 ### 1. Clone & restaure pacotes
 ```bash
@@ -135,7 +135,7 @@ dotnet build -t:Run -f net8.0-android
 | `WEB_API_BASE_URL`            | Define a URL base da API para o cliente web. Valor em `src/conViver.Web/js/config.js` (ex: `window.APP_CONFIG.API_BASE_URL`).                | `http://localhost:5000/api/v1`                            |
 
 `src/conViver.API/appsettings.Development.json` possui defaults seguros para desenvolvimento.
-> Usuário de teste: `teste@conviver.local` / `123456` (verificar se ainda válido após migrações e seeders).
+> Usuários de exemplo: `admin@conviver.local` / `admin123` (administrador) e `teste@conviver.local` / `123456` (morador). Verifique se ainda estão válidos após migrações e seeders.
 
 <!-- Seção Removida: Scripts & Automação
 ## Scripts & Automação
