@@ -20,4 +20,12 @@
         Route="MainPage" />
     -->
 
+    <Shell.Overlay>
+        <Grid x:Name="GlobalLoadingIndicator" BackgroundColor="#80000000" IsVisible="False" ZIndex="1000">
+            <StackLayout HorizontalOptions="Center" VerticalOptions="Center">
+                <ActivityIndicator x:Name="LoadingSpinner" IsRunning="True" Color="{AppThemeBinding Light=Black, Dark=White}" />
+                <Label x:Name="LoadingMessage" Text="Carregando..." TextColor="{AppThemeBinding Light=Black, Dark=White}" HorizontalOptions="Center" />
+            </StackLayout>
+        </Grid>
+    </Shell.Overlay>
 </Shell>

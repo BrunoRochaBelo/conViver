@@ -16,21 +16,32 @@ builder.Services.AddScoped<DashboardService>(); // Register DashboardService
 
 // CORS Configuration
 var AllowDevOrigins = "_allowDevOrigins";
+
+var allowedOriginsString = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Value;
+var origins = !string.IsNullOrWhiteSpace(allowedOriginsString)
+              ? allowedOriginsString.Split(';', StringSplitOptions.RemoveEmptyEntries)
+              : Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: AllowDevOrigins,
+    options.AddPolicy(name: AllowDevOrigins, // Keep the same policy name
                       policy =>
                       {
-                          policy.WithOrigins("http://localhost:5500",
-                                             "http://127.0.0.1:5500",
-                                             "http://localhost:3000",
-                                             "http://127.0.0.1:3000",
-                                             "http://localhost:8080",
-                                             "http://127.0.0.1:8080",
-                                             "http://localhost:4200",
-                                             "http://127.0.0.1:4200")
-                                .AllowAnyHeader()
-                                .AllowAnyMethod();
+                          if (origins.Length > 0)
+                          {
+                              policy.WithOrigins(origins)
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod();
+                          }
+                          else
+                          {
+                              // Fallback for development if no origins are configured
+                              // Or throw an exception if origins are mandatory for production
+                              policy.AllowAnyOrigin()
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod();
+                              Console.WriteLine("WARN: CORS AllowedOrigins not configured in appsettings.json. Allowing any origin.");
+                          }
                       });
 });
 

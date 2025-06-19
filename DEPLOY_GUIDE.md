@@ -29,8 +29,11 @@ REDIS_CONNECTION=localhost:6379
 # URLs
 BASE_URL=https://api.conviver.app
 FRONTEND_URL=https://www.conviver.app
+API_CORS_ALLOWED_ORIGINS=https://www.conviver.app;http://localhost:3000
 
 No Azure App Service, use Configuration > Application settings para cadastrar essas mesmas variáveis.
+
+NOTA: Para o cliente Web (`conViver.Web`), a URL da API é configurada em `js/config.js` (`window.APP_CONFIG.API_BASE_URL`). Certifique-se de que este valor aponta para a URL correta da API (`BASE_URL`) no ambiente de deploy.
 
 3. Deploy Local com Docker Compose
 No raiz do projeto, inclui docker-compose.yml:
@@ -103,7 +106,8 @@ az webapp config appsettings set \
   --settings \
     DB_CONNECTION="Host=...;Port=5432;Username=...;Password=...;Database=conviver;" \
     REDIS_CONNECTION="..." \
-    JWT_SECRET="..."
+    JWT_SECRET="..." \
+    API_CORS_ALLOWED_ORIGINS="https://www.conviver.app;https://outro-dominio-front.com"
 
 4.5. Deploy do Código
 No diretório src/WebApi:

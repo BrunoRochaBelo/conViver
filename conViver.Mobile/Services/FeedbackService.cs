@@ -3,17 +3,13 @@ using Microsoft.Maui.Controls;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core; // For SnackbarOptions
 
 namespace conViver.Mobile.Services
 {
     public class FeedbackService : IFeedbackService
     {
-        // For non-modal feedback like toasts/snackbars,
-        // the CommunityToolkit.Maui.Alerts package is recommended for future enhancement.
-        // e.g., using CancellationTokenSource cts = new CancellationTokenSource();
-        //        var snackbar = CommunityToolkit.Maui.Alerts.Snackbar.Make("Mensagem...", () => Debug.WriteLine("Ação Snackbar"), "Ação", TimeSpan.FromSeconds(5));
-        //        await snackbar.Show(cts.Token);
-
         public Task ShowAlertAsync(string title, string message, string cancel = "OK")
         {
             if (Application.Current?.MainPage == null)
@@ -33,80 +29,64 @@ namespace conViver.Mobile.Services
             return ShowAlertAsync(title, message, "OK");
         }
 
-        public Task ShowSuccessAsync(string message, string title = "Sucesso")
+        public async Task ShowSuccessAsync(string message, string title = "Sucesso")
         {
-            return ShowAlertAsync(title, message, "OK");
+            // Title is not directly used by Snackbar, message is key.
+            var snackbar = Snackbar.Make(message, null, string.Empty, TimeSpan.FromSeconds(3), new SnackbarOptions
+            {
+                BackgroundColor = Colors.Green,
+                TextColor = Colors.White
+            });
+            await snackbar.Show();
+            // return Task.CompletedTask; // Implicitly returned by async Task method without return
         }
 
-        public Task ShowInfoAsync(string message, string title = "Informação")
+        public async Task ShowInfoAsync(string message, string title = "Informação")
         {
-            return ShowAlertAsync(title, message, "OK");
+            var snackbar = Snackbar.Make(message, null, string.Empty, TimeSpan.FromSeconds(3), new SnackbarOptions
+            {
+                BackgroundColor = Colors.Blue, // Example color for Info
+                TextColor = Colors.White
+            });
+            await snackbar.Show();
+            // return Task.CompletedTask;
         }
 
         public void ShowLoading(string message = "Carregando...")
         {
-            if (Application.Current?.MainPage == null) return;
-
-            // Try to find common loading indicators by convention on the current page
-            // This is a basic approach. A more robust solution would be a dedicated global loading UI.
-            var currentPage = GetCurrentPage(Application.Current.MainPage);
-            if (currentPage == null) return;
-
-            var activityIndicator = currentPage.FindByName<ActivityIndicator>("LoadingIndicator");
-            var messageLabel = currentPage.FindByName<Label>("FeedbackLabel"); // Or a specific LoadingMessageLabel
-
-            if (activityIndicator != null)
+            if (Application.Current?.MainPage is AppShell shell)
             {
-                activityIndicator.IsRunning = true;
-                activityIndicator.IsVisible = true;
-            }
+                var loadingIndicatorGrid = shell.FindByName<Grid>("GlobalLoadingIndicator");
+                var messageLabel = shell.FindByName<Label>("LoadingMessage");
+                // var spinner = shell.FindByName<ActivityIndicator>("LoadingSpinner"); // Already set to IsRunning=True in XAML
 
-            if (messageLabel != null)
-            {
-                messageLabel.Text = message;
-                messageLabel.IsVisible = true;
+                if (loadingIndicatorGrid != null)
+                {
+                    if (messageLabel != null)
+                    {
+                        messageLabel.Text = message;
+                    }
+                    loadingIndicatorGrid.IsVisible = true;
+                    // if (spinner != null) spinner.IsRunning = true; // Ensure spinner is running
+                }
             }
             Debug.WriteLine($"FeedbackService: ShowLoading - {message}");
         }
 
         public void HideLoading()
         {
-            if (Application.Current?.MainPage == null) return;
-
-            var currentPage = GetCurrentPage(Application.Current.MainPage);
-            if (currentPage == null) return;
-
-            var activityIndicator = currentPage.FindByName<ActivityIndicator>("LoadingIndicator");
-            var messageLabel = currentPage.FindByName<Label>("FeedbackLabel"); // Or a specific LoadingMessageLabel
-
-            if (activityIndicator != null)
+            if (Application.Current?.MainPage is AppShell shell)
             {
-                activityIndicator.IsRunning = false;
-                activityIndicator.IsVisible = false;
-            }
+                var loadingIndicatorGrid = shell.FindByName<Grid>("GlobalLoadingIndicator");
+                // var spinner = shell.FindByName<ActivityIndicator>("LoadingSpinner");
 
-            if (messageLabel != null)
-            {
-                messageLabel.Text = string.Empty;
-                messageLabel.IsVisible = false;
+                if (loadingIndicatorGrid != null)
+                {
+                    loadingIndicatorGrid.IsVisible = false;
+                    // if (spinner != null) spinner.IsRunning = false; // Stop spinner
+                }
             }
-             Debug.WriteLine($"FeedbackService: HideLoading");
-        }
-
-        // Helper to get the current visible page, especially if using Shell navigation
-        private Page GetCurrentPage(Page mainPage)
-        {
-            if (mainPage is Shell shell)
-            {
-                if (shell.CurrentPage != null)
-                    return shell.CurrentPage;
-            }
-            else if (mainPage is NavigationPage navPage)
-            {
-                 if (navPage.CurrentPage != null)
-                    return navPage.CurrentPage;
-            }
-            return mainPage; // Fallback or for simpler navigation structures
+            Debug.WriteLine($"FeedbackService: HideLoading");
         }
     }
 }
