@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using conViver.Core.Entities; // Será substituído por DTOs na maioria dos retornos
 using conViver.Application;    // Assumindo que ReservaService está aqui
+using conViver.Application.Services;
 using conViver.Core.DTOs;      // Adicionado para DTOs
 using Microsoft.AspNetCore.Authorization;
 using System;
