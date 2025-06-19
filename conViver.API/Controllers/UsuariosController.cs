@@ -50,9 +50,9 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
             Nome = request.Nome,
             Email = request.Email,
             SenhaHash = request.Senha, // O serviço _usuarios.AddAsync deve cuidar do hashing da senha
-            Perfil = PerfilUsuario.Morador // Perfil padrão, pode ser ajustado conforme regras de negócio
-            // CondominioId e UnidadeId podem ser definidos aqui se fornecidos no SignupRequestDto
-            // e se o usuário já é vinculado a um condomínio no momento do signup.
+            Perfil = PerfilUsuario.Morador,
+            CondominioId = request.CondominioId,
+            UnidadeId = request.UnidadeId
         };
         await _usuarios.AddAsync(usuario); // Assumindo que AddAsync faz o hash da senha
 
@@ -91,18 +91,11 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
             return Unauthorized(new { code = "INVALID_CREDENTIALS", message = "E-mail ou senha inválidos." });
         }
 
-        // TODO: Obter CondominioId e UnidadeId principal/ativa do usuário para incluir no token.
-        // Exemplo:
-        // Guid? condominioIdParaToken = usuario.CondominioPrincipalId; // Supondo que a entidade Usuario tenha essa propriedade
-        // Guid? unidadeIdParaToken = usuario.UnidadePrincipalId; // Supondo que a entidade Usuario tenha essa propriedade
-        // Esta informação é crucial para os outros controllers que dependem dela nas claims.
-        // A JwtService.GenerateToken precisaria ser ajustada para incluir essas claims.
-        // Por agora, vamos simular que o JwtService pode obter isso ou que não é estritamente necessário para o token em si,
-        // mas sim para a resposta do DTO.
-
-        // Simulação de dados para o token (o JwtService deveria lidar com isso de forma mais robusta)
-        // O JwtService.GenerateToken idealmente retornaria claims adicionais, mas o serviço atual aceita apenas o condominioId opcional
-        var accessTokenString = _jwt.GenerateToken(usuario.Id, usuario.Perfil.ToString(), null);
+        var accessTokenString = _jwt.GenerateToken(
+            usuario.Id,
+            usuario.Perfil.ToString(),
+            usuario.CondominioId,
+            usuario.UnidadeId);
 
         // Placeholder para Refresh Token e Expiration - JwtService deveria fornecer isso
         var refreshTokenString = "dummyRefreshToken_jwtService_needs_to_implement_this_" + Guid.NewGuid().ToString();
@@ -113,7 +106,9 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
             Id = usuario.Id,
             Nome = usuario.Nome,
             Email = usuario.Email,
-            Perfil = usuario.Perfil.ToString().ToLowerInvariant()
+            Perfil = usuario.Perfil.ToString().ToLowerInvariant(),
+            CondominioId = usuario.CondominioId,
+            UnidadeId = usuario.UnidadeId
         };
 
         return Ok(new AuthResponseDto
@@ -153,7 +148,9 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
             Id = usuario.Id,
             Nome = usuario.Nome,
             Email = usuario.Email,
-            Perfil = usuario.Perfil.ToString().ToLowerInvariant()
+            Perfil = usuario.Perfil.ToString().ToLowerInvariant(),
+            CondominioId = usuario.CondominioId,
+            UnidadeId = usuario.UnidadeId
         };
         return Ok(userDto);
     }
@@ -183,7 +180,7 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
         Guid? mockCondominioId = Guid.NewGuid();
 
 
-        var newAccessTokenString = _jwt.GenerateToken(mockUserId, mockPerfil.ToString(), mockCondominioId);
+        var newAccessTokenString = _jwt.GenerateToken(mockUserId, mockPerfil.ToString(), mockCondominioId, null);
         var newRefreshTokenString = "new_dummyRefreshToken_" + Guid.NewGuid().ToString();
         var newAccessTokenExpiration = DateTime.UtcNow.AddHours(1);
         var userDto = new UserDto {
@@ -191,7 +188,8 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
             Nome = "Usuário Refrescado",
             Email = mockUserEmail,
             Perfil = mockPerfil.ToString().ToLowerInvariant(),
-            CondominioId = mockCondominioId
+            CondominioId = mockCondominioId,
+            UnidadeId = null
         };
         // --- Fim Simulação ---
 

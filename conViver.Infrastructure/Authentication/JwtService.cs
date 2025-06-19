@@ -14,7 +14,7 @@ public class JwtService
         _config = config;
     }
 
-    public string GenerateToken(Guid userId, string role, Guid? condominioId = null)
+    public string GenerateToken(Guid userId, string role, Guid? condominioId = null, Guid? unidadeId = null)
     {
         var claims = new List<Claim>
         {
@@ -24,7 +24,12 @@ public class JwtService
 
         if (condominioId.HasValue)
         {
-            claims.Add(new Claim("condoId", condominioId.Value.ToString()));
+            claims.Add(new Claim("condominioId", condominioId.Value.ToString()));
+        }
+
+        if (unidadeId.HasValue)
+        {
+            claims.Add(new Claim("unidadeId", unidadeId.Value.ToString()));
         }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.JwtSecret));
