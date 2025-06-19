@@ -90,7 +90,7 @@ public class UsuarioService : IUsuarioService
             usuario.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1); // Token valid for 1 hour
 
             // Update the user in the repository
-            await _usuarioRepository.UpdateAsync(usuario, cancellationToken); // Assuming IRepository has an UpdateAsync method
+            await _usuarioRepository.UpdateAsync(usuario, cancellationToken);
             await _usuarioRepository.SaveChangesAsync(cancellationToken);
 
             // Simulate sending an email
