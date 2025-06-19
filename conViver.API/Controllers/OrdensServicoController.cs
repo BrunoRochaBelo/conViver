@@ -111,10 +111,8 @@ public class OrdensServicoController : ControllerBase
 
         try
         {
-            // Assumindo que o serviço foi atualizado
-            var osDto = await _ordensService.AtualizarOSStatusPorSindicoAsync(id, condominioId, sindicoUserId, updateDto);
-            if (osDto == null) return NotFound("Ordem de Serviço não encontrada.");
-            return Ok(osDto);
+            await _ordensService.AtualizarOSStatusPorSindicoAsync(id, condominioId, sindicoUserId, updateDto);
+            return NoContent();
         }
         catch (InvalidOperationException ex)
         {

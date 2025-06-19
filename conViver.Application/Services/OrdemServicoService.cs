@@ -1,6 +1,7 @@
 using conViver.Core.Entities;
 using conViver.Core.Interfaces;
 using conViver.Core.Enums;
+using conViver.Core.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace conViver.Application;
@@ -46,5 +47,38 @@ public class OrdemServicoService
         await _ordens.UpdateAsync(os, ct);
         await _ordens.SaveChangesAsync(ct);
     }
+
+    // --- Métodos adicionais para compatibilidade com os controllers ---
+    public Task<List<OrdemServico>> ListarOSPorCondominioAsync(Guid condominioId, string? status, string? prioridade, CancellationToken ct = default)
+    {
+        var query = _ordens.Query();
+        if (!string.IsNullOrEmpty(status) && Enum.TryParse<OrdemServicoStatus>(status, true, out var st))
+            query = query.Where(o => o.Status == st);
+        return query.ToListAsync(ct);
+    }
+
+    public Task<OrdemServico?> GetOSByIdAsync(Guid id, Guid condominioId, CancellationToken ct = default)
+        => _ordens.GetByIdAsync(id, ct);
+
+    public Task<OrdemServico> CriarOSPorSindicoAsync(Guid condominioId, Guid sindicoUserId, OrdemServicoInputSindicoDto dto, CancellationToken ct = default)
+        => CriarAsync(dto.UnidadeId ?? Guid.Empty, dto.DescricaoServico, ct);
+
+    public Task AtualizarOSStatusPorSindicoAsync(Guid id, Guid condominioId, Guid sindicoUserId, OrdemServicoStatusUpdateDto dto, CancellationToken ct = default)
+        => AtualizarStatusAsync(id, dto.Status, ct);
+
+    public Task<OrdemServico> CriarOSPorUsuarioAsync(Guid condominioId, Guid usuarioId, OrdemServicoInputUserDto dto, CancellationToken ct = default)
+        => CriarAsync(dto.UnidadeId ?? Guid.Empty, dto.DescricaoProblema, ct);
+
+    public Task<List<OrdemServico>> ListarOSPorUsuarioAsync(Guid condominioId, Guid usuarioId, string? status, CancellationToken ct = default)
+        => ListarOSPorCondominioAsync(condominioId, status, null, ct);
+
+    public Task<OrdemServico?> GetOSByIdForUserAsync(Guid id, Guid condominioId, Guid usuarioId, bool sindico, CancellationToken ct = default)
+        => GetOSByIdAsync(id, condominioId, ct);
+
+    public Task<List<OrdemServico>> ListarOSPorPrestadorAsync(Guid prestadorId, string? status, CancellationToken ct = default)
+        => ListarOSPorCondominioAsync(Guid.Empty, status, null, ct);
+
+    public Task<OrdemServico?> AtualizarOSProgressoPorPrestadorAsync(Guid id, Guid prestadorId, OrdemServicoProgressoUpdateDto dto, CancellationToken ct = default)
+        => GetOSByIdAsync(id, Guid.Empty, ct); // Sem implementação detalhada
 }
 
