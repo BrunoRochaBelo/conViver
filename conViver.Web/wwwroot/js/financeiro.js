@@ -2,7 +2,7 @@ import apiClient from './apiClient.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const boletos = await apiClient.get('/syndic/finance/boletos');
+        const boletos = await apiClient.get('/api/v1/syndic/finance/boletos');
         const tbody = document.querySelector('.js-boletos');
         tbody.innerHTML = '';
         boletos.forEach(b => {

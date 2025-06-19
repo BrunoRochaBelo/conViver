@@ -1,4 +1,7 @@
-const API_BASE = '/api/v1';
+// Base path for the API. When the backend uses app.UsePathBase("/api/v1")
+// the frontend should include this prefix in each request instead of
+// relying on the client to append it.
+const API_BASE = '';
 
 export function getToken() {
     return localStorage.getItem('cv_token');

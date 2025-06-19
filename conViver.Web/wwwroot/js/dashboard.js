@@ -2,7 +2,7 @@ import apiClient from './apiClient.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const metrics = await apiClient.get('/syndic/reports/dashboard');
+        const metrics = await apiClient.get('/api/v1/syndic/reports/dashboard');
         if (metrics.inadimplencia !== undefined) {
             const val = (metrics.inadimplencia * 100).toFixed(1) + '%';
             document.querySelector('.js-inadimplencia').textContent = val;

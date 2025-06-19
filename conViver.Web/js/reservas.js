@@ -27,7 +27,7 @@ async function carregarAgenda() {
     try {
         const now = new Date();
         const mes = now.toISOString().slice(0,7);
-        const reservas = await apiClient.get(`/app/reservas/agenda?mesAno=${mes}`);
+        const reservas = await apiClient.get(`/api/v1/app/reservas/agenda?mesAno=${mes}`);
 
         container.innerHTML = ''; // Clear loading indicator
         if (reservas && reservas.length > 0) {
@@ -69,7 +69,7 @@ async function criarReserva(evt) {
     if (submitButton) submitButton.disabled = true;
 
     try {
-        await apiClient.post('/app/reservas', { area, inicio, fim });
+        await apiClient.post('/api/v1/app/reservas', { area, inicio, fim });
         showGlobalFeedback('Reserva criada com sucesso!', 'success', 5000);
         form.reset();
         await carregarAgenda(); // Recarrega a agenda para mostrar a nova reserva

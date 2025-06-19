@@ -47,7 +47,7 @@ if (loginForm) {
         const password = passwordInput.value;
 
         try {
-            const response = await apiClient.post('/auth/login', { email, password });
+            const response = await apiClient.post('/api/v1/auth/login', { email, password });
             setToken(response.accessToken);
 
             showFeedback('Login bem-sucedido! Redirecionando...', 'success');

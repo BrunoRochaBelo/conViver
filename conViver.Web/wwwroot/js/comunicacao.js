@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function carregarAvisos() {
     try {
-        const resp = await apiClient.get('/app/avisos?page=1&size=10');
+        const resp = await apiClient.get('/api/v1/app/avisos?page=1&size=10');
         const avisos = resp.items || resp;
         const container = document.querySelector('.js-avisos');
         container.innerHTML = '';
