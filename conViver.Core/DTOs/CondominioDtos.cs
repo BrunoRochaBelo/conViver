@@ -55,7 +55,7 @@ public class CondominioInputDto // Usado para Create e Update
     public bool Ativo { get; set; } = true;
 }
 
-public class CondominioDto // Para GetById e ListAll
+public class CondominioDetalhadoDto // Para GetById e ListAll
 {
     public Guid Id { get; set; }
     public string Nome { get; set; } = string.Empty;
