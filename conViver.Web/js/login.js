@@ -55,7 +55,6 @@ if (loginForm) {
             // Button remains disabled while redirecting
 
             // Redirect to the main page (index.html or dashboard)
-            // Assuming index.html is the entry point after login for now
             window.location.href = 'index.html';
 
         } catch (error) {
@@ -70,35 +69,32 @@ if (loginForm) {
                 if (error.message &&
                     !error.message.toLowerCase().includes("network request failed") &&
                     !error.message.toLowerCase().includes("failed to fetch") &&
-                    error.message !== error.statusText) { // Avoid using plain status text if we have a default
+                    error.message !== error.statusText) {
                     errorDetails = error.message;
                 }
 
-                // Set a general message based on status if details are too generic
+                // Customizações por status
                 if (error.status === 401) {
                     errorMessage = 'E-mail ou senha inválidos.';
-                    // If errorDetails from API is too generic for 401, or is the same as error.message (which might be generic)
-                    // override it with a more user-friendly message for 401.
                     if (errorDetails === 'Invalid credentials' || errorDetails === error.message || (error.message && error.message.includes('status code 401'))) {
                         errorDetails = 'Por favor, verifique os dados inseridos.';
                     }
                 } else if (error.status === 400) {
                     errorMessage = 'Requisição inválida.';
-                     // If errorDetails from API is too generic for 400, override it
-                     if (errorDetails === error.message || (error.message && error.message.includes('status code 400'))) {
+                    if (errorDetails === error.message || (error.message && error.message.includes('status code 400'))) {
                         errorDetails = 'Verifique os dados fornecidos e tente novamente.';
                     }
                 } else if (error.status >= 500) {
                     errorMessage = 'Erro no servidor.';
-                    errorDetails = 'Por favor, tente novamente mais tarde.'; // For server errors, usually best to not show technical details.
-                } else if (!error.status) { // Likely a network error where status is null or 0
+                    errorDetails = 'Por favor, tente novamente mais tarde.';
+                } else if (!error.status) { // Rede
                     errorMessage = 'Erro de conexão.';
                     errorDetails = 'Não foi possível conectar ao servidor. Verifique sua internet.';
                 }
-            } // If not ApiError, the generic messages "Falha no login." and "Verifique suas credenciais..." will be used by default.
+            }
 
             showFeedback(errorMessage, 'error', errorDetails);
-            loginButton.disabled = false; // Re-enable button on error
+            loginButton.disabled = false; // Re-enable on error
             emailInput.disabled = false;
             passwordInput.disabled = false;
             console.error('Login error:', error);

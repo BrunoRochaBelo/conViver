@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const novaCobrancaDto = { UnidadeId: unidadeId, Valor: valor, DataVencimento: dataVencimento, Descricao: descricao };
 
         try {
-            await apiClient.post('/api/v1/financeiro/cobrancas', novaCobrancaDto);
+            await apiClient.post('/financeiro/cobrancas', novaCobrancaDto);
             showGlobalFeedback('Cobrança emitida com sucesso!', 'success', 5000);
             closeModal();
             fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
-                const resultado = await apiClient.post('/api/v1/financeiro/cobrancas/gerar-lote', requestBody);
+                const resultado = await apiClient.post('/financeiro/cobrancas/gerar-lote', requestBody);
                 if (resultado.sucesso) {
                     showGlobalFeedback(resultado.mensagem || 'Lote gerado com sucesso!', 'success', 5000);
                     fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showGlobalFeedback('Processando...', 'info', 2000);
                 target.disabled = true;
                 try {
-                    const response = await apiClient.get(`/api/v1/financeiro/cobrancas/${cobrancaId}/segunda-via`);
+                    const response = await apiClient.get(`/financeiro/cobrancas/${cobrancaId}/segunda-via`);
                     if (response && response.url) {
                         window.open(response.url, '_blank');
                         showGlobalFeedback('Link da 2ª via aberto em nova aba.', 'success', 5000);
@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 target.disabled = true;
                 try {
                     // Assuming PUT request for cancel, adjust if it's POST or DELETE
-                    const resultado = await apiClient.put(`/api/v1/financeiro/cobrancas/${cobrancaId}/cancelar`, {});
+                    const resultado = await apiClient.put(`/financeiro/cobrancas/${cobrancaId}/cancelar`, {});
                     if (resultado && resultado.sucesso) {
                         showGlobalFeedback(resultado.mensagem || 'Cobrança cancelada com sucesso!', 'success', 5000);
                         fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!tbodyCobrancas) return;
         tbodyCobrancas.innerHTML = '<tr><td colspan="6" class="text-center">Carregando cobranças...</td></tr>';
 
-        let apiUrl = '/api/v1/financeiro/cobrancas';
+        let apiUrl = '/financeiro/cobrancas';
         if (status) {
             apiUrl += `?status=${encodeURIComponent(status)}`;
         }
@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (summaryPendentesEl) summaryPendentesEl.textContent = 'Carregando...';
 
         try {
-            const dashboardData = await apiClient.get('/api/v1/financeiro/cobrancas/dashboard');
+            const dashboardData = await apiClient.get('/financeiro/cobrancas/dashboard');
             renderDashboardFinanceiro(dashboardData);
         } catch (error) {
             console.error('Erro ao buscar dados do dashboard financeiro:', error);

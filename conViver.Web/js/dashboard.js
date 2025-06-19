@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             console.log('Buscando dados do dashboard...');
-            const dados = await apiClient.get('/api/v1/dashboard/geral');
+            const dados = await apiClient.get('/dashboard/geral');
             console.log('Dados recebidos:', dados);
 
             // Clear local loading messages (optional, as global feedback is present)
