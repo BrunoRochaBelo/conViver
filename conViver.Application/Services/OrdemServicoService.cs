@@ -57,7 +57,7 @@ namespace conViver.Application
             await _ordens.SaveChangesAsync(ct);
         }
 
-        public Task AtualizarOSPorSindicoAsync(Guid id, Guid condominioId, Guid sindicoUserId, OrdemServicoUpdateSindicoDto dto, CancellationToken ct = default)
+        public Task AtualizarOSPorSindicoAsync(Guid id, Guid condominioId, Guid sindicoUserId, OrdemServicoStatusUpdateDto dto, CancellationToken ct = default)
             => AtualizarStatusAsync(id, dto.Status, ct);
 
         // --- Métodos adicionais para compatibilidade com os controllers ---
