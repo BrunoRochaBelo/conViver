@@ -99,6 +99,7 @@ dotnet restore
 docker run -d --name pgconviver -e POSTGRES_PASSWORD=devpass -p 5432:5432 postgres:16
 # Aplique as migrations (SQLite ou PostgreSQL)
 dotnet ef database update --project src/conViver.Infrastructure
+# (reexecute sempre que fizer pull para aplicar novas migrations)
 
 3. Rodar API
 cd src/conViver.API
