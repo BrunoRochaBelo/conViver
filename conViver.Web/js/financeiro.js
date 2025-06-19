@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const novaCobrancaDto = { unidadeId, valor, dataVencimento, descricao };
+        const novaCobrancaDto = { UnidadeId: unidadeId, Valor: valor, DataVencimento: dataVencimento, Descricao: descricao };
 
         try {
             await apiClient.post('/api/v1/financeiro/cobrancas', novaCobrancaDto);
@@ -150,8 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const hoje = new Date();
             const requestBody = {
-                mes: hoje.getMonth() + 1,
-                ano: hoje.getFullYear()
+                Mes: hoje.getMonth() + 1,
+                Ano: hoje.getFullYear()
             };
 
             try {

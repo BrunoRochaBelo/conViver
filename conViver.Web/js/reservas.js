@@ -69,7 +69,9 @@ async function criarReserva(evt) {
     if (submitButton) submitButton.disabled = true;
 
     try {
-        await apiClient.post('/api/v1/app/reservas', { area, inicio, fim });
+        // TODO: UnidadeId needs to be fetched or selected by the user.
+        const payload = { AreaComumId: area, Inicio: inicio, Fim: fim, UnidadeId: null };
+        await apiClient.post('/api/v1/app/reservas', payload);
         showGlobalFeedback('Reserva criada com sucesso!', 'success', 5000);
         form.reset();
         await carregarAgenda(); // Recarrega a agenda para mostrar a nova reserva

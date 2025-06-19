@@ -47,7 +47,7 @@ if (loginForm) {
         const password = passwordInput.value;
 
         try {
-            const response = await apiClient.post('/api/v1/auth/login', { email, password });
+            const response = await apiClient.post('/api/v1/auth/login', { Email: email, Senha: password });
             setToken(response.accessToken);
 
             showFeedback('Login bem-sucedido! Redirecionando...', 'success');
@@ -61,36 +61,41 @@ if (loginForm) {
         } catch (error) {
             document.body.classList.remove('loading-active'); // Remove loading class from body
             let errorMessage = 'Falha no login.';
+            // Default detail message, can be overridden by API's message
             let errorDetails = 'Verifique suas credenciais ou tente novamente mais tarde.';
 
             if (error instanceof ApiError) {
-                // Try to get detailed message from API response
-                if (error.data && error.data.message) {
-                    errorDetails = error.data.message;
-                } else if (error.data && error.data.detail) {
-                    errorDetails = error.data.detail;
-                } else if (error.message && error.message !== 'API request failed') {
-                    // Fallback to ApiError message if specific details are not available
+                // If ApiError.message seems to be a specific message from the backend, use it.
+                // Otherwise, errorDetails will keep its default value.
+                if (error.message &&
+                    !error.message.toLowerCase().includes("network request failed") &&
+                    !error.message.toLowerCase().includes("failed to fetch") &&
+                    error.message !== error.statusText) { // Avoid using plain status text if we have a default
                     errorDetails = error.message;
                 }
 
                 // Set a general message based on status if details are too generic
                 if (error.status === 401) {
                     errorMessage = 'E-mail ou senha inválidos.';
-                    // Keep specific details if available, otherwise use a default
-                    if (errorDetails === 'Invalid credentials' || errorDetails === error.message) {
+                    // If errorDetails from API is too generic for 401, or is the same as error.message (which might be generic)
+                    // override it with a more user-friendly message for 401.
+                    if (errorDetails === 'Invalid credentials' || errorDetails === error.message || (error.message && error.message.includes('status code 401'))) {
                         errorDetails = 'Por favor, verifique os dados inseridos.';
                     }
                 } else if (error.status === 400) {
                     errorMessage = 'Requisição inválida.';
-                     if (errorDetails === error.message) { // Avoid redundant message
-                        errorDetails = 'Verifique os dados fornecidos.';
+                     // If errorDetails from API is too generic for 400, override it
+                     if (errorDetails === error.message || (error.message && error.message.includes('status code 400'))) {
+                        errorDetails = 'Verifique os dados fornecidos e tente novamente.';
                     }
                 } else if (error.status >= 500) {
                     errorMessage = 'Erro no servidor.';
-                    errorDetails = 'Por favor, tente novamente mais tarde.';
+                    errorDetails = 'Por favor, tente novamente mais tarde.'; // For server errors, usually best to not show technical details.
+                } else if (!error.status) { // Likely a network error where status is null or 0
+                    errorMessage = 'Erro de conexão.';
+                    errorDetails = 'Não foi possível conectar ao servidor. Verifique sua internet.';
                 }
-            }
+            } // If not ApiError, the generic messages "Falha no login." and "Verifique suas credenciais..." will be used by default.
 
             showFeedback(errorMessage, 'error', errorDetails);
             loginButton.disabled = false; // Re-enable button on error
