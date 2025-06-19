@@ -20,7 +20,7 @@ public class PrestadorService
         IRepository<AvaliacaoPrestador> avaliacaoRepository)
     {
         _prestadorRepository = prestadorRepository;
-        _avaliacao_repository = avaliacaoRepository;
+        _avaliacaoRepository = avaliacaoRepository;
     }
 
     public async Task<PrestadorServico> CadastrarPrestadorAsync(
@@ -210,11 +210,11 @@ public class PrestadorService
             OrdemServicoId = avaliacaoInput.OrdemServicoId
         };
 
-        await _avaliacao_repository.AddAsync(novaAvaliacao, ct);
-        await _avaliacao_repository.SaveChangesAsync(ct);
+        await _avaliacaoRepository.AddAsync(novaAvaliacao, ct);
+        await _avaliacaoRepository.SaveChangesAsync(ct);
 
         // Recarrega avaliações para recálculo
-        prestador = await _prestador_repository.Query()
+        prestador = await _prestadorRepository.Query()
             .Include(p => p.Avaliacoes)
             .FirstAsync(p =>
                 p.Id == prestadorId &&
@@ -225,8 +225,8 @@ public class PrestadorService
             : (double?)null;
         prestador.UpdatedAt = DateTime.UtcNow;
 
-        await _prestador_repository.UpdateAsync(prestador, ct);
-        await _prestador_repository.SaveChangesAsync(ct);
+        await _prestadorRepository.UpdateAsync(prestador, ct);
+        await _prestadorRepository.SaveChangesAsync(ct);
 
         return novaAvaliacao;
     }
