@@ -1,6 +1,9 @@
 using conViver.Mobile.Services; // Added using for IFeedbackService
 using System; // Added for EventArgs
+using System.Diagnostics; // For Debug.WriteLine
 using System.Threading.Tasks; // Added for Task
+// Assuming new pages will be in the root or a 'Views' folder.
+// If in 'Views', add: using conViver.Mobile.Views;
 
 namespace conViver.Mobile;
 
@@ -86,6 +89,32 @@ public partial class LoginPage : ContentPage
             LoginButton.IsEnabled = true;
             EmailEntry.IsEnabled = true;
             PasswordEntry.IsEnabled = true;
+        }
+    }
+
+    private async void OnForgotPasswordTapped(object sender, EventArgs e)
+    {
+        try
+        {
+            await Shell.Current.GoToAsync(nameof(ForgotPasswordPage));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Navigation to ForgotPasswordPage failed: {ex.Message}");
+            await _feedbackService.ShowErrorAsync("Não foi possível abrir a página de recuperação de senha.");
+        }
+    }
+
+    private async void OnRegisterTapped(object sender, EventArgs e)
+    {
+        try
+        {
+            await Shell.Current.GoToAsync(nameof(RegisterPage));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Navigation to RegisterPage failed: {ex.Message}");
+            await _feedbackService.ShowErrorAsync("Não foi possível abrir a página de registro.");
         }
     }
 }

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="conViver.Mobile.RegisterPage"
+             Title="Criar Conta">
+    <ScrollView>
+        <VerticalStackLayout
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            Padding="24"
+            Spacing="16"
+            WidthRequest="{OnPlatform Android=300, iOS=300, WinUI=400, MacCatalyst=400}">
+
+            <Label
+                Text="Criar Nova Conta"
+                Style="{StaticResource H2LabelStyle}"
+                HorizontalOptions="Center" />
+
+            <Label
+                Text="Preencha os campos abaixo para se registrar."
+                Style="{StaticResource BodyLabelStyle}"
+                HorizontalOptions="Center"
+                Margin="0,0,0,12" />
+
+            <Entry
+                x:Name="NameEntry"
+                Placeholder="Nome Completo"
+                Style="{StaticResource Entry}" />
+
+            <Entry
+                x:Name="EmailEntry"
+                Placeholder="Email"
+                Keyboard="Email"
+                Style="{StaticResource Entry}" />
+
+            <Entry
+                x:Name="PasswordEntry"
+                Placeholder="Senha (mín. 6 caracteres)"
+                IsPassword="True"
+                Style="{StaticResource Entry}" />
+
+            <Entry
+                x:Name="ConfirmPasswordEntry"
+                Placeholder="Confirmar Senha"
+                IsPassword="True"
+                Style="{StaticResource Entry}" />
+
+            <Button
+                x:Name="SubmitButton"
+                Text="Registrar"
+                Style="{StaticResource Button}"
+                HorizontalOptions="Fill"
+                Margin="0,10,0,0"/>
+
+            <ActivityIndicator x:Name="LoadingIndicator" IsRunning="False" IsVisible="False" Color="{StaticResource Primary}" Margin="0,10,0,0"/>
+            <Label x:Name="FeedbackLabel" IsVisible="False" HorizontalOptions="Center" Margin="0,5,0,5" Style="{StaticResource SmallLabelStyle}" TextColor="{AppThemeBinding Light={StaticResource CvGray600}, Dark={StaticResource CvGray300}}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

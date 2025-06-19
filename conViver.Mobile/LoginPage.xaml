@@ -55,5 +55,16 @@
             HorizontalOptions="Fill"
             Margin="0,10,0,0"/>
 
+        <Label Text="Esqueceu a senha?" TextColor="{StaticResource Primary}" HorizontalOptions="Center" Margin="0,10,0,0">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnForgotPasswordTapped" />
+            </Label.GestureRecognizers>
+        </Label>
+        <Label Text="Não tem uma conta? Crie uma aqui." TextColor="{StaticResource Primary}" HorizontalOptions="Center" Margin="0,5,0,0">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnRegisterTapped" />
+            </Label.GestureRecognizers>
+        </Label>
+
     </VerticalStackLayout>
 </ContentPage>
