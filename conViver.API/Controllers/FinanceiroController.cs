@@ -365,67 +365,94 @@ public class FinanceiroController : ControllerBase
         return Ok(balancete);
     }
 
-    // --- Placeholders para Endpoints Faltantes da API_REFERENCE.md (Seção 4 e 5) ---
-
     /// <summary>
-    /// (Administradora) Criação de cobranças em lote. (API Ref 4.1)
+    /// (Administradora) Gera cobranças em lote para um condomínio.
     /// </summary>
-    /// <remarks>Verificar se este endpoint é distinto de POST /cobrancas/gerar-lote ou se apenas o role muda.</remarks>
-    [HttpPost("/api/v1/adm/finance/batch")] // Rota absoluta conforme API Ref
-    [Authorize(Roles = "Administradora")] // Exemplo de role diferente
-    [ApiExplorerSettings(IgnoreApi = true)] // Esconder do Swagger por enquanto
-    public IActionResult AdminFinanceBatchPlaceholder() => StatusCode(501, "Endpoint não implementado.");
+    [HttpPost("/api/v1/adm/finance/batch")]
+    [Authorize(Roles = "Administradora")]
+    public async Task<ActionResult<ResultadoOperacaoDto>> AdminFinanceBatch([FromBody] GeracaoLoteRequestDto request)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        var resultado = await _financeiro.GerarCobrancasEmLoteAsync(Guid.Empty, request); // condomínio informado no DTO
+        return Ok(resultado);
+    }
 
     /// <summary>
     /// (Síndico) Obtém detalhes de um boleto específico, possivelmente em formato PDF. (API Ref 4.4)
     /// </summary>
-    [HttpGet("boletos/{id:guid}/pdf")] // Rota ajustada para indicar PDF
-    [ApiExplorerSettings(IgnoreApi = true)]
-    public IActionResult GetBoletoPdfPlaceholder(Guid id) => StatusCode(501, "Endpoint de download de PDF de boleto não implementado.");
+    [HttpGet("boletos/{id:guid}/pdf")]
+    public async Task<ActionResult<BoletoPdfDto>> GetBoletoPdf(Guid id)
+    {
+        var doc = await _financeiro.ObterBoletoPdfAsync(id);
+        if (doc == null) return NotFound();
+        return Ok(doc);
+    }
 
     /// <summary>
     /// (Síndico) Reenvia um boleto (2ª via) por e-mail. (API Ref 4.6)
     /// </summary>
     [HttpPost("boletos/{id:guid}/resend")]
-    [ApiExplorerSettings(IgnoreApi = true)]
-    public IActionResult ResendBoletoPlaceholder(Guid id) => StatusCode(501, "Endpoint de reenvio de boleto não implementado.");
+    public async Task<IActionResult> ResendBoleto(Guid id)
+    {
+        await _financeiro.ReenviarBoletoAsync(id);
+        return Accepted();
+    }
 
     /// <summary>
     /// (Público/Webhook) Callback para notificação de pagamento bancário. (API Ref 5.1)
     /// </summary>
-    [HttpPost("/api/v1/finance/callback")] // Rota absoluta
-    [AllowAnonymous] // Webhooks geralmente são anônimos mas validados por outros meios (IP, signature)
-    [ApiExplorerSettings(IgnoreApi = true)]
-    public IActionResult FinanceCallbackPlaceholder() => StatusCode(501, "Endpoint de callback bancário não implementado.");
+    [HttpPost("/api/v1/finance/callback")]
+    [AllowAnonymous]
+    public async Task<IActionResult> FinanceCallback([FromBody] PagamentoWebhookDto dto)
+    {
+        await _financeiro.ProcessarWebhookAsync(dto);
+        return Ok();
+    }
 
     /// <summary>
     /// (Síndico) Registra um pagamento manualmente. (API Ref 5.2)
     /// </summary>
     [HttpPost("manual-payment")]
-    [ApiExplorerSettings(IgnoreApi = true)]
-    public IActionResult ManualPaymentPlaceholder() => StatusCode(501, "Endpoint de registro de pagamento manual não implementado.");
+    public async Task<ActionResult<PagamentoDto>> ManualPayment([FromBody] ManualPaymentInputDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        var result = await _financeiro.RegistrarPagamentoManualAsync(dto.BoletoId, dto.Valor, dto.DataPagamento);
+        if (result == null) return NotFound();
+        return CreatedAtAction(nameof(GetCobranca), new { id = dto.BoletoId }, result);
+    }
 
     /// <summary>
     /// (Administradora) Solicita um estorno de pagamento. (API Ref 5.3)
     /// </summary>
-    [HttpPost("/api/v1/adm/finance/refund")] // Rota absoluta
+    [HttpPost("/api/v1/adm/finance/refund")]
     [Authorize(Roles = "Administradora")]
-    [ApiExplorerSettings(IgnoreApi = true)]
-    public IActionResult AdminFinanceRefundPlaceholder() => StatusCode(501, "Endpoint de solicitação de estorno não implementado.");
+    public async Task<IActionResult> AdminFinanceRefund([FromBody] RefundRequestDto dto)
+    {
+        var ok = await _financeiro.SolicitarEstornoAsync(dto.PagamentoId, dto.Motivo);
+        if (!ok) return NotFound();
+        return Accepted();
+    }
 
     /// <summary>
     /// (Síndico) Cria um novo plano de parcelamento (acordo) para débitos. (API Ref 5.4)
     /// </summary>
     [HttpPost("installment-plan")]
-    [ApiExplorerSettings(IgnoreApi = true)]
-    public IActionResult CreateInstallmentPlanPlaceholder() => StatusCode(501, "Endpoint de criação de acordo não implementado.");
+    public async Task<ActionResult<InstallmentPlanDto>> CreateInstallmentPlan([FromBody] InstallmentPlanInputDto dto)
+    {
+        var acordo = await _financeiro.CriarAcordoAsync(dto.UnidadeId, dto.Entrada, dto.Parcelas);
+        return CreatedAtAction(nameof(GetInstallmentPlan), new { id = acordo.Id }, acordo);
+    }
 
     /// <summary>
     /// (Síndico) Obtém detalhes de um plano de parcelamento (acordo). (API Ref 5.5)
     /// </summary>
     [HttpGet("installment-plan/{id:guid}")]
-    [ApiExplorerSettings(IgnoreApi = true)]
-    public IActionResult GetInstallmentPlanPlaceholder(Guid id) => StatusCode(501, "Endpoint de detalhe de acordo não implementado.");
+    public async Task<ActionResult<InstallmentPlanDto>> GetInstallmentPlan(Guid id)
+    {
+        var acordo = await _financeiro.ObterAcordoPorIdAsync(id);
+        if (acordo == null) return NotFound();
+        return Ok(acordo);
+    }
 
 }
 

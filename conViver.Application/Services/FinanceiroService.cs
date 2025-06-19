@@ -14,13 +14,25 @@ namespace conViver.Application.Services // Changed namespace to match convention
     {
         private readonly IRepository<Boleto> _boletoRepository;
         private readonly IRepository<Unidade> _unidadeRepository; // Assuming needed for NomeSacado
+        private readonly IRepository<Pagamento> _pagamentoRepository;
+        private readonly IRepository<Acordo> _acordoRepository;
+        private readonly IRepository<ParcelaAcordo> _parcelaRepository;
         // private readonly IFinanceiroGateway _financeiroGateway; // Example if you have a specific gateway interface
 
         // Constructor updated to reflect repository usage
-        public FinanceiroService(IRepository<Boleto> boletoRepository, IRepository<Unidade> unidadeRepository /*, IFinanceiroGateway financeiroGateway */)
+        public FinanceiroService(
+            IRepository<Boleto> boletoRepository,
+            IRepository<Unidade> unidadeRepository,
+            IRepository<Pagamento> pagamentoRepository,
+            IRepository<Acordo> acordoRepository,
+            IRepository<ParcelaAcordo> parcelaRepository
+            /*, IFinanceiroGateway financeiroGateway */)
         {
             _boletoRepository = boletoRepository;
-            _unidadeRepository = unidadeRepository; // Store if needed
+            _unidadeRepository = unidadeRepository;
+            _pagamentoRepository = pagamentoRepository;
+            _acordoRepository = acordoRepository;
+            _parcelaRepository = parcelaRepository;
             // _financeiroGateway = financeiroGateway;
         }
 
@@ -332,6 +344,151 @@ namespace conViver.Application.Services // Changed namespace to match convention
         public Task<Boleto?> GetBoletoByIdAsync(Guid id, CancellationToken ct = default)
         {
             return _boletoRepository.GetByIdAsync(id, ct);
+        }
+
+        public async Task<BoletoPdfDto?> ObterBoletoPdfAsync(Guid id)
+        {
+            var boleto = await _boletoRepository.GetByIdAsync(id);
+            if (boleto == null) return null;
+            var dummy = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"Boleto {id}"));
+            return new BoletoPdfDto
+            {
+                PdfBase64 = dummy,
+                BrCode = $"BR-CODE-{id:N}",
+                Metadados = new Dictionary<string, object>
+                {
+                    { "valor", boleto.Valor },
+                    { "status", boleto.Status.ToString() }
+                }
+            };
+        }
+
+        public Task<bool> ReenviarBoletoAsync(Guid id)
+        {
+            // Em um cenário real enviaria e-mail/notificação
+            return Task.FromResult(true);
+        }
+
+        public async Task<PagamentoDto?> RegistrarPagamentoManualAsync(Guid boletoId, decimal valor, DateTime dataPagamento)
+        {
+            var boleto = await _boletoRepository.GetByIdAsync(boletoId);
+            if (boleto == null) return null;
+            boleto.RegistrarPagamento(valor, dataPagamento);
+            await _boletoRepository.UpdateAsync(boleto);
+
+            var pagamento = new Pagamento
+            {
+                Id = Guid.NewGuid(),
+                BoletoId = boletoId,
+                Origem = "manual",
+                ValorPago = valor,
+                DataPgto = dataPagamento
+            };
+            await _pagamentoRepository.AddAsync(pagamento);
+            await _boletoRepository.SaveChangesAsync();
+            await _pagamentoRepository.SaveChangesAsync();
+
+            return new PagamentoDto { PagamentoId = pagamento.Id, Status = pagamento.Status.ToString() };
+        }
+
+        public async Task<bool> ProcessarWebhookAsync(PagamentoWebhookDto dto)
+        {
+            var boleto = await _boletoRepository.Query().FirstOrDefaultAsync(b => b.NossoNumero == dto.NossoNumero);
+            if (boleto == null) return false;
+            boleto.RegistrarPagamento(dto.ValorPago, dto.DataPagamento);
+            await _boletoRepository.UpdateAsync(boleto);
+
+            var pagamento = new Pagamento
+            {
+                Id = Guid.NewGuid(),
+                BoletoId = boleto.Id,
+                Origem = "webhook",
+                ValorPago = dto.ValorPago,
+                DataPgto = dto.DataPagamento,
+                TraceId = dto.TraceId
+            };
+            await _pagamentoRepository.AddAsync(pagamento);
+            await _boletoRepository.SaveChangesAsync();
+            await _pagamentoRepository.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> SolicitarEstornoAsync(Guid pagamentoId, string motivo)
+        {
+            var pag = await _pagamentoRepository.GetByIdAsync(pagamentoId);
+            if (pag == null) return false;
+            pag.Status = PagamentoStatus.Estornado;
+            pag.UpdatedAt = DateTime.UtcNow;
+            await _pagamentoRepository.UpdateAsync(pag);
+            await _pagamentoRepository.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<InstallmentPlanDto> CriarAcordoAsync(Guid unidadeId, decimal entrada, short parcelas)
+        {
+            var valorParcela = 100m;
+            var acordo = new Acordo
+            {
+                Id = Guid.NewGuid(),
+                UnidadeId = unidadeId,
+                ValorTotal = entrada + valorParcela * parcelas,
+                Entrada = entrada,
+                Parcelas = parcelas
+            };
+            await _acordoRepository.AddAsync(acordo);
+
+            var listaParcelas = new List<ParcelaAcordo>();
+            for (short i = 1; i <= parcelas; i++)
+            {
+                var p = new ParcelaAcordo
+                {
+                    Id = Guid.NewGuid(),
+                    AcordoId = acordo.Id,
+                    Numero = i,
+                    Valor = valorParcela,
+                    Vencimento = DateTime.UtcNow.Date.AddMonths(i),
+                    Pago = false
+                };
+                listaParcelas.Add(p);
+                await _parcelaRepository.AddAsync(p);
+            }
+
+            await _acordoRepository.SaveChangesAsync();
+            await _parcelaRepository.SaveChangesAsync();
+
+            return new InstallmentPlanDto
+            {
+                Id = acordo.Id,
+                ValorTotal = acordo.ValorTotal,
+                Entrada = acordo.Entrada,
+                Parcelas = listaParcelas.Select(x => new InstallmentDto
+                {
+                    Numero = x.Numero,
+                    Valor = x.Valor,
+                    Vencimento = x.Vencimento,
+                    Pago = x.Pago
+                }).ToList()
+            };
+        }
+
+        public async Task<InstallmentPlanDto?> ObterAcordoPorIdAsync(Guid acordoId)
+        {
+            var acordo = await _acordoRepository.GetByIdAsync(acordoId);
+            if (acordo == null) return null;
+            var parcelas = await _parcelaRepository.Query().Where(p => p.AcordoId == acordoId).OrderBy(p => p.Numero).ToListAsync();
+            return new InstallmentPlanDto
+            {
+                Id = acordo.Id,
+                ValorTotal = acordo.ValorTotal,
+                Entrada = acordo.Entrada,
+                Parcelas = parcelas.Select(p => new InstallmentDto
+                {
+                    Numero = p.Numero,
+                    Valor = p.Valor,
+                    Vencimento = p.Vencimento,
+                    Pago = p.Pago
+                }).ToList()
+            };
         }
     }
 }
