@@ -5,9 +5,11 @@ using conViver.Core.Enums;
 using conViver.Core.Interfaces;
 // Potentially add: using Microsoft.Extensions.Logging; if you want to use ILogger
 
+using conViver.Core.Notifications;
+
 namespace conViver.Infrastructure.Notifications
 {
-    public class NotificationService : INotificacaoService
+    public class NotificationService : INotificacaoService, INotificationSender
     {
         // Example: Optional ILogger for more structured logging
         // private readonly ILogger<NotificationService> _logger;
@@ -66,6 +68,12 @@ namespace conViver.Infrastructure.Notifications
             // This is a more complex scenario.
             string mensagem = $"[ADMIN NOTIFICACAO] CONFLITO DE RESERVA: Nova tentativa ({novaTentativa.Inicio}-{novaTentativa.Fim} por Usuário {novaTentativa.UsuarioId}) para Espaço {novaTentativa.EspacoComumId} conflita com Reserva existente ID {reservaConflitante.Id}.";
             Console.WriteLine(mensagem);
+            return Task.CompletedTask;
+        }
+
+        public Task SendAsync(NotificationMessage message, CancellationToken ct = default)
+        {
+            Console.WriteLine($"[QUEUE] Tipo:{message.Tipo} Usuario:{message.UsuarioId} {message.Titulo} - {message.Corpo}");
             return Task.CompletedTask;
         }
     }

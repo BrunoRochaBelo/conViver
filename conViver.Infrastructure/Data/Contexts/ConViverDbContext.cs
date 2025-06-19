@@ -27,6 +27,8 @@ public class ConViverDbContext : DbContext
     public DbSet<VotoRegistrado> VotosRegistrados => Set<VotoRegistrado>();
     public DbSet<Chamado> Chamados => Set<Chamado>();
     public DbSet<AvaliacaoPrestador> AvaliacoesPrestadores { get; set; } = null!; // Adicionado DbSet para AvaliacaoPrestador
+    public DbSet<AvisoLeitura> AvisosLidos => Set<AvisoLeitura>();
+    public DbSet<LogAuditoria> LogsAuditoria => Set<LogAuditoria>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -45,6 +45,19 @@ public class AvisosController : ControllerBase
         return Ok(paged);
     }
 
+    [HttpPost("/api/v1/app/avisos/{id:guid}/ler")]
+    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    public async Task<IActionResult> RegistrarLeitura(Guid id, [FromHeader(Name="X-Device-Id")] string? deviceId)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
+            return Unauthorized();
+
+        string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
+        await _avisos.RegistrarLeituraAsync(id, userId, ip, deviceId);
+        return Ok();
+    }
+
     /// <summary>
     /// Cria um novo aviso para o condomínio.
     /// </summary>

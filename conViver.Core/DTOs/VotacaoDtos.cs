@@ -62,4 +62,6 @@ public class VotoInputDto
 {
     [Required(ErrorMessage = "O ID da opção é obrigatório.")]
     public Guid OpcaoId { get; set; }
+    public Guid UnidadeId { get; set; }
+    public string? DeviceId { get; set; }
 }

@@ -138,7 +138,7 @@ public class VotacoesController : ControllerBase
 
         try
         {
-            var sucesso = await _votacaoService.RegistrarVotoAsync(id, votoInput.OpcaoId, condominioId, userId);
+            var sucesso = await _votacaoService.RegistrarVotoAsync(id, votoInput.OpcaoId, condominioId, userId, votoInput.UnidadeId, HttpContext.Connection.RemoteIpAddress?.ToString(), votoInput.DeviceId);
             if (sucesso)
             {
                 return Ok("Voto registrado com sucesso.");
