@@ -1,8 +1,12 @@
 using conViver.Core.Entities;
 using conViver.Core.Interfaces;
-using conViver.Core.Enums;
 using conViver.Core.DTOs;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace conViver.Application;
 
@@ -59,7 +63,7 @@ public class ReservaService
     public async Task AtualizarStatusAsync(Guid id, string status, CancellationToken ct = default)
     {
         var reserva = await _reservas.GetByIdAsync(id, ct);
-        if (reserva == null) throw new InvalidOperationException("Reserva nao encontrada");
+        if (reserva == null) throw new InvalidOperationException("Reserva não encontrada");
         if (Enum.TryParse<ReservaStatus>(status, true, out var st))
             reserva.Status = st;
         reserva.UpdatedAt = DateTime.UtcNow;
@@ -71,7 +75,9 @@ public class ReservaService
     {
         await AtualizarStatusAsync(id, dto.Status, ct);
         var r = await _reservas.GetByIdAsync(id, ct);
-        return r == null ? null : new ReservaDto
+        if (r == null) return null;
+
+        return new ReservaDto
         {
             Id = r.Id,
             CondominioId = condominioId,
@@ -88,7 +94,9 @@ public class ReservaService
     public async Task<ReservaDto?> GetByIdAsync(Guid id, Guid condominioId, Guid usuarioId, CancellationToken ct = default)
     {
         var r = await _reservas.GetByIdAsync(id, ct);
-        return r == null ? null : new ReservaDto
+        if (r == null) return null;
+
+        return new ReservaDto
         {
             Id = r.Id,
             CondominioId = condominioId,
@@ -106,13 +114,13 @@ public class ReservaService
     {
         var reserva = await _reservas.GetByIdAsync(id, ct);
         if (reserva == null) return;
+
         await _reservas.DeleteAsync(reserva, ct);
         await _reservas.SaveChangesAsync(ct);
     }
 
     public Task<bool> CancelarAsync(Guid id, Guid condominioId, Guid usuarioId, bool sindico, CancellationToken ct = default)
     {
-        return ExcluirAsync(id, ct).ContinueWith(t => true);
+        return ExcluirAsync(id, ct).ContinueWith(_ => true);
     }
 }
-

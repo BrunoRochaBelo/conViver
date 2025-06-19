@@ -280,7 +280,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupTabs();
     await carregarVisitantesAtuais();
     adicionarListenersSaida();
-    // carregarEncomendas(); // Commented out for now
+    await carregarEncomendas();
+    setupEncomendas();
 
     // Note: Filter listeners for "Visitantes Atuais" are still placeholders
     const btnFilterAtuais = document.getElementById('btnFiltrarVisitantesAtuais');
@@ -300,33 +301,79 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Original carregarEncomendas (can be moved to an 'encomendas.js' or kept if tabs eventually integrate it)
 async function carregarEncomendas() {
-    showGlobalFeedback('Carregando encomendas...', 'info', 3000);
     const tbody = document.querySelector('.js-encomendas');
-    if (!tbody) {
-        console.error('Tabela de encomendas .js-encomendas não encontrada.');
-        showGlobalFeedback('Erro interno: tabela de encomendas não encontrada.', 'error');
+    const loadingMsg = document.getElementById('encomendasLoadingMsg');
+    const noDataMsg = document.getElementById('encomendasNoDataMsg');
+    if (!tbody || !loadingMsg || !noDataMsg) {
+        console.error('Elementos de encomendas não encontrados.');
         return;
     }
-    tbody.innerHTML = '<tr><td colspan="3">Carregando...</td></tr>'; // Local loading indicator
+    tbody.innerHTML = '';
+    loadingMsg.style.display = 'block';
+    noDataMsg.style.display = 'none';
 
     try {
         const encomendas = await apiClient.get('/syndic/encomendas?status=recebida');
 
-        tbody.innerHTML = ''; // Clear loading indicator
+        loadingMsg.style.display = 'none';
+        tbody.innerHTML = '';
         if (encomendas && encomendas.length > 0) {
             encomendas.forEach(e => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${e.descricao || ''}</td><td>${e.unidadeId.slice(0,4)}</td><td>${e.status}</td>`;
+                const status = e.status || (e.retiradoEm ? 'Retirada' : 'Aguardando');
+                const btn = e.retiradoEm ? '' : `<button class="cv-button cv-button--small btn-retirar" data-id="${e.id}">Confirmar Retirada</button>`;
+                tr.innerHTML = `<td>${e.descricao || ''}</td><td>${e.unidadeId.slice(0,8)}...</td><td>${status}</td><td>${btn}</td>`;
                 tbody.appendChild(tr);
             });
-            showGlobalFeedback('Encomendas carregadas!', 'success', 3000);
         } else {
-            tbody.innerHTML = '<tr><td colspan="3">Nenhuma encomenda com status "recebida" encontrada.</td></tr>';
-            showGlobalFeedback('Nenhuma encomenda pendente encontrada.', 'info', 3000);
+            noDataMsg.style.display = 'block';
         }
     } catch(err) {
         console.error('Erro ao listar encomendas', err);
-        tbody.innerHTML = '<tr><td colspan="3" class="error-message">Falha ao carregar encomendas.</td></tr>';
-        showGlobalFeedback('Erro ao carregar encomendas: ' + (err.message || 'Erro desconhecido'), 'error');
+        tbody.innerHTML = '<tr><td colspan="4" class="error-message">Falha ao carregar encomendas.</td></tr>';
+    }
+}
+
+function setupEncomendas() {
+    const form = document.getElementById('formNovaEncomenda');
+    const msg = document.getElementById('novaEncomendaMsg');
+    const tbody = document.querySelector('.js-encomendas');
+    if (form && msg) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                unidadeId: form.unidadeId.value,
+                descricao: form.descricao.value
+            };
+            msg.style.display = 'block';
+            msg.className = 'feedback-message info';
+            msg.textContent = 'Registrando...';
+            try {
+                await apiClient.post('/syndic/encomendas', data);
+                msg.className = 'feedback-message success';
+                msg.textContent = 'Encomenda registrada!';
+                form.reset();
+                await carregarEncomendas();
+            } catch(err) {
+                msg.className = 'feedback-message error';
+                msg.textContent = 'Erro ao registrar.';
+            }
+        });
+    }
+
+    if (tbody) {
+        tbody.addEventListener('click', async (ev) => {
+            if (ev.target.classList.contains('btn-retirar')) {
+                const id = ev.target.dataset.id;
+                if (confirm('Confirmar retirada da encomenda?')) {
+                    try {
+                        await apiClient.post(`/syndic/encomendas/${id}/retirar`, {});
+                        await carregarEncomendas();
+                    } catch(err) {
+                        showGlobalFeedback('Erro ao registrar retirada', 'error');
+                    }
+                }
+            }
+        });
     }
 }

@@ -1,6 +1,6 @@
 import apiClient from './apiClient.js';
 import { requireAuth } from './auth.js';
-import { showGlobalFeedback } from './main.js'; // Added import
+import { showGlobalFeedback } from './main.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     requireAuth();
@@ -22,14 +22,14 @@ async function carregarAgenda() {
         showGlobalFeedback('Erro interno: container do calendário não encontrado.', 'error');
         return;
     }
-    container.innerHTML = '<p>Carregando agenda...</p>'; // Local loading indicator
+    container.innerHTML = '<p>Carregando agenda...</p>'; // Indicador local
 
     try {
         const now = new Date();
         const mes = now.toISOString().slice(0,7);
         const reservas = await apiClient.get(`/app/reservas/agenda?mesAno=${mes}`);
 
-        container.innerHTML = ''; // Clear loading indicator
+        container.innerHTML = ''; // Limpa indicador
         if (reservas && reservas.length > 0) {
             reservas.forEach(r => {
                 const div = document.createElement('div');
@@ -61,9 +61,9 @@ async function criarReserva(evt) {
         return;
     }
     const data = dataInput.value;
-    const inicio = `${data}T10:00:00`; // Exemplo, idealmente pegar do form
-    const fim = `${data}T12:00:00`;   // Exemplo, idealmente pegar do form
-    const area = "Área Comum Teste";  // Exemplo, idealmente pegar do form
+    const inicio = `${data}T10:00:00`; // Idealmente vir do form
+    const fim = `${data}T12:00:00`;    // Idealmente vir do form
+    const area = "Área Comum Teste";   // Idealmente vir do form
 
     showGlobalFeedback('Criando reserva...', 'info', 2000);
     if (submitButton) submitButton.disabled = true;
@@ -75,7 +75,7 @@ async function criarReserva(evt) {
 
         showGlobalFeedback('Reserva criada com sucesso!', 'success', 5000);
         form.reset();
-        await carregarAgenda(); // Recarrega a agenda com a nova reserva
+        await carregarAgenda(); // Atualiza a agenda com a nova reserva
     } catch(err) {
         console.error('Erro ao criar reserva', err);
         let errorMessage = 'Erro ao criar reserva.';
