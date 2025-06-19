@@ -14,6 +14,7 @@ public class ConViverDbContext : DbContext
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Boleto> Boletos => Set<Boleto>();
     public DbSet<Reserva> Reservas => Set<Reserva>();
+    public DbSet<EspacoComum> EspacosComuns { get; set; }
     public DbSet<Aviso> Avisos => Set<Aviso>();
     public DbSet<Visitante> Visitantes => Set<Visitante>();
     public DbSet<Encomenda> Encomendas => Set<Encomenda>();

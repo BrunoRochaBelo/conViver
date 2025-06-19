@@ -2,38 +2,195 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>conViver - Reservas</title>
+    <title>conViver - Reservas e Agenda</title>
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/styles.css">
+    <!-- Placeholder for FullCalendar CSS if used -->
+    <!-- <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css' rel='stylesheet' /> -->
+    <style>
+        /* Basic styling for layout - can be moved to CSS files */
+        .view-controls { margin-bottom: 15px; }
+        .view-controls button { margin-right: 5px; }
+        .filters { margin-bottom: 15px; }
+        .filters label { margin-right: 10px; }
+        #calendar-container { min-height: 400px; border: 1px solid #ccc; padding: 10px; margin-bottom:20px; }
+        #reserva-list-view { display: none; /* Initially hidden */ }
+        .fab-container { position: fixed; bottom: 20px; right: 20px; }
+        .fab { width: 56px; height: 56px; background-color: #007bff; color: white; border-radius: 50%; text-align: center; line-height: 56px; font-size: 24px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+
+        /* Modal Styles (basic) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 8px; }
+        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    </style>
 </head>
 <body>
     <header class="cv-header">
         <h1>conViver</h1>
-    </header>
+        <div class="user-info">
+            <span id="username-display">Usuário</span> | <button id="logout-button">Sair</button>
+        </div>
+    </nav>
     <nav class="cv-nav">
         <a href="../index.html" class="cv-nav__link">Dashboard</a>
         <a href="financeiro.html" class="cv-nav__link">Financeiro</a>
-        <a href="reservas.html" class="cv-nav__link">Reservas</a>
+        <a href="reservas.html" class="cv-nav__link активный">Reservas</a>
         <a href="portaria.html" class="cv-nav__link">Portaria</a>
         <a href="comunicacao.html" class="cv-nav__link">Comunicação</a>
+        <!-- Admin-only link -->
+        <a href="espacos-comuns-admin.html" class="cv-nav__link" id="admin-nav-espacos" style="display:none;">Gerenciar Espaços</a>
     </nav>
+
     <main class="cv-container">
-        <section class="reservas__calendar js-calendario">
-            <h2 class="reservas__title">Agenda das Áreas Comuns</h2>
-            <div class="cv-card reservas__day">Dia 1</div>
-            <div class="cv-card reservas__day">Dia 2</div>
+        <section class="reservas__agenda">
+            <h2 class="reservas__title">Agenda de Áreas Comuns</h2>
+            <div class="view-controls">
+                <button id="btn-month-view">Visão Mensal</button>
+                <button id="btn-list-view">Visão em Lista</button>
+            </div>
+            <div class="filters">
+                <label for="filtro-espaco-agenda">Filtrar por Espaço:</label>
+                <select id="filtro-espaco-agenda" name="filtro-espaco-agenda">
+                    <option value="">Todos os Espaços</option>
+                    <!-- Options will be populated by JS -->
+                </select>
+            </div>
+            <div id="calendar-container">
+                <!-- Calendar will be rendered here by JS (e.g., FullCalendar) -->
+                <p>Carregando calendário...</p>
+            </div>
+            <div id="reserva-list-view">
+                <!-- List view items will be populated by JS -->
+                <p>Carregando lista de reservas...</p>
+            </div>
         </section>
-        <section class="reservas__solicitar">
-            <h2 class="reservas__title">Solicitar Reserva</h2>
-            <form class="reservas__form js-reserva-form">
-                <label class="reservas__label">
-                    Data:
-                    <input type="date" class="reservas__input js-reserva-data" />
-                </label>
-                <button class="reservas__button" type="submit">Enviar</button>
-            </form>
+
+        <hr>
+
+        <section class="reservas__minhas">
+            <h2 class="reservas__title">Minhas Reservas</h2>
+            <div class="filters">
+                <label for="filtro-espaco-minhas">Espaço:</label>
+                <select id="filtro-espaco-minhas"><option value="">Todos</option></select>
+                <label for="filtro-status-minhas">Status:</label>
+                <select id="filtro-status-minhas">
+                    <option value="">Todos</option>
+                    <option value="Pendente">Pendente</option>
+                    <option value="Aprovada">Aprovada</option>
+                    <option value="Recusada">Recusada</option>
+                    <option value="Cancelada">Cancelada</option>
+                </select>
+                <!-- Add date filters if needed -->
+            </div>
+            <div id="minhas-reservas-list" class="cv-grid">
+                <!-- My reservations will be populated here by JS -->
+                <p>Carregando suas reservas...</p>
+            </div>
         </section>
+
+        <!-- Admin Section - visibility controlled by JS based on user role -->
+        <section id="admin-reservas-section" style="display:none;">
+            <hr>
+            <h2 class="reservas__title">Administração de Reservas (Todas)</h2>
+            <div class="filters">
+                <label for="filtro-espaco-admin">Espaço:</label>
+                <select id="filtro-espaco-admin"><option value="">Todos</option></select>
+                <label for="filtro-unidade-admin">Unidade:</label>
+                <input type="text" id="filtro-unidade-admin-text" placeholder="ID/Número da Unidade">
+                <button id="btn-filtro-unidade-admin-apply">Aplicar Filtro Unidade</button>
+                <label for="filtro-status-admin">Status:</label>
+                <select id="filtro-status-admin">
+                    <option value="">Todos</option>
+                    <option value="Pendente">Pendente</option>
+                    <option value="Aprovada">Aprovada</option>
+                    <option value="Recusada">Recusada</option>
+                    <option value="Cancelada">Cancelada</option>
+                    <option value="Bloqueada">Bloqueada</option>
+                </select>
+                 <!-- Add date filters if needed -->
+            </div>
+            <div id="todas-reservas-list" class="cv-grid">
+                <!-- All reservations for admin will be populated here by JS -->
+                <p>Carregando todas as reservas...</p>
+            </div>
+        </section>
+
     </main>
+
+    <!-- Floating Action Button to open reservation modal -->
+    <div class="fab-container">
+        <div id="fab-nova-reserva" class="fab">+</div>
+    </div>
+
+    <!-- Modal for Creating/Editing Reservation -->
+    <div id="reserva-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-reserva-modal">&times;</span>
+            <h3 id="reserva-modal-title">Solicitar Nova Reserva</h3>
+            <form id="form-nova-reserva" class="cv-form">
+                <input type="hidden" id="reserva-id-edit" value=""> <!-- For editing -->
+
+                <label for="reserva-espaco">Espaço Comum:</label>
+                <select id="reserva-espaco" name="espacoComumId" required>
+                    <option value="">Selecione o Espaço</option>
+                    <!-- Options populated by JS -->
+                </select>
+                <div id="espaco-info" style="margin-bottom:10px; font-size:0.9em;">
+                    <!-- Info about selected space (rules, capacity, fee) populated by JS -->
+                </div>
+
+                <label for="reserva-inicio">Início:</label>
+                <input type="datetime-local" id="reserva-inicio" name="inicio" required>
+
+                <label for="reserva-fim">Fim:</label>
+                <input type="datetime-local" id="reserva-fim" name="fim" required>
+
+                <label for="reserva-observacoes">Observações (opcional):</label>
+                <textarea id="reserva-observacoes" name="observacoes" rows="3"></textarea>
+
+                <div id="termo-de-uso-container" style="margin-top:10px; margin-bottom:10px; border:1px solid #eee; padding:8px;">
+                    <h4>Termo de Uso do Espaço</h4>
+                    <p id="termo-de-uso-texto">Carregando termo de uso...</p>
+                    <label>
+                        <input type="checkbox" id="reserva-termo-aceito" name="termoDeUsoAceito" required> Eu li e aceito o termo de uso.
+                    </label>
+                </div>
+
+                <div id="reserva-taxa-info" style="margin-top:10px; font-weight:bold;">
+                    <!-- Taxa de reserva info populated by JS -->
+                </div>
+
+                <button type="submit" class="cv-button">Enviar Solicitação</button>
+                <div id="reserva-modal-feedback" class="feedback-message" style="margin-top:10px;"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Admin Actions (Approve/Reject/Cancel with Justification) -->
+    <div id="admin-action-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-admin-action-modal">&times;</span>
+            <h3 id="admin-action-modal-title">Ação Administrativa</h3>
+            <form id="form-admin-action" class="cv-form">
+                <input type="hidden" id="admin-action-reserva-id">
+                <input type="hidden" id="admin-action-type"> <!-- 'approve', 'reject', 'admin_cancel' -->
+
+                <p id="admin-action-prompt">Você confirma esta ação?</p>
+
+                <label for="admin-action-justificativa">Justificativa (opcional para aprovação, obrigatória para rejeição/cancelamento pelo admin):</label>
+                <textarea id="admin-action-justificativa" name="justificativaStatus" rows="3"></textarea>
+
+                <button type="submit" class="cv-button">Confirmar</button>
+                <div id="admin-action-modal-feedback" class="feedback-message" style="margin-top:10px;"></div>
+            </form>
+        </div>
+    </div>
+
+
+    <script type="module" src="../js/auth.js"></script>
     <script type="module" src="../js/reservas.js"></script>
+    <!-- Placeholder for FullCalendar JS if used -->
+    <!-- <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js'></script> -->
+    <!-- <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/locales/pt-br.js'></script> -->
 </body>
 </html>
