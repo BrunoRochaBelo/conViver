@@ -53,7 +53,8 @@ public static class DataSeeder
                 Email = "admin@conviver.local",
                 SenhaHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
                 Perfil = PerfilUsuario.Administrador,
-                UnidadeId = unidade.Id
+                UnidadeId = unidade.Id,
+                CondominioId = condominio.Id
             };
             db.Usuarios.Add(adminUser);
 
@@ -65,7 +66,8 @@ public static class DataSeeder
                 Email = "teste@conviver.local",
                 SenhaHash = BCrypt.Net.BCrypt.HashPassword("123456"),
                 Perfil = PerfilUsuario.Morador,
-                UnidadeId = unidade.Id
+                UnidadeId = unidade.Id,
+                CondominioId = condominio.Id
             };
             db.Usuarios.Add(testUser);
 
