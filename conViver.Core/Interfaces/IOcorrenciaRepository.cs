@@ -8,8 +8,8 @@ namespace conViver.Core.Interfaces
 {
     public interface IOcorrenciaRepository // Assuming no generic IRepository<T> for now
     {
-        Task<Ocorrencia> GetByIdAsync(Guid id);
-        Task<Ocorrencia> GetByIdWithDetailsAsync(Guid id); // For eager loading
+        Task<Ocorrencia?> GetByIdAsync(Guid id);
+        Task<Ocorrencia?> GetByIdWithDetailsAsync(Guid id); // For eager loading
         Task<IEnumerable<Ocorrencia>> GetAllAsync(); // Basic GET all
 
         // A more specific method for filtered and paginated results,

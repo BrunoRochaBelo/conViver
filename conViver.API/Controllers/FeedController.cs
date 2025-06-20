@@ -58,7 +58,7 @@ namespace conViver.API.Controllers
                 // logger.LogWarning(ex, "Argument exception while fetching feed items.");
                 return BadRequest(new { message = ex.Message });
             }
-            catch (Exception ex) // Catch-all for unexpected errors
+            catch (Exception) // Catch-all for unexpected errors
             {
                 // Log the exception (e.g., using ILogger)
                 // logger.LogError(ex, "Unexpected error while fetching feed items.");

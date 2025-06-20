@@ -15,6 +15,9 @@ public class Usuario
     public string? PasswordResetToken { get; set; }
     public DateTime? PasswordResetTokenExpiry { get; set; }
 
+    // Ligação direta com o condomínio do usuário para facilitar consultas
+    public Guid CondominioId { get; set; }
+
     // Relacionamento com Unidade
     public Guid UnidadeId { get; set; } // Foreign Key
     public virtual Unidade? Unidade { get; set; } // Navigation property

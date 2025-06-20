@@ -19,12 +19,12 @@ namespace conViver.Infrastructure.Data.Repositories
             _context = context;
         }
 
-        public async Task<Ocorrencia> GetByIdAsync(Guid id)
+        public async Task<Ocorrencia?> GetByIdAsync(Guid id)
         {
             return await _context.Ocorrencias.FindAsync(id);
         }
 
-        public async Task<Ocorrencia> GetByIdWithDetailsAsync(Guid id)
+        public async Task<Ocorrencia?> GetByIdWithDetailsAsync(Guid id)
         {
             return await _context.Ocorrencias
                 .Include(o => o.Usuario)
@@ -111,16 +111,18 @@ namespace conViver.Infrastructure.Data.Repositories
             // SaveChangesAsync will be called by a UnitOfWork or the service layer
         }
 
-        public async Task UpdateAsync(Ocorrencia ocorrencia)
+        public Task UpdateAsync(Ocorrencia ocorrencia)
         {
             _context.Entry(ocorrencia).State = EntityState.Modified;
             // SaveChangesAsync will be called by a UnitOfWork or the service layer
+            return Task.CompletedTask;
         }
 
-        public async Task DeleteAsync(Ocorrencia ocorrencia)
+        public Task DeleteAsync(Ocorrencia ocorrencia)
         {
             _context.Ocorrencias.Remove(ocorrencia);
             // SaveChangesAsync will be called by a UnitOfWork or the service layer
+            return Task.CompletedTask;
         }
 
         public async Task<IEnumerable<OcorrenciaStatusHistorico>> GetStatusHistoricoByOcorrenciaIdAsync(Guid ocorrenciaId)
