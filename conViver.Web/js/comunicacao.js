@@ -407,8 +407,9 @@ function renderFeedItem(item) {
     card.dataset.itemId = item.id;
     card.dataset.itemType = item.itemType;
 
+    const pinLabel = item.prioridadeOrdenacao === 0 ? '<span class="feed-item__pin">Fixo</span>' : '';
     let contentHtml = `
-        <h3 class="feed-item__title">${item.titulo}</h3>
+        <h3 class="feed-item__title">${pinLabel} ${item.titulo}</h3>
         <p class="feed-item__summary">${item.resumo}</p>
         <div class="feed-item__meta">
             <span class="feed-item__type">Tipo: ${item.itemType}</span>
