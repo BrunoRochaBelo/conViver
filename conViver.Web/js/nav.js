@@ -3,17 +3,17 @@ export function buildNavigation() {
     if (!navContainer) return;
 
     const isInPagesDir = window.location.pathname.includes('/pages/');
-    const rootPrefix = isInPagesDir ? '..' : '.';
-    const pagesPrefix = isInPagesDir ? '' : 'pages/';
+    const hrefPrefix = isInPagesDir ? '' : 'pages/';
 
     const currentPage = window.location.pathname.split('/').pop().replace('.html', '') || 'index';
 
     const items = [
-        { key: 'dashboard', label: 'Dashboard', href: `${pagesPrefix}dashboard.html` },
-        { key: 'financeiro', label: 'Financeiro', href: `${pagesPrefix}financeiro.html` },
-        { key: 'reservas', label: 'Reservas', href: `${pagesPrefix}reservas.html` },
-        { key: 'portaria', label: 'Portaria', href: `${pagesPrefix}portaria.html` },
-        { key: 'comunicacao', label: 'Comunicação', href: `${pagesPrefix}comunicacao.html` },
+        { key: 'dashboard', label: 'Dashboard', href: 'dashboard.html' },
+        { key: 'financeiro', label: 'Financeiro', href: 'financeiro.html' },
+        { key: 'reservas', label: 'Reservas', href: 'reservas.html' },
+        { key: 'portaria', label: 'Portaria', href: 'portaria.html' },
+        { key: 'comunicacao', label: 'Comunicação', href: 'comunicacao.html' },
+        { key: 'ocorrencias', label: 'Ocorrências', href: 'ocorrencias.html' },
     ];
 
     const container = document.createElement('div');
@@ -25,7 +25,7 @@ export function buildNavigation() {
         const li = document.createElement('li');
         li.className = 'cv-nav__item';
         const a = document.createElement('a');
-        a.href = `${rootPrefix}/${item.href}`;
+        a.href = `${hrefPrefix}${item.href}`;
         a.textContent = item.label;
         a.className = 'cv-nav__link';
         if (currentPage === item.key || (currentPage === 'index' && item.key === 'dashboard')) {
