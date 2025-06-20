@@ -38,6 +38,17 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
+        // Adicionar validações manuais para CondominioId e UnidadeId
+        if (request.CondominioId == null || request.CondominioId == Guid.Empty)
+        {
+            return BadRequest(new { error = "MISSING_CONDOMINIO_ID", message = "O CondominioId é obrigatório." });
+        }
+
+        if (request.UnidadeId == null || request.UnidadeId == Guid.Empty)
+        {
+            return BadRequest(new { error = "MISSING_UNIDADE_ID", message = "O UnidadeId é obrigatório." });
+        }
+
         var existing = await _usuarios.GetByEmailAsync(request.Email);
         if (existing != null)
         {
@@ -50,9 +61,9 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
             Nome = request.Nome,
             Email = request.Email,
             SenhaHash = request.Senha, // O serviço _usuarios.AddAsync deve cuidar do hashing da senha
-            Perfil = PerfilUsuario.Morador // Perfil padrão, pode ser ajustado conforme regras de negócio
-            // CondominioId e UnidadeId podem ser definidos aqui se fornecidos no SignupRequestDto
-            // e se o usuário já é vinculado a um condomínio no momento do signup.
+            Perfil = PerfilUsuario.Morador, // Perfil padrão, pode ser ajustado conforme regras de negócio
+            CondominioId = request.CondominioId, // Adicionado
+            UnidadeId = request.UnidadeId // Adicionado
         };
         await _usuarios.AddAsync(usuario); // Assumindo que AddAsync faz o hash da senha
 
