@@ -18,20 +18,7 @@
             </div>
         </div>
     </header>
-    <nav class="cv-nav">
-        <div class="cv-container">
-            <ul class="cv-nav__list">
-                <li class="cv-nav__item"><a href="/index.html" class="cv-nav__link cv-nav__link--active">Início</a></li> <!-- Assuming index.html is root -->
-                <li class="cv-nav__item"><a href="/pages/avisos.html" class="cv-nav__link">Avisos</a></li>
-                <li class="cv-nav__item"><a href="/pages/reservas.html" class="cv-nav__link">Reservas</a></li>
-                <li class="cv-nav__item"><a href="/pages/ocorrencias.html" class="cv-nav__link">Ocorrências</a></li>
-                <li class="cv-nav__item"><a href="/pages/documentos.html" class="cv-nav__link">Documentos</a></li>
-                <li class="cv-nav__item"><a href="/pages/financeiro.html" class="cv-nav__link">Financeiro</a></li>
-                <li class="cv-nav__item"><a href="/pages/perfil.html" class="cv-nav__link">Meu Perfil</a></li>
-                <!-- Removed Portaria and Comunicação as they were not in ocorrencias.html nav, adjust if needed -->
-            </ul>
-        </div>
-    </nav>
+    <nav id="mainNav"></nav>
     <main class="db-main cv-container"> <!-- Added cv-container for consistency with other pages -->
         <section class="db-metrics-grid">
             <div class="cv-card db-metric-card"> <!-- Changed from cv-card dashboard__metric -->
@@ -51,6 +38,7 @@
         </section>
     </main>
     <script src="js/config.js"></script>
+    <script type="module" src="js/nav.js"></script>
     <script src="js/apiClient.js" type="module"></script> <!-- Added apiClient -->
     <script src="js/auth.js" type="module"></script> <!-- Added auth -->
     <script type="module" src="js/dashboard.js"></script>
