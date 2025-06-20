@@ -7,34 +7,53 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <div id="global-loading-overlay" class="loading-overlay"><div class="spinner"></div></div>
+    <div id="global-message-banner" class="message-banner"></div>
     <header class="cv-header">
-        <h1>conViver</h1>
+        <div class="cv-container cv-header__container">
+            <img src="./assets/logo_conviver.png" alt="conViver Logo" class="cv-header__logo"> <!-- Adjusted path for assets -->
+            <div class="cv-header__user-info">
+                <span id="headerUserName">Usuário</span>
+                <button id="btnLogout" class="cv-button cv-button--secondary cv-button--small">Sair</button>
+            </div>
+        </div>
     </header>
     <nav class="cv-nav">
-        <a href="index.html" class="cv-nav__link">Dashboard</a>
-        <a href="pages/financeiro.html" class="cv-nav__link">Financeiro</a>
-        <a href="pages/reservas.html" class="cv-nav__link">Reservas</a>
-        <a href="pages/portaria.html" class="cv-nav__link">Portaria</a>
-        <a href="pages/comunicacao.html" class="cv-nav__link">Comunicação</a>
+        <div class="cv-container">
+            <ul class="cv-nav__list">
+                <li class="cv-nav__item"><a href="/index.html" class="cv-nav__link cv-nav__link--active">Início</a></li> <!-- Assuming index.html is root -->
+                <li class="cv-nav__item"><a href="/pages/avisos.html" class="cv-nav__link">Avisos</a></li>
+                <li class="cv-nav__item"><a href="/pages/reservas.html" class="cv-nav__link">Reservas</a></li>
+                <li class="cv-nav__item"><a href="/pages/ocorrencias.html" class="cv-nav__link">Ocorrências</a></li>
+                <li class="cv-nav__item"><a href="/pages/documentos.html" class="cv-nav__link">Documentos</a></li>
+                <li class="cv-nav__item"><a href="/pages/financeiro.html" class="cv-nav__link">Financeiro</a></li>
+                <li class="cv-nav__item"><a href="/pages/perfil.html" class="cv-nav__link">Meu Perfil</a></li>
+                <!-- Removed Portaria and Comunicação as they were not in ocorrencias.html nav, adjust if needed -->
+            </ul>
+        </div>
     </nav>
-    <main class="cv-container">
-        <section class="dashboard__metrics">
-            <div class="cv-card dashboard__metric">
-                <h2 class="dashboard__metric-title">Inadimplência</h2>
-                <p class="dashboard__metric-value js-inadimplencia">--%</p>
+    <main class="db-main cv-container"> <!-- Added cv-container for consistency with other pages -->
+        <section class="db-metrics-grid">
+            <div class="cv-card db-metric-card"> <!-- Changed from cv-card dashboard__metric -->
+                <h2 class="db-metric-card__title">Inadimplência</h2> <!-- Changed from dashboard__metric-title -->
+                <p class="db-metric-card__value js-inadimplencia">--%</p> <!-- Changed from dashboard__metric-value -->
             </div>
-            <div class="cv-card dashboard__metric">
-                <h2 class="dashboard__metric-title">Saldo em Conta</h2>
-                <p class="dashboard__metric-value js-saldo">R$ --</p>
+            <div class="cv-card db-metric-card"> <!-- Changed from cv-card dashboard__metric -->
+                <h2 class="db-metric-card__title">Saldo em Conta</h2> <!-- Changed from dashboard__metric-title -->
+                <p class="db-metric-card__value js-saldo">R$ --</p> <!-- Changed from dashboard__metric-value -->
             </div>
-            <div class="cv-card dashboard__metric">
-                <h2 class="dashboard__metric-title">Próximas Despesas</h2>
-                <ul class="dashboard__metric-list js-proximas-despesas">
+            <div class="cv-card db-metric-card"> <!-- Changed from cv-card dashboard__metric -->
+                <h2 class="db-metric-card__title">Próximas Despesas</h2> <!-- Changed from dashboard__metric-title -->
+                <ul class="db-metric-card__list js-proximas-despesas"> <!-- Changed from dashboard__metric-list -->
                     <li>...</li>
                 </ul>
             </div>
         </section>
     </main>
+    <script src="js/config.js"></script>
+    <script src="js/apiClient.js" type="module"></script> <!-- Added apiClient -->
+    <script src="js/auth.js" type="module"></script> <!-- Added auth -->
     <script type="module" src="js/dashboard.js"></script>
+    <script src="js/main.js" type="module"></script> <!-- Added main.js, assuming it handles header/nav logic -->
 </body>
 </html>
