@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using conViver.Core.Entities;
+using conViver.Core.Enums; // Added for Ocorrencia Enums
 
 namespace conViver.Infrastructure.Data.Contexts;
 
@@ -26,6 +27,12 @@ public class ConViverDbContext : DbContext
     public DbSet<VotoRegistrado> VotosRegistrados => Set<VotoRegistrado>();
     public DbSet<Chamado> Chamados => Set<Chamado>();
     public DbSet<AvaliacaoPrestador> AvaliacoesPrestadores { get; set; } = null!; // Adicionado DbSet para AvaliacaoPrestador
+
+    // Ocorrências
+    public DbSet<Ocorrencia> Ocorrencias { get; set; }
+    public DbSet<OcorrenciaAnexo> OcorrenciaAnexos { get; set; }
+    public DbSet<OcorrenciaComentario> OcorrenciaComentarios { get; set; }
+    public DbSet<OcorrenciaStatusHistorico> OcorrenciaStatusHistoricos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -86,5 +93,98 @@ public class ConViverDbContext : DbContext
         modelBuilder.Entity<AvaliacaoPrestador>()
             .HasIndex(a => new { a.PrestadorServicoId, a.UsuarioId, a.OrdemServicoId })
             .IsUnique(false);
+
+        // Ocorrencia Configuration
+        modelBuilder.Entity<Ocorrencia>(entity =>
+        {
+            entity.HasKey(o => o.Id);
+            entity.Property(o => o.Titulo).IsRequired();
+            entity.Property(o => o.Descricao).IsRequired();
+            entity.Property(o => o.Categoria).IsRequired().HasConversion<string>();
+            entity.Property(o => o.Status).IsRequired().HasConversion<string>();
+            entity.Property(o => o.Prioridade).IsRequired().HasConversion<string>();
+            entity.Property(o => o.DataAbertura).IsRequired();
+            entity.Property(o => o.DataAtualizacao).IsRequired();
+            entity.Property(o => o.UsuarioId).IsRequired();
+            entity.Property(o => o.CondominioId).IsRequired();
+            // UnidadeId is nullable, so no IsRequired()
+
+            entity.HasOne(o => o.Usuario)
+                .WithMany() // Assuming Usuario does not have a direct ICollection<Ocorrencia> yet. If it does, specify it here.
+                .HasForeignKey(o => o.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(o => o.Unidade)
+                .WithMany() // Assuming Unidade does not have a direct ICollection<Ocorrencia> yet.
+                .HasForeignKey(o => o.UnidadeId)
+                .OnDelete(DeleteBehavior.Restrict); // Or SetNull if appropriate for nullable FK
+
+            entity.HasOne(o => o.Condominio)
+                .WithMany() // Assuming Condominio does not have a direct ICollection<Ocorrencia> yet.
+                .HasForeignKey(o => o.CondominioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(o => o.Anexos)
+                .WithOne(a => a.Ocorrencia)
+                .HasForeignKey(a => a.OcorrenciaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(o => o.Comentarios)
+                .WithOne(c => c.Ocorrencia)
+                .HasForeignKey(c => c.OcorrenciaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(o => o.HistoricoStatus)
+                .WithOne(h => h.Ocorrencia)
+                .HasForeignKey(h => h.OcorrenciaId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // OcorrenciaAnexo Configuration
+        modelBuilder.Entity<OcorrenciaAnexo>(entity =>
+        {
+            entity.HasKey(oa => oa.Id);
+            entity.Property(oa => oa.OcorrenciaId).IsRequired();
+            entity.Property(oa => oa.Url).IsRequired();
+            entity.Property(oa => oa.NomeArquivo).IsRequired();
+            entity.Property(oa => oa.Tipo).IsRequired();
+            entity.Property(oa => oa.Tamanho).IsRequired();
+
+            // Relationship already defined in Ocorrencia entity configuration
+        });
+
+        // OcorrenciaComentario Configuration
+        modelBuilder.Entity<OcorrenciaComentario>(entity =>
+        {
+            entity.HasKey(oc => oc.Id);
+            entity.Property(oc => oc.OcorrenciaId).IsRequired();
+            entity.Property(oc => oc.UsuarioId).IsRequired();
+            entity.Property(oc => oc.Texto).IsRequired();
+            entity.Property(oc => oc.Data).IsRequired();
+
+            entity.HasOne(oc => oc.Usuario)
+                .WithMany() // Assuming Usuario does not have ICollection<OcorrenciaComentario>
+                .HasForeignKey(oc => oc.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent comment deletion from causing user deletion issues
+
+            // Relationship with Ocorrencia already defined in Ocorrencia entity configuration
+        });
+
+        // OcorrenciaStatusHistorico Configuration
+        modelBuilder.Entity<OcorrenciaStatusHistorico>(entity =>
+        {
+            entity.HasKey(osh => osh.Id);
+            entity.Property(osh => osh.OcorrenciaId).IsRequired();
+            entity.Property(osh => osh.Status).IsRequired().HasConversion<string>();
+            entity.Property(osh => osh.AlteradoPorId).IsRequired();
+            entity.Property(osh => osh.Data).IsRequired();
+
+            entity.HasOne(osh => osh.AlteradoPor) // Navigation property to Usuario
+                .WithMany() // Assuming Usuario does not have ICollection<OcorrenciaStatusHistorico>
+                .HasForeignKey(osh => osh.AlteradoPorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Relationship with Ocorrencia already defined in Ocorrencia entity configuration
+        });
     }
 }
