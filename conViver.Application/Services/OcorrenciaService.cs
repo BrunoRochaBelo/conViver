@@ -133,6 +133,29 @@ namespace conViver.Application.Services
             return MapToDetailsDto(ocorrencia);
         }
 
+        public async Task<IEnumerable<OcorrenciaListItemDto>> ListarOcorrenciasPorUsuarioAsync(
+            Guid condominioId,
+            Guid usuarioId,
+            OcorrenciaStatus? status,
+            OcorrenciaCategoria? categoria)
+        {
+            var queryParams = new OcorrenciaQueryParametersDto
+            {
+                Status = status,
+                Categoria = categoria,
+                Minha = true,
+                Pagina = 1,
+                TamanhoPagina = int.MaxValue
+            };
+
+            var paged = await _ocorrenciaRepository.GetOcorrenciasFilteredAndPaginatedAsync(queryParams, usuarioId, true);
+
+            return paged.Items
+                .Where(o => o.CondominioId == condominioId)
+                .Select(MapToListItemDto)
+                .ToList();
+        }
+
         public async Task<OcorrenciaComentarioDto> AddComentarioAsync(
             Guid ocorrenciaId,
             OcorrenciaComentarioInputDto dto,

@@ -9,6 +9,7 @@ namespace conViver.Core.Interfaces
     {
         Task<OcorrenciaDetailsDto> CreateOcorrenciaAsync(OcorrenciaInputDto inputDto, Guid userId, IEnumerable<AnexoInput> anexos);
         Task<PagedResultDto<OcorrenciaListItemDto>> GetOcorrenciasAsync(OcorrenciaQueryParametersDto queryParams, Guid userId, bool isAdminOrSindico);
+        Task<IEnumerable<OcorrenciaListItemDto>> ListarOcorrenciasPorUsuarioAsync(Guid condominioId, Guid usuarioId, OcorrenciaStatus? status, OcorrenciaCategoria? categoria);
         Task<OcorrenciaDetailsDto> GetOcorrenciaByIdAsync(Guid id, Guid userId);
         Task<OcorrenciaComentarioDto> AddComentarioAsync(Guid ocorrenciaId, OcorrenciaComentarioInputDto comentarioDto, Guid userId);
         Task<bool> ChangeOcorrenciaStatusAsync(Guid ocorrenciaId, OcorrenciaStatusInputDto statusDto, Guid userId);

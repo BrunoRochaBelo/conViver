@@ -237,7 +237,7 @@ namespace conViver.Application.Services
         private async Task<IEnumerable<FeedItemDto>> FetchOcorrenciasAsync(Guid condominioId, Guid usuarioId, CancellationToken ct)
         {
             // Assuming we want all statuses and types for the feed, null for status/tipo filters
-            var ocorrencias = await _ocorrenciaService.ListarOcorrenciasPorUsuarioAsync(condominioId, usuarioId, null, null, ct);
+            var ocorrencias = await _ocorrenciaService.ListarOcorrenciasPorUsuarioAsync(condominioId, usuarioId, null, null);
             var feedItems = new List<FeedItemDto>();
 
             foreach (var ocorrencia in ocorrencias)
@@ -248,14 +248,14 @@ namespace conViver.Application.Services
                     Id = ocorrencia.Id,
                     Titulo = ocorrencia.Titulo,
                     Resumo = TruncateString(ocorrencia.Descricao, 100) ?? "Consulte para mais detalhes.",
-                    DataHoraPrincipal = ocorrencia.DataOcorrencia,
-                    DataHoraAtualizacao = ocorrencia.UpdatedAt,
+                    DataHoraPrincipal = ocorrencia.DataAbertura,
+                    DataHoraAtualizacao = ocorrencia.DataAtualizacao,
                     PrioridadeOrdenacao = 1, // Normal priority
                     UrlDestino = $"/app/ocorrencias/{ocorrencia.Id}",
                     Icone = "icon-ocorrencia",
                     Status = ocorrencia.Status,
-                    Categoria = ocorrencia.Tipo, // Using Ocorrencia.Tipo as Categoria for the feed item
-                    DetalhesAdicionais = new { ocorrencia.RespostaAdministracao }
+                    Categoria = ocorrencia.Categoria,
+                    DetalhesAdicionais = null
                 });
             }
             return feedItems;
