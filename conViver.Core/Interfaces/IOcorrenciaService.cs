@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using conViver.Core.DTOs;
+using conViver.Core.Enums;
 
 namespace conViver.Core.Interfaces
 {
