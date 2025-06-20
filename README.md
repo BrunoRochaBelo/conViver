@@ -137,14 +137,12 @@ dotnet build -t:Run -f net8.0-android
 `src/conViver.API/appsettings.Development.json` possui defaults seguros para desenvolvimento.
 > Usuários de exemplo: `admin@conviver.local` / `admin123` (administrador) e `teste@conviver.local` / `123456` (morador). Verifique se ainda estão válidos após migrações e seeders.
 
-<!-- Seção Removida: Scripts & Automação
 ## Scripts & Automação
-A pasta `/scripts` não foi encontrada no projeto. Se scripts forem adicionados, documentar aqui.
-Script	O que faz
-./scripts/create-migration.ps1 "AddBoleto"	Cria migration EF Core
-./scripts/dev-up.ps1	Start Docker Compose (PG + Redis)
-./scripts/test-all.ps1	Roda todos os testes unitários/integrados
--->
+Scripts úteis localmente e em pipelines.
+
+| Script | O que faz |
+|-------|-----------|
+| `./scripts/check-html-routes.ps1` | Verifica que todas as páginas HTML respondem com status 200 |
 
 ## Testes
 
