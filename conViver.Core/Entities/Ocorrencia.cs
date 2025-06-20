@@ -19,11 +19,24 @@ namespace conViver.Core.Entities
         public Guid CondominioId { get; set; }
 
         public Usuario Usuario { get; set; }
-        public Unidade Unidade { get; set; }
+        public Unidade? Unidade { get; set; } // Made Unidade nullable
         public Condominio Condominio { get; set; }
 
         public ICollection<OcorrenciaAnexo> Anexos { get; set; }
         public ICollection<OcorrenciaComentario> Comentarios { get; set; }
         public ICollection<OcorrenciaStatusHistorico> HistoricoStatus { get; set; }
+
+        // Constructor to initialize non-nullable properties
+        public Ocorrencia()
+        {
+            Titulo = string.Empty;
+            Descricao = string.Empty;
+            Usuario = null!; // EF Core will populate this
+            // Unidade is nullable, no need to initialize to null!
+            Condominio = null!; // EF Core will populate this
+            Anexos = new List<OcorrenciaAnexo>();
+            Comentarios = new List<OcorrenciaComentario>();
+            HistoricoStatus = new List<OcorrenciaStatusHistorico>();
+        }
     }
 }
