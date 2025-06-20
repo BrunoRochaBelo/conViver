@@ -7,6 +7,7 @@ using conViver.Core.DTOs;
 using conViver.Core.Entities;
 using conViver.Core.Enums;
 using conViver.Core.Interfaces;
+using CoreFileStorageService = conViver.Core.Interfaces.IFileStorageService;
 using FluentValidation;
 
 namespace conViver.Application.Services
@@ -15,7 +16,7 @@ namespace conViver.Application.Services
     {
         private readonly IOcorrenciaRepository _ocorrenciaRepository;
         private readonly IRepository<Usuario> _usuarioRepository;
-        private readonly IFileStorageService _fileStorageService;
+        private readonly CoreFileStorageService _fileStorageService;
         private readonly IValidator<OcorrenciaInputDto> _ocorrenciaInputValidator;
         private readonly IValidator<OcorrenciaComentarioInputDto> _comentarioInputValidator;
         private readonly IValidator<OcorrenciaStatusInputDto> _statusInputValidator;
@@ -23,7 +24,7 @@ namespace conViver.Application.Services
         public OcorrenciaService(
             IOcorrenciaRepository ocorrenciaRepository,
             IRepository<Usuario> usuarioRepository,
-            IFileStorageService fileStorageService,
+            CoreFileStorageService fileStorageService,
             IValidator<OcorrenciaInputDto> ocorrenciaInputValidator,
             IValidator<OcorrenciaComentarioInputDto> comentarioInputValidator,
             IValidator<OcorrenciaStatusInputDto> statusInputValidator
@@ -52,18 +53,18 @@ namespace conViver.Application.Services
 
             var ocorrencia = new Ocorrencia
             {
+                Id = Guid.NewGuid(),
+                UsuarioId = userId,
                 Titulo = inputDto.Titulo,
                 Descricao = inputDto.Descricao,
                 Categoria = inputDto.Categoria,
-                Prioridade = inputDto.Prioridade
+                Prioridade = inputDto.Prioridade,
+                Status = OcorrenciaStatus.ABERTA,
+                DataAbertura = DateTime.UtcNow,
+                DataAtualizacao = DateTime.UtcNow,
+                CondominioId = usuario.Unidade?.CondominioId ?? Guid.Empty,
+                UnidadeId = usuario.UnidadeId
             };
-            ocorrencia.Id = Guid.NewGuid();
-            ocorrencia.UsuarioId = userId;
-            ocorrencia.Status = OcorrenciaStatus.ABERTA;
-            ocorrencia.DataAbertura = DateTime.UtcNow;
-            ocorrencia.DataAtualizacao = DateTime.UtcNow;
-            ocorrencia.CondominioId = usuario.CondominioId;
-            ocorrencia.UnidadeId = usuario.UnidadeId;
 
             if (anexos != null && anexos.Any())
             {
@@ -148,7 +149,8 @@ namespace conViver.Application.Services
                 TamanhoPagina = int.MaxValue
             };
 
-            var paged = await _ocorrenciaRepository.GetOcorrenciasFilteredAndPaginatedAsync(queryParams, usuarioId, true);
+            var paged = await _ocorrenciaRepository
+                .GetOcorrenciasFilteredAndPaginatedAsync(queryParams, usuarioId, true);
 
             return paged.Items
                 .Where(o => o.CondominioId == condominioId)
@@ -263,7 +265,8 @@ namespace conViver.Application.Services
 
         public async Task<IEnumerable<OcorrenciaStatusHistoricoDto>> GetStatusHistoricoAsync(Guid id)
         {
-            var historico = await _ocorrenciaRepository.GetStatusHistoricoByOcorrenciaIdAsync(id);
+            var historico = await _ocorrenciaRepository
+                .GetStatusHistoricoByOcorrenciaIdAsync(id);
             return historico.Select(MapToStatusHistoricoDto).ToList();
         }
 
@@ -289,77 +292,62 @@ namespace conViver.Application.Services
             return Task.FromResult<IEnumerable<string>>(list);
         }
 
-        private static OcorrenciaAnexoDto MapToAnexoDto(OcorrenciaAnexo anexo)
+        private static OcorrenciaAnexoDto MapToAnexoDto(OcorrenciaAnexo anexo) => new OcorrenciaAnexoDto
         {
-            return new OcorrenciaAnexoDto
-            {
-                Id = anexo.Id,
-                Url = anexo.Url,
-                NomeArquivo = anexo.NomeArquivo,
-                Tipo = anexo.Tipo,
-                Tamanho = anexo.Tamanho
-            };
-        }
+            Id = anexo.Id,
+            Url = anexo.Url,
+            NomeArquivo = anexo.NomeArquivo,
+            Tipo = anexo.Tipo,
+            Tamanho = anexo.Tamanho
+        };
 
-        private static OcorrenciaStatusHistoricoDto MapToStatusHistoricoDto(OcorrenciaStatusHistorico historico)
+        private static OcorrenciaStatusHistoricoDto MapToStatusHistoricoDto(OcorrenciaStatusHistorico h) => new OcorrenciaStatusHistoricoDto
         {
-            return new OcorrenciaStatusHistoricoDto
-            {
-                Status = historico.Status.ToString(),
-                Data = historico.Data,
-                AlteradoPorNome = historico.AlteradoPor?.Nome ?? string.Empty
-            };
-        }
+            Status = h.Status.ToString(),
+            Data = h.Data,
+            AlteradoPorNome = h.AlteradoPor?.Nome ?? string.Empty
+        };
 
-        private static OcorrenciaComentarioDto MapToComentarioDto(OcorrenciaComentario comentario)
+        private static OcorrenciaComentarioDto MapToComentarioDto(OcorrenciaComentario c) => new OcorrenciaComentarioDto
         {
-            return new OcorrenciaComentarioDto
-            {
-                Id = comentario.Id,
-                UsuarioId = comentario.UsuarioId,
-                UsuarioNome = comentario.Usuario?.Nome ?? string.Empty,
-                Texto = comentario.Texto,
-                Data = comentario.Data
-            };
-        }
+            Id = c.Id,
+            UsuarioId = c.UsuarioId,
+            UsuarioNome = c.Usuario?.Nome ?? string.Empty,
+            Texto = c.Texto,
+            Data = c.Data
+        };
 
-        private static OcorrenciaListItemDto MapToListItemDto(Ocorrencia ocorrencia)
+        private static OcorrenciaListItemDto MapToListItemDto(Ocorrencia o) => new OcorrenciaListItemDto
         {
-            return new OcorrenciaListItemDto
-            {
-                Id = ocorrencia.Id,
-                Titulo = ocorrencia.Titulo,
-                Categoria = ocorrencia.Categoria.ToString(),
-                Status = ocorrencia.Status.ToString(),
-                Prioridade = ocorrencia.Prioridade.ToString(),
-                DataAbertura = ocorrencia.DataAbertura,
-                DataAtualizacao = ocorrencia.DataAtualizacao,
-                NomeUsuario = ocorrencia.Usuario?.Nome ?? string.Empty
-            };
-        }
+            Id = o.Id,
+            Titulo = o.Titulo,
+            Categoria = o.Categoria.ToString(),
+            Status = o.Status.ToString(),
+            Prioridade = o.Prioridade.ToString(),
+            DataAbertura = o.DataAbertura,
+            DataAtualizacao = o.DataAtualizacao,
+            NomeUsuario = o.Usuario?.Nome ?? string.Empty
+        };
 
-        private static OcorrenciaDetailsDto MapToDetailsDto(Ocorrencia ocorrencia)
+        private static OcorrenciaDetailsDto MapToDetailsDto(Ocorrencia o) => new OcorrenciaDetailsDto
         {
-            return new OcorrenciaDetailsDto
+            Id = o.Id,
+            Titulo = o.Titulo,
+            Descricao = o.Descricao,
+            Categoria = o.Categoria.ToString(),
+            Status = o.Status.ToString(),
+            Prioridade = o.Prioridade.ToString(),
+            DataAbertura = o.DataAbertura,
+            DataAtualizacao = o.DataAtualizacao,
+            Usuario = new OcorrenciaUsuarioInfoDto
             {
-                Id = ocorrencia.Id,
-                Titulo = ocorrencia.Titulo,
-                Descricao = ocorrencia.Descricao,
-                Categoria = ocorrencia.Categoria.ToString(),
-                Status = ocorrencia.Status.ToString(),
-                Prioridade = ocorrencia.Prioridade.ToString(),
-                DataAbertura = ocorrencia.DataAbertura,
-                DataAtualizacao = ocorrencia.DataAtualizacao,
-                Usuario = new OcorrenciaUsuarioInfoDto
-                {
-                    Id = ocorrencia.UsuarioId,
-                    Nome = ocorrencia.Usuario?.Nome ?? string.Empty,
-                    Unidade = ocorrencia.Unidade?.Identificacao ?? string.Empty
-                },
-                Anexos = ocorrencia.Anexos?.Select(MapToAnexoDto).ToList() ?? new List<OcorrenciaAnexoDto>(),
-                HistoricoStatus = ocorrencia.HistoricoStatus?.Select(MapToStatusHistoricoDto).ToList() ?? new List<OcorrenciaStatusHistoricoDto>(),
-                Comentarios = ocorrencia.Comentarios?.Select(MapToComentarioDto).ToList() ?? new List<OcorrenciaComentarioDto>()
-            };
-        }
+                Id = o.UsuarioId,
+                Nome = o.Usuario?.Nome ?? string.Empty,
+                Unidade = o.Unidade?.Identificacao ?? string.Empty
+            },
+            Anexos = o.Anexos?.Select(MapToAnexoDto).ToList() ?? new List<OcorrenciaAnexoDto>(),
+            HistoricoStatus = o.HistoricoStatus?.Select(MapToStatusHistoricoDto).ToList() ?? new List<OcorrenciaStatusHistoricoDto>(),
+            Comentarios = o.Comentarios?.Select(MapToComentarioDto).ToList() ?? new List<OcorrenciaComentarioDto>()
+        };
     }
 }
