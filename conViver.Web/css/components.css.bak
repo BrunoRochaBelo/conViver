@@ -1,0 +1,287 @@
+/* === Layout Utilities === */
+.cv-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* === Header === */
+.cv-header {
+    background-color: #2c3e50;
+    color: #fff;
+    padding: 1rem;
+    display: flex; /* Added for alignment */
+    justify-content: space-between; /* Added for alignment */
+    align-items: center; /* Added for alignment */
+}
+
+.cv-header__title {
+    margin: 0; /* Remove default margin from h1 */
+    font-size: 1.8rem; /* Adjust size as needed */
+}
+
+.cv-header__logout {
+    /* Styles specific to logout button positioning if needed, cv-button provides appearance */
+    padding: 0.5rem 1rem; /* Smaller padding for header button */
+    font-size: 0.9rem;
+}
+
+/* === Navigation === */
+.cv-nav {
+    display: flex;
+    gap: 1rem;
+    background-color: #34495e;
+    padding: 0.5rem 1rem; /* Add horizontal padding */
+    /* Example of a potential element: .cv-nav__list */
+}
+
+.cv-nav__link {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.cv-nav__link:hover {
+    text-decoration: none; /* Remove underline for a more button-like feel */
+    background-color: #46627f;
+}
+
+.cv-nav__link--active {
+    background-color: #1abc9c; /* Active link color (teal) */
+    color: #fff;
+}
+
+.cv-nav__link--active:hover {
+    background-color: #16a085;
+}
+
+/* === Card === */
+/*
+  Reusable card component.
+  Use modifiers for variations, e.g., .cv-card--highlighted
+  Use elements for internal parts, e.g., .cv-card__title, .cv-card__content
+*/
+.cv-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* === Table === */
+/*
+  Reusable table component.
+  Use elements for specific parts if needed, e.g., .cv-table__header, .cv-table__row, .cv-table__cell
+*/
+.cv-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.cv-table th,
+.cv-table td {
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+    text-align: left;
+}
+
+/* === Button === */
+/*
+  Reusable button component.
+  Use modifiers for variations, e.g., .cv-button--secondary, .cv-button--danger
+*/
+.cv-button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    background-color: #e0e0e0; /* Default gray */
+    color: #333;
+}
+
+.cv-button:hover {
+    background-color: #d0d0d0;
+}
+
+.cv-button--primary {
+    background-color: #3498db; /* A pleasant blue */
+    color: #fff;
+    border-color: #3498db;
+}
+
+.cv-button--primary:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+}
+
+.cv-button--secondary {
+    background-color: #7f8c8d; /* Grayish blue */
+    color: #fff;
+    border-color: #7f8c8d;
+}
+
+.cv-button--secondary:hover {
+    background-color: #6c7a7b;
+    border-color: #6c7a7b;
+}
+
+.cv-button:disabled,
+.cv-button--primary:disabled,
+.cv-button--secondary:disabled {
+    background-color: #ccc;
+    color: #888;
+    cursor: not-allowed;
+    border-color: #ccc;
+}
+
+.cv-button--info {
+    background-color: #17a2b8; /* Info blue/teal */
+    color: #fff;
+    border-color: #17a2b8;
+}
+
+.cv-button--info:hover {
+    background-color: #138496;
+    border-color: #117a8b;
+}
+
+.cv-button--danger {
+    background-color: #dc3545; /* Danger red */
+    color: #fff;
+    border-color: #dc3545;
+}
+
+.cv-button--danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+.cv-button--small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+}
+
+/* === Input === */
+.cv-input {
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.cv-input:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+
+/* === Input === */
+.cv-input {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    box-sizing: border-box; /* Ensure padding doesn't add to width */
+    width: 100%; /* Make inputs take full width of their container by default */
+}
+
+.cv-input:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* === Form Groups for Modals and other forms === */
+.cv-form__group {
+    margin-bottom: 1rem;
+}
+
+.cv-form__label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.cv-form__actions {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end; /* Alinha botões à direita */
+    gap: 0.5rem; /* Espaço entre os botões */
+}
+
+
+/* === Modal === */
+.cv-modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.cv-modal__content {
+    background-color: #fefefe;
+    margin: 10% auto; /* 10% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more specific depending on the modal's purpose */
+    max-width: 500px; /* Maximum width */
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    animation-name: animatetop;
+    animation-duration: 0.4s
+}
+
+/* Add Animation */
+@keyframes animatetop {
+    from {top: -300px; opacity: 0}
+    to {top: 0; opacity: 1}
+}
+
+.cv-modal__close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.cv-modal__close:hover,
+.cv-modal__close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.cv-modal__title {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.cv-modal__body {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}

@@ -1,0 +1,1445 @@
+@font-face {
+    font-family: "OpenSans";
+    src: url("../fonts/OpenSans-Regular.ttf") format("truetype");
+    font-weight: normal; /* 400 */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "OpenSansSemibold";
+    src: url("../fonts/OpenSans-Semibold.ttf") format("truetype");
+    font-weight: 600; /* Semibold */
+    font-style: normal;
+}
+
+:root {
+    /* Primary Colors */
+    --cv-primary-blue: #007AFF;
+    --cv-primary-green: #34C759;
+    --cv-primary-orange: #FF9500;
+    --cv-primary-red: #FF3B30;
+
+    /* Grays */
+    --cv-gray-100: #F2F2F7; /* System Gray 6 - Light background */
+    --cv-gray-200: #E5E5EA; /* System Gray 5 */
+    --cv-gray-300: #D1D1D6; /* System Gray 4 */
+    --cv-gray-400: #C7C7CC; /* System Gray 3 - Borders, dividers */
+    --cv-gray-500: #AEAEB2; /* System Gray 2 - Subtle text, icons */
+    --cv-gray-600: #8E8E93; /* System Gray - Body text */
+    --cv-gray-700: #636366; /* Darker Gray */
+    --cv-gray-800: #3A3A3C; /* System Gray (Darker variant for specific elements if needed) */
+    --cv-gray-900: #1C1C1E; /* Almost Black - Primary text on light */
+
+    /* Text Colors */
+    --cv-text-primary: var(--cv-gray-900);
+    --cv-text-secondary: var(--cv-gray-600);
+    --cv-text-placeholder: var(--cv-gray-500);
+    --cv-text-on-primary: #FFFFFF;
+    --cv-text-link: var(--cv-primary-blue);
+
+    /* Background Colors */
+    --cv-bg-light: var(--cv-gray-100); /* Page background */
+    --cv-bg-white: #FFFFFF; /* Card, Modal backgrounds */
+
+    /* Semantic Colors */
+    --cv-color-success: var(--cv-primary-green);
+    --cv-color-warning: var(--cv-primary-orange);
+    --cv-color-error: var(--cv-primary-red);
+    --cv-color-info: var(--cv-primary-blue); /* Or a dedicated info blue if different */
+
+    /* Semantic Background Colors */
+    --cv-color-error-bg: #ffebee; /* Lighter red for backgrounds */
+    --cv-color-success-bg: #e8f5e9; /* Lighter green */
+    --cv-color-warning-bg: #fff8e1; /* Lighter orange */
+    --cv-color-info-bg: #e7f5ff; /* Lighter blue for info backgrounds */
+
+
+    /* Fonts */
+    --cv-font-family-sans-serif: "OpenSans", "OpenSansSemibold", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --cv-font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+    /* Responsive Font Sizes */
+    --cv-font-size-base: 14px; /* Smaller base for mobile */
+    --cv-font-size-md: 1rem; /* Should be 14px on mobile, 16px on desktop */
+    --cv-font-size-lg: 1.125rem; /* ~16px on mobile, ~18px on desktop */
+    --cv-font-size-xl: 1.25rem; /* ~18px on mobile, ~20px on desktop */
+    /* Add more heading/specific font sizes as needed, e.g. */
+    --cv-font-size-h1: 2rem; /* Adjusted based on new base */
+    --cv-font-size-h2: 1.75rem;
+    --cv-font-size-h3: 1.5rem;
+    --cv-font-size-h4: 1.25rem;
+
+
+    /* Spacing (base 8px) */
+    --cv-spacing-xs: 4px;
+    --cv-spacing-sm: 8px;
+    --cv-spacing-md: 16px;
+    --cv-spacing-lg: 24px;
+    --cv-spacing-xl: 32px;
+
+    /* Borders */
+    --cv-border-radius-sm: 4px;
+    --cv-border-radius-md: 8px;
+    --cv-border-radius-lg: 12px;
+    --cv-border-color: var(--cv-gray-400);
+    --cv-border-width: 1px;
+
+    /* Shadows */
+    --cv-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --cv-shadow-md: 0px 2px 4px rgba(0, 0, 0, 0.05), 0px 4px 12px rgba(0, 0, 0, 0.1);
+    --cv-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+    /* Dark Theme Palette */
+    --cv-dark-primary-blue: #0A84FF;
+    --cv-dark-primary-green: #30D158;
+    --cv-dark-primary-orange: #FFD60A;
+    --cv-dark-primary-red: #FF453A;
+
+    --cv-dark-gray-100: #1C1C1E; /* Page background */
+    --cv-dark-gray-200: #2C2C2E; /* Element background */
+    --cv-dark-gray-300: #3A3A3C;
+    --cv-dark-gray-400: #48484A; /* Borders */
+    --cv-dark-gray-500: #636366;
+    --cv-dark-gray-600: #8E8E93; /* Subtle text */
+    --cv-dark-gray-900: #F2F2F7; /* Primary text */
+
+    --cv-dark-text-primary: var(--cv-dark-gray-900);
+    --cv-dark-text-secondary: var(--cv-dark-gray-600);
+    --cv-dark-text-placeholder: var(--cv-dark-gray-500);
+    --cv-dark-text-on-primary-bg: #FFFFFF;
+    --cv-dark-text-link: var(--cv-dark-primary-blue);
+
+    --cv-dark-bg-page: var(--cv-dark-gray-100);
+    --cv-dark-bg-element: var(--cv-dark-gray-200);
+
+    --cv-dark-semantic-success: var(--cv-dark-primary-green);
+    --cv-dark-semantic-warning: var(--cv-dark-primary-orange);
+    --cv-dark-semantic-error: var(--cv-dark-primary-red);
+    --cv-dark-semantic-info: var(--cv-dark-primary-blue);
+
+    --cv-dark-color-error-bg: rgba(255, 69, 58, 0.2);
+    --cv-dark-color-success-bg: rgba(48, 209, 88, 0.2);
+    --cv-dark-color-warning-bg: rgba(255, 214, 10, 0.2);
+    --cv-dark-color-info-bg: rgba(10, 132, 255, 0.2); /* Lighter blue for dark info backgrounds */
+
+    --cv-dark-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+    --cv-dark-shadow-md: 0px 2px 4px rgba(0, 0, 0, 0.3), 0px 4px 12px rgba(0, 0, 0, 0.4);
+    --cv-dark-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+
+    /* Current Theme Variables (default to light) */
+    --current-primary-blue: var(--cv-primary-blue);
+    --current-primary-green: var(--cv-primary-green);
+    --current-primary-orange: var(--cv-primary-orange);
+    --current-primary-red: var(--cv-primary-red);
+
+    --current-text-primary: var(--cv-text-primary);
+    --current-text-secondary: var(--cv-text-secondary);
+    --current-text-placeholder: var(--cv-text-placeholder);
+    --current-text-on-primary: var(--cv-text-on-primary); /* Renamed for clarity from --cv-text-on-primary-bg */
+    --current-text-link: var(--cv-text-link);
+
+    --current-bg-light: var(--cv-bg-light); /* Page background */
+    --current-bg-white: var(--cv-bg-white); /* Element background */
+
+    --current-border-color: var(--cv-border-color);
+
+    --current-semantic-success: var(--cv-color-success);
+    --current-semantic-warning: var(--cv-color-warning);
+    --current-semantic-error: var(--cv-color-error);
+    --current-semantic-info: var(--cv-color-info);
+
+    --current-color-error-bg: var(--cv-color-error-bg);
+    --current-color-success-bg: var(--cv-color-success-bg);
+    --current-color-warning-bg: var(--cv-color-warning-bg);
+    --current-color-info-bg: var(--cv-color-info-bg);
+
+    --current-shadow-sm: var(--cv-shadow-sm);
+    --current-shadow-md: var(--cv-shadow-md);
+    --current-shadow-lg: var(--cv-shadow-lg);
+
+    --current-input-focus-shadow: rgba(0, 122, 255, 0.25);
+    --current-bg-element: var(--cv-bg-white);
+    --current-border-subtle: var(--cv-gray-200);
+
+    /* Button specific current vars */
+    --current-button-default-bg: var(--cv-gray-200);
+    --current-button-default-hover-bg: var(--cv-gray-300);
+    --current-button-secondary-bg: var(--cv-gray-600);
+    --current-button-secondary-hover-bg: var(--cv-gray-700);
+    --current-button-disabled-bg: var(--cv-gray-200);
+    --current-button-disabled-text: var(--cv-gray-500);
+    --current-button-disabled-border: var(--cv-gray-300);
+
+    /* Nav specific current vars */
+    --current-nav-bg: var(--cv-gray-100);
+}
+
+html[data-theme="dark"] {
+    --current-primary-blue: var(--cv-dark-primary-blue);
+    --current-primary-green: var(--cv-dark-primary-green);
+    --current-primary-orange: var(--cv-dark-primary-orange);
+    --current-primary-red: var(--cv-dark-primary-red);
+
+    --current-text-primary: var(--cv-dark-text-primary);
+    --current-text-secondary: var(--cv-dark-text-secondary);
+    --current-text-placeholder: var(--cv-dark-text-placeholder);
+    --current-text-on-primary: var(--cv-dark-text-on-primary-bg);
+    --current-text-link: var(--cv-dark-text-link);
+
+    --current-bg-light: var(--cv-dark-bg-page);
+    --current-bg-white: var(--cv-dark-bg-element);
+
+    --current-border-color: var(--cv-dark-gray-400);
+
+    --current-semantic-success: var(--cv-dark-semantic-success);
+    --current-semantic-warning: var(--cv-dark-semantic-warning);
+    --current-semantic-error: var(--cv-dark-semantic-error);
+    --current-semantic-info: var(--cv-dark-semantic-info);
+
+    --current-color-error-bg: var(--cv-dark-color-error-bg);
+    --current-color-success-bg: var(--cv-dark-color-success-bg);
+    --current-color-warning-bg: var(--cv-dark-color-warning-bg);
+    --current-color-info-bg: var(--cv-dark-color-info-bg);
+
+    --current-shadow-sm: var(--cv-dark-shadow-sm);
+    --current-shadow-md: var(--cv-dark-shadow-md);
+    --current-shadow-lg: var(--cv-dark-shadow-lg);
+
+    --current-input-focus-shadow: rgba(10, 132, 255, 0.35);
+    --current-bg-element: var(--cv-dark-bg-element);
+    --current-border-subtle: var(--cv-dark-gray-300);
+
+    /* Button specific current vars - Dark */
+    --current-button-default-bg: var(--cv-dark-gray-300);
+    --current-button-default-hover-bg: var(--cv-dark-gray-400);
+    --current-button-secondary-bg: var(--cv-dark-gray-500);
+    --current-button-secondary-hover-bg: var(--cv-dark-gray-600);
+    --current-button-disabled-bg: var(--cv-dark-gray-300);
+    --current-button-disabled-text: var(--cv-dark-gray-500);
+    --current-button-disabled-border: var(--cv-dark-gray-400);
+
+    /* Nav specific current vars - Dark */
+    --current-nav-bg: var(--cv-dark-bg-element); /* Match element bg for dark nav */
+}
+
+body {
+    font-family: var(--cv-font-family-sans-serif);
+    margin: 0;
+    background-color: var(--current-bg-light);
+    color: var(--current-text-primary);
+    line-height: 1.5; /* Improved readability */
+    -webkit-font-smoothing: antialiased; /* Smoother fonts on WebKit */
+    -moz-osx-font-smoothing: grayscale; /* Smoother fonts on Firefox */
+    font-size: var(--cv-font-size-md); /* Default body text size */
+}
+
+html {
+    font-size: var(--cv-font-size-base); /* Set base for rem units */
+}
+
+@media (min-width: 768px) {
+    :root {
+        --cv-font-size-base: 16px; /* Larger base for tablet up */
+    }
+}
+
+/* Example for a main content wrapper */
+/* If you have a common wrapper class like .cv-container, apply these to it.
+   Otherwise, this 'main' selector is a general example. */
+main {
+  width: 100%;
+  padding: 0 var(--cv-spacing-md); /* Mobile padding */
+  box-sizing: border-box;
+  margin-left: auto; /* Center content */
+  margin-right: auto; /* Center content */
+  flex-grow: 1; /* Example if main is part of a flex column layout for sticky footer */
+}
+
+@media (min-width: 1200px) {
+  main {
+    max-width: 1200px;
+    padding: 0 var(--cv-spacing-lg); /* Desktop padding */
+  }
+}
+
+
+/* === Login Page Specific Styles === */
+.login-page {
+    background-color: var(--current-bg-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: var(--cv-font-family-sans-serif); /* Use variable */
+}
+
+.login-page__container {
+    width: 100%;
+    max-width: 400px;
+    padding: var(--cv-spacing-md); /* Use variable */
+}
+
+/* login-card enhances cv-card for login specific layout */
+/* .cv-card will provide base styling like background, border-radius, shadow */
+.login-card {
+    padding: var(--cv-spacing-lg) var(--cv-spacing-xl); /* More padding for login */
+}
+
+.login-card__title {
+    font-size: 2rem; /* Or from typographic scale */
+    font-weight: 600;
+    color: var(--current-text-primary);
+    text-align: center;
+    margin-bottom: var(--cv-spacing-sm);
+}
+
+.login-card__subtitle {
+    font-size: 1rem;
+    color: var(--current-text-secondary);
+    text-align: center;
+    margin-bottom: var(--cv-spacing-lg);
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cv-spacing-md); /* Use variable, adjusted from 1.25rem */
+}
+
+.login-form__input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-form__label {
+    font-size: 0.9rem;
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-xs);
+}
+
+/* .login-form__input specific styles are mostly covered by .cv-input now.
+   Ensure .cv-input is applied to the input elements in HTML.
+   Remove old .login-form__input styles to avoid conflict if they are too specific.
+*/
+
+.login-form__button { /* Apply to the button if it's not using .cv-button directly */
+    width: 100%; /* Make button full width */
+    margin-top: var(--cv-spacing-sm); /* Use variable */
+}
+
+.login-form__feedback { /* Base style for feedback messages */
+    display: none; /* Hidden by default */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Standardized padding */
+    margin-top: var(--cv-spacing-md);
+    border-radius: var(--cv-border-radius-md); /* Standardized border-radius */
+    font-size: 0.9rem;
+    text-align: center;
+    border: var(--cv-border-width) solid transparent;
+}
+
+.login-form__feedback--error {
+    background-color: var(--current-color-error-bg);
+    color: var(--current-semantic-error);
+    border-color: var(--current-semantic-error);
+    display: block; /* Ensure it's visible when class is applied */
+}
+
+.login-form__feedback--success {
+    background-color: var(--current-color-success-bg);
+    color: var(--current-semantic-success);
+    border-color: var(--current-semantic-success);
+    display: block; /* Ensure it's visible when class is applied */
+}
+
+.login-form__feedback--loading {
+    background-color: var(--current-bg-element); /* Was --cv-gray-200 */
+    color: var(--current-text-secondary);
+    border-color: var(--current-border-color); /* Was --cv-gray-400 */
+    display: block; /* Ensure it's visible when class is applied */
+}
+
+/* === Financeiro Page Specific Styles === */
+.financeiro-page {
+    background-color: var(--current-bg-light);
+    font-family: var(--cv-font-family-sans-serif);
+}
+
+.fin-cobrancas-main {
+    padding-top: var(--cv-spacing-lg); /* Use variable */
+    padding-bottom: var(--cv-spacing-lg); /* Use variable */
+}
+
+.fin-cobrancas__title {
+    font-size: 1.8rem;
+    color: var(--current-text-primary);
+    margin-bottom: var(--cv-spacing-lg);
+    text-align: center;
+    font-weight: 600;
+}
+
+.fin-cobrancas__dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Already good, ensure this is used */
+    gap: var(--cv-spacing-sm); /* Smaller gap for mobile */
+    margin-bottom: var(--cv-spacing-xl);
+}
+@media (min-width: 768px) {
+    .fin-cobrancas__dashboard {
+        gap: var(--cv-spacing-md); /* Original gap for larger screens */
+    }
+}
+
+/* .fin-summary-card uses .cv-card for base styling */
+.fin-summary-card {
+    padding: var(--cv-spacing-md); /* Use variable */
+    text-align: center;
+}
+
+.fin-summary-card__title {
+    font-size: 1rem;
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-sm);
+}
+
+.fin-summary-card__value {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--current-text-primary);
+}
+
+.fin-cobrancas__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--cv-spacing-md);
+    background-color: var(--current-bg-white);
+    border-radius: var(--cv-border-radius-md);
+    box-shadow: var(--current-shadow-sm);
+    margin-bottom: var(--cv-spacing-xl);
+}
+
+.fin-actions__group {
+    display: flex;
+    align-items: center;
+    gap: var(--cv-spacing-sm);
+    margin-bottom: var(--cv-spacing-sm);
+    flex-wrap: wrap; /* Allow items within a group to wrap */
+}
+.fin-actions__group .cv-input,
+.fin-actions__group .cv-button {
+    min-width: 150px; /* Example: ensure buttons/inputs don't get too small */
+    flex-grow: 1; /* Allow them to grow */
+    margin-top: var(--cv-spacing-xs); /* Add some top margin if they wrap */
+    margin-bottom: var(--cv-spacing-xs); /* Add some bottom margin if they wrap */
+}
+
+.fin-actions__group label {
+    font-weight: 500;
+    color: var(--current-text-primary);
+}
+
+/* .fin-actions__group .cv-input, .fin-actions__group .cv-button will inherit styles */
+
+.fin-cobrancas__table-section {
+    background-color: var(--current-bg-white);
+    padding: var(--cv-spacing-lg);
+    border-radius: var(--cv-border-radius-lg);
+    box-shadow: var(--current-shadow-md);
+}
+
+.fin-cobrancas__table {
+    /* Assuming .cv-table will be defined or this is a custom table */
+    margin-top: var(--cv-spacing-md); /* Use variable */
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.fin-cobrancas__table th {
+    background-color: var(--current-bg-element); /* Was --cv-gray-100 */
+    color: var(--current-text-primary);
+    font-weight: 600;
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
+    text-align: left;
+    border-bottom: 2px solid var(--current-border-color);
+}
+
+.fin-cobrancas__table td {
+    vertical-align: middle;
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
+    border-bottom: 1px solid var(--current-border-subtle); /* Was --cv-gray-200 */
+}
+
+.fin-cobrancas__table .cv-button {
+    padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
+    font-size: 0.8rem;
+    margin-right: var(--cv-spacing-xs);
+}
+
+.fin-cobrancas__table .cv-button:last-child {
+    margin-right: 0;
+}
+
+/* === Dashboard Page General Styles === */
+.dashboard-page {
+    background-color: var(--current-bg-light);
+    font-family: var(--cv-font-family-sans-serif);
+}
+
+.db-main {
+    padding-top: var(--cv-spacing-lg);
+    padding-bottom: var(--cv-spacing-lg);
+}
+
+.db-section {
+    margin-bottom: var(--cv-spacing-xl);
+    background-color: var(--current-bg-white);
+    padding: var(--cv-spacing-lg);
+    border-radius: var(--cv-border-radius-lg);
+    box-shadow: var(--current-shadow-md);
+}
+
+.db-section__title {
+    font-size: 1.5rem;
+    color: var(--current-text-primary);
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-lg);
+    padding-bottom: var(--cv-spacing-sm);
+    border-bottom: var(--cv-border-width) solid var(--current-primary-blue);
+    font-weight: 600;
+}
+
+.db-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Adjusted min value */
+    gap: var(--cv-spacing-sm); /* Smaller gap for mobile */
+}
+@media (min-width: 768px) {
+    .db-metrics-grid {
+        gap: var(--cv-spacing-lg); /* Original gap for larger screens */
+    }
+}
+
+/* .db-metric-card uses .cv-card for base styling */
+.db-metric-card {
+    padding: var(--cv-spacing-lg); /* Override .cv-card padding if needed, or ensure consistency */
+}
+
+.db-metric-card__title {
+    font-size: 1.1rem;
+    color: var(--current-text-secondary);
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-sm);
+}
+
+.db-metric-card__value {
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--current-primary-blue);
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-xs);
+}
+
+.db-metric-card__subvalue {
+    font-size: 0.9rem;
+    color: var(--current-text-secondary); /* Was --cv-gray-600 */
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-sm);
+}
+
+.db-metric-card__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.db-metric-card__list li {
+    padding: var(--cv-spacing-xs) 0;
+    border-bottom: 1px solid var(--current-border-subtle); /* Was --cv-gray-200 */
+}
+.db-metric-card__list li:last-child {
+    border-bottom: none;
+}
+
+/* Specific card accents (optional) */
+.db-metric-card--inadimplencia .db-metric-card__value { color: var(--current-semantic-error); }
+.db-metric-card--saldo .db-metric-card__value { color: var(--current-semantic-success); }
+.db-metric-card--despesas .db-metric-card__title { color: var(--current-primary-orange); }
+
+
+.db-columns {
+    display: grid;
+    grid-template-columns: 1fr; /* Single column by default */
+    gap: var(--cv-spacing-xl); /* Use variable */
+}
+
+@media (min-width: 992px) { /* Two columns for larger screens */
+    .db-columns {
+        grid-template-columns: 1fr 1fr;
+    }
+    .db-columns .db-section {
+        margin-bottom: 0;
+    }
+}
+
+.db-alerts-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.db-alert-item {
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
+    margin-bottom: var(--cv-spacing-sm);
+    border-radius: var(--cv-border-radius-sm);
+    border: var(--cv-border-width) solid transparent;
+    border-left-width: 5px; /* Emphasize left border */
+    background-color: var(--current-bg-light); /* Default background */
+}
+
+.db-alert-item:last-child {
+    margin-bottom: 0;
+}
+
+.db-alert-item__title {
+    font-weight: bold;
+    display: block;
+    margin-bottom: var(--cv-spacing-xs);
+    font-size: 1.05em;
+}
+
+.db-alert-item__message {
+    font-size: 0.9rem;
+    color: var(--current-text-secondary);
+    display: block;
+    margin-bottom: var(--cv-spacing-xs);
+}
+
+.db-alert-item__date {
+    font-size: 0.8rem;
+    color: var(--current-text-placeholder); /* Was --cv-gray-500 */
+    display: block;
+    margin-top: var(--cv-spacing-xs);
+    text-align: right;
+}
+
+/* Alert Types */
+.db-alert-item--normal {
+    border-left-color: var(--current-semantic-info);
+    background-color: var(--current-bg-element); /* Was --cv-gray-100 */
+}
+.db-alert-item--normal .db-alert-item__title {
+    color: var(--current-semantic-info);
+}
+
+.db-alert-item--alta {
+    border-left-color: var(--current-semantic-warning);
+    background-color: var(--current-color-warning-bg);
+}
+.db-alert-item--alta .db-alert-item__title {
+    color: var(--current-semantic-warning);
+}
+
+.db-alert-item--critica {
+    border-left-color: var(--current-semantic-error);
+    background-color: var(--current-color-error-bg);
+}
+.db-alert-item--critica .db-alert-item__title {
+    color: var(--current-semantic-error);
+}
+
+.db-activity-feed {
+    padding: 0;
+}
+
+.db-alerts-list p, .db-activity-feed p { /* For "Nenhum..." messages */
+    color: var(--current-text-secondary);
+    font-style: italic;
+    padding: 0 var(--cv-spacing-lg) var(--cv-spacing-lg);
+}
+.db-alerts-list ul, .db-activity-feed ul {
+    list-style-type: none;
+    padding:0 var(--cv-spacing-lg) var(--cv-spacing-lg);
+    margin: 0;
+}
+.db-alerts-list li, .db-activity-feed li {
+    padding: var(--cv-spacing-sm) 0;
+    border-bottom: 1px dashed var(--current-border-subtle); /* Was --cv-gray-300 */
+    font-size: 0.95rem;
+}
+.db-alerts-list li:last-child, .db-activity-feed li:last-child {
+    border-bottom: none;
+}
+
+.db-activity-feed__subtitle {
+    font-size: 1.1rem;
+    color: var(--current-text-primary);
+    margin: 0 var(--cv-spacing-lg) var(--cv-spacing-sm) var(--cv-spacing-lg);
+    padding-bottom: var(--cv-spacing-xs);
+    border-bottom: 1px solid var(--current-border-subtle); /* Was --cv-gray-200 */
+}
+.db-activity-feed__subtitle:first-of-type {
+    margin-top: 0;
+}
+
+.db-quick-access {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cv-spacing-md);
+}
+
+.db-quick-access__button {
+    /* .cv-button provides base, this is for specific overrides or if not using .cv-button class */
+    flex-grow: 1;
+    background-color: var(--current-bg-white);
+    color: var(--current-primary-blue);
+    border: 1px solid var(--current-primary-blue);
+    text-align: center;
+    min-width: 200px;
+    /* Inherit padding, font-family from .cv-button. Add .cv-button class to these elements in HTML. */
+}
+
+.db-quick-access__button:hover {
+    background-color: var(--current-primary-blue);
+    color: var(--current-text-on-primary);
+}
+
+/* Visually hidden class for accessibility */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* Chart Styles */
+.db-chart-container {
+    margin-top: var(--cv-spacing-md);
+    width: 100%;
+    max-width: 250px;
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.db-chart {
+    display: block;
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* === Cleanup of old styles (from styles.css.bak) === */
+/* The following selectors were present in the backup but might be deprecated by new component classes or refactored. */
+/* It's better to remove them if their functionality is covered by .cv-* classes or new page-specific classes. */
+
+/* Deprecated dashboard styles (functionality moved to .db-section, .db-metric-card etc.) */
+.dashboard__metrics,
+.dashboard__metric,
+.dashboard__metric-title,
+.dashboard__metric-value,
+.dashboard__metric-list {
+    /* display: none !important; */ /* Example of how to hide, but removal is cleaner */
+}
+
+/* Deprecated login styles (functionality moved to .login-page, .login-card, .login-form__* etc. and .cv-input) */
+.login__container, /* replaced by .login-page__container */
+.login__form, /* replaced by .login-form */
+.login__label, /* replaced by .login-form__label */
+.login__input, /* replaced by .cv-input or .login-form__input (which should now use vars) */
+.login__button { /* replaced by .cv-button or .login-form__button (which should use vars) */
+    /* display: none !important; */
+}
+/* End of specific page styles */
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    display: none; /* Initially hidden */
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Message Banner */
+.message-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    background-color: #333;
+    color: white;
+    text-align: center;
+    z-index: 1001;
+    display: none; /* Initially hidden */
+}
+
+.message-banner.success {
+    background-color: #4CAF50;
+}
+
+.message-banner.error {
+    background-color: #f44336;
+}
+
+.message-banner.info {
+    background-color: #2196F3;
+}
+
+/* Tab System Styles */
+.cv-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
+}
+
+.cv-tab-button {
+    padding: 10px 20px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    font-size: var(--cv-font-size-md, 16px); /* Use variable or fallback */
+    font-family: var(--cv-font-family-sans-serif);
+    color: var(--current-text-secondary);
+    margin-right: 5px; /* Optional: spacing between tabs */
+    border-bottom: 2px solid transparent; /* For active indicator */
+    transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.cv-tab-button:hover {
+    color: var(--current-primary-blue, #007bff); /* Use variable or fallback */
+}
+
+.cv-tab-button.active {
+    border-bottom-color: var(--current-primary-blue, #007bff); /* Use variable or fallback */
+    font-weight: 600; /* Using OpenSansSemibold effectively */
+    color: var(--current-primary-blue, #007bff); /* Use variable or fallback */
+}
+
+.cv-tab-content {
+    padding: var(--cv-spacing-md, 15px); /* Use variable or fallback */
+    /* border: 1px solid var(--current-border-color, #ddd); */ /* Optional */
+    /* border-top: none; */ /* Optional */
+}
+
+/* Ensure communication__title is styled if not already */
+/* This might already be covered by .db-section__title or similar, but let's ensure it has base styling */
+.communication__title {
+    font-size: var(--cv-font-size-h2, 1.75rem); /* Use variable or fallback */
+    margin-bottom: var(--cv-spacing-md, 15px); /* Use variable or fallback */
+    color: var(--current-text-primary);
+    font-weight: 600; /* From OpenSansSemibold */
+}
+
+/* Styles for new elements in Mural Digital */
+.sticky-notices-container {
+    margin-bottom: var(--cv-spacing-lg, 20px);
+    /* Consider adding a subtle background or border if it needs to be visually distinct */
+}
+
+.sticky-notices-container .communication__post {
+    background-color: var(--cv-color-warning-bg, #fff3cd); /* Light yellow, using variable */
+    border-left: 5px solid var(--cv-primary-orange, #ffeeba); /* Orange accent, using variable */
+    /* Add a specific class if sticky posts need more differentiation from regular posts */
+}
+.sticky-notices-container .communication__post .communication__post-title::before {
+    content: "📌 "; /* Add a pin emoji before the title of sticky notes */
+}
+
+
+.filters-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: var(--cv-spacing-md, 15px); /* Spacing between filter elements */
+    align-items: center;
+    margin-bottom: var(--cv-spacing-lg, 20px);
+    padding: var(--cv-spacing-md, 15px);
+    background-color: var(--current-bg-white, #f8f9fa); /* Use theme variable or fallback */
+    border-radius: var(--cv-border-radius-md, 8px); /* Use theme variable */
+    box-shadow: var(--current-shadow-sm);
+}
+
+.filters-container label {
+    margin-right: var(--cv-spacing-xs, 5px);
+    font-weight: 500; /* Slightly bolder labels */
+    color: var(--current-text-secondary);
+}
+
+.filters-container .cv-input,
+.filters-container .cv-button {
+    flex-grow: 1; /* Allow inputs/button to grow */
+    min-width: 150px; /* Minimum width for inputs/button */
+}
+
+@media (min-width: 768px) {
+    .filters-container .cv-input,
+    .filters-container .cv-button {
+        flex-grow: 0; /* Prevent growing too much on larger screens */
+    }
+}
+
+
+.fab {
+    position: fixed;
+    bottom: var(--cv-spacing-lg, 20px);
+    right: var(--cv-spacing-lg, 20px);
+    width: 56px;
+    height: 56px;
+    background-color: var(--current-primary-blue, #007bff);
+    color: var(--cv-text-on-primary, white);
+    border: none;
+    border-radius: 50%;
+    font-size: var(--cv-font-size-xl, 24px); /* Using theme variable */
+    line-height: 56px; /* Center the '+' vertically */
+    text-align: center;
+    box-shadow: var(--current-shadow-md, 0 2px 10px rgba(0,0,0,0.2)); /* Use theme variable */
+    cursor: pointer;
+    z-index: 1050; /* Ensure it's above most content, Bootstrap modals are often 1040/1050 */
+    display: none; /* Initially hidden, JS will show it based on conditions */
+    transition: background-color 0.3s ease, transform 0.2s ease-out;
+}
+
+.fab:hover {
+    background-color: var(--cv-dark-primary-blue, #0056b3); /* Darken for hover, use theme variable if available */
+    transform: translateY(-2px); /* Slight lift on hover */
+}
+
+.fab:active {
+    transform: translateY(0px); /* Press down effect */
+}
+
+
+/* Helper class for loading messages if not already present */
+.cv-loading-message, .cv-error-message, .cv-no-more-message {
+    padding: var(--cv-spacing-md);
+    text-align: center;
+    color: var(--current-text-secondary);
+    font-style: italic;
+}
+.cv-error-message {
+    color: var(--current-semantic-error);
+}
+
+/* Modal Styles */
+.cv-modal {
+    /* display: none; */ /* JS handles display */
+    position: fixed;
+    z-index: 1051; /* Higher than FAB */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Enable scroll if content is too long */
+    background-color: rgba(0,0,0,0.5); /* Dim background */
+    display: flex; /* Added for centering */
+    align-items: center; /* Added for centering */
+    justify-content: center; /* Added for centering */
+}
+
+.cv-modal-content {
+    background-color: var(--current-bg-white, #fefefe);
+    /* margin: 10% auto; */ /* Replaced by flex centering on .cv-modal */
+    padding: var(--cv-spacing-lg, 20px);
+    border: 1px solid var(--current-border-color, #888);
+    width: 80%;
+    max-width: 600px;
+    border-radius: var(--cv-border-radius-lg, 8px);
+    position: relative;
+    box-shadow: var(--current-shadow-lg);
+    max-height: 90vh; /* Limit height to 90% of viewport height */
+    overflow-y: auto; /* Allow internal scrolling if content exceeds max-height */
+}
+
+.cv-modal-content h2 {
+    margin-top: 0;
+    font-size: var(--cv-font-size-h3);
+    color: var(--current-text-primary);
+    border-bottom: 1px solid var(--current-border-subtle);
+    padding-bottom: var(--cv-spacing-sm);
+    margin-bottom: var(--cv-spacing-md);
+}
+
+.cv-modal-close {
+    color: var(--current-text-placeholder, #aaa);
+    position: absolute;
+    top: var(--cv-spacing-sm, 10px);
+    right: var(--cv-spacing-md, 15px);
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.cv-modal-close:hover,
+.cv-modal-close:focus {
+    color: var(--current-text-primary, black);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Styling for form elements within modal, assuming .cv-form, .cv-form-group, .cv-input, .cv-button are globally styled */
+#form-criar-aviso .cv-form-group {
+    margin-bottom: var(--cv-spacing-md, 15px);
+}
+
+#form-criar-aviso label {
+    display: block;
+    margin-bottom: var(--cv-spacing-xs, 5px);
+    font-weight: 500; /* Or OpenSansSemibold */
+    color: var(--current-text-secondary);
+}
+#form-criar-aviso .cv-input {
+    width: 100%; /* Make inputs take full width of their container */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+#form-criar-aviso textarea.cv-input {
+    resize: vertical; /* Allow vertical resize, disable horizontal */
+    min-height: 80px;
+}
+#form-criar-aviso select[multiple].cv-input {
+    min-height: 100px; /* Make multiple select more usable */
+}
+#form-criar-aviso .cv-form-group small {
+    display: block;
+    font-size: 0.85em;
+    color: var(--current-text-placeholder);
+    margin-top: var(--cv-spacing-xs);
+}
+
+
+.cv-form-actions {
+    margin-top: var(--cv-spacing-lg, 20px);
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: var(--cv-spacing-sm, 10px); /* Space between buttons */
+}
+/* .cv-form-actions .cv-button {} */ /* General button styling is applied */
+
+/* Notice Card Action Buttons */
+.communication__post-actions {
+    margin-top: var(--cv-spacing-md, 15px); /* Use theme variable */
+    padding-top: var(--cv-spacing-sm, 10px); /* Use theme variable */
+    border-top: 1px solid var(--current-border-subtle, #eee); /* Use theme variable */
+    text-align: right;
+    display: flex; /* Added for better alignment if needed */
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: var(--cv-spacing-sm, 8px); /* Space between buttons */
+}
+
+.cv-button-link {
+    background: none;
+    border: none;
+    color: var(--current-text-link, #007bff); /* Use theme variable */
+    cursor: pointer;
+    padding: var(--cv-spacing-xs, 4px) var(--cv-spacing-sm, 8px); /* Use theme variable */
+    margin-left: var(--cv-spacing-sm, 8px); /* Use theme variable */
+    font-size: 0.9em; /* Slightly smaller than main buttons */
+    font-family: var(--cv-font-family-sans-serif); /* Ensure font consistency */
+    text-decoration: none; /* Remove default underline for links */
+    border-radius: var(--cv-border-radius-sm); /* Consistent border radius */
+    transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition */
+}
+
+.cv-button-link:hover {
+    text-decoration: underline;
+    background-color: var(--cv-gray-100); /* Subtle background on hover */
+}
+
+.cv-button-link.danger {
+    color: var(--current-semantic-error, #FF3B30); /* Use theme variable for error/danger color */
+}
+.cv-button-link.danger:hover {
+    color: var(--current-semantic-error, #FF3B30); /* Keep color on hover for danger */
+    background-color: var(--cv-color-error-bg); /* Light red background for danger hover */
+}
+
+/* Meta information in notice card */
+.communication__post-meta {
+    font-size: 0.85em;
+    color: var(--current-text-secondary);
+    margin-top: var(--cv-spacing-md);
+    padding-top: var(--cv-spacing-sm);
+    border-top: 1px dashed var(--current-border-subtle);
+}
+
+/* Enquetes Tab Specific Styles */
+#content-enquetes .cv-section {
+    margin-bottom: var(--cv-spacing-xl, 30px); /* Use theme variable */
+    padding-bottom: var(--cv-spacing-lg, 20px); /* Use theme variable */
+    border-bottom: 1px solid var(--current-border-subtle, #eee); /* Use theme variable */
+}
+#content-enquetes .cv-section:last-of-type { /* Use last-of-type for better specificity */
+    border-bottom: none;
+}
+#content-enquetes .cv-section h3 { /* Sub-section titles */
+    font-size: var(--cv-font-size-h4); /* Use theme variable */
+    color: var(--current-text-primary);
+    margin-bottom: var(--cv-spacing-md);
+}
+
+
+.enquetes-list .cv-card { /* Assuming polls are displayed in cards */
+    margin-bottom: var(--cv-spacing-md, 15px); /* Use theme variable */
+    padding: var(--cv-spacing-md, 15px); /* Use theme variable */
+    background-color: var(--current-bg-white); /* Use theme variable */
+    border-radius: var(--cv-border-radius-md); /* Use theme variable */
+    box-shadow: var(--current-shadow-sm); /* Use theme variable */
+}
+
+.enquetes-list .cv-card h4 { /* Poll question */
+    font-size: var(--cv-font-size-lg); /* Use theme variable */
+    color: var(--current-text-primary);
+    margin-top: 0; /* Remove default margin if any */
+    margin-bottom: var(--cv-spacing-sm, 10px); /* Use theme variable */
+}
+
+.enquetes-list .cv-card p { /* Poll metadata like deadline, author */
+    font-size: 0.9em;
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-xs, 5px); /* Use theme variable */
+}
+.enquetes-list .cv-card p:last-of-type {
+    margin-bottom: var(--cv-spacing-sm); /* More space after last metadata before options/actions */
+}
+
+
+.enquetes-list .cv-card .poll-options {
+    margin-top: var(--cv-spacing-sm);
+    margin-bottom: var(--cv-spacing-md);
+}
+.enquetes-list .cv-card .poll-options .cv-button { /* If options are buttons */
+    margin-right: var(--cv-spacing-xs, 5px); /* Use theme variable */
+    margin-bottom: var(--cv-spacing-xs, 5px); /* Use theme variable */
+}
+/* Example styling for radio/checkbox options if not buttons */
+.enquetes-list .cv-card .poll-options label {
+    display: block;
+    margin-bottom: var(--cv-spacing-xs);
+}
+
+
+.enquetes-list .cv-card .poll-status {
+    font-size: 0.9em;
+    margin-top: var(--cv-spacing-sm);
+}
+.enquetes-list .cv-card .poll-status.voted {
+    color: var(--current-semantic-success, green); /* Use theme variable */
+    font-weight: 600; /* OpenSansSemibold */
+}
+.enquetes-list .cv-card .poll-status.not-voted {
+    color: var(--current-semantic-warning, orange); /* Use theme variable */
+}
+.enquetes-list .cv-card .poll-status.closed {
+    color: var(--current-text-placeholder, #888);
+}
+
+
+.enquete-resultados-details {
+    padding: var(--cv-spacing-md, 15px); /* Use theme variable */
+    background-color: var(--cv-gray-100, #f9f9f9); /* Use theme variable for light bg */
+    border-radius: var(--cv-border-radius-md); /* Use theme variable */
+    min-height: 100px;
+    margin-bottom: var(--cv-spacing-md);
+}
+.enquete-resultados-details h4 { /* Title for results, e.g., "Resultados para: [Poll Question]" */
+    font-size: var(--cv-font-size-lg);
+    margin-bottom: var(--cv-spacing-sm);
+}
+/* Styles for charts or result bars would go here */
+
+
+.js-back-to-active-enquetes {
+    margin-top: var(--cv-spacing-sm, 10px); /* Use theme variable */
+}
+
+/* FAB for enquetes - .fab class should cover it unless specific icon/color is needed */
+/* .js-fab-enquetes {} */
+
+/* Modal for Enquetes - .cv-modal and .cv-modal-content should cover it */
+/* #modal-criar-enquete .cv-modal-content {} */
+/* Specific form styling for Enquete modal, if different from Aviso modal */
+#form-criar-enquete .cv-form-group {
+    margin-bottom: var(--cv-spacing-md, 15px);
+}
+#form-criar-enquete label {
+    display: block;
+    margin-bottom: var(--cv-spacing-xs, 5px);
+    font-weight: 500;
+    color: var(--current-text-secondary);
+}
+#form-criar-enquete .cv-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+#form-criar-enquete textarea.cv-input {
+    resize: vertical;
+    min-height: 80px; /* Same as aviso form */
+}
+#form-criar-enquete input[type="datetime-local"].cv-input {
+    /* Specific styling for datetime-local if needed */
+}
+
+/* Enhancements for Poll Cards and Results Display */
+.communication__poll-card { /* This is the new class for individual poll cards */
+    margin-bottom: var(--cv-spacing-lg, 20px); /* More spacing between poll cards */
+    /* .cv-card base styling is inherited. Add specific overrides if needed */
+}
+
+.communication__poll-card h4 { /* Poll Question */
+    font-size: var(--cv-font-size-lg); /* Already in .enquetes-list .cv-card h4, ensure it applies if class is different */
+    color: var(--current-text-primary);
+    margin-bottom: var(--cv-spacing-sm, 10px);
+}
+
+.communication__poll-card p { /* Metadata like deadline, status */
+    font-size: 0.9em;
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-xs, 4px);
+}
+.communication__poll-card p.poll-status {
+    margin-top: var(--cv-spacing-sm, 8px);
+    margin-bottom: var(--cv-spacing-md, 15px); /* More space after status before options/results link */
+}
+
+
+.poll-options { /* Container for vote buttons or chosen option text */
+    margin-top: var(--cv-spacing-md, 15px);
+    margin-bottom: var(--cv-spacing-md, 15px);
+}
+
+.poll-options .cv-button.vote-option { /* Specific class for vote buttons */
+    margin-right: var(--cv-spacing-sm, 8px);
+    margin-bottom: var(--cv-spacing-sm, 8px);
+}
+.poll-options p strong { /* Styling for the "Sua escolha: XYZ" text */
+    color: var(--current-text-primary);
+}
+
+
+.view-results { /* Class for "Ver Resultados Parciais" button */
+    font-size: 0.9em; /* Match other link buttons */
+}
+
+/* Poll Result Bar Styling */
+.poll-result-item { /* Container for one option's result */
+    margin-bottom: var(--cv-spacing-sm, 10px);
+}
+.poll-result-option-text {
+    display: block;
+    font-size: 0.95em;
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-xs, 4px);
+}
+.poll-result-bar-container {
+    width: 100%;
+    background-color: var(--cv-gray-200, #e9ecef); /* Light gray background for the track */
+    border-radius: var(--cv-border-radius-sm, 4px);
+    overflow: hidden; /* Ensure inner bar respects border radius */
+}
+.poll-result-bar {
+    height: 22px;
+    line-height: 22px; /* Vertically center text */
+    color: var(--cv-text-on-primary, white);
+    text-align: center;
+    font-size: 0.85em;
+    font-weight: 600; /* Semibold */
+    border-radius: var(--cv-border-radius-sm, 4px); /* Match container, or slightly less if padding desired */
+    transition: width 0.5s ease-in-out; /* Animate bar width changes */
+    white-space: nowrap; /* Prevent text wrapping */
+    overflow: hidden; /* Hide text if bar is too small, though % should be visible */
+    padding: 0 var(--cv-spacing-xs); /* Small padding for text inside bar */
+    box-sizing: border-box;
+}
+
+/* Admin Actions for Poll Cards */
+.communication__poll-card .admin-actions {
+    margin-top: var(--cv-spacing-md, 15px);
+    padding-top: var(--cv-spacing-sm, 10px);
+    border-top: 1px solid var(--current-border-subtle, #eee);
+    text-align: right; /* Align buttons to the right */
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--cv-spacing-sm, 8px);
+}
+
+.communication__poll-card .admin-actions .cv-button-link {
+    /* Uses existing .cv-button-link styling */
+    /* Add specific overrides if needed, e.g., font size or padding */
+    font-size: 0.85em; /* Slightly smaller for admin actions */
+    margin-left: 0; /* Reset margin if .cv-button-link has default left margin */
+}
+
+/* Chamados Tab Specific Styles */
+#content-chamados .cv-section {
+    margin-bottom: var(--cv-spacing-xl, 30px);
+    padding-bottom: var(--cv-spacing-lg, 20px);
+    border-bottom: 1px solid var(--current-border-subtle, #eee);
+}
+#content-chamados .cv-section:last-of-type {
+    border-bottom: none;
+}
+#content-chamados .cv-section h3 {
+    font-size: var(--cv-font-size-h4);
+    color: var(--current-text-primary);
+    margin-bottom: var(--cv-spacing-md);
+}
+
+/* Styling for the list of chamados */
+.chamados-list .cv-card { /* Assuming chamados are displayed in cards */
+    margin-bottom: var(--cv-spacing-md, 15px);
+    padding: var(--cv-spacing-md, 15px);
+    background-color: var(--current-bg-white);
+    border-radius: var(--cv-border-radius-md);
+    box-shadow: var(--current-shadow-sm);
+    cursor: pointer; /* Indicate items are clickable to see details */
+    transition: box-shadow 0.2s ease-in-out;
+}
+.chamados-list .cv-card:hover {
+    box-shadow: var(--current-shadow-md);
+}
+.chamados-list .cv-card h4 { /* Chamado Title */
+    font-size: var(--cv-font-size-lg);
+    color: var(--current-text-primary);
+    margin: 0 0 var(--cv-spacing-xs, 4px) 0;
+}
+.chamados-list .cv-card p { /* metadata like status, date, category */
+    font-size: 0.9em;
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-xs, 4px);
+}
+.chamados-list .cv-card .chamado-status-aberto { color: var(--current-semantic-warning); font-weight: 600; }
+.chamados-list .cv-card .chamado-status-em_andamento { color: var(--current-semantic-info); font-weight: 600; }
+.chamados-list .cv-card .chamado-status-concluido { color: var(--current-semantic-success); font-weight: 600; }
+
+
+/* Styling for Chamado Detail View */
+.chamado-detail-content {
+    padding: var(--cv-spacing-md, 15px);
+    background-color: var(--current-bg-element, #f9f9f9); /* Slightly different bg */
+    border-radius: var(--cv-border-radius-md);
+    margin-bottom: var(--cv-spacing-lg, 20px);
+}
+.chamado-detail-content p {
+    margin-bottom: var(--cv-spacing-sm, 8px);
+    line-height: 1.6;
+}
+.chamado-detail-content strong { /* For labels like "Status:", "Categoria:" */
+    font-weight: 600; /* OpenSansSemibold */
+    color: var(--current-text-primary);
+}
+
+.chamado-interactions {
+    margin-top: var(--cv-spacing-lg, 20px);
+}
+.chamado-interactions h4 {
+    font-size: var(--cv-font-size-lg);
+    margin-bottom: var(--cv-spacing-sm);
+}
+.interaction-item {
+    padding: var(--cv-spacing-sm, 10px);
+    border: 1px solid var(--current-border-subtle, #eee);
+    border-radius: var(--cv-border-radius-sm, 5px);
+    margin-bottom: var(--cv-spacing-sm, 10px);
+    background-color: var(--current-bg-white);
+}
+.interaction-item p {
+    margin: 0 0 var(--cv-spacing-xs, 5px) 0;
+    white-space: pre-wrap; /* Preserve line breaks in comments */
+}
+.interaction-item .meta {
+    font-size: 0.8em;
+    color: var(--current-text-placeholder, #777);
+}
+.interaction-item .meta .author {
+    font-weight: 600; /* OpenSansSemibold */
+}
+
+/* Admin-only fields in modal - already have .admin-only-field class for JS control */
+#form-criar-chamado .admin-only-field {
+    border-top: 1px dashed var(--current-border-subtle);
+    margin-top: var(--cv-spacing-md);
+    padding-top: var(--cv-spacing-md);
+}
+
+/* Specific form styling for Chamado modal, if different */
+#form-criar-chamado .cv-form-group {
+    margin-bottom: var(--cv-spacing-md, 15px);
+}
+#form-criar-chamado label {
+    display: block;
+    margin-bottom: var(--cv-spacing-xs, 5px);
+    font-weight: 500;
+    color: var(--current-text-secondary);
+}
+#form-criar-chamado .cv-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+#form-criar-chamado textarea.cv-input {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Links for Login, Forgot Password, Register pages */
+.login-form__links {
+    text-align: center;
+    margin-top: 15px;
+}
+.login-form__link {
+    color: var(--current-text-link); /* Use theme's link color */
+    text-decoration: none;
+    font-size: 0.9em;
+}
+.login-form__link:hover {
+    text-decoration: underline;
+}
+.login-form__link-separator {
+    margin: 0 5px;
+    color: var(--cv-gray-400); /* Or a suitable separator color from theme */
+}
+
+/* Destaque visual para itens prioritários do feed (ex: comunicados urgentes,
+   enquetes ativas, lembretes de boleto) */
+.feed-item.prio-0 {
+    border-left: 5px solid var(--cv-primary-orange);
+    background-color: var(--cv-gray-100);
+    position: relative;
+}
+
+.feed-item.prio-0::before {
+    content: "\1F4CC"; /* emoji de alfinete */
+    position: absolute;
+    left: 5px;
+    top: 5px;
+}
+
+.feed-item__pin {
+    font-size: 0.85em;
+    color: var(--cv-primary-orange);
+    margin-right: 4px;
+}
