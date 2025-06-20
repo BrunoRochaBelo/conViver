@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using conViver.Core.DTOs;
 using conViver.Core.Entities;
 using conViver.Core.Enums;
 using conViver.Core.Interfaces;
+using CoreFileStorageService = conViver.Core.Interfaces.IFileStorageService;
 using FluentValidation;
 
 namespace conViver.Application.Services
@@ -15,7 +17,7 @@ namespace conViver.Application.Services
     {
         private readonly IOcorrenciaRepository _ocorrenciaRepository;
         private readonly IRepository<Usuario> _usuarioRepository;
-        private readonly IFileStorageService _fileStorageService;
+        private readonly CoreFileStorageService _fileStorageService;
         private readonly IValidator<OcorrenciaInputDto> _ocorrenciaInputValidator;
         private readonly IValidator<OcorrenciaComentarioInputDto> _comentarioInputValidator;
         private readonly IValidator<OcorrenciaStatusInputDto> _statusInputValidator;
@@ -23,7 +25,7 @@ namespace conViver.Application.Services
         public OcorrenciaService(
             IOcorrenciaRepository ocorrenciaRepository,
             IRepository<Usuario> usuarioRepository,
-            IFileStorageService fileStorageService,
+            CoreFileStorageService fileStorageService,
             IValidator<OcorrenciaInputDto> ocorrenciaInputValidator,
             IValidator<OcorrenciaComentarioInputDto> comentarioInputValidator,
             IValidator<OcorrenciaStatusInputDto> statusInputValidator
@@ -62,7 +64,7 @@ namespace conViver.Application.Services
             ocorrencia.Status = OcorrenciaStatus.ABERTA;
             ocorrencia.DataAbertura = DateTime.UtcNow;
             ocorrencia.DataAtualizacao = DateTime.UtcNow;
-            ocorrencia.CondominioId = usuario.CondominioId;
+            ocorrencia.CondominioId = usuario.Unidade?.CondominioId ?? Guid.Empty;
             ocorrencia.UnidadeId = usuario.UnidadeId;
 
             if (anexos != null && anexos.Any())
@@ -131,6 +133,45 @@ namespace conViver.Application.Services
                 throw new KeyNotFoundException($"Ocorrência com ID {id} não encontrada.");
 
             return MapToDetailsDto(ocorrencia);
+        }
+
+        public async Task<IEnumerable<OcorrenciaDto>> ListarOcorrenciasPorUsuarioAsync(
+            Guid condominioId,
+            Guid usuarioId,
+            string? status,
+            string? tipo,
+            CancellationToken ct = default)
+        {
+            var all = await _ocorrenciaRepository.GetAllAsync();
+            var query = all.Where(o => o.CondominioId == condominioId && o.UsuarioId == usuarioId);
+
+            if (!string.IsNullOrEmpty(status) && Enum.TryParse(status, out OcorrenciaStatus statusEnum))
+            {
+                query = query.Where(o => o.Status == statusEnum);
+            }
+
+            if (!string.IsNullOrEmpty(tipo) && Enum.TryParse(tipo, out OcorrenciaCategoria catEnum))
+            {
+                query = query.Where(o => o.Categoria == catEnum);
+            }
+
+            return query.Select(o => new OcorrenciaDto
+            {
+                Id = o.Id,
+                CondominioId = o.CondominioId,
+                UnidadeId = o.UnidadeId,
+                UsuarioId = o.UsuarioId,
+                Titulo = o.Titulo,
+                Descricao = o.Descricao,
+                Fotos = new List<string>(),
+                Status = o.Status.ToString(),
+                Tipo = o.Categoria.ToString(),
+                DataOcorrencia = o.DataAbertura,
+                DataResolucao = null,
+                RespostaAdministracao = null,
+                CreatedAt = o.DataAbertura,
+                UpdatedAt = o.DataAtualizacao
+            }).ToList();
         }
 
         public async Task<OcorrenciaComentarioDto> AddComentarioAsync(

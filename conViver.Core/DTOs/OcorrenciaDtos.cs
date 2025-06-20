@@ -108,4 +108,22 @@ namespace conViver.Core.DTOs
         public int Pagina { get; set; } = 1;
         public int TamanhoPagina { get; set; } = 20;
     }
+
+    public class OcorrenciaDto
+    {
+        public Guid Id { get; set; }
+        public Guid CondominioId { get; set; }
+        public Guid? UnidadeId { get; set; }
+        public Guid UsuarioId { get; set; }
+        public string Titulo { get; set; } = string.Empty;
+        public string Descricao { get; set; } = string.Empty;
+        public List<string> Fotos { get; set; } = new();
+        public string Status { get; set; } = string.Empty;
+        public string Tipo { get; set; } = string.Empty;
+        public DateTime DataOcorrencia { get; set; }
+        public DateTime? DataResolucao { get; set; }
+        public string? RespostaAdministracao { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+    }
 }
