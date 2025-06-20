@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using conViver.Core.Enums;
+// Assuming IFormFile might be replaced or handled differently, will add a placeholder if needed.
+// For now, avoiding direct reference to Microsoft.AspNetCore.Http.Features in Core DTOs.
 
 namespace conViver.Core.DTOs
 {
@@ -14,10 +16,11 @@ namespace conViver.Core.DTOs
 
     public class OcorrenciaInputDto
     {
-        public string Titulo { get; set; }
-        public string Descricao { get; set; }
-        public OcorrenciaCategoria Categoria { get; set; }
+        public string Titulo { get; set; } // Required
+        public string Descricao { get; set; } // Required
+        public OcorrenciaCategoria Categoria { get; set; } // Required
         public OcorrenciaPrioridade Prioridade { get; set; } = OcorrenciaPrioridade.NORMAL;
+        // Anexos will be handled by service method signature for now
     }
 
     public class OcorrenciaUpdateDto
@@ -32,7 +35,7 @@ namespace conViver.Core.DTOs
     {
         public Guid Id { get; set; }
         public string Nome { get; set; }
-        public string Unidade { get; set; }
+        public string Unidade { get; set; } // e.g., "301 - Bloco A"
     }
 
     public class OcorrenciaAnexoDto
@@ -46,7 +49,7 @@ namespace conViver.Core.DTOs
 
     public class OcorrenciaStatusHistoricoDto
     {
-        public string Status { get; set; }
+        public string Status { get; set; } // Enum to string
         public DateTime Data { get; set; }
         public string AlteradoPorNome { get; set; }
     }
@@ -65,9 +68,9 @@ namespace conViver.Core.DTOs
         public Guid Id { get; set; }
         public string Titulo { get; set; }
         public string Descricao { get; set; }
-        public string Categoria { get; set; }
-        public string Status { get; set; }
-        public string Prioridade { get; set; }
+        public string Categoria { get; set; } // Enum to string
+        public string Status { get; set; } // Enum to string
+        public string Prioridade { get; set; } // Enum to string
         public DateTime DataAbertura { get; set; }
         public DateTime DataAtualizacao { get; set; }
         public OcorrenciaUsuarioInfoDto Usuario { get; set; }
@@ -80,29 +83,29 @@ namespace conViver.Core.DTOs
     {
         public Guid Id { get; set; }
         public string Titulo { get; set; }
-        public string Categoria { get; set; }
-        public string Status { get; set; }
+        public string Categoria { get; set; } // Enum to string
+        public string Status { get; set; } // Enum to string
         public DateTime DataAbertura { get; set; }
         public DateTime DataAtualizacao { get; set; }
-        public string Prioridade { get; set; }
+        public string Prioridade { get; set; } // Enum to string
         public string NomeUsuario { get; set; }
     }
 
     public class OcorrenciaComentarioInputDto
     {
-        public string Texto { get; set; }
+        public string Texto { get; set; } // Required
     }
 
     public class OcorrenciaStatusInputDto
     {
-        public OcorrenciaStatus Status { get; set; }
+        public OcorrenciaStatus Status { get; set; } // Required
     }
 
     public class OcorrenciaQueryParametersDto
     {
         public OcorrenciaStatus? Status { get; set; }
         public OcorrenciaCategoria? Categoria { get; set; }
-        public bool? Minha { get; set; }
+        public bool? Minha { get; set; } // True to filter by current user's Ocorrencias
         public DateTime? PeriodoInicio { get; set; }
         public DateTime? PeriodoFim { get; set; }
         public int Pagina { get; set; } = 1;
