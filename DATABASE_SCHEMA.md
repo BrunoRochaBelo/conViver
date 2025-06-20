@@ -71,6 +71,9 @@ CREATE TABLE usuarios (
   perfil INTEGER NOT NULL, -- Enum PerfilUsuario (VARCHAR(20) no doc original)
   ativo BOOLEAN NOT NULL,
   two_fa_secret TEXT NULL, -- VARCHAR(32) no doc original
+  password_reset_token TEXT NULL,
+  password_reset_token_expiry TIMESTAMPTZ NULL,
+  condominio_id UUID NOT NULL REFERENCES condominios(id) ON DELETE CASCADE,
   unidade_id UUID NOT NULL REFERENCES unidades(id) ON DELETE CASCADE, -- Relacionamento direto
   created_at TIMESTAMPTZ NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL
