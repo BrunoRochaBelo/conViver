@@ -57,14 +57,14 @@ Principais módulos:
 
 
 conViver/
-├─ src/
-│ ├─ conViver.Core/ ⟵ Entidades DDD, ValueObjects, Interfaces
-│ ├─ conViver.Application/ ⟵ Services, Validators, CQRS futuro
-│ ├─ conViver.Infrastructure/ ⟵ EF Core, Auth, Cache, Logging
-│ ├─ conViver.API/ ⟵ ASP.NET Core REST (/api/v1)
-│ ├─ conViver.Web/ ⟵ HTML + CSS + JS (assets, pages)
-│ └─ conViver.Mobile/ ⟵ .NET MAUI cross-platform
+├─ conViver.Core/ ⟵ Entidades DDD, ValueObjects, Interfaces
+├─ conViver.Application/ ⟵ Services, Validators, CQRS futuro
+├─ conViver.Infrastructure/ ⟵ EF Core, Auth, Cache, Logging
+├─ conViver.API/ ⟵ ASP.NET Core REST (/api/v1)
+├─ conViver.Web/ ⟵ HTML + CSS + JS (assets, pages)
+├─ conViver.Mobile/ ⟵ .NET MAUI cross-platform
 ├─ conViver.Tests/ ⟵ xUnit unit/integration suites
+├─ scripts/ ⟵ utilidades de desenvolvimento
 ├─ docker-compose.yml ⟵ PostgreSQL + Redis + API
 └─ API_REFERENCE.md, DATABASE_SCHEMA.md, etc. ⟵ Documentação na raiz
 
@@ -86,7 +86,7 @@ conViver/
 
 > Com Docker (`docker compose up -d`) você já sobe **PostgreSQL, Redis e API** num tapa.
 > Para desenvolvimento rápido, a API suporta **SQLite** (arquivo `conviver.db`).
-> Rode `dotnet ef database update --project src/conViver.Infrastructure` antes de `dotnet run` para criar o banco e popular usuários de exemplo (`admin@conviver.local` / `admin123` e `teste@conviver.local` / `123456`).
+> Rode `dotnet ef database update --project conViver.Infrastructure` antes de `dotnet run` para criar o banco e popular usuários de exemplo (`admin@conviver.local` / `admin123` e `teste@conviver.local` / `123456`).
 
 ### 1. Clone & restaure pacotes
 ```bash
@@ -98,11 +98,11 @@ dotnet restore
 # Se desejar usar PostgreSQL:
 docker run -d --name pgconviver -e POSTGRES_PASSWORD=devpass -p 5432:5432 postgres:16
 # Aplique as migrations (SQLite ou PostgreSQL)
-dotnet ef database update --project src/conViver.Infrastructure
+dotnet ef database update --project conViver.Infrastructure
 # (reexecute sempre que fizer pull para aplicar novas migrations)
 
 3. Rodar API
-cd src/conViver.API
+cd conViver.API
 # Linux/macOS
 ASPNETCORE_ENVIRONMENT=Development dotnet run  # localhost:5000  (Swagger em /swagger somente em Development)
 # Windows PowerShell
@@ -120,7 +120,7 @@ npx serve conViver.Web --single
 # Acesse http://localhost:3000/login.html para autenticar e usar o dashboard
 
 5. Mobile MAUI
-cd src/MobileApp.Maui
+cd conViver.Mobile
 dotnet build -t:Run -f net8.0-android
 
 ## Variáveis de Ambiente
@@ -132,9 +132,9 @@ dotnet build -t:Run -f net8.0-android
 | `REDIS_CONNECTION`            | String de conexão para o Redis.                                                                                                         | `localhost:6379,abortConnect=false`                       |
 | `BASE_URL`                    | URL base pública da API, usada em contextos como geração de links em emails.                                                            | `https://sua-api.com/api/v1`                              |
 | `API_CORS_ALLOWED_ORIGINS`    | Define as origens permitidas para CORS na API. Valor em `conViver.API/appsettings.json` (ex: `CorsSettings:AllowedOrigins`).            | `http://localhost:3000;https://yourdomain.com`            |
-| `WEB_API_BASE_URL`            | Define a URL base da API para o cliente web. Valor em `src/conViver.Web/js/config.js` (ex: `window.APP_CONFIG.API_BASE_URL`).                | `http://localhost:5000/api/v1`                            |
+| `WEB_API_BASE_URL`            | Define a URL base da API para o cliente web. Valor em `conViver.Web/js/config.js` (ex: `window.APP_CONFIG.API_BASE_URL`).                | `http://localhost:5000/api/v1`                            |
 
-`src/conViver.API/appsettings.Development.json` possui defaults seguros para desenvolvimento.
+`conViver.API/appsettings.Development.json` possui defaults seguros para desenvolvimento.
 > Usuários de exemplo: `admin@conviver.local` / `admin123` (administrador) e `teste@conviver.local` / `123456` (morador). Verifique se ainda estão válidos após migrações e seeders.
 
 ## Scripts & Automação
@@ -146,8 +146,8 @@ Scripts úteis localmente e em pipelines.
 
 ## Testes
 
-Unit: `src/conViver.Tests/Application/Services` e outros.
-Integration: `src/conViver.Tests/API` (exemplos).
+Unit: `conViver.Tests/Application/Services` e outros.
+Integration: `conViver.Tests/API` (exemplos).
 *Nota: A estrutura de testes em `conViver.Tests` pode conter mais tipos de testes. A referência a Testcontainers é aspiracional se não implementada.*
 `dotnet test` mostra cobertura (coverlet) → badge no README via CI (se configurado).
 
@@ -199,6 +199,16 @@ O cliente web (`conViver.Web`) utiliza um sistema de feedback visual global para
 - Mensagens de sucesso ou erro são exibidas em um banner (`<div id="global-message-banner">`).
 - Esta funcionalidade é gerenciada automaticamente por `js/apiClient.js`.
 
+### Estrutura de Páginas & Navegação
+As páginas HTML da aplicação web ficam em `conViver.Web/pages`. Crie novos arquivos nesse diretório para adicionar funcionalidades.
+
+O menu é montado dinamicamente pelo script `js/nav.js`. Para incluir uma nova página no menu:
+1. Edite `conViver.Web/js/nav.js` e adicione um item no array `items` com a chave, rótulo e caminho da página.
+2. Certifique-se de que a página importe o script `../js/nav.js` (ou `js/nav.js` quando estiver na raiz).
+
+Mantenha os links relativos usando a pasta `pages/` como base. Assim o componente consegue calcular corretamente o prefixo e evita links quebrados.
+Se criar rotas novas, lembre-se de atualizar `scripts/check-html-routes.ps1` para que o script de verificação reconheça o caminho.
+
 ### Feedback Visual (Mobile)
 O cliente móvel (`conViver.Mobile`) utiliza um serviço centralizado para feedback:
 - `Services/FeedbackService.cs` é responsável por exibir feedback.
@@ -211,7 +221,7 @@ O cliente móvel (`conViver.Mobile`) utiliza um serviço centralizado para feedb
 Esse erro indica que o arquivo `conviver.db` está desatualizado em relação às migrations. Execute:
 
 ```bash
-dotnet ef database update --project src/conViver.Infrastructure
+dotnet ef database update --project conViver.Infrastructure
 ```
 
 Se o problema continuar, remova `conviver.db` e rode o comando novamente para recriar o banco.
