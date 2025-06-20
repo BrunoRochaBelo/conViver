@@ -15,7 +15,7 @@ namespace conViver.API.Controllers
 {
     [Route("api/ocorrencias")]
     [ApiController]
-    [Authorize] // Default authorization for all methods unless overridden
+    [Authorize]
     public class OcorrenciasController : ControllerBase
     {
         private readonly IOcorrenciaService _ocorrenciaService;
@@ -31,43 +31,28 @@ namespace conViver.API.Controllers
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
-            {
                 throw new UnauthorizedAccessException("ID de usuário não encontrado ou inválido no token.");
-            }
             return userId;
         }
 
-        private bool IsAdminOrSindico()
-        {
-            // Assuming role names are "Administrador" and "Sindico"
-            return User.IsInRole("Administrador") || User.IsInRole("Sindico");
-        }
+        private bool IsAdminOrSindico() =>
+            User.IsInRole("Administrador") || User.IsInRole("Sindico");
 
-        // POST /api/ocorrencias
         [HttpPost]
-        [Authorize(Roles = "Morador,Sindico,Administrador")] // Assuming these roles can create
+        [Authorize(Roles = "Morador,Sindico,Administrador")]
         public async Task<IActionResult> CreateOcorrencia([FromForm] OcorrenciaInputDto ocorrenciaDto, List<IFormFile> anexos)
         {
             try
             {
                 var userId = GetUserId();
                 var anexoInputs = new List<AnexoInput>();
-
                 if (anexos != null)
-                {
                     foreach (var file in anexos)
-                    {
                         if (file.Length > 0)
-                        {
-                            // Important: IFormFile.OpenReadStream() returns a stream that should be disposed.
-                            // The service layer (especially the storage service) should handle stream disposal.
                             anexoInputs.Add(new AnexoInput(file.FileName, file.ContentType, file.OpenReadStream()));
-                        }
-                    }
-                }
 
-                var createdOcorrencia = await _ocorrenciaService.CreateOcorrenciaAsync(ocorrenciaDto, userId, anexoInputs);
-                return CreatedAtAction(nameof(GetOcorrenciaById), new { id = createdOcorrencia.Id }, createdOcorrencia);
+                var created = await _ocorrenciaService.CreateOcorrenciaAsync(ocorrenciaDto, userId, anexoInputs);
+                return CreatedAtAction(nameof(GetOcorrenciaById), new { id = created.Id }, created);
             }
             catch (ValidationException vex)
             {
@@ -76,7 +61,7 @@ namespace conViver.API.Controllers
             }
             catch (KeyNotFoundException knfex)
             {
-                _logger.LogWarning(knfex, "Recurso não encontrado ao criar ocorrência (ex: usuário).");
+                _logger.LogWarning(knfex, "Recurso não encontrado ao criar ocorrência.");
                 return NotFound(new { message = knfex.Message });
             }
             catch (UnauthorizedAccessException uex)
@@ -91,13 +76,12 @@ namespace conViver.API.Controllers
             }
         }
 
-        // GET /api/ocorrencias/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOcorrenciaById(Guid id)
         {
             try
             {
-                var userId = GetUserId(); // Used for permission checks within the service if implemented there
+                var userId = GetUserId();
                 var ocorrencia = await _ocorrenciaService.GetOcorrenciaByIdAsync(id, userId);
                 return Ok(ocorrencia);
             }
@@ -111,11 +95,6 @@ namespace conViver.API.Controllers
                 _logger.LogWarning(uex, "Acesso não autorizado para ocorrência ID {OcorrenciaId}.", id);
                 return Unauthorized(new { message = uex.Message });
             }
-            // catch (ForbiddenException fex) // If service throws this for permissions
-            // {
-            //     _logger.LogWarning(fex, "Acesso proibido para ocorrência ID {OcorrenciaId}.", id);
-            //     return Forbid(fex.Message);
-            // }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Erro inesperado ao buscar ocorrência ID {id}.");
@@ -123,15 +102,14 @@ namespace conViver.API.Controllers
             }
         }
 
-        // GET /api/ocorrencias
         [HttpGet]
         public async Task<IActionResult> GetOcorrencias([FromQuery] OcorrenciaQueryParametersDto queryParams)
         {
             try
             {
                 var userId = GetUserId();
-                var isAdminOrSindicoUser = IsAdminOrSindico();
-                var result = await _ocorrenciaService.GetOcorrenciasAsync(queryParams, userId, isAdminOrSindicoUser);
+                var isAdminOrSindico = IsAdminOrSindico();
+                var result = await _ocorrenciaService.GetOcorrenciasAsync(queryParams, userId, isAdminOrSindico);
                 return Ok(result);
             }
             catch (UnauthorizedAccessException uex)
@@ -146,15 +124,14 @@ namespace conViver.API.Controllers
             }
         }
 
-        // POST /api/ocorrencias/{id}/comentarios
         [HttpPost("{id}/comentarios")]
-        public async Task<IActionResult> AddComentario(Guid id, [FromBody] OcorrenciaComentarioInputDto comentarioDto)
+        public async Task<IActionResult> AddComentario(Guid id, [FromBody] OcorrenciaComentarioInputDto dto)
         {
             try
             {
                 var userId = GetUserId();
-                var comentarioResult = await _ocorrenciaService.AddComentarioAsync(id, comentarioDto, userId);
-                return Ok(comentarioResult);
+                var result = await _ocorrenciaService.AddComentarioAsync(id, dto, userId);
+                return Ok(result);
             }
             catch (ValidationException vex)
             {
@@ -171,11 +148,6 @@ namespace conViver.API.Controllers
                 _logger.LogWarning(uex, "Acesso não autorizado para comentar na ocorrência ID {OcorrenciaId}.", id);
                 return Unauthorized(new { message = uex.Message });
             }
-            // catch (ForbiddenException fex)
-            // {
-            //     _logger.LogWarning(fex, "Acesso proibido para comentar na ocorrência ID {OcorrenciaId}.", id);
-            //     return Forbid(fex.Message);
-            // }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Erro inesperado ao adicionar comentário na ocorrência ID {id}.");
@@ -183,20 +155,16 @@ namespace conViver.API.Controllers
             }
         }
 
-        // POST /api/ocorrencias/{id}/status
         [HttpPost("{id}/status")]
         [Authorize(Roles = "Sindico,Administrador")]
-        public async Task<IActionResult> ChangeOcorrenciaStatus(Guid id, [FromBody] OcorrenciaStatusInputDto statusDto)
+        public async Task<IActionResult> ChangeOcorrenciaStatus(Guid id, [FromBody] OcorrenciaStatusInputDto dto)
         {
             try
             {
                 var userId = GetUserId();
-                var success = await _ocorrenciaService.ChangeOcorrenciaStatusAsync(id, statusDto, userId);
+                var success = await _ocorrenciaService.ChangeOcorrenciaStatusAsync(id, dto, userId);
                 if (success)
-                {
                     return Ok(new { message = "Status da ocorrência alterado com sucesso." });
-                }
-                // This part might not be reached if service throws exceptions for failures
                 return BadRequest(new { message = "Não foi possível alterar o status da ocorrência." });
             }
             catch (ValidationException vex)
@@ -209,16 +177,11 @@ namespace conViver.API.Controllers
                 _logger.LogWarning(knfex, $"Recurso não encontrado ao alterar status da ocorrência ID {id}.");
                 return NotFound(new { message = knfex.Message });
             }
-            catch (UnauthorizedAccessException uex) // Should be caught by [Authorize] but good for service layer checks
+            catch (UnauthorizedAccessException uex)
             {
                 _logger.LogWarning(uex, "Acesso não autorizado para alterar status da ocorrência ID {OcorrenciaId}.", id);
                 return Unauthorized(new { message = uex.Message });
             }
-            // catch (ForbiddenException fex)
-            // {
-            //     _logger.LogWarning(fex, "Acesso proibido para alterar status da ocorrência ID {OcorrenciaId}.", id);
-            //     return Forbid(fex.Message);
-            // }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Erro inesperado ao alterar status da ocorrência ID {id}.");
@@ -226,33 +189,22 @@ namespace conViver.API.Controllers
             }
         }
 
-        // POST /api/ocorrencias/{id}/anexos
         [HttpPost("{id}/anexos")]
         public async Task<IActionResult> AddAnexos(Guid id, List<IFormFile> anexos)
         {
             if (anexos == null || !anexos.Any())
-            {
                 return BadRequest(new { message = "Nenhum anexo fornecido." });
-            }
 
             try
             {
                 var userId = GetUserId();
-                var anexoInputs = new List<AnexoInput>();
-                foreach (var file in anexos)
-                {
-                    if (file.Length > 0)
-                    {
-                        anexoInputs.Add(new AnexoInput(file.FileName, file.ContentType, file.OpenReadStream()));
-                    }
-                }
+                var inputs = anexos.Where(f => f.Length > 0)
+                                   .Select(f => new AnexoInput(f.FileName, f.ContentType, f.OpenReadStream()))
+                                   .ToList();
+                if (!inputs.Any())
+                    return BadRequest(new { message = "Nenhum anexo válido fornecido (ex: arquivos vazios)." });
 
-                if (!anexoInputs.Any())
-                {
-                     return BadRequest(new { message = "Nenhum anexo válido fornecido (ex: arquivos vazios)." });
-                }
-
-                await _ocorrenciaService.AddAnexosAsync(id, anexoInputs, userId);
+                await _ocorrenciaService.AddAnexosAsync(id, inputs, userId);
                 return Ok(new { message = "Anexos adicionados com sucesso." });
             }
             catch (KeyNotFoundException knfex)
@@ -265,11 +217,6 @@ namespace conViver.API.Controllers
                 _logger.LogWarning(uex, "Acesso não autorizado para adicionar anexos à ocorrência ID {OcorrenciaId}.", id);
                 return Unauthorized(new { message = uex.Message });
             }
-            // catch (ForbiddenException fex)
-            // {
-            //     _logger.LogWarning(fex, "Acesso proibido para adicionar anexos à ocorrência ID {OcorrenciaId}.", id);
-            //     return Forbid(fex.Message);
-            // }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Erro inesperado ao adicionar anexos à ocorrência ID {id}.");
@@ -277,17 +224,15 @@ namespace conViver.API.Controllers
             }
         }
 
-        // GET /api/ocorrencias/{id}/historico-status
         [HttpGet("{id}/historico-status")]
         public async Task<IActionResult> GetStatusHistorico(Guid id)
         {
             try
             {
-                // Permissions might be tied to GetOcorrenciaById, or could be open if user can see occurrence
                 var historico = await _ocorrenciaService.GetStatusHistoricoAsync(id);
                 return Ok(historico);
             }
-            catch (KeyNotFoundException knfex) // If service checks if Ocorrencia exists first
+            catch (KeyNotFoundException knfex)
             {
                 _logger.LogWarning(knfex, $"Ocorrência ID {id} não encontrada ao buscar histórico de status.");
                 return NotFound(new { message = knfex.Message });
@@ -304,20 +249,15 @@ namespace conViver.API.Controllers
             }
         }
 
-        // DELETE /api/ocorrencias/{id}
         [HttpDelete("{id}")]
         [Authorize(Roles = "Sindico,Administrador")]
         public async Task<IActionResult> DeleteOcorrencia(Guid id)
         {
             try
             {
-                var userId = GetUserId(); // For logging or if service needs it for some reason
+                var userId = GetUserId();
                 var success = await _ocorrenciaService.DeleteOcorrenciaAsync(id, userId);
-                if (success)
-                {
-                    return NoContent();
-                }
-                // This part might not be reached if service throws exceptions for failures
+                if (success) return NoContent();
                 return BadRequest(new { message = "Não foi possível excluir a ocorrência." });
             }
             catch (KeyNotFoundException knfex)
@@ -325,16 +265,11 @@ namespace conViver.API.Controllers
                 _logger.LogWarning(knfex, $"Recurso não encontrado ao excluir ocorrência ID {id}.");
                 return NotFound(new { message = knfex.Message });
             }
-            catch (UnauthorizedAccessException uex) // Should be caught by [Authorize]
+            catch (UnauthorizedAccessException uex)
             {
                 _logger.LogWarning(uex, "Acesso não autorizado para excluir ocorrência ID {OcorrenciaId}.", id);
                 return Unauthorized(new { message = uex.Message });
             }
-            // catch (ForbiddenException fex)
-            // {
-            //     _logger.LogWarning(fex, "Acesso proibido para excluir ocorrência ID {OcorrenciaId}.", id);
-            //     return Forbid(fex.Message);
-            // }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Erro inesperado ao excluir ocorrência ID {id}.");
@@ -342,9 +277,8 @@ namespace conViver.API.Controllers
             }
         }
 
-        // GET /api/ocorrencias/categorias
         [HttpGet("categorias")]
-        [AllowAnonymous] // Typically categories are public, but can be [Authorize] if needed
+        [AllowAnonymous]
         public async Task<IActionResult> GetCategorias()
         {
             try

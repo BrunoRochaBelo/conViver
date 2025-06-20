@@ -3,26 +3,37 @@ import { requireAuth } from './auth.js';
 import { showGlobalFeedback } from './main.js';
 
 // --- Global state & constants ---
-// Notices
-let currentNoticePage = 1; isLoadingNotices = false; noMoreNotices = false;
-const noticesContainerSelector = '.js-avisos'; const noticeScrollSentinelId = 'notice-scroll-sentinel';
-let fetchedNotices = [];
+// Unified Feed (replaces Notices for Mural Tab)
+let currentFeedPage = 1; isLoadingFeedItems = false; noMoreFeedItems = false;
+const feedContainerSelector = '.js-avisos'; // Using existing container for Mural feed
+const feedScrollSentinelId = 'notice-scroll-sentinel'; // Reusing existing sentinel ID
+let fetchedFeedItems = [];
 
-// Modals (Avisos)
+// Modals (Avisos - still used for creating content that might appear in feed)
 let criarAvisoModal; let formCriarAviso; let avisoIdField;
 
 // Modals (Enquetes)
 let criarEnqueteModal; let formCriarEnquete; let enqueteIdField;
 let modalEnqueteTitle; let formEnqueteSubmitButton;
 
-// Chamados
-let chamadosData = [];
+// Chamados / Solicitações Modal Globals (for creating new Chamados)
 let criarChamadoModal; let formCriarChamado; let chamadoIdFieldModal;
-let modalChamadoTitle; let formChamadoSubmitButtonModal; // Renamed to avoid conflict
-let chamadosListContainer; let chamadoDetailSection; let chamadoDetailContent;
-let chamadoDetailTitle; let chamadosFiltersSection; let chamadosListSection;
-let backToChamadosListButton; let submitChamadoCommentButton; let chamadoCommentText;
-let chamadoInteractionsContainer; let chamadoStatusModalFormGroup; let chamadoCategoriaModalFormGroup;
+let modalChamadoTitle; let formChamadoSubmitButtonModal;
+// DOM elements for the content of #content-solicitacoes (now mostly unused for display)
+// These might be removed if no longer referenced by any retained modal helper functions.
+let chamadosListContainer; // Points to #content-solicitacoes .js-chamados-list
+let chamadoDetailSection;  // Points to #content-solicitacoes #chamado-detail-section
+let chamadoDetailContent;
+let chamadoDetailTitle;
+let chamadosFiltersSection; // Points to #content-solicitacoes #chamados-filters-section
+let chamadosListSection;   // Points to #content-solicitacoes #chamados-list-section
+let backToChamadosListButton;
+let submitChamadoCommentButton;
+let chamadoCommentText;
+let chamadoInteractionsContainer;
+// Modal specific (global as modal is global)
+let chamadoStatusModalFormGroup;
+let chamadoCategoriaModalFormGroup;
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -43,23 +54,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     chamadoIdFieldModal = document.getElementById('chamado-id');
     modalChamadoTitle = document.getElementById('modal-chamado-title');
     formChamadoSubmitButtonModal = document.getElementById('form-chamado-submit-button');
-    chamadosListContainer = document.querySelector('.js-chamados-list');
-    chamadoDetailSection = document.getElementById('chamado-detail-section');
-    chamadoDetailContent = document.querySelector('.js-chamado-detail-content');
-    chamadoDetailTitle = document.querySelector('.js-chamado-detail-title');
-    chamadosFiltersSection = document.getElementById('chamados-filters-section');
-    chamadosListSection = document.getElementById('chamados-list-section');
-    backToChamadosListButton = document.querySelector('.js-back-to-chamados-list');
-    submitChamadoCommentButton = document.getElementById('submit-chamado-comment');
-    chamadoCommentText = document.getElementById('chamado-comment-text');
-    chamadoInteractionsContainer = document.querySelector('.js-chamado-interactions');
-    chamadoStatusModalFormGroup = document.querySelector('#modal-criar-chamado .js-chamado-status-form-group');
-    chamadoCategoriaModalFormGroup = document.querySelector('#modal-criar-chamado .js-chamado-categoria-form-group');
+    // Solicitacoes (formerly Chamados) related DOM elements for its dedicated tab content (which will be mostly unused)
+    // Retaining references for now in case any part of modals or existing functions are reused.
+    chamadosListContainer = document.querySelector('#content-solicitacoes .js-chamados-list'); // Adjusted selector
+    chamadoDetailSection = document.getElementById('chamado-detail-section'); // This is inside content-solicitacoes
+    chamadoDetailContent = document.querySelector('#content-solicitacoes .js-chamado-detail-content');
+    chamadoDetailTitle = document.querySelector('#content-solicitacoes .js-chamado-detail-title');
+    chamadosFiltersSection = document.getElementById('chamados-filters-section'); // Inside content-solicitacoes
+    chamadosListSection = document.getElementById('chamados-list-section'); // Inside content-solicitacoes
+    backToChamadosListButton = document.querySelector('#content-solicitacoes .js-back-to-chamados-list');
+    submitChamadoCommentButton = document.getElementById('submit-chamado-comment'); // Inside content-solicitacoes
+    chamadoCommentText = document.getElementById('chamado-comment-text'); // Inside content-solicitacoes
+    chamadoInteractionsContainer = document.querySelector('#content-solicitacoes .js-chamado-interactions');
+    chamadoStatusModalFormGroup = document.querySelector('#modal-criar-chamado .js-chamado-status-form-group'); // Modal is global
+    chamadoCategoriaModalFormGroup = document.querySelector('#modal-criar-chamado .js-chamado-categoria-form-group'); // Modal is global
 
     setupTabs();
 
-    await loadStickyNotices(); await loadInitialNotices(); setupNoticeObserver();
-    updateUserSpecificUI(); setupFilterButtonListener(); setupModalEventListeners();
+    // Mural Tab (Unified Feed)
+    await loadStickyNotices(); // Keep for now, may be integrated or removed later
+    await loadInitialFeedItems();
+    setupFeedObserver();
+    setupFeedContainerClickListener(); // Added for item clicks
+
+    updateUserSpecificUI(); // This might need review if FAB actions change per tab
+    setupFilterButtonListener(); // This will now apply to the feed
+    setupModalEventListeners(); // Generic modal listeners (close, etc.)
 });
 
 // --- Tab System ---
@@ -71,59 +91,629 @@ function setupTabs() {
             tabContents.forEach(content => content.style.display = 'none');
             tabButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            const targetContentId = 'content-' + button.id.split('-')[1];
-            const targetContent = document.getElementById(targetContentId);
-            if (targetContent) targetContent.style.display = 'block';
 
-            if (button.id === 'tab-enquetes' && !button.dataset.initialized) { setupEnquetesTab(); button.dataset.initialized = 'true'; }
-            if (button.id === 'tab-chamados' && !button.dataset.initialized) { setupChamadosTab(); button.dataset.initialized = 'true'; }
+            tabContents.forEach(content => content.style.display = 'none');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            const muralContent = document.getElementById('content-mural');
+            const muralCategoryFilter = document.getElementById('category-filter');
+            // const periodFilter = document.getElementById('period-filter'); // If we want to reset period
+
+            if (button.id === 'tab-mural') {
+                if (muralCategoryFilter) muralCategoryFilter.value = ''; // 'Todas'
+                // if (periodFilter) periodFilter.value = ''; // Reset period
+                if (!button.dataset.initializedFeed) { // Different flag if Mural itself has specific init
+                    loadInitialFeedItems(); // Load all items
+                    button.dataset.initializedFeed = 'true';
+                } else {
+                    loadInitialFeedItems(); // Still reload if filters changed or just to refresh
+                }
+                if (muralContent) muralContent.style.display = 'block';
+            } else if (button.id === 'tab-enquetes') {
+                if (!button.dataset.initialized) {
+                    setupEnquetesTab(); // Sets up one-time things for this filter mode
+                    button.dataset.initialized = 'true';
+                }
+                // Subsequent clicks also apply the filter and show mural
+                if (muralCategoryFilter) muralCategoryFilter.value = 'enquetes';
+                // if (periodFilter) periodFilter.value = ''; // Reset period
+                loadInitialFeedItems();
+                if (muralContent) muralContent.style.display = 'block';
+            } else if (button.id === 'tab-solicitacoes') {
+                if (!button.dataset.initialized) {
+                    setupSolicitacoesTab(); // Sets up one-time things for this filter mode
+                    button.dataset.initialized = 'true';
+                }
+                // Subsequent clicks also apply the filter and show mural
+                if (muralCategoryFilter) muralCategoryFilter.value = 'solicitacoes';
+                // if (periodFilter) periodFilter.value = ''; // Reset period
+                loadInitialFeedItems();
+                if (muralContent) muralContent.style.display = 'block';
+            }
+            // Show/hide FABs based on the *logical* tab, not the content div
+            updateUserSpecificUI(button.id);
         });
     });
+
+    // Ensure the default active tab's logic is triggered correctly
     const activeTab = document.querySelector('.cv-tab-button.active');
     if (activeTab) {
-        const activeContentId = 'content-' + activeTab.id.split('-')[1];
-        const activeContent = document.getElementById(activeContentId);
-        if (activeContent) activeContent.style.display = 'block';
-        if (activeTab.id === 'tab-chamados' && !activeTab.dataset.initialized) { setupChamadosTab(); activeTab.dataset.initialized = 'true'; }
-        if (activeTab.id === 'tab-enquetes' && !activeTab.dataset.initialized) { setupEnquetesTab(); activeTab.dataset.initialized = 'true'; }
+        // Manually trigger the click handler to ensure correct content display and filtering
+        activeTab.click();
+        // The above click() will also handle dataset.initialized flags.
+    } else {
+        // Fallback if no tab is active by default (shouldn't happen with current HTML)
+        const firstTab = document.querySelector('.cv-tab-button');
+        if (firstTab) firstTab.click();
     }
 }
 
-// --- Mural Digital: Avisos (Condensed) ---
-function openCriarAvisoModal() { /* ... */ } function openEditAvisoModal(noticeId) { /* ... */ } function closeCriarAvisoModal() { /* ... */ } function setupModalEventListeners() { /* ... */ } function setupNoticeActionButtons() { /* ... */ } async function handleDeleteAviso(noticeId) { /* ... */ } async function loadStickyNotices() { /* ... */ } function updateUserSpecificUI() { /* ... */ } function setupFilterButtonListener() { /* ... */ } async function loadInitialNotices() { /* ... */ } function setupNoticeObserver() { /* ... */ } async function fetchAndDisplayNotices(page, append = false) { /* ... */ }
-function openCriarAvisoModal() { if (criarAvisoModal && formCriarAviso && avisoIdField) { formCriarAviso.reset(); avisoIdField.value = ''; criarAvisoModal.querySelector('h2').textContent = 'Criar Novo Aviso'; formCriarAviso.querySelector('button[type="submit"]').textContent = 'Salvar Aviso'; criarAvisoModal.style.display = 'flex'; } } function openEditAvisoModal(noticeId) { if (criarAvisoModal && formCriarAviso && avisoIdField) { const noticeData = fetchedNotices.find(n => n.id === noticeId); if (!noticeData) { showGlobalFeedback('Erro: Dados do aviso não encontrados.', 'error'); return; } formCriarAviso.reset(); avisoIdField.value = noticeData.id; document.getElementById('aviso-titulo').value = noticeData.titulo || ''; document.getElementById('aviso-corpo').value = noticeData.corpo || ''; const categoriasSelect = document.getElementById('aviso-categorias'); if (noticeData.categorias && categoriasSelect) { Array.from(categoriasSelect.options).forEach(option => option.selected = false); noticeData.categorias.forEach(catValue => { const option = Array.from(categoriasSelect.options).find(opt => opt.value === catValue); if (option) option.selected = true; }); } criarAvisoModal.querySelector('h2').textContent = 'Editar Aviso'; formCriarAviso.querySelector('button[type="submit"]').textContent = 'Salvar Alterações'; criarAvisoModal.style.display = 'flex'; } } function closeCriarAvisoModal() { if (criarAvisoModal) criarAvisoModal.style.display = 'none'; } function setupModalEventListeners() { document.querySelectorAll('.js-modal-criar-aviso-close').forEach(btn => btn.addEventListener('click', closeCriarAvisoModal)); if (criarAvisoModal) window.addEventListener('click', (event) => { if (event.target === criarAvisoModal) closeCriarAvisoModal(); }); if (formCriarAviso && avisoIdField) { formCriarAviso.addEventListener('submit', async (event) => { event.preventDefault(); const currentAvisoId = avisoIdField.value; if (currentAvisoId) { showGlobalFeedback('Salvando alterações... (simulado)', 'info'); await new Promise(resolve => setTimeout(resolve, 1000)); showGlobalFeedback('Aviso atualizado! (simulado)', 'success'); } else { showGlobalFeedback('Criando aviso... (simulado)', 'info'); await new Promise(resolve => setTimeout(resolve, 1000)); showGlobalFeedback('Aviso criado! (simulado)', 'success'); } closeCriarAvisoModal(); await loadInitialNotices(); }); } } function setupNoticeActionButtons() { document.querySelectorAll('.js-edit-aviso').forEach(button => { const newButton = button.cloneNode(true); button.parentNode.replaceChild(newButton, button); newButton.addEventListener('click', (event) => openEditAvisoModal(parseInt(event.target.dataset.id, 10))); }); document.querySelectorAll('.js-delete-aviso').forEach(button => { const newButton = button.cloneNode(true); button.parentNode.replaceChild(newButton, button); newButton.addEventListener('click', async (event) => { if (confirm('Tem certeza?')) await handleDeleteAviso(parseInt(event.target.dataset.id, 10)); }); }); } async function handleDeleteAviso(noticeId) { showGlobalFeedback('Excluindo aviso... (simulado)', 'info'); await new Promise(resolve => setTimeout(resolve, 1000)); fetchedNotices = fetchedNotices.filter(n => n.id !== noticeId); const cardToRemove = document.querySelector(`.js-avisos .cv-card [data-id="${noticeId}"]`)?.closest('.cv-card'); if (cardToRemove) cardToRemove.remove(); else await loadInitialNotices(); showGlobalFeedback('Aviso excluído! (simulado)', 'success'); } async function loadStickyNotices() { const stickyContainer = document.querySelector('.js-sticky-notices'); if (!stickyContainer) return; stickyContainer.innerHTML = `<article class="cv-card communication__post"><h3 class="communication__post-title">Aviso Urgente Fixo Exemplo</h3><p>Este é um exemplo de aviso fixo.</p></article>`; } function updateUserSpecificUI() { const fabMural = document.querySelector('.js-fab-mural'); if (fabMural) { fabMural.style.display = 'block'; fabMural.addEventListener('click', openCriarAvisoModal); } } function setupFilterButtonListener() { const btn = document.getElementById('apply-filters-button'); if (btn) btn.addEventListener('click', () => { showGlobalFeedback("Filtros aplicados (simulado).", 'info'); loadInitialNotices(); }); } async function loadInitialNotices() { currentNoticePage = 1; noMoreNotices = false; isLoadingNotices = false; fetchedNotices = []; const container = document.querySelector(noticesContainerSelector); if (!container) return; let sentinel = document.getElementById(noticeScrollSentinelId); if (!sentinel) { sentinel = document.createElement('div'); sentinel.id = noticeScrollSentinelId; sentinel.style.height = '10px'; container.appendChild(sentinel); } sentinel.style.display = 'block'; await fetchAndDisplayNotices(currentNoticePage, false); } function setupNoticeObserver() { const sentinel = document.getElementById(noticeScrollSentinelId); if (!sentinel) return;  const observer = new IntersectionObserver(async entries => { if (entries[0].isIntersecting && !isLoadingNotices && !noMoreNotices) { currentNoticePage++; await fetchAndDisplayNotices(currentNoticePage, true); } }, { root: null, threshold: 0.1 }); observer.observe(sentinel); } async function fetchAndDisplayNotices(page, append = false) { if (isLoadingNotices) return; isLoadingNotices = true; const container = document.querySelector(noticesContainerSelector); if (!container) { isLoadingNotices = false; return; } const sentinelElement = document.getElementById(noticeScrollSentinelId); if (!append) { fetchedNotices = []; container.innerHTML = '<p class="cv-loading-message">Carregando...</p>'; if (sentinelElement) container.appendChild(sentinelElement); } const simResp = { items: [] }; if (page === 1 && !append) { simResp.items.push({ id: 1, titulo: "Manutenção Elevador", corpo: "Terça-feira.", categorias: ["manutencao"] }); simResp.items.push({ id: 2, titulo: "Festa Junina", corpo: "No salão!", categorias: ["comunicados"] }); } else if (page === 2 && append) { simResp.items.push({ id: 3, titulo: "Coleta Seletiva", corpo: "Separar lixo.", categorias: ["comunicados"] }); } const avisos = simResp.items; if (append) fetchedNotices.push(...avisos); else fetchedNotices = avisos; if (!append) { container.innerHTML = ''; if (sentinelElement) container.appendChild(sentinelElement); } if (avisos && avisos.length > 0) { avisos.forEach(a => { const art = document.createElement('article'); art.className = 'cv-card communication__post'; art.dataset.noticeId = a.id; art.innerHTML = `<h3 class="communication__post-title">${a.titulo}</h3><p>${a.corpo}</p><div class="communication__post-meta">Cat: ${a.categorias.join(', ')}</div><div class="communication__post-actions"><button class="cv-button-link js-edit-aviso" data-id="${a.id}">Editar</button><button class="cv-button-link danger js-delete-aviso" data-id="${a.id}">Excluir</button></div>`; if (sentinelElement) container.insertBefore(art, sentinelElement); else container.appendChild(art); }); } else { if (page > 1) noMoreNotices = true; if (sentinelElement) sentinelElement.style.display = 'none'; if (!append && fetchedNotices.length === 0) container.innerHTML = '<p>Nenhum aviso.</p>'; } setupNoticeActionButtons(); isLoadingNotices = false; }
 
-// --- Enquetes e Votações Tab (Condensed) ---
-let sampleActivePolls = [ { id: 'poll1', question: 'Cor do hall?', options: [ { id: 'opt1_1', text: 'Azul' },{ id: 'opt1_2', text: 'Verde' } ], deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), type: 'informal', hasVotes: false }, { id: 'poll2', question: 'Bicicletário G2?', options: [ { id: 'opt2_1', text: 'Sim' }, { id: 'opt2_2', text: 'Não' } ], deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), type: 'formal_assembleia', hasVotes: true }];
-let userVotes = { 'poll2': 'opt2_1' };
-let samplePastPolls = [ { id: 'pastPoll1', question: 'Reforma fachada', options: [ { id: 'popt1_1', text: 'Alfa', votes: 15 }, { id: 'popt1_2', text: 'Beta', votes: 35 } ], closedDate: new Date('2023-10-15T17:00:00Z').toISOString(), type: 'formal_assembleia', totalVotes: 70 }];
-function setupEnquetesTab(){/*...*/} function openCreateEnqueteModal(){/*...*/} async function handleCreateEnquete(data){/*...*/} async function loadActiveEnquetes(){/*...*/} function attachEnqueteAdminActionListeners(){/*...*/} function openEditEnqueteModal(pollId){/*...*/} async function handleUpdateEnquete(id,data){/*...*/} async function handleEndEnquete(pollId){/*...*/} async function handleDeleteEnquete(pollId){/*...*/} function attachVoteButtonListeners(){/*...*/} function attachViewResultsButtonListeners(){/*...*/} function getWinningOptionText(poll){/*...*/} async function loadHistoricoEnquetes(filters={}){} function viewPollResults(pollId,isFromHistory=false){/*...*/} function setupEnqueteModalAndFAB(){/*...*/} function setupEnquetesFilters(){/*...*/}
-function setupEnquetesTab() { loadActiveEnquetes(); loadHistoricoEnquetes(); setupEnqueteModalAndFAB(); setupEnquetesFilters(); const backButton = document.querySelector('#content-enquetes .js-back-to-active-enquetes'); if (backButton) { backButton.addEventListener('click', () => { document.getElementById('enquetes-resultados-section').style.display = 'none'; document.getElementById('enquetes-ativas-section').style.display = 'block'; if(document.getElementById('enquetes-historico-section')) document.getElementById('enquetes-historico-section').style.display = 'block';}); } }
-function openCreateEnqueteModal() { if (criarEnqueteModal) { formCriarEnquete.reset(); enqueteIdField.value = ''; modalEnqueteTitle.textContent = 'Nova Enquete'; formEnqueteSubmitButton.textContent = 'Salvar Enquete'; criarEnqueteModal.style.display = 'flex'; } }
-async function handleCreateEnquete(data) { const newPollId = 'poll' + Date.now(); const newPoll = { id: newPollId, question: data.pergunta, options: data.opcoes.map((opt, i) => ({ id: `opt${newPollId}_${i}`, text: opt })), deadline: new Date(data.prazo).toISOString(), type: data.tipo, hasVotes: false }; sampleActivePolls.push(newPoll); showGlobalFeedback('Enquete criada! (simulado)', 'success'); loadActiveEnquetes(); }
-async function loadActiveEnquetes() { const container = document.querySelector('.js-enquetes-ativas-list'); if (!container) return; container.innerHTML = '<p>Carregando...</p>'; await new Promise(r => setTimeout(r, 300)); const polls = JSON.parse(JSON.stringify(sampleActivePolls)); container.innerHTML = ''; if (!polls || polls.length === 0) { container.innerHTML = '<p>Nenhuma enquete ativa.</p>'; return; } polls.forEach(p => { const card = document.createElement('div'); card.className = 'cv-card communication__poll-card'; card.dataset.pollId = p.id; const voted = userVotes[p.id]; let optsHtml = '<div class="poll-options">'; if (!voted) p.options.forEach(opt => optsHtml += `<button class="cv-button vote-option" data-poll-id="${p.id}" data-option-id="${opt.id}">${opt.text}</button>`); else optsHtml += `<p>Sua escolha: <strong>${p.options.find(o=>o.id===voted)?.text||'N/A'}</strong></p>`; optsHtml+='</div>'; const adminActs = `<div class="admin-actions"><button class="cv-button-link edit-enquete" data-poll-id="${p.id}">Editar</button><button class="cv-button-link end-enquete" data-poll-id="${p.id}">Encerrar</button><button class="cv-button-link danger delete-enquete" data-poll-id="${p.id}">Excluir</button></div>`; card.innerHTML = `<h4>${p.question}</h4><p>Prazo: ${new Date(p.deadline).toLocaleString()}</p><p class="poll-status ${voted?'voted':'not-voted'}">${voted?'Você já votou':'Votação aberta'}</p>${optsHtml}<button class="cv-button-link view-results" data-poll-id="${p.id}">Ver Resultados</button>${adminActs}`; container.appendChild(card); }); attachVoteButtonListeners(); attachViewResultsButtonListeners(); attachEnqueteAdminActionListeners(); }
-function attachEnqueteAdminActionListeners() { document.querySelectorAll('.edit-enquete').forEach(b => { const newB = b.cloneNode(true); b.parentNode.replaceChild(newB, b); newB.addEventListener('click', e => openEditEnqueteModal(e.target.dataset.pollId)); }); document.querySelectorAll('.end-enquete').forEach(b => { const newB = b.cloneNode(true); b.parentNode.replaceChild(newB, b); newB.addEventListener('click', e => { if (confirm('Encerrar?')) handleEndEnquete(e.target.dataset.pollId); }); }); document.querySelectorAll('.delete-enquete').forEach(b => { const newB = b.cloneNode(true); b.parentNode.replaceChild(newB, b); newB.addEventListener('click', e => { if (confirm('Excluir?')) handleDeleteEnquete(e.target.dataset.pollId); }); }); }
-function openEditEnqueteModal(pollId) { const poll = sampleActivePolls.find(p => p.id === pollId); if (!poll) { showGlobalFeedback('Enquete não encontrada.', 'error'); return; } if (poll.hasVotes) { showGlobalFeedback('Enquete com votos não pode ser editada.', 'warning'); return; } if (criarEnqueteModal) { formCriarEnquete.reset(); enqueteIdField.value = poll.id; modalEnqueteTitle.textContent = 'Editar Enquete'; document.getElementById('enquete-pergunta').value = poll.question; document.getElementById('enquete-opcoes').value = poll.options.map(opt => opt.text).join('\n'); document.getElementById('enquete-prazo').value = poll.deadline.substring(0, 16); document.getElementById('enquete-tipo').value = poll.type; formEnqueteSubmitButton.textContent = 'Salvar Alterações'; criarEnqueteModal.style.display = 'flex'; } }
-async function handleUpdateEnquete(id, data) { const idx = sampleActivePolls.findIndex(p => p.id === id); if (idx > -1) { sampleActivePolls[idx] = { ...sampleActivePolls[idx], question: data.pergunta, options: data.opcoes.map((txt, i) => ({ id: `opt${id}_${i}`, text: txt })), deadline: new Date(data.prazo).toISOString(), type: data.tipo }; showGlobalFeedback('Enquete atualizada! (simulado)', 'success'); loadActiveEnquetes(); } else { showGlobalFeedback('Erro ao atualizar.', 'error'); } }
-async function handleEndEnquete(pollId) { const idx = sampleActivePolls.findIndex(p => p.id === pollId); if (idx > -1) { const poll = sampleActivePolls.splice(idx, 1)[0]; poll.closedDate = new Date().toISOString(); poll.totalVotes = Math.floor(Math.random()*50+10); poll.options.forEach(o => o.votes = Math.floor(Math.random()*(poll.totalVotes/poll.options.length+15))); let sumVotes=poll.options.reduce((s,o)=>s+o.votes,0); if(sumVotes>0){const factor=poll.totalVotes/sumVotes; poll.options.forEach(o=>o.votes=Math.round(o.votes*factor)); poll.totalVotes=poll.options.reduce((s,o)=>s+o.votes,0);} samplePastPolls.unshift(poll); showGlobalFeedback('Enquete encerrada! (simulado)', 'success'); loadActiveEnquetes(); loadHistoricoEnquetes(); } else { showGlobalFeedback('Erro ao encerrar.', 'error'); } }
-async function handleDeleteEnquete(pollId) { const poll = sampleActivePolls.find(p => p.id === pollId); if (poll && poll.hasVotes) { showGlobalFeedback('Enquetes com votos não podem ser excluídas.', 'warning'); return; } sampleActivePolls = sampleActivePolls.filter(p => p.id !== pollId); showGlobalFeedback('Enquete excluída! (simulado)', 'success'); loadActiveEnquetes(); }
-function attachVoteButtonListeners() { document.querySelectorAll('.js-enquetes-ativas-list .vote-option').forEach(b => { const newB = b.cloneNode(true); b.parentNode.replaceChild(newB, b); newB.addEventListener('click', async e => { userVotes[e.target.dataset.pollId] = e.target.dataset.optionId; showGlobalFeedback('Voto registrado!', 'success'); await loadActiveEnquetes(); }); }); }
-function attachViewResultsButtonListeners() { document.querySelectorAll('.js-enquetes-ativas-list .view-results, .js-enquetes-historico-list .view-full-results').forEach(b => { const newB = b.cloneNode(true); b.parentNode.replaceChild(newB, b); newB.addEventListener('click', e => { viewPollResults(e.target.dataset.pollId, newB.classList.contains('view-full-results')); }); }); }
-function getWinningOptionText(poll) { if (!poll.options || poll.options.length === 0) return 'N/A'; let winning = poll.options.reduce((p, c) => (p.votes > c.votes) ? p : c); return `${winning.text} (${winning.votes} votos)`; }
-async function loadHistoricoEnquetes(filters = {}) { const container = document.querySelector('.js-enquetes-historico-list'); if (!container) return; container.innerHTML = '<p>Carregando...</p>'; await new Promise(r => setTimeout(r, 300)); let polls = JSON.parse(JSON.stringify(samplePastPolls)); if (filters.period) polls = polls.filter(p => p.closedDate.startsWith(filters.period)); if (filters.type) polls = polls.filter(p => p.type === filters.type); container.innerHTML = ''; if (!polls || polls.length === 0) { container.innerHTML = '<p>Nenhum histórico.</p>'; return; } polls.forEach(p => { const card = document.createElement('div'); card.className = 'cv-card communication__poll-card past-poll-card'; card.innerHTML = `<h4>${p.question}</h4><p>Encerrada: ${new Date(p.closedDate).toLocaleDateString()}</p><p>Tipo: ${p.type}</p><p><strong>Resultado:</strong> ${getWinningOptionText(p)} (${p.totalVotes} votos)</p><button class="cv-button-link view-full-results" data-poll-id="${p.id}">Ver Detalhes</button>`; container.appendChild(card); }); attachViewResultsButtonListeners(); }
-function viewPollResults(pollId, isFromHistory = false) { document.getElementById('enquetes-ativas-section').style.display = 'none'; const histSect = document.getElementById('enquetes-historico-section'); if(isFromHistory && histSect) histSect.style.display = 'none'; const resultsSect = document.getElementById('enquetes-resultados-section'); const detailsCont = resultsSect.querySelector('.js-enquete-resultados-details'); const src = isFromHistory ? samplePastPolls : sampleActivePolls; const poll = src.find(p => p.id === pollId); if (!poll) { detailsCont.innerHTML = '<p>Erro: Enquete não encontrada.</p>'; resultsSect.style.display = 'block'; return; } detailsCont.innerHTML = `<p>Carregando para "${poll.question}"...</p>`; setTimeout(() => { let html = `<h4>${isFromHistory ? 'Resultado Final' : 'Resultados Parciais'}: ${poll.question}</h4>`; poll.options.forEach(opt => { let perc=0, votes=0; if(isFromHistory){votes=opt.votes; perc=poll.totalVotes>0?((votes/poll.totalVotes)*100).toFixed(1):0;}else{votes=Math.floor(Math.random()*30);perc=Math.floor(Math.random()*100);} html+=`<div class="poll-result-item"><span class="poll-result-option-text">${opt.text} (${votes} votos):</span><div class="poll-result-bar-container"><div class="poll-result-bar" style="width:${perc}%; background-color:var(${isFromHistory?'--current-semantic-success':'--current-primary-blue'});">${perc}%</div></div></div>`; }); if(isFromHistory) html+=`<p>Total de votos: ${poll.totalVotes}</p>`; else html+=`<p>Total parcial (simulado): ${Math.floor(Math.random()*50+10)}</p>`; detailsCont.innerHTML = html; }, 300); resultsSect.style.display = 'block'; }
-function setupEnqueteModalAndFAB() { const fab = document.querySelector('.js-fab-enquetes'); if (fab) { fab.style.display = 'block'; fab.addEventListener('click', openCreateEnqueteModal); } if (criarEnqueteModal) { document.querySelectorAll('.js-modal-criar-enquete-close').forEach(b => b.addEventListener('click', () => criarEnqueteModal.style.display = 'none')); window.addEventListener('click', e => { if (e.target === criarEnqueteModal) criarEnqueteModal.style.display = 'none'; }); } if (formCriarEnquete) { formCriarEnquete.addEventListener('submit', async e => { e.preventDefault(); const id = enqueteIdField.value; const data = { pergunta: document.getElementById('enquete-pergunta').value, opcoes: document.getElementById('enquete-opcoes').value.split('\n').filter(opt => opt.trim() !== ''), prazo: document.getElementById('enquete-prazo').value, tipo: document.getElementById('enquete-tipo').value }; if (id) await handleUpdateEnquete(id, data); else await handleCreateEnquete(data); if(criarEnqueteModal) criarEnqueteModal.style.display = 'none'; }); } }
-function setupEnquetesFilters() { const btn = document.getElementById('apply-enquete-filters-button'); if (btn) { btn.addEventListener('click', () => { const period = document.getElementById('enquete-period-filter').value; const type = document.getElementById('enquete-tipo-filter').value; showGlobalFeedback(`Filtrando: P=${period||'Todos'}, T=${type||'Todos'}.`, 'info'); loadHistoricoEnquetes({ period, type }); }); } }
+// --- Unified Feed (Mural Tab) ---
+function openCriarAvisoModal() { if (criarAvisoModal && formCriarAviso && avisoIdField) { formCriarAviso.reset(); avisoIdField.value = ''; criarAvisoModal.querySelector('h2').textContent = 'Criar Novo Aviso'; formCriarAviso.querySelector('button[type="submit"]').textContent = 'Salvar Aviso'; criarAvisoModal.style.display = 'flex'; } }
+// openEditAvisoModal might need to be rethought for feed items or become generic
+function openEditFeedItemModal(itemType, itemId) {
+    // For now, only Avisos are directly editable from feed via this old path
+    if (itemType === 'Aviso') {
+        const itemData = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Aviso');
+        if (!itemData || !itemData.detalhesAdicionais || !itemData.detalhesAdicionais.corpo) { // Assuming corpo is in DetalhesAdicionais for Aviso
+             showGlobalFeedback('Erro: Dados do aviso não encontrados para edição.', 'error'); return;
+        }
+        if (criarAvisoModal && formCriarAviso && avisoIdField) {
+            formCriarAviso.reset();
+            avisoIdField.value = itemData.id;
+            document.getElementById('aviso-titulo').value = itemData.titulo || '';
+            document.getElementById('aviso-corpo').value = itemData.detalhesAdicionais.corpo || '';
+            // TODO: Handle categories if they are part of DetalhesAdicionais or another field
+            // const categoriasSelect = document.getElementById('aviso-categorias');
+            // if (itemData.categorias && categoriasSelect) { ... }
+            criarAvisoModal.querySelector('h2').textContent = 'Editar Aviso';
+            formCriarAviso.querySelector('button[type="submit"]').textContent = 'Salvar Alterações';
+            criarAvisoModal.style.display = 'flex';
+        }
+    } else {
+        showGlobalFeedback(`Edição para ${itemType} ainda não implementada diretamente do feed.`, 'info');
+    }
+}
+function closeCriarAvisoModal() { if (criarAvisoModal) criarAvisoModal.style.display = 'none'; }
+function setupModalEventListeners() {
+    document.querySelectorAll('.js-modal-criar-aviso-close').forEach(btn => btn.addEventListener('click', closeCriarAvisoModal));
+    if (criarAvisoModal) window.addEventListener('click', (event) => { if (event.target === criarAvisoModal) closeCriarAvisoModal(); });
+
+    if (formCriarAviso && avisoIdField) {
+        formCriarAviso.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const currentAvisoId = avisoIdField.value;
+            // This is a simplified simulation. Real implementation would call apiClient.post or .put
+            if (currentAvisoId) {
+                showGlobalFeedback('Salvando alterações do aviso... (simulado)', 'info');
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                showGlobalFeedback('Aviso atualizado! (simulado)', 'success');
+            } else {
+                showGlobalFeedback('Criando novo aviso... (simulado)', 'info');
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                showGlobalFeedback('Aviso criado! (simulado)', 'success');
+            }
+            closeCriarAvisoModal();
+            await loadInitialFeedItems(); // Reload feed to show changes/new item
+        });
+    }
+}
+function setupFeedItemActionButtons() {
+    // Edit action (currently specific to Aviso type for simplicity)
+    document.querySelectorAll('.js-edit-feed-item').forEach(button => {
+        const newButton = button.cloneNode(true); // Avoid duplicate listeners
+        button.parentNode.replaceChild(newButton, button);
+        newButton.addEventListener('click', (event) => {
+            const itemType = event.target.dataset.itemType;
+            const itemId = event.target.dataset.itemId; // Ensure IDs are strings if Guids
+            openEditFeedItemModal(itemType, itemId);
+        });
+    });
+
+    // Delete action (currently specific to Aviso type for simplicity)
+    document.querySelectorAll('.js-delete-feed-item').forEach(button => {
+        const newButton = button.cloneNode(true); // Avoid duplicate listeners
+        button.parentNode.replaceChild(newButton, button);
+        newButton.addEventListener('click', async (event) => {
+            const itemType = event.target.dataset.itemType;
+            const itemId = event.target.dataset.itemId;
+            if (confirm(`Tem certeza que deseja excluir este ${itemType}?`)) {
+                // For now, only simulate delete for Avisos
+                if (itemType === "Aviso") {
+                    await handleDeleteAviso(itemId); // Assuming this function is adapted or still relevant
+                } else {
+                    showGlobalFeedback(`Exclusão para ${itemType} não implementada. (simulado)`, 'info');
+                }
+            }
+        });
+    });
+}
+async function handleDeleteAviso(itemId) { // Parameter changed to itemId
+    showGlobalFeedback('Excluindo aviso... (simulado)', 'info');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    // This would be an API call: await apiClient.delete(`/api/v1/avisos/${itemId}`);
+    fetchedFeedItems = fetchedFeedItems.filter(i => !(i.id === itemId && i.itemType === 'Aviso'));
+    const cardToRemove = document.querySelector(`${feedContainerSelector} .cv-card[data-item-id="${itemId}"][data-item-type="Aviso"]`);
+    if (cardToRemove) {
+        cardToRemove.remove();
+    } else {
+        // If card not found (e.g. due to UI changes), reload the whole feed as a fallback
+        await loadInitialFeedItems();
+    }
+    showGlobalFeedback('Aviso excluído! (simulado)', 'success');
+}
+async function loadStickyNotices() {
+    const stickyContainer = document.querySelector('.js-sticky-notices');
+    if (!stickyContainer) return;
+    // This might be replaced or augmented by prioritized items from the backend feed
+    // For now, keeping example sticky notice.
+    stickyContainer.innerHTML = `<article class="cv-card communication__post"><h3 class="communication__post-title">Aviso Urgente Fixo Exemplo</h3><p>Este é um exemplo de aviso fixo.</p></article>`;
+}
+function updateUserSpecificUI() {
+    const fabMural = document.querySelector('.js-fab-mural');
+    if (fabMural) {
+        fabMural.style.display = 'block'; // Or based on user role for creating Avisos
+        fabMural.addEventListener('click', openCriarAvisoModal);
+    }
+    // Update other FABs based on current tab or general permissions
+    const currentActiveTabId = activeTabId || document.querySelector('.cv-tab-button.active')?.id;
+    const fabEnquetes = document.querySelector('.js-fab-enquetes');
+    const fabSolicitacoes = document.querySelector('.js-fab-chamados'); // This FAB's class might need renaming if it's specific
+
+    if(fabEnquetes) fabEnquetes.style.display = (currentActiveTabId === 'tab-enquetes' /* && userIsAdmin */) ? 'block' : 'none';
+    if(fabSolicitacoes) fabSolicitacoes.style.display = (currentActiveTabId === 'tab-solicitacoes') ? 'block' : 'none';
+
+}
+function setupFilterButtonListener() {
+    const btn = document.getElementById('apply-filters-button');
+    if (btn) btn.addEventListener('click', () => {
+        // Filter values are now read directly in fetchAndDisplayFeedItems
+        showGlobalFeedback("Aplicando filtros ao feed...", 'info');
+        loadInitialFeedItems();
+    });
+}
+async function loadInitialFeedItems() {
+    currentFeedPage = 1;
+    noMoreFeedItems = false;
+    isLoadingFeedItems = false;
+    // fetchedFeedItems = []; // Do not clear here if filters are meant to preserve existing items before new load
+    const container = document.querySelector(feedContainerSelector);
+    if (!container) return;
+
+    let sentinel = document.getElementById(feedScrollSentinelId);
+    if (!sentinel) {
+        sentinel = document.createElement('div');
+        sentinel.id = feedScrollSentinelId;
+        sentinel.style.height = '10px';
+        if (container.lastChild?.id !== feedScrollSentinelId) {
+            container.appendChild(sentinel);
+        }
+    }
+    sentinel.style.display = 'block';
+
+    await fetchAndDisplayFeedItems(currentFeedPage, false); // `false` for append means clear container
+}
+function setupFeedObserver() {
+    const sentinel = document.getElementById(feedScrollSentinelId);
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(async entries => {
+        if (entries[0].isIntersecting && !isLoadingFeedItems && !noMoreFeedItems) {
+            currentFeedPage++;
+            await fetchAndDisplayFeedItems(currentFeedPage, true);
+        }
+    }, { root: null, threshold: 0.1 });
+    observer.observe(sentinel);
+}
+
+async function fetchAndDisplayFeedItems(page, append = false) {
+    if (isLoadingFeedItems) return;
+    isLoadingFeedItems = true;
+    const container = document.querySelector(feedContainerSelector);
+    if (!container) { isLoadingFeedItems = false; return; }
+
+    const sentinelElement = document.getElementById(feedScrollSentinelId);
+    const loadingMessageClass = 'cv-loading-message';
+
+    if (!append) {
+        // fetchedFeedItems = []; // Clearing here means filters always start fresh.
+        container.innerHTML = '';
+        if (sentinelElement) container.appendChild(sentinelElement);
+
+        const loadingP = document.createElement('p');
+        loadingP.className = loadingMessageClass;
+        loadingP.textContent = 'Carregando feed...';
+        if (sentinelElement) container.insertBefore(loadingP, sentinelElement);
+        else container.appendChild(loadingP);
+    } else {
+        if (sentinelElement && sentinelElement.previousSibling?.className !== loadingMessageClass) {
+             const loadingP = document.createElement('p');
+             loadingP.className = loadingMessageClass;
+             loadingP.textContent = 'Carregando mais itens...';
+             container.insertBefore(loadingP, sentinelElement);
+        }
+    }
+
+    const categoriaFilter = document.getElementById('category-filter')?.value || null;
+    const periodoFilterInput = document.getElementById('period-filter')?.value;
+    let periodoInicio = null, periodoFim = null;
+    if (periodoFilterInput) {
+        const [year, monthStr] = periodoFilterInput.split('-');
+        const yearNum = parseInt(year);
+        const monthNum = parseInt(monthStr);
+        periodoInicio = new Date(yearNum, monthNum - 1, 1);
+        periodoFim = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+    }
+
+    try {
+        const response = await apiClient.get('/api/v1/feed', {
+            pageNumber: page,
+            pageSize: 10,
+            categoria: categoriaFilter,
+            periodoInicio: periodoInicio ? periodoInicio.toISOString() : null,
+            periodoFim: periodoFim ? periodoFim.toISOString() : null
+        });
+
+        const items = response;
+
+        const loadingP = container.querySelector(`.${loadingMessageClass}`);
+        if (loadingP) loadingP.remove();
+
+        if (!append) {
+             container.innerHTML = '';
+             if (sentinelElement) container.appendChild(sentinelElement);
+        }
+
+        if (items && items.length > 0) {
+            if (!append) fetchedFeedItems = []; // Clear if it's a fresh load (page 1, not appending)
+            items.forEach(item => {
+                const itemElement = renderFeedItem(item);
+                if (sentinelElement) container.insertBefore(itemElement, sentinelElement);
+                else container.appendChild(itemElement);
+            });
+            fetchedFeedItems.push(...items); // Add new items to the list
+        } else {
+            if (page > 1) {
+                noMoreFeedItems = true;
+                if (sentinelElement) sentinelElement.style.display = 'none';
+            } else if (!append) { // Page 1 and no items
+                 container.innerHTML = '<p>Nenhum item encontrado para os filtros atuais.</p>';
+                 if (sentinelElement) container.appendChild(sentinelElement);
+                 if (sentinelElement) sentinelElement.style.display = 'none';
+            }
+        }
+        setupFeedItemActionButtons();
+    } catch (error) {
+        console.error("Erro ao buscar feed:", error);
+        const loadingP = container.querySelector(`.${loadingMessageClass}`);
+        if (loadingP) loadingP.remove();
+        if (!append) {
+            container.innerHTML = '<p class="cv-error-message">Erro ao carregar o feed. Tente novamente mais tarde.</p>';
+            if (sentinelElement) container.appendChild(sentinelElement);
+        } else {
+            showGlobalFeedback("Erro ao carregar mais itens.", "error");
+        }
+    } finally {
+        isLoadingFeedItems = false;
+    }
+}
+
+function renderFeedItem(item) {
+    const card = document.createElement('article');
+    card.className = `cv-card feed-item feed-item-${item.itemType.toLowerCase()} prio-${item.prioridadeOrdenacao}`;
+    card.dataset.itemId = item.id;
+    card.dataset.itemType = item.itemType;
+
+    let contentHtml = `
+        <h3 class="feed-item__title">${item.titulo}</h3>
+        <p class="feed-item__summary">${item.resumo}</p>
+        <div class="feed-item__meta">
+            <span class="feed-item__type">Tipo: ${item.itemType}</span>
+            <span class="feed-item__date">Data: ${new Date(item.dataHoraPrincipal).toLocaleString()}</span>
+            ${item.status ? `<span class="feed-item__status">Status: ${item.status}</span>` : ''}
+            ${item.categoria ? `<span class="feed-item__category">Categoria: ${item.categoria}</span>` : ''}
+        </div>
+    `;
+
+    // Basic actions - Details link and specific actions for some types
+    let actionsHtml = `<div class="feed-item__actions">`;
+    if (item.urlDestino) {
+        // For now, assume urlDestino is a relative path for internal navigation
+        // In future, this could be a full URL or trigger a JS function
+        actionsHtml += `<a href="${item.urlDestino}" class="cv-button-link js-view-item-detail">Ver Detalhes</a>`;
+    }
+
+    // Example: Add edit/delete for Avisos (if user has permission - not checked here)
+    if (item.itemType === 'Aviso') {
+        actionsHtml += `<button class="cv-button-link js-edit-feed-item" data-item-id="${item.id}" data-item-type="${item.itemType}">Editar</button>`;
+        actionsHtml += `<button class="cv-button-link danger js-delete-feed-item" data-item-id="${item.id}" data-item-type="${item.itemType}">Excluir</button>`;
+    }
+    // TODO: Add specific actions for other item types as needed
+
+    actionsHtml += `</div>`;
+    card.innerHTML = contentHtml + actionsHtml;
+    return card;
+}
+
+function setupFeedContainerClickListener() {
+    const container = document.querySelector(feedContainerSelector);
+    if (container) {
+        container.addEventListener('click', handleFeedItemClick);
+    }
+}
+
+async function handleFeedItemClick(event) {
+    const clickedElement = event.target;
+
+    // Find the card element for item ID and type
+    const cardElement = clickedElement.closest('.feed-item');
+    if (!cardElement) return;
+
+    const itemId = cardElement.dataset.itemId;
+    const itemType = cardElement.dataset.itemType;
+
+    if (!itemId || !itemType) return;
+
+    // Specific button actions within a card
+    if (clickedElement.classList.contains('js-edit-feed-item')) {
+        // Assumes edit is primarily for 'Aviso' for now via existing modal
+        if (itemType === 'Aviso') {
+            openEditFeedItemModal(itemType, itemId);
+        } else {
+            showGlobalFeedback(`Edição para ${itemType} não implementada aqui.`, 'info');
+        }
+        return;
+    }
+
+    if (clickedElement.classList.contains('js-delete-feed-item')) {
+         // Assumes delete is primarily for 'Aviso' for now
+        if (itemType === 'Aviso') {
+            if (confirm(`Tem certeza que deseja excluir este ${itemType}?`)) {
+                await handleDeleteAviso(itemId);
+            }
+        } else {
+            showGlobalFeedback(`Exclusão para ${itemType} não implementada aqui.`, 'info');
+        }
+        return;
+    }
+
+    // Generic click on the card or "View Details" link
+    // The 'js-view-item-detail' class can be on the <a> tag generated in renderFeedItem
+    if (clickedElement.classList.contains('js-view-item-detail') || event.currentTarget === cardElement) {
+        // If a specific "View Details" link is clicked, or if the click is on the card itself (but not on other buttons)
+        // This simple check might need refinement if cards have many interactive elements.
+        // For now, any click not on edit/delete on an Aviso, or any click on other item types, goes to specific handlers.
+
+        switch (itemType) {
+            case 'Aviso':
+                handleAvisoClick(itemId, cardElement); // Pass cardElement or specific target
+                break;
+            case 'Enquete':
+                handleEnqueteClick(itemId, cardElement);
+                break;
+            case 'Chamado':
+                handleChamadoClick(itemId, cardElement);
+                break;
+            case 'Ocorrencia':
+                handleOcorrenciaClick(itemId, cardElement);
+                break;
+            case 'Documento':
+                handleDocumentoClick(itemId, cardElement);
+                break;
+            case 'Reserva':
+                handleReservaClick(itemId, cardElement);
+                break;
+            case 'Encomenda':
+                handleEncomendaClick(itemId, cardElement);
+                break;
+            case 'BoletoLembrete':
+                handleBoletoLembreteClick(itemId, cardElement);
+                break;
+            default:
+                showGlobalFeedback(`Interação para tipo '${itemType}' não definida.`, 'info');
+                break;
+        }
+    }
+}
+
+// Specific Click Handlers
+function handleAvisoClick(itemId, targetElementOrCard) {
+    // Default action for Aviso click (if not edit/delete) could be to show details
+    // For now, it's handled by edit/delete or the generic UrlDestino.
+    // If a specific detail view is needed beyond what urlDestino provides:
+    const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Aviso');
+    if (item) {
+        // Example: open a read-only modal or navigate
+        // If item.urlDestino is used by js-view-item-detail, this might be redundant
+        // unless the card itself is clickable to mean "details".
+        showGlobalFeedback(`Visualizando Aviso: ${item.titulo}`, 'info');
+        // Potentially open a modal with item.detalhesAdicionais.corpo etc.
+        // Or rely on the generic UrlDestino navigation if that's the primary way.
+        if(item.urlDestino && !targetElementOrCard.classList.contains('js-edit-feed-item') && !targetElementOrCard.classList.contains('js-delete-feed-item')) {
+             // If urlDestino is meant to be a page navigation:
+             // window.location.href = item.urlDestino;
+             // If it's for a modal or specific JS action:
+             console.log(`Aviso item ${itemId} clicked, target:`, targetElementOrCard, `URL: ${item.urlDestino}`);
+        }
+    }
+}
+
+function handleEnqueteClick(itemId, targetElementOrCard) {
+    const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Enquete');
+    showGlobalFeedback(`Enquete: ${item?.titulo || itemId}. Funcionalidade de visualização/votação a ser implementada.`, 'info');
+    // TODO: Integrate with enquete viewing/voting modal logic from setupEnquetesTab.js
+    // This might involve:
+    // 1. Fetching full enquete details if 'item' is just a summary.
+    // 2. Adapting viewPollResults(itemId, isHistory) or parts of loadActiveEnquetes to show options/results in a modal.
+}
+
+function handleChamadoClick(itemId, targetElementOrCard) {
+    const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Chamado');
+    showGlobalFeedback(`Chamado: ${item?.titulo || itemId}. Tentando exibir detalhes...`, 'info');
+    // Attempt to use existing viewChamadoDetail
+    // This is a placeholder integration. True integration requires careful state management
+    // if viewChamadoDetail manipulates general page layout rather than a modal.
+    // It also assumes 'chamadosData' is populated or viewChamadoDetail can fetch its own data.
+    // For now, we pass a simplified object if the original function expects it, or just the ID.
+
+    // Switch to "Solicitações" tab and display details
+    // This is a bit of a hack for now. Ideally, details are shown in a modal within the Mural tab.
+    const solicitacoesTabButton = document.getElementById('tab-solicitacoes');
+    if (solicitacoesTabButton) {
+        solicitacoesTabButton.click(); // Switch tab
+        // Wait for tab switch and content to potentially initialize/load
+        setTimeout(() => {
+            // Check if viewChamadoDetail is available and if it can work with just an ID
+            // The existing viewChamadoDetail relies on a global `chamadosData` array which is sample data.
+            // This will not work correctly without significant refactoring of viewChamadoDetail.
+            // For this subtask, we'll show a message.
+            // viewChamadoDetail(itemId);
+            alert(`Chamado item: ${item?.titulo || itemId}. Detalhes seriam exibidos aqui ou na aba Solicitações.`);
+            console.log("Original Chamado Data for Detail View (if needed by an adapted viewChamadoDetail):", item);
+        }, 100);
+    } else {
+         alert(`Chamado item: ${item?.titulo || itemId}. Detalhes seriam exibidos aqui.`);
+    }
+}
+
+function handleOcorrenciaClick(itemId, targetElementOrCard) {
+    const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Ocorrencia');
+    alert(`Ocorrência: ${item?.titulo || itemId}. Detalhes da ocorrência seriam exibidos aqui.`);
+}
+
+function handleDocumentoClick(itemId, targetElementOrCard) {
+    const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Documento');
+    if (item && item.urlDestino) {
+        window.open(item.urlDestino, '_blank');
+    } else {
+        showGlobalFeedback(`Documento: ${item?.titulo || itemId}. URL não encontrada.`, 'warning');
+    }
+}
+
+function handleReservaClick(itemId, targetElementOrCard) {
+    const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Reserva');
+    alert(`Reserva: ${item?.titulo || itemId}. Detalhes da reserva seriam exibidos aqui.`);
+}
+
+function handleEncomendaClick(itemId, targetElementOrCard) {
+    const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Encomenda');
+    alert(`Encomenda: ${item?.titulo || itemId}. Detalhes da encomenda seriam exibidos aqui.`);
+}
+
+function handleBoletoLembreteClick(itemId, targetElementOrCard) {
+    const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'BoletoLembrete');
+    if (item && item.urlDestino) {
+        // Assuming urlDestino for boleto might be a link to second via or payment page
+        window.open(item.urlDestino, '_blank');
+    } else {
+        showGlobalFeedback(`Boleto: ${item?.titulo || itemId}. Link para detalhes não disponível.`, 'info');
+    }
+}
 
 
-// --- Chamados e Solicitações Tab ---
-const sampleChamados = [
-    { id: 'chamado1', titulo: 'Lâmpada queimada corredor Bloco B, 2º andar', status: 'aberto', dataAbertura: new Date('2024-03-10T10:00:00Z').toISOString(), ultimaAtualizacao: new Date('2024-03-10T10:00:00Z').toISOString(), categoria: 'manutencao_geral', userOwns: true, interactions: [{ user: 'Morador Unidade 101', date: new Date('2024-03-10T10:05:00Z').toISOString(), text: 'A lâmpada da escada também está piscando.', type: 'comment' },{ user: 'Síndico Admin', date: new Date('2024-03-10T11:00:00Z').toISOString(), text: 'Recebido. Equipe de manutenção notificada.', type: 'comment' }], attachments: [{fileName: 'foto_corredor.jpg', url: '#'}] },
-    { id: 'chamado2', titulo: 'Vazamento na torneira da churrasqueira', status: 'em_andamento', dataAbertura: new Date('2024-03-08T15:30:00Z').toISOString(), ultimaAtualizacao: new Date('2024-03-09T09:15:00Z').toISOString(), categoria: 'manutencao_geral', userOwns: false, interactions: [], attachments: [] },
-    { id: 'chamado3', titulo: 'Portão da garagem não fecha completamente', status: 'concluido', dataAbertura: new Date('2024-02-20T08:00:00Z').toISOString(), ultimaAtualizacao: new Date('2024-02-25T17:00:00Z').toISOString(), categoria: 'seguranca', userOwns: true, interactions: [{user: 'Síndico Admin', date: new Date('2024-02-25T17:00:00Z').toISOString(), text: 'Serviço concluído pela empresa X.', type: 'status_change', newStatus: 'concluido'}], attachments: [] },
-    { id: 'chamado4', titulo: 'Limpeza da área comum pós-evento', status: 'aberto', dataAbertura: new Date('2024-03-11T09:00:00Z').toISOString(), ultimaAtualizacao: new Date('2024-03-11T09:00:00Z').toISOString(), categoria: 'limpeza', userOwns: false, interactions: [], attachments: [{fileName: 'fotos_area_suja.zip', url: '#'}]}
-];
+// --- Enquetes e Votações Tab ---
+// Sample data (active and past polls) are removed as enquetes now come from the unified feed.
+// let userVotes = { 'poll2': 'opt2_1' }; // Example user vote data - interactions will be handled differently
 
+function setupEnquetesTab() {
+    console.log("Enquetes tab activated - filters main feed.");
+    // Primary logic is now in setupTabs to set filter and reload main feed.
+    // This function handles one-time setup for this tab's *filter mode* and its specific creation modal.
+
+    // Old data loading and rendering functions (loadActiveEnquetes, loadHistoricoEnquetes, viewPollResults, etc.)
+    // that populated #content-enquetes are removed.
+    // The content for enquetes will be displayed in the main feed container on the Mural tab.
+
+    // Setup for "Nova Enquete" FAB and modal. This is still needed.
+    setupEnqueteModalAndFAB();
+
+    // Filters specific to the old #content-enquetes (like #apply-enquete-filters-button)
+    // are no longer primary for displaying enquetes, as the main feed filters are used.
+    // If specific sub-filtering for enquetes (beyond what the main feed offers) is needed
+    // when this tab is active, that would be a new feature. For now, removing old filter setup.
+    // setupEnquetesFilters(); // This was for the old dedicated historic view.
+
+    // The #content-enquetes div might show a helper message.
+    const enquetesContent = document.getElementById('content-enquetes');
+    if (enquetesContent && !enquetesContent.querySelector('.cv-info-message')) {
+        // enquetesContent.innerHTML = '<p class="cv-info-message">As enquetes são exibidas no Mural principal, filtradas por esta categoria.</p>';
+    }
+}
+
+// openCreateEnqueteModal and modal interactions are still needed for creating new enquetes.
+function openCreateEnqueteModal() {
+    if (criarEnqueteModal) {
+        formCriarEnquete.reset();
+        enqueteIdField.value = '';
+        modalEnqueteTitle.textContent = 'Nova Enquete';
+        formEnqueteSubmitButton.textContent = 'Salvar Enquete';
+        criarEnqueteModal.style.display = 'flex';
+    }
+}
+
+// handleCreateEnquete and handleUpdateEnquete would now be API calls.
+// For this subtask, they are simplified to reflect they are called.
+// After creation/update, the main feed should be refreshed to show changes.
+async function handleCreateEnquete(data) {
+    console.log("Creating enquete:", data);
+    // This would be an API call: await apiClient.post('/api/v1/votacoes', data);
+    showGlobalFeedback('Nova enquete criada com sucesso! (simulado). Ela aparecerá no feed.', 'success');
+    // Consider reloading feed if on Mural tab or if current filter is 'enquetes':
+    // if (document.getElementById('tab-mural').classList.contains('active') ||
+    //     document.getElementById('category-filter')?.value === 'enquetes') {
+    //    loadInitialFeedItems();
+    // }
+}
+async function handleUpdateEnquete(id, data) {
+    console.log("Updating enquete:", id, data);
+    // This would be an API call: await apiClient.put(`/api/v1/votacoes/${id}`, data);
+    showGlobalFeedback('Enquete atualizada com sucesso! (simulado).', 'success');
+}
+
+// This sets up the "Nova Enquete" FAB and the "Criar Enquete" modal.
+function setupEnqueteModalAndFAB() {
+    const fab = document.querySelector('.js-fab-enquetes');
+    if (fab) {
+        // Visibility is controlled by updateUserSpecificUI
+        fab.addEventListener('click', openCreateEnqueteModal);
+    }
+    if (criarEnqueteModal) {
+        document.querySelectorAll('.js-modal-criar-enquete-close').forEach(b => b.addEventListener('click', () => criarEnqueteModal.style.display = 'none'));
+        window.addEventListener('click', e => { if (e.target === criarEnqueteModal) criarEnqueteModal.style.display = 'none'; });
+    }
+    if (formCriarEnquete) {
+        formCriarEnquete.addEventListener('submit', async e => {
+            e.preventDefault();
+            const id = enqueteIdField.value;
+            const data = {
+                pergunta: document.getElementById('enquete-pergunta').value,
+                opcoes: document.getElementById('enquete-opcoes').value.split('\n').filter(opt => opt.trim() !== ''),
+                prazo: document.getElementById('enquete-prazo').value,
+                tipo: document.getElementById('enquete-tipo').value
+            };
+            if (id) await handleUpdateEnquete(id, data);
+            else await handleCreateEnquete(data);
+            if (criarEnqueteModal) criarEnqueteModal.style.display = 'none';
+        });
+    }
+}
+
+// Old Enquete helper functions that are no longer needed as Enquetes are part of the feed:
+// loadActiveEnquetes, attachEnqueteAdminActionListeners, openEditEnqueteModal (for direct edit from old list),
+// handleEndEnquete, handleDeleteEnquete (direct from old list),
+// attachVoteButtonListeners, attachViewResultsButtonListeners, getWinningOptionText,
+// loadHistoricoEnquetes, viewPollResults, setupEnquetesFilters.
+// Retain openCreateEnqueteModal, handleCreateEnquete, handleUpdateEnquete (as API stubs), setupEnqueteModalAndFAB.
+
+
+// --- Solicitações Tab (formerly Chamados) ---
+// The 'sampleChamados' array is removed as data comes from the feed.
+
+// These formatters can be useful for rendering feed items of type Chamado/Ocorrencia if needed.
+// Or if the "Criar Chamado" modal needs to display these formatted values.
 function formatChamadoStatus(status) {
     const map = { 'aberto': 'Aberto', 'em_andamento': 'Em Andamento', 'concluido': 'Concluído' };
     return map[status] || status;
@@ -133,267 +723,66 @@ function formatChamadoCategoria(categoria) {
     return map[categoria] || categoria;
 }
 
-function setupChamadosTab() {
-    console.log("Chamados tab selected/loaded");
-    if (chamadosData.length === 0) {
-        chamadosData = JSON.parse(JSON.stringify(sampleChamados));
-    }
-    loadChamadosList();
-    setupChamadoModalAndFAB();
-    setupChamadoFilters();
-    setupChamadoDetailViewBackButton();
-}
+// Renamed from setupChamadosTab
+function setupSolicitacoesTab() {
+    console.log("Solicitações tab activated - filters main feed.");
+    // Primary logic is now in setupTabs to set filter and reload main feed.
+    // This function handles one-time setup for this tab's *filter mode* and its specific creation modal.
 
-async function loadChamadosList(filters = {}) {
-    if (!chamadosListContainer) return;
-    chamadosListContainer.innerHTML = '<p class="cv-loading-message">Carregando chamados...</p>';
-    await new Promise(resolve => setTimeout(resolve, 300));
+    setupChamadoModalAndFAB(); // This sets up the modal for creating new Chamados (a type of Solicitação)
 
-    let filteredChamados = JSON.parse(JSON.stringify(chamadosData));
-
-    if (filters.status) {
-        filteredChamados = filteredChamados.filter(c => c.status === filters.status);
-    }
-    if (filters.date) {
-        filteredChamados = filteredChamados.filter(c => c.dataAbertura.startsWith(filters.date));
-    }
-    if (filters.category) {
-        filteredChamados = filteredChamados.filter(c => c.categoria === filters.category);
-    }
-
-    chamadosListContainer.innerHTML = '';
-    if (!filteredChamados || filteredChamados.length === 0) {
-        chamadosListContainer.innerHTML = '<p>Nenhum chamado encontrado para os filtros aplicados.</p>';
-        return;
-    }
-
-    filteredChamados.forEach(chamado => {
-        const card = document.createElement('div');
-        card.className = `cv-card chamado-card chamado-status-${chamado.status}`;
-        card.dataset.chamadoId = chamado.id;
-        // Placeholder for admin check for manage button
-        const isAdmin = true; // Simulate admin for now
-        const manageButtonHtml = isAdmin ? `<button class="cv-button-link manage-chamado" data-chamado-id="${chamado.id}">Gerenciar</button>` : '';
-
-        card.innerHTML = `
-            <h4>${chamado.titulo}</h4>
-            <p class="chamado-meta">Status: <span class="status-text">${formatChamadoStatus(chamado.status)}</span></p>
-            <p class="chamado-meta">Aberto em: ${new Date(chamado.dataAbertura).toLocaleDateString()}</p>
-            <p class="chamado-meta">Última Atualização: ${new Date(chamado.ultimaAtualizacao).toLocaleDateString()}</p>
-            <p class="chamado-meta">Categoria: ${formatChamadoCategoria(chamado.categoria)}</p>
-            <button class="cv-button-link view-chamado-detail" data-chamado-id="${chamado.id}">Ver Detalhes</button>
-            ${manageButtonHtml}
-        `;
-        chamadosListContainer.appendChild(card);
-    });
-    attachViewChamadoDetailButtonListeners();
-    attachManageChamadoButtonListeners(); // Attach listeners for the new manage buttons
-}
-
-function attachViewChamadoDetailButtonListeners() {
-    document.querySelectorAll('.chamados-list .view-chamado-detail').forEach(button => {
-        const newButton = button.cloneNode(true);
-        button.parentNode.replaceChild(newButton, button);
-        newButton.addEventListener('click', (event) => {
-            viewChamadoDetail(event.target.dataset.chamadoId);
-        });
-    });
-}
-
-function viewChamadoDetail(chamadoId) {
-    const chamado = chamadosData.find(c => c.id === chamadoId);
-    if (!chamado) { showGlobalFeedback('Erro: Chamado não encontrado.', 'error'); return; }
-
-    if (chamadosListSection) chamadosListSection.style.display = 'none';
-    if (chamadosFiltersSection) chamadosFiltersSection.style.display = 'none';
-    if (chamadoDetailSection) chamadoDetailSection.style.display = 'block';
-
-    if (chamadoDetailTitle) chamadoDetailTitle.textContent = chamado.titulo;
-
-    let detailHtml = `
-        <p><strong>Status:</strong> <span class="status-text chamado-status-${chamado.status}">${formatChamadoStatus(chamado.status)}</span></p>
-        <p><strong>Categoria:</strong> ${formatChamadoCategoria(chamado.categoria)}</p>
-        <p><strong>Aberto em:</strong> ${new Date(chamado.dataAbertura).toLocaleString()}</p>
-        <p><strong>Última Atualização:</strong> ${new Date(chamado.ultimaAtualizacao).toLocaleString()}</p>
-        <p><strong>Descrição:</strong></p>
-        <p>${chamado.descricao || 'Nenhuma descrição fornecida.'}</p>`;
-
-    if (chamado.attachments && chamado.attachments.length > 0) {
-        detailHtml += `<h4>Anexos:</h4><ul>`;
-        chamado.attachments.forEach(att => { detailHtml += `<li><a href="${att.url}" target="_blank">${att.fileName}</a></li>`; });
-        detailHtml += `</ul>`;
-    }
-    if (chamadoDetailContent) chamadoDetailContent.innerHTML = detailHtml;
-    renderChamadoInteractions(chamado);
-    if (chamadoDetailSection) chamadoDetailSection.dataset.currentChamadoId = chamadoId;
-    setupChamadoCommentSubmission(chamadoId);
-}
-
-function renderChamadoInteractions(chamado) {
-    if (!chamadoInteractionsContainer) return;
-    chamadoInteractionsContainer.innerHTML = '<h4>Histórico de Interações:</h4>';
-    if (chamado.interactions && chamado.interactions.length > 0) {
-        chamado.interactions.forEach(interaction => {
-            const item = document.createElement('div'); item.className = 'interaction-item';
-            let text = interaction.text;
-            if (interaction.type === 'status_change') text = `Status alterado para: ${formatChamadoStatus(interaction.newStatus || '')}. ${interaction.text || ''}`;
-            item.innerHTML = `<p class="meta"><strong>${interaction.user}</strong> em ${new Date(interaction.date).toLocaleString()}</p><p>${text}</p>`;
-            chamadoInteractionsContainer.appendChild(item);
-        });
-    } else {
-        chamadoInteractionsContainer.innerHTML += '<p>Nenhuma interação ainda.</p>';
+    const solicitacoesContent = document.getElementById('content-solicitacoes');
+    if (solicitacoesContent && !solicitacoesContent.querySelector('.cv-info-message')) {
+        // Optional: Add a helper message to the now empty #content-solicitacoes div
+        // solicitacoesContent.innerHTML = '<p class="cv-info-message">As solicitações (Chamados, Ocorrências, etc.) são exibidas no Mural principal, filtradas por esta categoria.</p>';
     }
 }
 
-function setupChamadoCommentSubmission(chamadoId) {
-    if (!submitChamadoCommentButton || !chamadoCommentText) return;
-    const newSubmitButton = submitChamadoCommentButton.cloneNode(true);
-    submitChamadoCommentButton.parentNode.replaceChild(newSubmitButton, submitChamadoCommentButton);
-    submitChamadoCommentButton = newSubmitButton;
-    submitChamadoCommentButton.onclick = () => {
-        const commentTextValue = chamadoCommentText.value.trim();
-        if (!commentTextValue) { showGlobalFeedback('Comentário não pode estar vazio.', 'warning'); return; }
-        const currentChamadoId = chamadoDetailSection.dataset.currentChamadoId;
-        if(currentChamadoId !== chamadoId) { console.error("ID de chamado inconsistente."); return; }
-        const chamado = chamadosData.find(c => c.id === currentChamadoId);
-        if (!chamado) { showGlobalFeedback('Erro: Chamado não encontrado.', 'error'); return; }
-        const currentUser = "Usuário Logado (Simulado)";
-        const newInteraction = { user: currentUser, date: new Date().toISOString(), text: commentTextValue, type: 'comment' };
-        if (!chamado.interactions) chamado.interactions = [];
-        chamado.interactions.push(newInteraction);
-        chamado.ultimaAtualizacao = new Date().toISOString();
-        showGlobalFeedback('Comentário adicionado!', 'success');
-        chamadoCommentText.value = '';
-        renderChamadoInteractions(chamado);
-    };
-}
-
-function openCreateChamadoModal() {
-    if (criarChamadoModal && formCriarChamado && chamadoIdFieldModal && modalChamadoTitle && formChamadoSubmitButtonModal && chamadoStatusModalFormGroup && chamadoCategoriaModalFormGroup) {
-        formCriarChamado.reset();
-        chamadoIdFieldModal.value = '';
-        modalChamadoTitle.textContent = 'Novo Chamado';
-        formChamadoSubmitButtonModal.textContent = 'Abrir Chamado';
-        chamadoStatusModalFormGroup.style.display = 'none';
-        chamadoCategoriaModalFormGroup.style.display = 'block';
-        criarChamadoModal.style.display = 'flex';
-    }
-}
-
+// This function is still useful for the "Criar Chamado" modal
 async function handleCreateChamado(data) {
-    console.log("Creating chamado:", data);
-    const newChamadoId = 'chamado' + Date.now();
-    const now = new Date().toISOString();
-    const newChamado = {
-        id: newChamadoId,
-        titulo: data.titulo,
-        descricao: data.descricao,
-        categoria: data.categoria,
-        status: 'aberto', // Initial status
-        dataAbertura: now,
-        ultimaAtualizacao: now,
-        userOwns: true, // Assuming creator owns the chamado
-        interactions: [{user: "Usuário Logado (Simulado)", date: now, text: "Chamado criado.", type: "creation"}],
-        attachments: [] // Handle attachments if data.anexos exists
-    };
-    chamadosData.unshift(newChamado); // Add to the beginning of the array
-    showGlobalFeedback('Chamado aberto com sucesso (simulado)!', 'success');
-    loadChamadosList();
-}
-
-function attachManageChamadoButtonListeners() {
-    document.querySelectorAll('.manage-chamado').forEach(button => {
-        const newButton = button.cloneNode(true);
-        button.parentNode.replaceChild(newButton, button);
-        newButton.addEventListener('click', (event) => {
-            // Simulate admin role for now
-            openEditChamadoModal(event.target.dataset.chamadoId, true);
-        });
-    });
-}
-
-function openEditChamadoModal(chamadoId, isAdmin = false) {
-    const chamado = chamadosData.find(c => c.id === chamadoId);
-    if (!chamado) { showGlobalFeedback('Chamado não encontrado.', 'error'); return; }
-
-    if (criarChamadoModal && formCriarChamado && chamadoIdFieldModal && modalChamadoTitle && formChamadoSubmitButtonModal && chamadoStatusModalFormGroup && chamadoCategoriaModalFormGroup) {
-        formCriarChamado.reset();
-        chamadoIdFieldModal.value = chamado.id;
-        modalChamadoTitle.textContent = 'Gerenciar Chamado';
-        document.getElementById('chamado-titulo-modal').value = chamado.titulo;
-        document.getElementById('chamado-descricao-modal').value = chamado.descricao;
-        document.getElementById('chamado-categoria-modal').value = chamado.categoria;
-        // Anexos: show existing, allow removal, allow new. For now:
-        document.getElementById('chamado-anexos-modal').value = ''; // Clear file input
-
-        if (isAdmin) {
-            chamadoStatusModalFormGroup.style.display = 'block';
-            document.getElementById('chamado-status-modal').value = chamado.status;
-            chamadoCategoriaModalFormGroup.style.display = 'none'; // Admin does not change category here
-             formChamadoSubmitButtonModal.textContent = 'Salvar Alterações (Admin)';
-        } else { // Logic for user editing their own (if allowed - not primary for this step)
-            chamadoStatusModalFormGroup.style.display = 'none';
-            chamadoCategoriaModalFormGroup.style.display = 'block';
-            // Potentially disable fields if not editable by user
-            document.getElementById('chamado-descricao-modal').disabled = (chamado.status !== 'aberto');
-             formChamadoSubmitButtonModal.textContent = 'Salvar Alterações';
-        }
-        criarChamadoModal.style.display = 'flex';
+    console.log("Creating chamado (Solicitação):", data);
+    // API call: await apiClient.post('/api/v1/chamados', data); // Or a more generic /api/v1/solicitacoes
+    showGlobalFeedback('Nova solicitação (chamado) criada com sucesso! (simulado). Ela aparecerá no feed.', 'success');
+    // Optionally, reload the feed if the current filter might include this new item
+    const muralCategoryFilter = document.getElementById('category-filter');
+    if (muralCategoryFilter && (muralCategoryFilter.value === 'solicitacoes' || muralCategoryFilter.value === '')) {
+        loadInitialFeedItems();
     }
 }
 
+// This function is potentially useful if editing a Chamado/Solicitacao is triggered from the feed
+// and uses the same modal.
 async function handleUpdateChamado(id, data) {
-    console.log("Updating chamado:", id, data);
-    const chamadoIndex = chamadosData.findIndex(c => c.id === id);
-    if (chamadoIndex > -1) {
-        const oldStatus = chamadosData[chamadoIndex].status;
-        chamadosData[chamadoIndex] = {
-            ...chamadosData[chamadoIndex],
-            titulo: data.titulo,
-            descricao: data.descricao,
-            // Categoria usually not changed by admin in this flow, but if user edits, it might be.
-            // categoria: data.categoria,
-            ultimaAtualizacao: new Date().toISOString(),
-        };
-        // If status is part of data (admin edit)
-        if (data.status && data.status !== oldStatus) {
-            chamadosData[chamadoIndex].status = data.status;
-            if (!chamadosData[chamadoIndex].interactions) chamadosData[chamadoIndex].interactions = [];
-            chamadosData[chamadoIndex].interactions.push({
-                user: "Admin (Simulado)",
-                date: new Date().toISOString(),
-                text: `Status alterado de ${formatChamadoStatus(oldStatus)} para ${formatChamadoStatus(data.status)}.`,
-                type: 'status_change',
-                newStatus: data.status
-            });
-        }
-        showGlobalFeedback('Chamado atualizado com sucesso (simulado)!', 'success');
-        loadChamadosList();
-        // If detail view was open for this ID, refresh it
-        if (chamadoDetailSection && chamadoDetailSection.style.display === 'block' && chamadoDetailSection.dataset.currentChamadoId === id) {
-            viewChamadoDetail(id);
-        }
-    } else {
-        showGlobalFeedback('Erro ao atualizar chamado: não encontrado.', 'error');
+    console.log("Updating chamado (Solicitação):", id, data);
+    // API call: await apiClient.put(`/api/v1/chamados/${id}`, data);
+    showGlobalFeedback('Solicitação (chamado) atualizada com sucesso! (simulado).', 'success');
+    const muralCategoryFilter = document.getElementById('category-filter');
+    if (muralCategoryFilter && (muralCategoryFilter.value === 'solicitacoes' || muralCategoryFilter.value === '')) {
+        loadInitialFeedItems(); // Reload to see changes
     }
 }
 
 
+// This sets up the "Novo Chamado" FAB and the "Criar Chamado" modal. This is still relevant.
 function setupChamadoModalAndFAB() {
     const fab = document.querySelector('.js-fab-chamados');
     if (fab) {
-        fab.style.display = 'block';
         fab.addEventListener('click', openCreateChamadoModal);
     }
-    if(criarChamadoModal) {
-        document.querySelectorAll('.js-modal-criar-chamado-close').forEach(btn => {
-            btn.addEventListener('click', () => criarChamadoModal.style.display = 'none');
+    // Modal close buttons
+    const closeButtons = document.querySelectorAll('.js-modal-criar-chamado-close');
+    closeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (criarChamadoModal) criarChamadoModal.style.display = 'none';
         });
+    });
+    if (criarChamadoModal) {
         window.addEventListener('click', (event) => {
             if (event.target === criarChamadoModal) criarChamadoModal.style.display = 'none';
         });
     }
-    if(formCriarChamado && chamadoIdFieldModal && formChamadoSubmitButtonModal) {
+    // Form submission
+    if (formCriarChamado && chamadoIdFieldModal && formChamadoSubmitButtonModal) {
         formCriarChamado.addEventListener('submit', async (event) => {
             event.preventDefault();
             const currentChamadoId = chamadoIdFieldModal.value;
@@ -401,39 +790,39 @@ function setupChamadoModalAndFAB() {
                 titulo: document.getElementById('chamado-titulo-modal').value,
                 descricao: document.getElementById('chamado-descricao-modal').value,
                 categoria: document.getElementById('chamado-categoria-modal').value,
-                // anexos: document.getElementById('chamado-anexos-modal').files, // Handle files later
             };
 
-            if (currentChamadoId) { // Admin Edit Mode
-                data.status = document.getElementById('chamado-status-modal').value; // Get status if admin
+            if (currentChamadoId) {
+                data.status = document.getElementById('chamado-status-modal').value;
                 await handleUpdateChamado(currentChamadoId, data);
-            } else { // Create Mode
+            } else {
                 await handleCreateChamado(data);
             }
-            if(criarChamadoModal) criarChamadoModal.style.display = 'none';
+            if (criarChamadoModal) criarChamadoModal.style.display = 'none';
         });
     }
 }
 
-function setupChamadoFilters() {
-    const applyButton = document.getElementById('apply-chamado-filters-button');
-    if (applyButton) {
-        applyButton.addEventListener('click', () => {
-            const status = document.getElementById('chamado-status-filter').value;
-            const date = document.getElementById('chamado-date-filter').value;
-            const category = document.getElementById('chamado-category-filter').value;
-            showGlobalFeedback(`Filtrando chamados: Status=${status||'Todos'}, Data=${date||'Todas'}, Cat=${category||'Todas'}.`, 'info');
-            loadChamadosList({ status, date, category });
-        });
+// openCreateChamadoModal is still needed for the FAB
+function openCreateChamadoModal() {
+    if (criarChamadoModal && formCriarChamado && chamadoIdFieldModal && modalChamadoTitle && formChamadoSubmitButtonModal && chamadoStatusModalFormGroup && chamadoCategoriaModalFormGroup) {
+        formCriarChamado.reset();
+        chamadoIdFieldModal.value = '';
+        modalChamadoTitle.textContent = 'Novo Chamado'; // Title for creating
+        formChamadoSubmitButtonModal.textContent = 'Abrir Chamado';
+        chamadoStatusModalFormGroup.style.display = 'none';
+        chamadoCategoriaModalFormGroup.style.display = 'block';
+        document.getElementById('chamado-descricao-modal').disabled = false;
+        criarChamadoModal.style.display = 'flex';
     }
 }
 
-function setupChamadoDetailViewBackButton() {
-    if (backToChamadosListButton) {
-        backToChamadosListButton.addEventListener('click', () => {
-            if (chamadoDetailSection) chamadoDetailSection.style.display = 'none';
-            if (chamadosListSection) chamadosListSection.style.display = 'block';
-            if (chamadosFiltersSection) chamadosFiltersSection.style.display = 'flex';
-        });
-    }
-}
+// The old openEditChamadoModal is no longer needed here as editing from feed items
+// is handled by openEditFeedItemModal, which would call a more generic version or specific
+// modal if required. The existing `modal-criar-chamado` is now primarily for creation.
+// If an admin needs to edit a "Chamado" with more fields, a different modal/page would be better.
+
+// All other functions previously under "Chamados e Solicitações Tab" that dealt with
+// rendering lists (loadChamadosList), details (viewChamadoDetail), interactions,
+// and specific filters within #content-solicitacoes are now obsolete because this tab
+// now only filters the main feed displayed in #content-mural.
