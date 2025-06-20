@@ -12,14 +12,6 @@ using System.Threading.Tasks;
 
 namespace conViver.Application.Services;
 
-// Interface para o serviço de armazenamento de arquivos (a ser implementado futuramente)
-public interface IFileStorageService
-{
-    Task<string> SaveFileAsync(IFormFile file, string uniqueFileName, string containerName = "documentos");
-    // Task<byte[]> GetFileAsync(string uniqueFileName, string containerName = "documentos");
-    // Task DeleteFileAsync(string uniqueFileName, string containerName = "documentos");
-}
-
 public class DocumentoService
 {
     private readonly IRepository<Documento> _documentoRepository;
