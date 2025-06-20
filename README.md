@@ -207,6 +207,17 @@ O cliente móvel (`conViver.Mobile`) utiliza um serviço centralizado para feedb
 - Um indicador de carregamento global está definido em `AppShell.xaml` e é controlado pelo `FeedbackService`.
 - Mensagens de sucesso e informativas são exibidas usando `Snackbar` (do MAUI Community Toolkit). Erros críticos usam alertas modais.
 
+## Solução de Problemas Comuns
+
+### SQLite: "table Usuarios has no column named CondominioId"
+Esse erro indica que o arquivo `conviver.db` está desatualizado em relação às migrations. Execute:
+
+```bash
+dotnet ef database update --project src/conViver.Infrastructure
+```
+
+Se o problema continuar, remova `conviver.db` e rode o comando novamente para recriar o banco.
+
 ## Licença
 MIT
 
