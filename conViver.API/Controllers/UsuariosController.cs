@@ -62,8 +62,8 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
             Email = request.Email,
             SenhaHash = request.Senha, // O serviço _usuarios.AddAsync deve cuidar do hashing da senha
             Perfil = PerfilUsuario.Morador, // Perfil padrão, pode ser ajustado conforme regras de negócio
-            CondominioId = request.CondominioId, // Adicionado
-            UnidadeId = request.UnidadeId // Adicionado
+            CondominioId = request.CondominioId!.Value, // Garantido não nulo pelas validações
+            UnidadeId = request.UnidadeId!.Value // Garantido não nulo pelas validações
         };
         await _usuarios.AddAsync(usuario); // Assumindo que AddAsync faz o hash da senha
 
