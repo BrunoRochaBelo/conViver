@@ -767,8 +767,4 @@ function canUserAddAttachment(ocorrencia) {
 if (ocorrenciasLoadingEl) ocorrenciasLoadingEl.style.display = 'block';
 if (noOcorrenciasMessageEl) noOcorrenciasMessageEl.style.display = 'none';
 
-// Further implementations will fill in the stubbed functions.
 console.log('ocorrencias.js loaded and initial setup complete.');
-
-// End of Part 1
-// Next parts will implement the stubbed functions like loadCategorias, renderOcorrencias, loadOcorrencias, etc.
