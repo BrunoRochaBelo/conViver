@@ -19,24 +19,25 @@
     </nav>
     <main class="cv-container">
         <div class="cv-tabs">
-            <button class="cv-tab-button active" id="tab-mural">Mural Digital</button>
-            <button class="cv-tab-button" id="tab-enquetes">Enquetes e Votações</button>
-            <button class="cv-tab-button" id="tab-chamados">Chamados e Solicitações</button>
-            <button class="cv-tab-button" id="tab-documentos">Biblioteca de Documentos</button>
+            <button class="cv-tab-button active" id="tab-mural">Mural</button>
+            <button class="cv-tab-button" id="tab-enquetes">Enquetes</button>
+            <button class="cv-tab-button" id="tab-solicitacoes">Solicitações</button>
         </div>
 
         <div class="cv-tab-content" id="content-mural">
-            <h2 class="communication__title">Mural Digital</h2>
+            <h2 class="communication__title">Mural</h2>
 
             <div class="filters-container cv-form-group">
                 <label for="category-filter">Categoria:</label>
                 <select id="category-filter" name="category-filter" class="cv-input">
                     <option value="">Todas</option>
-                    <option value="manutencao">🛠️ Manutenção</option>
-                    <option value="reservas">🏡 Reservas</option>
-                    <option value="comunicados">📢 Comunicados Gerais</option>
-                    <option value="enquetes">🗳️ Enquetes</option>
-                    <option value="assembleias">🧑‍⚖️ Assembleias</option>
+                    <option value="comunicados">Comunicados</option>
+                    <option value="enquetes">Enquetes</option>
+                    <option value="solicitacoes">Solicitações</option>
+                    <option value="ocorrencias">Ocorrências</option>
+                    <option value="documentos">Documentos</option>
+                    <option value="reservas">Reservas</option>
+                    <option value="servicos">Serviços</option>
                 </select>
 
                 <label for="period-filter">Período:</label>
@@ -57,7 +58,7 @@
         </div>
 
         <div class="cv-tab-content" id="content-enquetes" style="display:none;">
-            <h2 class="communication__title">Enquetes e Votações</h2>
+            <h2 class="communication__title">Enquetes</h2>
 
             <section id="enquetes-ativas-section" class="cv-section">
                 <h3>Enquetes Ativas</h3>
@@ -133,8 +134,8 @@
             </div>
         </div>
 
-        <div class="cv-tab-content" id="content-chamados" style="display:none;">
-            <h2 class="communication__title">Chamados e Solicitações</h2>
+        <div class="cv-tab-content" id="content-solicitacoes" style="display:none;">
+            <h2 class="communication__title">Solicitações</h2>
 
             <!-- Filters Section -->
             <section id="chamados-filters-section" class="filters-container cv-form-group">
@@ -236,10 +237,6 @@
             </div>
         </div>
 
-        <div class="cv-tab-content" id="content-documentos" style="display:none;">
-            <h2 class="communication__title">Biblioteca de Documentos</h2>
-            <!-- Placeholder for Documentos content -->
-            <p>Conteúdo da biblioteca de documentos aparecerá aqui.</p>
         </div>
     </main>
 
