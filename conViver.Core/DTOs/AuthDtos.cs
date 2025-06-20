@@ -20,8 +20,8 @@ public class SignupRequestDto
     public string Senha { get; set; } = string.Empty;
 
     // Opcional: Se o signup já vincula a um condomínio/unidade
-    // public Guid? CondominioId { get; set; }
-    // public Guid? UnidadeId { get; set; }
+    public Guid? CondominioId { get; set; }
+    public Guid? UnidadeId { get; set; }
     // public string? CodigoConvite { get; set; }
 }
 

@@ -161,8 +161,9 @@ namespace conViver.Tests.API
             {
                 Nome = "New User",
                 Email = uniqueEmail,
-                Senha = "password123"
-                // UnidadeId and CondominioId might be needed if your DTO requires them
+                Senha = "password123",
+                CondominioId = Guid.NewGuid(), // Added
+                UnidadeId = Guid.NewGuid()      // Added
             };
 
             // Act
@@ -194,7 +195,9 @@ namespace conViver.Tests.API
             {
                 Nome = "Existing User",
                 Email = existingEmail,
-                Senha = "password123"
+                Senha = "password123",
+                CondominioId = Guid.NewGuid(), // Added
+                UnidadeId = Guid.NewGuid()      // Added
             };
             // First, create the user
             var firstResponse = await _client.PostAsJsonAsync("auth/signup", firstSignupRequest);
@@ -204,7 +207,9 @@ namespace conViver.Tests.API
             {
                 Nome = "Another User",
                 Email = existingEmail, // Same email
-                Senha = "password456"
+                Senha = "password456",
+                CondominioId = Guid.NewGuid(), // Added
+                UnidadeId = Guid.NewGuid()      // Added
             };
 
             // Act
@@ -315,6 +320,102 @@ namespace conViver.Tests.API
             var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponseDto>(); // Assuming a generic error DTO
             errorResponse?.Error.Should().Be("RESET_FAILED"); // Or check message if more consistent
             errorResponse?.Message.Should().Be("Não foi possível redefinir a senha. O token pode ser inválido ou ter expirado.");
+        }
+
+        [Fact]
+        public async Task Signup_WithMissingCondominioId_ReturnsBadRequest()
+        {
+            // Arrange
+            var signupRequest = new SignupRequestDto
+            {
+                Nome = "Test User",
+                Email = $"testuser_{Guid.NewGuid()}@example.com",
+                Senha = "password123",
+                CondominioId = null, // Missing CondominioId
+                UnidadeId = Guid.NewGuid()
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("auth/signup", signupRequest);
+
+            // Assert
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+            var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+            errorResponse.Should().NotBeNull();
+            errorResponse?.Error.Should().Be("MISSING_CONDOMINIO_ID");
+            errorResponse?.Message.Should().Be("O CondominioId é obrigatório.");
+        }
+
+        [Fact]
+        public async Task Signup_WithEmptyCondominioId_ReturnsBadRequest()
+        {
+            // Arrange
+            var signupRequest = new SignupRequestDto
+            {
+                Nome = "Test User",
+                Email = $"testuser_{Guid.NewGuid()}@example.com",
+                Senha = "password123",
+                CondominioId = Guid.Empty, // Empty CondominioId
+                UnidadeId = Guid.NewGuid()
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("auth/signup", signupRequest);
+
+            // Assert
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+            var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+            errorResponse.Should().NotBeNull();
+            errorResponse?.Error.Should().Be("MISSING_CONDOMINIO_ID");
+            errorResponse?.Message.Should().Be("O CondominioId é obrigatório.");
+        }
+
+        [Fact]
+        public async Task Signup_WithMissingUnidadeId_ReturnsBadRequest()
+        {
+            // Arrange
+            var signupRequest = new SignupRequestDto
+            {
+                Nome = "Test User",
+                Email = $"testuser_{Guid.NewGuid()}@example.com",
+                Senha = "password123",
+                CondominioId = Guid.NewGuid(),
+                UnidadeId = null // Missing UnidadeId
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("auth/signup", signupRequest);
+
+            // Assert
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+            var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+            errorResponse.Should().NotBeNull();
+            errorResponse?.Error.Should().Be("MISSING_UNIDADE_ID");
+            errorResponse?.Message.Should().Be("O UnidadeId é obrigatório.");
+        }
+
+        [Fact]
+        public async Task Signup_WithEmptyUnidadeId_ReturnsBadRequest()
+        {
+            // Arrange
+            var signupRequest = new SignupRequestDto
+            {
+                Nome = "Test User",
+                Email = $"testuser_{Guid.NewGuid()}@example.com",
+                Senha = "password123",
+                CondominioId = Guid.NewGuid(),
+                UnidadeId = Guid.Empty // Empty UnidadeId
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("auth/signup", signupRequest);
+
+            // Assert
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+            var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+            errorResponse.Should().NotBeNull();
+            errorResponse?.Error.Should().Be("MISSING_UNIDADE_ID");
+            errorResponse?.Message.Should().Be("O UnidadeId é obrigatório.");
         }
     }
 
