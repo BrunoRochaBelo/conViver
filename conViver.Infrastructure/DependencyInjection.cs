@@ -6,6 +6,7 @@ using conViver.Infrastructure.Data.Contexts;
 using conViver.Infrastructure.Data.Repositories;
 using conViver.Infrastructure.Notifications;
 using conViver.Infrastructure.Payments;
+using conViver.Infrastructure.Services; // Added for LocalStorageService
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,6 +43,9 @@ public static class DependencyInjection
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IRepository<Condominio>, CondominioRepository>();
         services.AddScoped<IRepository<Usuario>, UsuarioRepository>();
+        services.AddScoped<IOcorrenciaRepository, OcorrenciaRepository>(); // Added OcorrenciaRepository
+
+        services.AddSingleton<IFileStorageService, LocalStorageService>(); // Added FileStorageService
 
         return services;
     }
