@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
 using conViver.Core.DTOs;
 using conViver.Core.Entities;
 using conViver.Core.Enums;
@@ -15,18 +14,16 @@ namespace conViver.Application.Services
     public class OcorrenciaService : IOcorrenciaService
     {
         private readonly IOcorrenciaRepository _ocorrenciaRepository;
-        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IRepository<Usuario> _usuarioRepository;
         private readonly IFileStorageService _fileStorageService;
-        private readonly IMapper _mapper;
         private readonly IValidator<OcorrenciaInputDto> _ocorrenciaInputValidator;
         private readonly IValidator<OcorrenciaComentarioInputDto> _comentarioInputValidator;
         private readonly IValidator<OcorrenciaStatusInputDto> _statusInputValidator;
 
         public OcorrenciaService(
             IOcorrenciaRepository ocorrenciaRepository,
-            IUsuarioRepository usuarioRepository,
+            IRepository<Usuario> usuarioRepository,
             IFileStorageService fileStorageService,
-            IMapper mapper,
             IValidator<OcorrenciaInputDto> ocorrenciaInputValidator,
             IValidator<OcorrenciaComentarioInputDto> comentarioInputValidator,
             IValidator<OcorrenciaStatusInputDto> statusInputValidator
@@ -35,7 +32,6 @@ namespace conViver.Application.Services
             _ocorrenciaRepository = ocorrenciaRepository;
             _usuarioRepository = usuarioRepository;
             _fileStorageService = fileStorageService;
-            _mapper = mapper;
             _ocorrenciaInputValidator = ocorrenciaInputValidator;
             _comentarioInputValidator = comentarioInputValidator;
             _statusInputValidator = statusInputValidator;
@@ -54,7 +50,13 @@ namespace conViver.Application.Services
             if (usuario == null)
                 throw new KeyNotFoundException("Usuário não encontrado.");
 
-            var ocorrencia = _mapper.Map<Ocorrencia>(inputDto);
+            var ocorrencia = new Ocorrencia
+            {
+                Titulo = inputDto.Titulo,
+                Descricao = inputDto.Descricao,
+                Categoria = inputDto.Categoria,
+                Prioridade = inputDto.Prioridade
+            };
             ocorrencia.Id = Guid.NewGuid();
             ocorrencia.UsuarioId = userId;
             ocorrencia.Status = OcorrenciaStatus.ABERTA;
@@ -101,7 +103,7 @@ namespace conViver.Application.Services
             await _ocorrenciaRepository.AddAsync(ocorrencia);
 
             var created = await _ocorrenciaRepository.GetByIdWithDetailsAsync(ocorrencia.Id);
-            return _mapper.Map<OcorrenciaDetailsDto>(created);
+            return MapToDetailsDto(created!);
         }
 
         public async Task<PagedResultDto<OcorrenciaListItemDto>> GetOcorrenciasAsync(
@@ -112,7 +114,7 @@ namespace conViver.Application.Services
             var paged = await _ocorrenciaRepository
                 .GetOcorrenciasFilteredAndPaginatedAsync(queryParams, userId, isAdminOrSindico);
 
-            var items = _mapper.Map<List<OcorrenciaListItemDto>>(paged.Items);
+            var items = paged.Items.Select(MapToListItemDto).ToList();
             return new PagedResultDto<OcorrenciaListItemDto>
             {
                 Items = items,
@@ -128,7 +130,7 @@ namespace conViver.Application.Services
             if (ocorrencia == null)
                 throw new KeyNotFoundException($"Ocorrência com ID {id} não encontrada.");
 
-            return _mapper.Map<OcorrenciaDetailsDto>(ocorrencia);
+            return MapToDetailsDto(ocorrencia);
         }
 
         public async Task<OcorrenciaComentarioDto> AddComentarioAsync(
@@ -159,9 +161,14 @@ namespace conViver.Application.Services
             await _ocorrenciaRepository.UpdateAsync(ocorrencia);
 
             var usuario = await _usuarioRepository.GetByIdAsync(userId);
-            var result = _mapper.Map<OcorrenciaComentarioDto>(comentario);
-            if (usuario != null) result.UsuarioNome = usuario.Nome;
-            return result;
+            return new OcorrenciaComentarioDto
+            {
+                Id = comentario.Id,
+                UsuarioId = comentario.UsuarioId,
+                UsuarioNome = usuario?.Nome ?? string.Empty,
+                Texto = comentario.Texto,
+                Data = comentario.Data
+            };
         }
 
         public async Task<bool> ChangeOcorrenciaStatusAsync(
@@ -234,7 +241,7 @@ namespace conViver.Application.Services
         public async Task<IEnumerable<OcorrenciaStatusHistoricoDto>> GetStatusHistoricoAsync(Guid id)
         {
             var historico = await _ocorrenciaRepository.GetStatusHistoricoByOcorrenciaIdAsync(id);
-            return _mapper.Map<List<OcorrenciaStatusHistoricoDto>>(historico);
+            return historico.Select(MapToStatusHistoricoDto).ToList();
         }
 
         public async Task<bool> DeleteOcorrenciaAsync(Guid id, Guid userId)
@@ -257,6 +264,79 @@ namespace conViver.Application.Services
         {
             var list = Enum.GetNames(typeof(OcorrenciaCategoria)).ToList();
             return Task.FromResult<IEnumerable<string>>(list);
+        }
+
+        private static OcorrenciaAnexoDto MapToAnexoDto(OcorrenciaAnexo anexo)
+        {
+            return new OcorrenciaAnexoDto
+            {
+                Id = anexo.Id,
+                Url = anexo.Url,
+                NomeArquivo = anexo.NomeArquivo,
+                Tipo = anexo.Tipo,
+                Tamanho = anexo.Tamanho
+            };
+        }
+
+        private static OcorrenciaStatusHistoricoDto MapToStatusHistoricoDto(OcorrenciaStatusHistorico historico)
+        {
+            return new OcorrenciaStatusHistoricoDto
+            {
+                Status = historico.Status.ToString(),
+                Data = historico.Data,
+                AlteradoPorNome = historico.AlteradoPor?.Nome ?? string.Empty
+            };
+        }
+
+        private static OcorrenciaComentarioDto MapToComentarioDto(OcorrenciaComentario comentario)
+        {
+            return new OcorrenciaComentarioDto
+            {
+                Id = comentario.Id,
+                UsuarioId = comentario.UsuarioId,
+                UsuarioNome = comentario.Usuario?.Nome ?? string.Empty,
+                Texto = comentario.Texto,
+                Data = comentario.Data
+            };
+        }
+
+        private static OcorrenciaListItemDto MapToListItemDto(Ocorrencia ocorrencia)
+        {
+            return new OcorrenciaListItemDto
+            {
+                Id = ocorrencia.Id,
+                Titulo = ocorrencia.Titulo,
+                Categoria = ocorrencia.Categoria.ToString(),
+                Status = ocorrencia.Status.ToString(),
+                Prioridade = ocorrencia.Prioridade.ToString(),
+                DataAbertura = ocorrencia.DataAbertura,
+                DataAtualizacao = ocorrencia.DataAtualizacao,
+                NomeUsuario = ocorrencia.Usuario?.Nome ?? string.Empty
+            };
+        }
+
+        private static OcorrenciaDetailsDto MapToDetailsDto(Ocorrencia ocorrencia)
+        {
+            return new OcorrenciaDetailsDto
+            {
+                Id = ocorrencia.Id,
+                Titulo = ocorrencia.Titulo,
+                Descricao = ocorrencia.Descricao,
+                Categoria = ocorrencia.Categoria.ToString(),
+                Status = ocorrencia.Status.ToString(),
+                Prioridade = ocorrencia.Prioridade.ToString(),
+                DataAbertura = ocorrencia.DataAbertura,
+                DataAtualizacao = ocorrencia.DataAtualizacao,
+                Usuario = new OcorrenciaUsuarioInfoDto
+                {
+                    Id = ocorrencia.UsuarioId,
+                    Nome = ocorrencia.Usuario?.Nome ?? string.Empty,
+                    Unidade = ocorrencia.Unidade?.Identificacao ?? string.Empty
+                },
+                Anexos = ocorrencia.Anexos?.Select(MapToAnexoDto).ToList() ?? new List<OcorrenciaAnexoDto>(),
+                HistoricoStatus = ocorrencia.HistoricoStatus?.Select(MapToStatusHistoricoDto).ToList() ?? new List<OcorrenciaStatusHistoricoDto>(),
+                Comentarios = ocorrencia.Comentarios?.Select(MapToComentarioDto).ToList() ?? new List<OcorrenciaComentarioDto>()
+            };
         }
     }
 }
