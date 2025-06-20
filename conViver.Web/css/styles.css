@@ -1422,3 +1422,24 @@ main {
     margin: 0 5px;
     color: var(--cv-gray-400); /* Or a suitable separator color from theme */
 }
+
+/* Destaque visual para itens prioritários do feed (ex: comunicados urgentes,
+   enquetes ativas, lembretes de boleto) */
+.feed-item.prio-0 {
+    border-left: 5px solid var(--cv-primary-orange);
+    background-color: var(--cv-gray-100);
+    position: relative;
+}
+
+.feed-item.prio-0::before {
+    content: "\1F4CC"; /* emoji de alfinete */
+    position: absolute;
+    left: 5px;
+    top: 5px;
+}
+
+.feed-item__pin {
+    font-size: 0.85em;
+    color: var(--cv-primary-orange);
+    margin-right: 4px;
+}
