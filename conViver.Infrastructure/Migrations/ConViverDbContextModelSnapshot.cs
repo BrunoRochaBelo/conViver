@@ -360,31 +360,17 @@ namespace conViver.Infrastructure.Migrations
                 b.ToTable("Lancamentos");
             });
 
-            // Resolved Ocorrencia section:
             modelBuilder.Entity("conViver.Core.Entities.Ocorrencia", b =>
             {
                 b.Property<Guid>("Id")
                     .ValueGeneratedOnAdd()
                     .HasColumnType("TEXT");
 
-                b.Property<string>("Titulo")
-                    .IsRequired()
-                    .HasColumnType("TEXT");
-
-                b.Property<string>("Descricao")
-                    .IsRequired()
-                    .HasColumnType("TEXT");
-
                 b.Property<string>("Categoria")
                     .IsRequired()
                     .HasColumnType("TEXT");
 
-                b.Property<string>("Status")
-                    .IsRequired()
-                    .HasColumnType("TEXT");
-
-                b.Property<string>("Prioridade")
-                    .IsRequired()
+                b.Property<Guid>("CondominioId")
                     .HasColumnType("TEXT");
 
                 b.Property<DateTime>("DataAbertura")
@@ -393,19 +379,34 @@ namespace conViver.Infrastructure.Migrations
                 b.Property<DateTime>("DataAtualizacao")
                     .HasColumnType("TEXT");
 
-                b.Property<Guid>("UsuarioId")
+                b.Property<string>("Descricao")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Prioridade")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Status")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Titulo")
+                    .IsRequired()
                     .HasColumnType("TEXT");
 
                 b.Property<Guid?>("UnidadeId")
                     .HasColumnType("TEXT");
 
-                b.Property<Guid>("CondominioId")
+                b.Property<Guid>("UsuarioId")
                     .HasColumnType("TEXT");
 
                 b.HasKey("Id");
 
                 b.HasIndex("CondominioId");
+
                 b.HasIndex("UnidadeId");
+
                 b.HasIndex("UsuarioId");
 
                 b.ToTable("Ocorrencias");
@@ -421,18 +422,18 @@ namespace conViver.Infrastructure.Migrations
                     .IsRequired()
                     .HasColumnType("TEXT");
 
-                b.Property<string>("Tipo")
-                    .IsRequired()
+                b.Property<Guid>("OcorrenciaId")
                     .HasColumnType("TEXT");
 
                 b.Property<long>("Tamanho")
                     .HasColumnType("INTEGER");
 
-                b.Property<string>("Url")
+                b.Property<string>("Tipo")
                     .IsRequired()
                     .HasColumnType("TEXT");
 
-                b.Property<Guid>("OcorrenciaId")
+                b.Property<string>("Url")
+                    .IsRequired()
                     .HasColumnType("TEXT");
 
                 b.HasKey("Id");
@@ -448,14 +449,14 @@ namespace conViver.Infrastructure.Migrations
                     .ValueGeneratedOnAdd()
                     .HasColumnType("TEXT");
 
-                b.Property<string>("Texto")
-                    .IsRequired()
-                    .HasColumnType("TEXT");
-
                 b.Property<DateTime>("Data")
                     .HasColumnType("TEXT");
 
                 b.Property<Guid>("OcorrenciaId")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Texto")
+                    .IsRequired()
                     .HasColumnType("TEXT");
 
                 b.Property<Guid>("UsuarioId")
@@ -464,6 +465,7 @@ namespace conViver.Infrastructure.Migrations
                 b.HasKey("Id");
 
                 b.HasIndex("OcorrenciaId");
+
                 b.HasIndex("UsuarioId");
 
                 b.ToTable("OcorrenciaComentarios");
@@ -475,8 +477,7 @@ namespace conViver.Infrastructure.Migrations
                     .ValueGeneratedOnAdd()
                     .HasColumnType("TEXT");
 
-                b.Property<string>("Status")
-                    .IsRequired()
+                b.Property<Guid>("AlteradoPorId")
                     .HasColumnType("TEXT");
 
                 b.Property<DateTime>("Data")
@@ -485,15 +486,99 @@ namespace conViver.Infrastructure.Migrations
                 b.Property<Guid>("OcorrenciaId")
                     .HasColumnType("TEXT");
 
-                b.Property<Guid>("AlteradoPorId")
+                b.Property<string>("Status")
+                    .IsRequired()
                     .HasColumnType("TEXT");
 
                 b.HasKey("Id");
 
-                b.HasIndex("OcorrenciaId");
                 b.HasIndex("AlteradoPorId");
 
+                b.HasIndex("OcorrenciaId");
+
                 b.ToTable("OcorrenciaStatusHistoricos");
+            });
+
+            // Foreign Key and Navigation configurations
+            modelBuilder.Entity("conViver.Core.Entities.Ocorrencia", b =>
+            {
+                b.HasOne("conViver.Core.Entities.Condominio", "Condominio")
+                    .WithMany() // Assuming Condominio does not have a direct ICollection<Ocorrencia>
+                    .HasForeignKey("CondominioId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+
+                b.HasOne("conViver.Core.Entities.Unidade", "Unidade")
+                    .WithMany() // Assuming Unidade does not have a direct ICollection<Ocorrencia>
+                    .HasForeignKey("UnidadeId")
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne("conViver.Core.Entities.Usuario", "Usuario")
+                    .WithMany() // Assuming Usuario does not have a direct ICollection<Ocorrencia>
+                    .HasForeignKey("UsuarioId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+
+                b.Navigation("Condominio");
+
+                b.Navigation("Unidade");
+
+                b.Navigation("Usuario");
+
+                b.Navigation("Anexos");
+
+                b.Navigation("Comentarios");
+
+                b.Navigation("HistoricoStatus");
+            });
+
+            modelBuilder.Entity("conViver.Core.Entities.OcorrenciaAnexo", b =>
+            {
+                b.HasOne("conViver.Core.Entities.Ocorrencia", "Ocorrencia")
+                    .WithMany("Anexos")
+                    .HasForeignKey("OcorrenciaId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Ocorrencia");
+            });
+
+            modelBuilder.Entity("conViver.Core.Entities.OcorrenciaComentario", b =>
+            {
+                b.HasOne("conViver.Core.Entities.Ocorrencia", "Ocorrencia")
+                    .WithMany("Comentarios")
+                    .HasForeignKey("OcorrenciaId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.HasOne("conViver.Core.Entities.Usuario", "Usuario")
+                    .WithMany() // Assuming Usuario does not have a direct ICollection<OcorrenciaComentario>
+                    .HasForeignKey("UsuarioId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+
+                b.Navigation("Ocorrencia");
+
+                b.Navigation("Usuario");
+            });
+
+            modelBuilder.Entity("conViver.Core.Entities.OcorrenciaStatusHistorico", b =>
+            {
+                b.HasOne("conViver.Core.Entities.Usuario", "AlteradoPor")
+                    .WithMany() // Assuming Usuario does not have a direct ICollection<OcorrenciaStatusHistorico>
+                    .HasForeignKey("AlteradoPorId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+
+                b.HasOne("conViver.Core.Entities.Ocorrencia", "Ocorrencia")
+                    .WithMany("HistoricoStatus")
+                    .HasForeignKey("OcorrenciaId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("AlteradoPor");
+
+                b.Navigation("Ocorrencia");
             });
 
             // ... (rest of entities unchanged)
