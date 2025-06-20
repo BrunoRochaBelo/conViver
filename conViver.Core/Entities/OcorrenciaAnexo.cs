@@ -12,5 +12,14 @@ namespace conViver.Core.Entities
         public long Tamanho { get; set; }
 
         public Ocorrencia Ocorrencia { get; set; }
+
+        // Constructor to initialize non-nullable properties
+        public OcorrenciaAnexo()
+        {
+            Url = string.Empty;
+            NomeArquivo = string.Empty;
+            Tipo = string.Empty;
+            Ocorrencia = null!; // EF Core will populate this
+        }
     }
 }

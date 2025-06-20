@@ -12,5 +12,13 @@ namespace conViver.Core.Entities
 
         public Ocorrencia Ocorrencia { get; set; }
         public Usuario Usuario { get; set; } // Assuming Usuario entity exists in conViver.Core.Entities
+
+        // Constructor to initialize non-nullable properties
+        public OcorrenciaComentario()
+        {
+            Texto = string.Empty;
+            Ocorrencia = null!; // EF Core will populate this
+            Usuario = null!; // EF Core will populate this
+        }
     }
 }
