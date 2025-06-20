@@ -23,8 +23,11 @@ public static class DependencyInjection
         services.AddTransient<VisitanteService>();
         services.AddTransient<EncomendaService>();
         services.AddTransient<DashboardService>(); // Add DashboardService registration
+        services.AddTransient<IOcorrenciaService, OcorrenciaService>(); // Added OcorrenciaService
 
         services.AddValidatorsFromAssemblyContaining<CondominioValidator>();
+        // This should pick up Ocorrencia*Validators as they are in the same assembly
+        // and likely same namespace or sub-namespace.
         // If CondominioValidator is in a different namespace, adjust accordingly
         // Example: services.AddValidatorsFromAssemblyContaining(typeof(Validators.CondominioValidator));
 

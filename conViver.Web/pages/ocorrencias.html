@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>conViver - Ocorrências</title>
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <!-- Potential dedicated CSS for ocorrencias if needed -->
+    <!-- <link rel="stylesheet" href="../css/ocorrencias.css"> -->
+</head>
+
+<body>
+    <header class="cv-header">
+        <!-- Assuming cv-header content is standard or managed by JS/another template -->
+        <div class="cv-container cv-header__container">
+            <img src="../assets/logo_conviver.png" alt="conViver Logo" class="cv-header__logo">
+            <div class="cv-header__user-info">
+                <span id="headerUserName">Usuário</span>
+                <button id="btnLogout" class="cv-button cv-button--secondary cv-button--small">Sair</button>
+            </div>
+        </div>
+    </header>
+
+    <nav class="cv-nav">
+        <div class="cv-container">
+            <ul class="cv-nav__list">
+                <li class="cv-nav__item"><a href="../index.html" class="cv-nav__link">Início</a></li>
+                <li class="cv-nav__item"><a href="./avisos.html" class="cv-nav__link">Avisos</a></li>
+                <li class="cv-nav__item"><a href="./reservas.html" class="cv-nav__link">Reservas</a></li>
+                <li class="cv-nav__item"><a href="./ocorrencias.html" class="cv-nav__link cv-nav__link--active">Ocorrências</a></li>
+                <li class="cv-nav__item"><a href="./documentos.html" class="cv-nav__link">Documentos</a></li>
+                <li class="cv-nav__item"><a href="./financeiro.html" class="cv-nav__link">Financeiro</a></li>
+                <li class="cv-nav__item"><a href="./perfil.html" class="cv-nav__link">Meu Perfil</a></li>
+                <!-- Add other nav items as needed -->
+            </ul>
+        </div>
+    </nav>
+
+    <main class="cv-container ocorrencias-main">
+        <div class="ocorrencias-main__header">
+            <h1>Minhas Ocorrências</h1>
+            <button id="btnNovaOcorrencia" class="cv-button cv-button--primary ocorrencias-main__nova-button">+ Nova Ocorrência</button>
+        </div>
+
+        <div class="cv-tabs ocorrencias-tabs">
+            <button class="cv-tabs__button cv-tabs__button--active" data-tab-filter="minhas">Minhas Ocorrências</button>
+            <button class="cv-tabs__button" data-tab-filter="abertas">Em Aberto</button>
+            <button class="cv-tabs__button" data-tab-filter="resolvidas">Resolvidas</button>
+            <button class="cv-tabs__button" data-tab-filter="todas" id="tabTodasOcorrencias" style="display:none;">Todas</button> <!-- Visibility controlled by JS -->
+        </div>
+
+        <div id="listaOcorrencias" class="ocorrencias-lista">
+            <!-- Ocorrência cards will be injected here by JS -->
+            <!-- Example Card Structure (template for JS) -->
+            <!--
+            <div class="cv-card ocorrencia-card" data-ocorrencia-id="123">
+                <div class="ocorrencia-card__header">
+                    <h3 class="ocorrencia-card__titulo">Título da Ocorrência Exemplo</h3>
+                    <span class="ocorrencia-card__prioridade ocorrencia-card__prioridade--urgente">Urgente</span>
+                </div>
+                <p class="ocorrencia-card__categoria"><i class="ocorrencia-card__categoria-icone">🔧</i> Manutenção</p>
+                <p class="ocorrencia-card__status">Status: <span class="status-tag status-tag--aberta">Aberta</span></p>
+                <p class="ocorrencia-card__data-abertura">Abertura: 01/01/2024</p>
+                <p class="ocorrencia-card__data-atualizacao">Última atualização: 02/01/2024</p>
+            </div>
+            -->
+        </div>
+        <p id="ocorrenciasLoading" class="loading-text">Carregando ocorrências...</p>
+        <p id="noOcorrenciasMessage" class="info-text" style="display:none;">Nenhuma ocorrência encontrada.</p>
+
+    </main>
+
+    <!-- Modal de Cadastro de Nova Ocorrência -->
+    <div id="modalNovaOcorrencia" class="cv-modal" style="display:none;">
+        <div class="cv-modal__content">
+            <span class="cv-modal__close-button" id="closeNovaOcorrenciaModal">&times;</span>
+            <h2>Nova Ocorrência</h2>
+            <form id="formNovaOcorrencia" class="cv-form">
+                <div class="cv-form__group">
+                    <label for="ocorrenciaTitulo" class="cv-form__label">Título (obrigatório):</label>
+                    <input type="text" id="ocorrenciaTitulo" name="titulo" class="cv-form__input" required maxlength="100">
+                </div>
+                <div class="cv-form__group">
+                    <label for="ocorrenciaDescricao" class="cv-form__label">Descrição (obrigatório):</label>
+                    <textarea id="ocorrenciaDescricao" name="descricao" class="cv-form__textarea" rows="5" required maxlength="1000"></textarea>
+                </div>
+                <div class="cv-form__group">
+                    <label for="ocorrenciaCategoria" class="cv-form__label">Categoria (obrigatório):</label>
+                    <select id="ocorrenciaCategoria" name="categoria" class="cv-form__select" required>
+                        <option value="">Selecione...</option>
+                        <!-- Options will be populated by JS from API -->
+                    </select>
+                </div>
+                <div class="cv-form__group">
+                    <label for="ocorrenciaPrioridade" class="cv-form__label">Prioridade:</label>
+                    <select id="ocorrenciaPrioridade" name="prioridade" class="cv-form__select">
+                        <option value="NORMAL">Normal</option>
+                        <option value="URGENTE">Urgente</option>
+                    </select>
+                </div>
+                <div class="cv-form__group">
+                    <label for="ocorrenciaAnexos" class="cv-form__label">Anexos (opcional, máx 10MB por arquivo):</label>
+                    <input type="file" id="ocorrenciaAnexos" name="anexos" class="cv-form__input-file" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.aac,.mp3,.wav">
+                    <div id="anexosPreviewContainer" class="anexos-preview"></div>
+                </div>
+                <div id="formNovaOcorrenciaErrors" class="cv-form__errors" style="display:none;"></div>
+                <div class="cv-form__actions">
+                    <button type="submit" class="cv-button cv-button--primary">Enviar Ocorrência</button>
+                    <button type="button" id="cancelNovaOcorrencia" class="cv-button cv-button--secondary">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhe da Ocorrência -->
+    <div id="modalDetalheOcorrencia" class="cv-modal" style="display:none;">
+        <div class="cv-modal__content cv-modal__content--large">
+            <span class="cv-modal__close-button" id="closeDetalheOcorrenciaModal">&times;</span>
+            <h2 id="detalheTitulo"></h2>
+            <div class="ocorrencia-detalhes-grid">
+                <p><strong>Categoria:</strong> <span id="detalheCategoria"></span></p>
+                <p><strong>Status Atual:</strong> <span id="detalheStatus" class="status-tag"></span></p>
+                <p><strong>Prioridade:</strong> <span id="detalhePrioridade"></span></p>
+                <p><strong>Data de Abertura:</strong> <span id="detalheDataAbertura"></span></p>
+                <p><strong>Última Atualização:</strong> <span id="detalheDataAtualizacao"></span></p>
+                <p><strong>Aberta por:</strong> <span id="detalheUsuarioNome"></span> (<span id="detalheUsuarioUnidade"></span>)</p>
+            </div>
+
+            <h3>Descrição:</h3>
+            <p id="detalheDescricao" class="ocorrencia-descricao-detalhe"></p>
+
+            <h3>Anexos:</h3>
+            <div id="detalheAnexosContainer" class="anexos-container">
+                <!-- Anexos serão listados aqui -->
+            </div>
+             <div class="cv-form__group">
+                <label for="detalheNovosAnexos" class="cv-form__label">Adicionar mais anexos (opcional):</label>
+                <input type="file" id="detalheNovosAnexos" name="novosAnexos" class="cv-form__input-file" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.aac,.mp3,.wav">
+                <button id="btnAdicionarNovosAnexos" class="cv-button cv-button--secondary cv-button--small">Adicionar Selecionados</button>
+                <div id="novosAnexosPreviewContainer" class="anexos-preview"></div>
+            </div>
+
+
+            <h3>Histórico de Status:</h3>
+            <ul id="detalheHistoricoStatus" class="historico-status-lista">
+                <!-- Histórico será listado aqui -->
+            </ul>
+
+            <h3>Comentários:</h3>
+            <div id="detalheComentariosContainer" class="comentarios-container">
+                <!-- Comentários serão listados aqui -->
+            </div>
+
+            <div id="comentarioFormContainer" class="cv-form">
+                <h4>Adicionar Comentário:</h4>
+                <textarea id="novoComentarioTexto" class="cv-form__textarea" rows="3" placeholder="Digite seu comentário..."></textarea>
+                <div id="formComentarioErrors" class="cv-form__errors" style="display:none;"></div>
+                <button id="btnAdicionarComentario" class="cv-button cv-button--primary">Adicionar Comentário</button>
+            </div>
+
+            <div class="cv-modal__actions ocorrencia-detalhes__actions">
+                <button id="btnAlterarStatus" class="cv-button cv-button--secondary" style="display:none;">Alterar Status</button>
+                <button id="btnExcluirOcorrencia" class="cv-button cv-button--danger" style="display:none;">Excluir Ocorrência</button>
+                <!-- Botões de Cancelar/Finalizar podem ser implementados como "Alterar Status" para CANCELADA/RESOLVIDA -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Alterar Status -->
+    <div id="modalAlterarStatus" class="cv-modal" style="display:none;">
+        <div class="cv-modal__content">
+            <span class="cv-modal__close-button" id="closeAlterarStatusModal">&times;</span>
+            <h2>Alterar Status da Ocorrência</h2>
+            <form id="formAlterarStatus" class="cv-form">
+                <input type="hidden" id="ocorrenciaIdParaAlterarStatus">
+                <div class="cv-form__group">
+                    <label for="selectNovoStatus" class="cv-form__label">Novo Status:</label>
+                    <select id="selectNovoStatus" class="cv-form__select">
+                        <!-- Options will be populated by JS based on current status and roles -->
+                        <option value="ABERTA">Aberta</option>
+                        <option value="EM_ANALISE">Em Análise</option>
+                        <option value="EM_ATENDIMENTO">Em Atendimento</option>
+                        <option value="RESOLVIDA">Resolvida</option>
+                        <option value="CANCELADA">Cancelada</option>
+                    </select>
+                </div>
+                <div id="formAlterarStatusErrors" class="cv-form__errors" style="display:none;"></div>
+                <button type="submit" class="cv-button cv-button--primary">Salvar Status</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="cv-footer">
+        <p>&copy; 2024 conViver. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/apiClient.js" type="module"></script>
+    <script src="../js/auth.js" type="module"></script>
+    <script src="../js/ocorrencias.js" type="module"></script>
+    <!-- <script src="../js/main.js" type="module"></script> --> <!-- if main.js is a module and has global init -->
+</body>
+
+</html>

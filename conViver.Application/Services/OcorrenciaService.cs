@@ -1,153 +1,247 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
 using conViver.Core.DTOs;
 using conViver.Core.Entities;
+using conViver.Core.Enums;
 using conViver.Core.Interfaces;
-using Microsoft.EntityFrameworkCore; // Added for ToListAsync
+using FluentValidation;
 
 namespace conViver.Application.Services
 {
-    public class OcorrenciaService
+    public class OcorrenciaService : IOcorrenciaService
     {
-        private readonly IRepository<Ocorrencia> _ocorrenciaRepository;
-        // private readonly INotificacaoService _notificacaoService; // Assuming you might have a notification service
+        private readonly IOcorrenciaRepository _ocorrenciaRepository;
+        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IFileStorageService _fileStorageService;
+        private readonly IMapper _mapper;
+        private readonly IValidator<OcorrenciaInputDto> _ocorrenciaInputValidator;
+        private readonly IValidator<OcorrenciaComentarioInputDto> _comentarioInputValidator;
+        private readonly IValidator<OcorrenciaStatusInputDto> _statusInputValidator;
 
-        public OcorrenciaService(IRepository<Ocorrencia> ocorrenciaRepository /*, INotificacaoService notificacaoService*/)
+        public OcorrenciaService(
+            IOcorrenciaRepository ocorrenciaRepository,
+            IUsuarioRepository usuarioRepository,
+            IFileStorageService fileStorageService,
+            IMapper mapper,
+            IValidator<OcorrenciaInputDto> ocorrenciaInputValidator,
+            IValidator<OcorrenciaComentarioInputDto> comentarioInputValidator,
+            IValidator<OcorrenciaStatusInputDto> statusInputValidator
+        )
         {
             _ocorrenciaRepository = ocorrenciaRepository;
-            // _notificacaoService = notificacaoService;
+            _usuarioRepository = usuarioRepository;
+            _fileStorageService = fileStorageService;
+            _mapper = mapper;
+            _ocorrenciaInputValidator = ocorrenciaInputValidator;
+            _comentarioInputValidator = comentarioInputValidator;
+            _statusInputValidator = statusInputValidator;
         }
 
-        public async Task<Ocorrencia> RegistrarOcorrenciaAsync(Guid condominioId, Guid usuarioId, OcorrenciaInputDto input, CancellationToken ct = default)
+        public async Task<OcorrenciaDetailsDto> CreateOcorrenciaAsync(OcorrenciaInputDto inputDto, Guid userId, IEnumerable<AnexoInput> anexos)
         {
-            var ocorrencia = new Ocorrencia
+            var validationResult = await _ocorrenciaInputValidator.ValidateAsync(inputDto);
+            if (!validationResult.IsValid)
+                throw new ValidationException(validationResult.Errors);
+
+            var usuario = await _usuarioRepository.GetByIdAsync(userId);
+            if (usuario == null)
+                throw new KeyNotFoundException("Usuário não encontrado.");
+
+            var ocorrencia = _mapper.Map<Ocorrencia>(inputDto);
+            ocorrencia.Id = Guid.NewGuid();
+            ocorrencia.UsuarioId = userId;
+            ocorrencia.Status = OcorrenciaStatus.ABERTA;
+            ocorrencia.DataAbertura = DateTime.UtcNow;
+            ocorrencia.DataAtualizacao = DateTime.UtcNow;
+            ocorrencia.CondominioId = usuario.CondominioId;
+            ocorrencia.UnidadeId = usuario.UnidadeId;
+
+            if (anexos != null && anexos.Any())
+            {
+                ocorrencia.Anexos = new List<OcorrenciaAnexo>();
+                foreach (var anexoInput in anexos)
+                {
+                    var anexoUrl = await _fileStorageService.UploadFileAsync(
+                        "ocorrencias-anexos",
+                        anexoInput.FileName,
+                        anexoInput.ContentStream,
+                        anexoInput.ContentType
+                    );
+
+                    ocorrencia.Anexos.Add(new OcorrenciaAnexo
+                    {
+                        Id = Guid.NewGuid(),
+                        OcorrenciaId = ocorrencia.Id,
+                        Url = anexoUrl,
+                        NomeArquivo = anexoInput.FileName,
+                        Tipo = anexoInput.ContentType,
+                        Tamanho = anexoInput.ContentStream.Length
+                    });
+                }
+            }
+
+            ocorrencia.HistoricoStatus = new List<OcorrenciaStatusHistorico>
+            {
+                new OcorrenciaStatusHistorico
+                {
+                    Id = Guid.NewGuid(),
+                    OcorrenciaId = ocorrencia.Id,
+                    Status = OcorrenciaStatus.ABERTA,
+                    AlteradoPorId = userId,
+                    Data = ocorrencia.DataAbertura
+                }
+            };
+
+            await _ocorrenciaRepository.AddAsync(ocorrencia);
+
+            var created = await _ocorrenciaRepository.GetByIdWithDetailsAsync(ocorrencia.Id);
+            return _mapper.Map<OcorrenciaDetailsDto>(created);
+        }
+
+        public async Task<PagedResultDto<OcorrenciaListItemDto>> GetOcorrenciasAsync(OcorrenciaQueryParametersDto queryParams, Guid userId, bool isAdminOrSindico)
+        {
+            var paged = await _ocorrenciaRepository.GetOcorrenciasFilteredAndPaginatedAsync(queryParams, userId, isAdminOrSindico);
+            var items = _mapper.Map<List<OcorrenciaListItemDto>>(paged.Items);
+
+            return new PagedResultDto<OcorrenciaListItemDto>
+            {
+                Items = items,
+                TotalCount = paged.TotalCount,
+                PageNumber = paged.PageNumber,
+                PageSize = paged.PageSize
+            };
+        }
+
+        public async Task<OcorrenciaDetailsDto> GetOcorrenciaByIdAsync(Guid id, Guid userId)
+        {
+            var ocorrencia = await _ocorrenciaRepository.GetByIdWithDetailsAsync(id);
+            if (ocorrencia == null)
+                throw new KeyNotFoundException($"Ocorrência com ID {id} não encontrada.");
+
+            return _mapper.Map<OcorrenciaDetailsDto>(ocorrencia);
+        }
+
+        public async Task<OcorrenciaComentarioDto> AddComentarioAsync(Guid ocorrenciaId, OcorrenciaComentarioInputDto dto, Guid userId)
+        {
+            var validationResult = await _comentarioInputValidator.ValidateAsync(dto);
+            if (!validationResult.IsValid)
+                throw new ValidationException(validationResult.Errors);
+
+            var ocorrencia = await _ocorrenciaRepository.GetByIdAsync(ocorrenciaId);
+            if (ocorrencia == null)
+                throw new KeyNotFoundException($"Ocorrência com ID {ocorrenciaId} não encontrada.");
+
+            var comentario = new OcorrenciaComentario
             {
                 Id = Guid.NewGuid(),
-                CondominioId = condominioId,
-                UsuarioId = usuarioId,
-                UnidadeId = input.UnidadeId,
-                Titulo = input.Titulo,
-                Descricao = input.Descricao,
-                Fotos = input.Fotos ?? new List<string>(),
-                Tipo = input.Tipo,
-                DataOcorrencia = input.DataOcorrencia,
-                Status = "Registrada", // Initial status
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                OcorrenciaId = ocorrenciaId,
+                UsuarioId = userId,
+                Texto = dto.Texto,
+                Data = DateTime.UtcNow
             };
 
-            await _ocorrenciaRepository.AddAsync(ocorrencia, ct);
-            // Potentially send notifications after creating
-            // await _notificacaoService.NotificarNovaOcorrenciaAsync(ocorrencia);
-            return ocorrencia;
+            await _ocorrenciaRepository.AddComentarioAsync(comentario);
+
+            ocorrencia.DataAtualizacao = DateTime.UtcNow;
+            await _ocorrenciaRepository.UpdateAsync(ocorrencia);
+
+            var usuario = await _usuarioRepository.GetByIdAsync(userId);
+            var resultDto = _mapper.Map<OcorrenciaComentarioDto>(comentario);
+            if (usuario != null) resultDto.UsuarioNome = usuario.Nome;
+
+            return resultDto;
         }
 
-        public async Task<IEnumerable<OcorrenciaDto>> ListarOcorrenciasPorUsuarioAsync(Guid condominioId, Guid usuarioId, string? status, string? tipo, CancellationToken ct = default)
+        public async Task<bool> ChangeOcorrenciaStatusAsync(Guid id, OcorrenciaStatusInputDto dto, Guid userId)
         {
-            var query = _ocorrenciaRepository.Query()
-                .Where(o => o.CondominioId == condominioId && o.UsuarioId == usuarioId);
+            var validationResult = await _statusInputValidator.ValidateAsync(dto);
+            if (!validationResult.IsValid)
+                throw new ValidationException(validationResult.Errors);
 
-            if (!string.IsNullOrEmpty(status))
+            var ocorrencia = await _ocorrenciaRepository.GetByIdAsync(id);
+            if (ocorrencia == null)
+                throw new KeyNotFoundException($"Ocorrência com ID {id} não encontrada.");
+
+            if (ocorrencia.Status == dto.Status)
+                return true;
+
+            ocorrencia.Status = dto.Status;
+            ocorrencia.DataAtualizacao = DateTime.UtcNow;
+
+            await _ocorrenciaRepository.AddStatusHistoricoAsync(new OcorrenciaStatusHistorico
             {
-                query = query.Where(o => o.Status == status);
-            }
+                Id = Guid.NewGuid(),
+                OcorrenciaId = id,
+                Status = dto.Status,
+                AlteradoPorId = userId,
+                Data = DateTime.UtcNow
+            });
 
-            if (!string.IsNullOrEmpty(tipo))
-            {
-                query = query.Where(o => o.Tipo == tipo);
-            }
-
-            var ocorrencias = await query.ToListAsync(ct); // Changed to use ToListAsync
-            return ocorrencias.Select(MapToOcorrenciaDto);
+            await _ocorrenciaRepository.UpdateAsync(ocorrencia);
+            return true;
         }
 
-        public async Task<IEnumerable<OcorrenciaDto>> ListarOcorrenciasParaGestaoAsync(Guid condominioId, string? status, string? tipo, CancellationToken ct = default)
+        public async Task AddAnexosAsync(Guid id, IEnumerable<AnexoInput> anexos, Guid userId)
         {
-            var query = _ocorrenciaRepository.Query()
-                .Where(o => o.CondominioId == condominioId);
+            if (anexos == null || !anexos.Any()) return;
 
-            if (!string.IsNullOrEmpty(status))
+            var ocorrencia = await _ocorrenciaRepository.GetByIdAsync(id);
+            if (ocorrencia == null)
+                throw new KeyNotFoundException($"Ocorrência com ID {id} não encontrada.");
+
+            var novosAnexos = new List<OcorrenciaAnexo>();
+            foreach (var anexo in anexos)
             {
-                query = query.Where(o => o.Status == status);
+                var url = await _fileStorageService.UploadFileAsync("ocorrencias-anexos", anexo.FileName, anexo.ContentStream, anexo.ContentType);
+
+                novosAnexos.Add(new OcorrenciaAnexo
+                {
+                    Id = Guid.NewGuid(),
+                    OcorrenciaId = id,
+                    Url = url,
+                    NomeArquivo = anexo.FileName,
+                    Tipo = anexo.ContentType,
+                    Tamanho = anexo.ContentStream.Length
+                });
             }
 
-            if (!string.IsNullOrEmpty(tipo))
-            {
-                query = query.Where(o => o.Tipo == tipo);
-            }
-
-            var ocorrencias = await query.ToListAsync(ct); // Changed to use ToListAsync
-            return ocorrencias.Select(MapToOcorrenciaDto);
+            await _ocorrenciaRepository.AddAnexosAsync(novosAnexos);
+            ocorrencia.DataAtualizacao = DateTime.UtcNow;
+            await _ocorrenciaRepository.UpdateAsync(ocorrencia);
         }
 
-        public async Task<OcorrenciaDto?> ObterOcorrenciaPorIdAsync(Guid ocorrenciaId, Guid condominioId, Guid usuarioId, bool isGestor, CancellationToken ct = default)
+        public async Task<IEnumerable<OcorrenciaStatusHistoricoDto>> GetStatusHistoricoAsync(Guid id)
         {
-            var ocorrencia = await _ocorrenciaRepository.GetByIdAsync(ocorrenciaId, ct);
-
-            if (ocorrencia == null || ocorrencia.CondominioId != condominioId)
-            {
-                return null; // Or throw NotFoundException
-            }
-
-            // If not a manager, user can only see their own occurrences
-            if (!isGestor && ocorrencia.UsuarioId != usuarioId)
-            {
-                return null; // Or throw UnauthorizedAccessException
-            }
-
-            return MapToOcorrenciaDto(ocorrencia);
+            var historico = await _ocorrenciaRepository.GetStatusHistoricoByOcorrenciaIdAsync(id);
+            return _mapper.Map<List<OcorrenciaStatusHistoricoDto>>(historico);
         }
 
-        public async Task<OcorrenciaDto?> AtualizarOcorrenciaAsync(Guid ocorrenciaId, Guid condominioId, Guid gestorUserId, OcorrenciaUpdateDto updateDto, CancellationToken ct = default)
+        public async Task<bool> DeleteOcorrenciaAsync(Guid id, Guid userId)
         {
-            var ocorrencia = await _ocorrenciaRepository.GetByIdAsync(ocorrenciaId, ct);
+            var ocorrencia = await _ocorrenciaRepository.GetByIdWithDetailsAsync(id);
+            if (ocorrencia == null)
+                throw new KeyNotFoundException($"Ocorrência com ID {id} não encontrada.");
 
-            if (ocorrencia == null || ocorrencia.CondominioId != condominioId)
+            if (ocorrencia.Anexos != null)
             {
-                return null; // Or throw NotFoundException
+                foreach (var anexo in ocorrencia.Anexos)
+                {
+                    await _fileStorageService.DeleteFileAsync(anexo.Url);
+                }
             }
 
-            // Logic to ensure only authorized personnel (e.g., admin/sindico) can update certain fields
-            // This might involve checking gestorUserId against a list of authorized users or roles.
-            // For now, we assume if this method is called, the user is authorized for simplicity.
-
-            ocorrencia.Status = updateDto.Status;
-            ocorrencia.RespostaAdministracao = updateDto.RespostaAdministracao;
-            ocorrencia.UpdatedAt = DateTime.UtcNow;
-
-            if (updateDto.Status == "Resolvida" || updateDto.Status == "Cancelada")
-            {
-                ocorrencia.DataResolucao = DateTime.UtcNow;
-            }
-
-            await _ocorrenciaRepository.UpdateAsync(ocorrencia, ct);
-            // Potentially send notifications about the update
-            // await _notificacaoService.NotificarOcorrenciaAtualizadaAsync(ocorrencia);
-            return MapToOcorrenciaDto(ocorrencia);
+            await _ocorrenciaRepository.DeleteAsync(ocorrencia);
+            return true;
         }
 
-        private OcorrenciaDto MapToOcorrenciaDto(Ocorrencia ocorrencia)
+        public Task<IEnumerable<string>> GetCategoriasAsync()
         {
-            return new OcorrenciaDto
-            {
-                Id = ocorrencia.Id,
-                CondominioId = ocorrencia.CondominioId,
-                UnidadeId = ocorrencia.UnidadeId,
-                UsuarioId = ocorrencia.UsuarioId,
-                Titulo = ocorrencia.Titulo,
-                Descricao = ocorrencia.Descricao,
-                Fotos = ocorrencia.Fotos,
-                Status = ocorrencia.Status,
-                Tipo = ocorrencia.Tipo,
-                DataOcorrencia = ocorrencia.DataOcorrencia,
-                DataResolucao = ocorrencia.DataResolucao,
-                RespostaAdministracao = ocorrencia.RespostaAdministracao,
-                CreatedAt = ocorrencia.CreatedAt,
-                UpdatedAt = ocorrencia.UpdatedAt
-            };
+            var categorias = Enum.GetNames(typeof(OcorrenciaCategoria)).ToList();
+            return Task.FromResult<IEnumerable<string>>(categorias);
         }
     }
 }
