@@ -9,11 +9,11 @@ namespace conViver.Core.DTOs
         public Guid CondominioId { get; set; }
         public Guid? UnidadeId { get; set; }
         public Guid UsuarioId { get; set; }
-        public string Titulo { get; set; }
-        public string Descricao { get; set; }
-        public List<string> Fotos { get; set; }
-        public string Status { get; set; }
-        public string Tipo { get; set; }
+        public string Titulo { get; set; } = string.Empty;
+        public string Descricao { get; set; } = string.Empty;
+        public List<string> Fotos { get; set; } = new List<string>();
+        public string Status { get; set; } = string.Empty;
+        public string Tipo { get; set; } = string.Empty;
         public DateTime DataOcorrencia { get; set; }
         public DateTime? DataResolucao { get; set; }
         public string? RespostaAdministracao { get; set; }
@@ -23,17 +23,17 @@ namespace conViver.Core.DTOs
 
     public class OcorrenciaInputDto
     {
-        public string Titulo { get; set; }
-        public string Descricao { get; set; }
-        public List<string> Fotos { get; set; } = new List<string>();
-        public string Tipo { get; set; }
+        public string Titulo { get; set; } = string.Empty;
+        public string Descricao { get; set; } = string.Empty;
+        public List<string> Fotos { get; set; } = new List<string>(); // Already initialized, but confirm non-nullable requirement
+        public string Tipo { get; set; } = string.Empty;
         public DateTime DataOcorrencia { get; set; }
         public Guid? UnidadeId { get; set; }
     }
 
     public class OcorrenciaUpdateDto
     {
-        public string Status { get; set; }
+        public string Status { get; set; } = string.Empty;
         public string? RespostaAdministracao { get; set; }
     }
 }

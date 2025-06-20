@@ -266,12 +266,12 @@ namespace conViver.Application.Services
             var feedItems = new List<FeedItemDto>();
             var usuario = await _usuarioRepository.GetByIdAsync(usuarioId, ct);
 
-            if (usuario == null || !usuario.UnidadeId.HasValue)
+            if (usuario == null) // Usuario.UnidadeId is Guid (non-nullable), so only check if user exists
             {
-                return feedItems; // No UnidadeId for the user, so no encomendas to fetch for them
+                return feedItems;
             }
 
-            var unidadeId = usuario.UnidadeId.Value;
+            var unidadeId = usuario.UnidadeId; // Direct access, UnidadeId is non-nullable Guid on Usuario
 
             // Verify if the user's Unidade belongs to the provided CondominioId
             var unidade = await _unidadeRepository.GetByIdAsync(unidadeId, ct);
@@ -290,8 +290,7 @@ namespace conViver.Application.Services
 
             foreach (var encomenda in encomendas)
             {
-                bool isPendente = encomenda.Status == Core.Enums.EncomendaStatus.AguardandoRetirada ||
-                                  encomenda.Status == Core.Enums.EncomendaStatus.DisponivelParaRetirada; // Add other pending statuses if any
+                bool isPendente = encomenda.Status == Core.Enums.EncomendaStatus.AguardandoRetirada;
 
                 feedItems.Add(new FeedItemDto
                 {
@@ -317,11 +316,11 @@ namespace conViver.Application.Services
             var feedItems = new List<FeedItemDto>();
             var usuario = await _usuarioRepository.GetByIdAsync(usuarioId, ct);
 
-            if (usuario == null || !usuario.UnidadeId.HasValue)
+            if (usuario == null) // Usuario.UnidadeId is Guid (non-nullable)
             {
-                return feedItems; // User or their UnidadeId not found
+                return feedItems;
             }
-            var unidadeId = usuario.UnidadeId.Value;
+            var unidadeId = usuario.UnidadeId; // Direct access
 
             // Fetch "Pendente" cobrancas for the whole condominio.
             // "Pendente" status in ListarCobrancasAsync covers: Gerado, Registrado, Enviado, Vencido
@@ -421,11 +420,11 @@ namespace conViver.Application.Services
             var feedItems = new List<FeedItemDto>();
             var usuario = await _usuarioRepository.GetByIdAsync(usuarioId, ct);
 
-            if (usuario == null || !usuario.UnidadeId.HasValue)
+            if (usuario == null) // Usuario.UnidadeId is Guid (non-nullable)
             {
-                return feedItems; // User or their UnidadeId not found
+                return feedItems;
             }
-            var unidadeId = usuario.UnidadeId.Value;
+            var unidadeId = usuario.UnidadeId; // Direct access
 
             // Verify Unidade belongs to Condominio (important if Reserva doesn't store CondominioId)
             var unidade = await _unidadeRepository.GetByIdAsync(unidadeId, ct);
@@ -436,10 +435,9 @@ namespace conViver.Application.Services
 
             var hoje = DateTime.UtcNow;
             // Fetch recent confirmed/approved reservations for the user's unidade
-            // Assuming ReservaStatus.Confirmada or Aprovada means it's set for the user.
             var reservas = await _reservaRepository.Query() // Corrected to use _reservaRepository
                 .Where(r => r.UnidadeId == unidadeId &&
-                             (r.Status == Core.Enums.ReservaStatus.Confirmada || r.Status == Core.Enums.ReservaStatus.Aprovada) &&
+                             r.Status == Core.Enums.ReservaStatus.Confirmada && // Corrected: Only use Confirmada
                              r.Inicio >= hoje.AddDays(-7) && // Example: happening in the last 7 days
                              r.Inicio <= hoje.AddDays(30))  // Example: or in the next 30 days
                 .OrderBy(r => r.Inicio) // Show upcoming ones first, or recently past
