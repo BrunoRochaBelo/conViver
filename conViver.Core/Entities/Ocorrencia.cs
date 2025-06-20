@@ -18,9 +18,9 @@ namespace conViver.Core.Entities
         public Guid? UnidadeId { get; set; }
         public Guid CondominioId { get; set; }
 
-        public Usuario Usuario { get; set; }           // Navigation property
-        public Unidade Unidade { get; set; }           // Navigation property
-        public Condominio Condominio { get; set; }     // Navigation property
+        public Usuario Usuario { get; set; } // Assuming Usuario entity exists in conViver.Core.Entities
+        public Unidade Unidade { get; set; } // Assuming Unidade entity exists in conViver.Core.Entities
+        public Condominio Condominio { get; set; } // Assuming Condominio entity exists in conViver.Core.Entities
         public ICollection<OcorrenciaAnexo> Anexos { get; set; }
         public ICollection<OcorrenciaComentario> Comentarios { get; set; }
         public ICollection<OcorrenciaStatusHistorico> HistoricoStatus { get; set; }
