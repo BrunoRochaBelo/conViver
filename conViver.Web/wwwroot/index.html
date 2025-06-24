@@ -7,29 +7,51 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <div id="global-loading-overlay" class="loading-overlay"><div class="spinner"></div></div>
+    <div id="global-message-banner" class="message-banner"></div>
     <header class="cv-header">
-        <h1>conViver</h1>
+        <div class="cv-container cv-header__container">
+            <img src="./assets/logo_conviver.png" alt="conViver Logo" class="cv-header__logo">
+            <div class="cv-header__user-info">
+                <span id="headerUserName">Usuário</span>
+                <button id="btnLogout" class="cv-button cv-button--secondary cv-button--small">Sair</button>
+            </div>
+        </div>
     </header>
-    <nav id="mainNav"></nav>
-    <main class="cv-container">
-        <section class="dashboard__metrics">
-            <div class="cv-card dashboard__metric">
-                <h2 class="dashboard__metric-title">Inadimplência</h2>
-                <p class="dashboard__metric-value js-inadimplencia">--%</p>
+    <nav class="cv-nav">
+        <div class="cv-container">
+            <ul class="cv-nav__list">
+                <li class="cv-nav__item"><a href="index.html" class="cv-nav__link cv-nav__link--active">Início</a></li>
+                <li class="cv-nav__item"><a href="pages/comunicacao.html" class="cv-nav__link">Comunicação</a></li>
+                <li class="cv-nav__item"><a href="pages/reservas.html" class="cv-nav__link">Reservas</a></li>
+                <li class="cv-nav__item"><a href="pages/ocorrencias.html" class="cv-nav__link">Ocorrências</a></li>
+                <li class="cv-nav__item"><a href="pages/financeiro.html" class="cv-nav__link">Financeiro</a></li>
+            </ul>
+        </div>
+    </nav>
+    <main class="db-main cv-container">
+        <section class="db-metrics-grid">
+            <div class="cv-card db-metric-card">
+                <h2 class="db-metric-card__title">Inadimplência</h2>
+                <p class="db-metric-card__value js-inadimplencia">--%</p>
             </div>
-            <div class="cv-card dashboard__metric">
-                <h2 class="dashboard__metric-title">Saldo em Conta</h2>
-                <p class="dashboard__metric-value js-saldo">R$ --</p>
+            <div class="cv-card db-metric-card">
+                <h2 class="db-metric-card__title">Saldo em Conta</h2>
+                <p class="db-metric-card__value js-saldo">R$ --</p>
             </div>
-            <div class="cv-card dashboard__metric">
-                <h2 class="dashboard__metric-title">Próximas Despesas</h2>
-                <ul class="dashboard__metric-list js-proximas-despesas">
+            <div class="cv-card db-metric-card">
+                <h2 class="db-metric-card__title">Próximas Despesas</h2>
+                <ul class="db-metric-card__list js-proximas-despesas">
                     <li>...</li>
                 </ul>
             </div>
         </section>
     </main>
+    <script src="js/config.js"></script>
     <script type="module" src="js/nav.js"></script>
+    <script src="js/apiClient.js" type="module"></script>
+    <script src="js/auth.js" type="module"></script>
     <script type="module" src="js/dashboard.js"></script>
+    <script src="js/main.js" type="module"></script>
 </body>
 </html>

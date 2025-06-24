@@ -5,31 +5,78 @@
     <title>conViver - Dashboard</title>
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
-<body>
+<body class="dashboard-page">
     <header class="cv-header">
-        <h1>conViver</h1>
+        <h1 class="cv-header__title">conViver</h1>
+        <!-- Botão de Logout (será implementado/funcional depois) -->
+        <button id="logoutButton" class="cv-button cv-button--secondary cv-header__logout">Sair</button>
     </header>
     <nav id="mainNav"></nav>
-    <main class="cv-container">
-        <section class="dashboard__metrics">
-            <div class="cv-card dashboard__metric">
-                <h2 class="dashboard__metric-title">Inadimplência</h2>
-                <p class="dashboard__metric-value">--%</p>
+    <main class="cv-container db-main">
+        <section class="db-section db-section--metrics">
+            <h2 class="db-section__title">Visão Geral</h2>
+            <div class="db-metrics-grid">
+                <div class="cv-card db-metric-card db-metric-card--inadimplencia">
+                    <h3 class="db-metric-card__title">Inadimplência Atual</h3>
+                    <p class="db-metric-card__value js-db-inadimplencia-percent">--%</p>
+                    <p class="db-metric-card__subvalue js-db-inadimplencia-valor">R$ --</p>
+                    <div class="db-chart-container"> <!-- Novo container para o gráfico -->
+                        <canvas id="inadimplenciaChart" class="db-chart"></canvas>
+                    </div>
+                </div>
+                <div class="cv-card db-metric-card db-metric-card--saldo">
+                    <h3 class="db-metric-card__title">Saldo Disponível</h3>
+                    <p class="db-metric-card__value js-db-saldo">R$ --</p>
+                </div>
+                <div class="cv-card db-metric-card db-metric-card--despesas">
+                    <h3 class="db-metric-card__title">Próximas Despesas</h3>
+                    <ul class="db-metric-card__list js-db-proximas-despesas">
+                        <li>Nenhuma despesa próxima.</li>
+                    </ul>
+                </div>
             </div>
-            <div class="cv-card dashboard__metric">
-                <h2 class="dashboard__metric-title">Saldo em Conta</h2>
-                <p class="dashboard__metric-value">R$ --</p>
-            </div>
-            <div class="cv-card dashboard__metric">
-                <h2 class="dashboard__metric-title">Próximas Despesas</h2>
-                <ul class="dashboard__metric-list">
-                    <li>...</li>
-                </ul>
+        </section>
+
+        <div class="db-columns"> <!-- Layout de duas colunas -->
+            <section class="db-section db-section--avisos-alertas">
+                <h2 class="db-section__title">Avisos e Alertas Críticos</h2>
+                <div class="cv-card db-alerts-list js-db-alertas">
+                    <p>Nenhum alerta no momento.</p>
+                    <!-- Alertas serão populados aqui -->
+                </div>
+            </section>
+
+            <section class="db-section db-section--atividade">
+                <h2 class="db-section__title">Atividade Recente</h2>
+                <div class="cv-card db-activity-feed">
+                    <h3 class="db-activity-feed__subtitle">Últimos Chamados Abertos</h3>
+                    <ul class="db-activity-feed__list js-db-ultimos-chamados">
+                        <li>Nenhum chamado recente.</li>
+                    </ul>
+                    <h3 class="db-activity-feed__subtitle">Avisos Publicados Recentemente</h3>
+                    <ul class="db-activity-feed__list js-db-ultimos-avisos">
+                        <li>Nenhum aviso recente.</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <section class="db-section db-section--acesso-rapido">
+            <h2 class="db-section__title">Acesso Rápido</h2>
+            <div class="db-quick-access">
+                <a href="financeiro.html" class="cv-button db-quick-access__button">Gestão Financeira</a>
+                <a href="reservas.html" class="cv-button db-quick-access__button">Reservas de Espaços</a>
+                <a href="portaria.html" class="cv-button db-quick-access__button">Controle de Portaria</a>
+                <a href="comunicacao.html" class="cv-button db-quick-access__button">Mural e Chamados</a>
             </div>
         </section>
     </main>
     <script type="module" src="../js/nav.js"></script>
-    <script src="../js/dashboard.js"></script>
+    <script type="module" src="../js/dashboard.js"></script>
+    <!-- Adicionar main.js se ele tiver inicializações globais ou se dashboard.js for usá-lo -->
+    <!-- <script type="module" src="../js/main.js"></script> -->
 </body>
 </html>

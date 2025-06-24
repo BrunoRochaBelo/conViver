@@ -1,0 +1,66 @@
+/* Styles specific to the Ocorrências page */
+.ocorrencias-main {
+    margin-top: var(--cv-spacing-lg, 20px);
+}
+.ocorrencias-main__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cv-spacing-md, 15px);
+}
+.ocorrencias-main__nova-button {
+    white-space: nowrap;
+}
+.ocorrencias-lista .ocorrencia-card {
+    margin-bottom: var(--cv-spacing-md, 15px);
+    padding: var(--cv-spacing-md, 15px);
+    background-color: var(--current-bg-white, #fff);
+    border-radius: var(--cv-border-radius-md, 8px);
+    box-shadow: var(--current-shadow-sm, 0 2px 4px rgba(0,0,0,0.1));
+    cursor: pointer;
+    transition: box-shadow 0.2s ease-in-out;
+}
+.ocorrencias-lista .ocorrencia-card:hover {
+    box-shadow: var(--current-shadow-md, 0 4px 8px rgba(0,0,0,0.15));
+}
+.ocorrencia-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cv-spacing-xs, 5px);
+}
+.ocorrencia-card__titulo {
+    font-size: var(--cv-font-size-lg, 1.1rem);
+    color: var(--current-text-primary);
+    margin: 0;
+}
+.ocorrencia-card__categoria,
+.ocorrencia-card__status,
+.ocorrencia-card__data-abertura,
+.ocorrencia-card__data-atualizacao,
+.ocorrencia-card__aberta-por {
+    font-size: 0.9em;
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-xs, 4px);
+}
+.status-tag {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    color: #fff;
+}
+.status-tag--aberta { background-color: var(--current-semantic-warning, #f0ad4e); }
+.status-tag--em-analise { background-color: var(--current-semantic-info, #17a2b8); }
+.status-tag--em-atendimento { background-color: var(--current-semantic-info, #17a2b8); }
+.status-tag--resolvida { background-color: var(--current-semantic-success, #28a745); }
+.status-tag--cancelada { background-color: var(--current-semantic-danger, #dc3545); }
+.ocorrencia-card__prioridade {
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    color: #fff;
+    margin-left: var(--cv-spacing-xs, 5px);
+}
+.ocorrencia-card__prioridade--urgente {
+    background-color: var(--current-semantic-danger, #dc3545);
+}

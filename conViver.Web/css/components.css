@@ -1,7 +1,7 @@
 .cv-button {
     /* ... existing display, text-align, etc. ... */
     font-family: var(--cv-font-family-sans-serif);
-    font-weight: 600; /* Changed from 500 to use OpenSansSemibold */
+    font-weight: 600;
     padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* e.g., 8px 16px */
     border-radius: var(--cv-border-radius-md); /* e.g., 8px */
     border: var(--cv-border-width) solid transparent;
@@ -328,7 +328,7 @@
 .cv-nav__link {
     color: var(--current-text-link);
     text-decoration: none;
-    font-weight: normal; /* Was 500, OpenSans has no 500. Use normal for non-active links. */
+    font-weight: normal;
     display: block; /* Make links take full width for easier tapping */
     width: 100%;
     text-align: left;
