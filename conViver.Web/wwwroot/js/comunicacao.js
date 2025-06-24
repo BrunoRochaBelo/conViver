@@ -572,17 +572,17 @@ function handleChamadoClick(itemId, targetElementOrCard) {
             // This will not work correctly without significant refactoring of viewChamadoDetail.
             // For this subtask, we'll show a message.
             // viewChamadoDetail(itemId);
-            alert(`Chamado item: ${item?.titulo || itemId}. Detalhes seriam exibidos aqui ou na aba Solicitações.`);
+            showGlobalFeedback(`Chamado item: ${item?.titulo || itemId}. Detalhes seriam exibidos aqui ou na aba Solicitações.`, 'info', 5000);
             console.log("Original Chamado Data for Detail View (if needed by an adapted viewChamadoDetail):", item);
         }, 100);
     } else {
-         alert(`Chamado item: ${item?.titulo || itemId}. Detalhes seriam exibidos aqui.`);
+         showGlobalFeedback(`Chamado item: ${item?.titulo || itemId}. Detalhes seriam exibidos aqui.`, 'info', 5000);
     }
 }
 
 function handleOcorrenciaClick(itemId, targetElementOrCard) {
     const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Ocorrencia');
-    alert(`Ocorrência: ${item?.titulo || itemId}. Detalhes da ocorrência seriam exibidos aqui.`);
+    showGlobalFeedback(`Ocorrência: ${item?.titulo || itemId}. Detalhes da ocorrência seriam exibidos aqui.`, 'info', 5000);
 }
 
 function handleDocumentoClick(itemId, targetElementOrCard) {
@@ -596,12 +596,12 @@ function handleDocumentoClick(itemId, targetElementOrCard) {
 
 function handleReservaClick(itemId, targetElementOrCard) {
     const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Reserva');
-    alert(`Reserva: ${item?.titulo || itemId}. Detalhes da reserva seriam exibidos aqui.`);
+    showGlobalFeedback(`Reserva: ${item?.titulo || itemId}. Detalhes da reserva seriam exibidos aqui.`, 'info', 5000);
 }
 
 function handleEncomendaClick(itemId, targetElementOrCard) {
     const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Encomenda');
-    alert(`Encomenda: ${item?.titulo || itemId}. Detalhes da encomenda seriam exibidos aqui.`);
+    showGlobalFeedback(`Encomenda: ${item?.titulo || itemId}. Detalhes da encomenda seriam exibidos aqui.`, 'info', 5000);
 }
 
 function handleBoletoLembreteClick(itemId, targetElementOrCard) {
