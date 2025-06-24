@@ -8,6 +8,7 @@ using conViver.Core.Entities; // Assuming some entities might be used directly o
 using conViver.Application.Services; // For other services like AvisoService, etc.
 using conViver.Core.Interfaces; // For IRepository
 using Microsoft.EntityFrameworkCore; // For ToListAsync
+using conViver.Core.Enums; // Required for OrdemServicoStatus
 
 namespace conViver.Application.Services
 {
@@ -21,11 +22,13 @@ namespace conViver.Application.Services
         private readonly EncomendaService _encomendaService;
         private readonly FinanceiroService _financeiroService;
         private readonly ReservaService _reservaService;
+        private readonly OrdemServicoService _ordemServicoService; // Added
         private readonly IRepository<Votacao> _votacaoRepository;
         private readonly IRepository<Encomenda> _encomendaRepository;
         private readonly IRepository<Usuario> _usuarioRepository;
         private readonly IRepository<Unidade> _unidadeRepository;
-        private readonly IRepository<Reserva> _reservaRepository; // Added for Reserva queries
+        private readonly IRepository<Reserva> _reservaRepository;
+        private readonly IRepository<OrdemServico> _ordemServicoRepository; // Added
 
         public FeedService(
             AvisoService avisoService,
@@ -38,9 +41,11 @@ namespace conViver.Application.Services
             IRepository<Encomenda> encomendaRepository,
             IRepository<Usuario> usuarioRepository,
             IRepository<Unidade> unidadeRepository,
-            IRepository<Reserva> reservaRepository, // Added
+            IRepository<Reserva> reservaRepository,
             FinanceiroService financeiroService,
-            ReservaService reservaService)
+            ReservaService reservaService,
+            OrdemServicoService ordemServicoService, // Added
+            IRepository<OrdemServico> ordemServicoRepository) // Added
         {
             _avisoService = avisoService;
             _votacaoService = votacaoService;
@@ -52,9 +57,11 @@ namespace conViver.Application.Services
             _encomendaRepository = encomendaRepository;
             _usuarioRepository = usuarioRepository;
             _unidadeRepository = unidadeRepository;
-            _reservaRepository = reservaRepository; // Added
+            _reservaRepository = reservaRepository;
             _financeiroService = financeiroService;
             _reservaService = reservaService;
+            _ordemServicoService = ordemServicoService; // Added
+            _ordemServicoRepository = ordemServicoRepository; // Added
         }
 
         public async Task<IEnumerable<FeedItemDto>> GetFeedAsync(
