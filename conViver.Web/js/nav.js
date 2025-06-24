@@ -13,7 +13,8 @@ export function buildNavigation() {
         { key: 'reservas', label: 'Reservas', href: 'reservas.html' },
         { key: 'portaria', label: 'Portaria', href: 'portaria.html' },
         { key: 'comunicacao', label: 'Comunicação', href: 'comunicacao.html' },
-        { key: 'ocorrencias', label: 'Ocorrências', href: 'ocorrencias.html' },
+        // { key: 'ocorrencias', label: 'Ocorrências', href: 'ocorrencias.html' }, // Removido
+        { key: 'biblioteca', label: 'Biblioteca', href: 'biblioteca.html' },
     ];
 
     const container = document.createElement('div');

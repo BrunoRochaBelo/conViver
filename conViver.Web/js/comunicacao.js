@@ -54,6 +54,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     chamadoIdFieldModal = document.getElementById('chamado-id');
     modalChamadoTitle = document.getElementById('modal-chamado-title');
     formChamadoSubmitButtonModal = document.getElementById('form-chamado-submit-button');
+
+    // Modal Detalhe Enquete
+    modalEnqueteDetalhe = document.getElementById('modal-enquete-detalhe');
+    modalEnqueteDetalheTitulo = document.getElementById('modal-enquete-detalhe-titulo');
+    modalEnqueteDetalheDescricao = document.getElementById('modal-enquete-detalhe-descricao');
+    modalEnqueteDetalheOpcoesContainer = document.getElementById('modal-enquete-detalhe-opcoes-container');
+    modalEnqueteDetalheStatus = document.getElementById('modal-enquete-detalhe-status');
+    modalEnqueteSubmitVotoButton = document.getElementById('modal-enquete-submit-voto');
+
+    // Modal Detalhe Chamado
+    modalChamadoDetalhe = document.getElementById('modal-chamado-detalhe');
+    modalChamadoDetalheTitulo = document.getElementById('modal-chamado-detalhe-titulo');
+    modalChamadoDetalheConteudo = document.getElementById('modal-chamado-detalhe-conteudo');
+    modalChamadoDetalheInteracoes = document.getElementById('modal-chamado-detalhe-interacoes');
+    modalChamadoAddCommentSection = document.getElementById('modal-chamado-add-comment-section');
+    modalChamadoCommentText = document.getElementById('modal-chamado-comment-text');
+    modalChamadoSubmitCommentButton = document.getElementById('modal-chamado-submit-comment');
+
+
     // Solicitacoes (formerly Chamados) related DOM elements for its dedicated tab content (which will be mostly unused)
     // Retaining references for now in case any part of modals or existing functions are reused.
     chamadosListContainer = document.querySelector('#content-solicitacoes .js-chamados-list'); // Adjusted selector
@@ -72,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupTabs();
 
     // Mural Tab (Unified Feed)
-    await loadStickyNotices(); // Keep for now, may be integrated or removed later
+    // await loadStickyNotices(); // Removido - itens fixos são tratados pelo PrioridadeOrdenacao no feed principal
     await loadInitialFeedItems();
     setupFeedObserver();
     setupFeedContainerClickListener(); // Added for item clicks
@@ -131,8 +150,7 @@ function setupTabs() {
                 loadInitialFeedItems();
                 if (muralContent) muralContent.style.display = 'block';
             }
-            // Show/hide FABs based on the *logical* tab, not the content div
-            updateUserSpecificUI(button.id);
+            updateUserSpecificUI(button.id); // Passar o ID da aba ativa
         });
     });
 
@@ -181,24 +199,77 @@ function setupModalEventListeners() {
     document.querySelectorAll('.js-modal-criar-aviso-close').forEach(btn => btn.addEventListener('click', closeCriarAvisoModal));
     if (criarAvisoModal) window.addEventListener('click', (event) => { if (event.target === criarAvisoModal) closeCriarAvisoModal(); });
 
+    // Listeners para fechar o modal de detalhe da enquete
+    if (modalEnqueteDetalhe) {
+        const closeButtons = modalEnqueteDetalhe.querySelectorAll('.js-modal-enquete-detalhe-close');
+        closeButtons.forEach(btn => btn.addEventListener('click', () => modalEnqueteDetalhe.style.display = 'none'));
+        window.addEventListener('click', (event) => {
+            if (event.target === modalEnqueteDetalhe) modalEnqueteDetalhe.style.display = 'none';
+        });
+    }
+
+    // Listeners para fechar o modal de detalhe do chamado
+    if (modalChamadoDetalhe) {
+        const closeButtonsChamado = modalChamadoDetalhe.querySelectorAll('.js-modal-chamado-detalhe-close');
+        closeButtonsChamado.forEach(btn => btn.addEventListener('click', () => modalChamadoDetalhe.style.display = 'none'));
+        window.addEventListener('click', (event) => {
+            if (event.target === modalChamadoDetalhe) modalChamadoDetalhe.style.display = 'none';
+        });
+        // Listener para o botão de submeter comentário será adicionado dinamicamente em handleChamadoClick
+    }
+
+
     if (formCriarAviso && avisoIdField) {
         formCriarAviso.addEventListener('submit', async (event) => {
             event.preventDefault();
             const currentAvisoId = avisoIdField.value;
-            // This is a simplified simulation. Real implementation would call apiClient.post or .put
-            if (currentAvisoId) {
-                showGlobalFeedback('Salvando alterações do aviso... (simulado)', 'info');
-                // Simulate API call
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                showGlobalFeedback('Aviso atualizado! (simulado)', 'success');
-            } else {
-                showGlobalFeedback('Criando novo aviso... (simulado)', 'info');
-                // Simulate API call
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                showGlobalFeedback('Aviso criado! (simulado)', 'success');
+            const formData = new FormData(formCriarAviso);
+
+            // O AvisoInputDto no backend espera: Categoria, Titulo, Corpo.
+            // O form HTML tem: titulo, corpo, imagem, anexos, categorias (select multiple).
+            // Vamos montar o DTO para o backend com os campos de texto.
+            // Upload de arquivos e múltiplas categorias precisariam de tratamento especial.
+
+            const titulo = formData.get('titulo');
+            const corpo = formData.get('corpo');
+            // Para 'categorias' (select multiple), precisamos pegar todos os valores selecionados.
+            // O DTO do backend (AvisoInputDto) parece esperar uma string 'Categoria'.
+            // Por simplicidade, vamos pegar a primeira categoria selecionada ou um valor padrão.
+            // Idealmente, o backend suportaria uma lista de strings para categorias.
+            const categoriasSelecionadas = Array.from(document.getElementById('aviso-categorias').selectedOptions).map(opt => opt.value);
+            const categoriaParaApi = categoriasSelecionadas.length > 0 ? categoriasSelecionadas[0] : "Comunicados Gerais"; // Ou a primeira da lista
+
+            const avisoData = {
+                titulo: titulo,
+                corpo: corpo,
+                categoria: categoriaParaApi, // Ajustar se o backend mudar para aceitar múltiplas ou se houver um campo diferente
+                // Campos de imagem e anexos não estão no AvisoInputDto atual do backend.
+            };
+
+            try {
+                if (currentAvisoId) {
+                    // Editar Aviso
+                    showGlobalFeedback('Salvando alterações do aviso...', 'info');
+                    // Endpoint: PUT /api/v1/syndic/avisos/{id}
+                    await apiClient.put(`/api/v1/syndic/avisos/${currentAvisoId}`, avisoData);
+                    showGlobalFeedback('Aviso atualizado com sucesso!', 'success');
+                } else {
+                    // Criar Aviso
+                    showGlobalFeedback('Criando novo aviso...', 'info');
+                    // Endpoint: POST /api/v1/syndic/avisos
+                    await apiClient.post('/api/v1/syndic/avisos', avisoData);
+                    showGlobalFeedback('Aviso criado com sucesso!', 'success');
+                }
+                closeCriarAvisoModal();
+                await loadInitialFeedItems(); // Recarregar o feed
+            } catch (error) {
+                console.error("Erro ao salvar aviso:", error);
+                // A mensagem de erro já deve ser exibida pelo showGlobalFeedback dentro do apiClient
+                // Mas podemos adicionar um fallback se necessário.
+                if (!error.handledByApiClient) { // Supondo que apiClient adicione essa flag
+                    showGlobalFeedback(error.message || 'Falha ao salvar o aviso.', 'error');
+                }
             }
-            closeCriarAvisoModal();
-            await loadInitialFeedItems(); // Reload feed to show changes/new item
         });
     }
 }
@@ -235,39 +306,106 @@ function setupFeedItemActionButtons() {
 async function handleDeleteAviso(itemId) { // Parameter changed to itemId
     showGlobalFeedback('Excluindo aviso... (simulado)', 'info');
     await new Promise(resolve => setTimeout(resolve, 1000));
-    // This would be an API call: await apiClient.delete(`/api/v1/avisos/${itemId}`);
-    fetchedFeedItems = fetchedFeedItems.filter(i => !(i.id === itemId && i.itemType === 'Aviso'));
-    const cardToRemove = document.querySelector(`${feedContainerSelector} .cv-card[data-item-id="${itemId}"][data-item-type="Aviso"]`);
-    if (cardToRemove) {
-        cardToRemove.remove();
-    } else {
-        // If card not found (e.g. due to UI changes), reload the whole feed as a fallback
-        await loadInitialFeedItems();
+    try {
+        showGlobalFeedback('Excluindo aviso...', 'info');
+        // Endpoint: DELETE /api/v1/syndic/avisos/{id}
+        await apiClient.delete(`/api/v1/syndic/avisos/${itemId}`);
+        showGlobalFeedback('Aviso excluído com sucesso!', 'success');
+
+        // Remover do DOM ou recarregar
+        fetchedFeedItems = fetchedFeedItems.filter(i => !(i.id === itemId && i.itemType === 'Aviso'));
+        const cardToRemove = document.querySelector(`${feedContainerSelector} .cv-card[data-item-id="${itemId}"][data-item-type="Aviso"]`);
+        if (cardToRemove) {
+            cardToRemove.remove();
+        } else {
+            await loadInitialFeedItems(); // Fallback: recarregar tudo
+        }
+    } catch (error) {
+        console.error("Erro ao excluir aviso:", error);
+        if (!error.handledByApiClient) {
+            showGlobalFeedback(error.message || 'Falha ao excluir o aviso.', 'error');
+        }
     }
-    showGlobalFeedback('Aviso excluído! (simulado)', 'success');
 }
-async function loadStickyNotices() {
-    const stickyContainer = document.querySelector('.js-sticky-notices');
-    if (!stickyContainer) return;
-    // This might be replaced or augmented by prioritized items from the backend feed
-    // For now, keeping example sticky notice.
-    stickyContainer.innerHTML = `<article class="cv-card communication__post"><h3 class="communication__post-title">Aviso Urgente Fixo Exemplo</h3><p>Este é um exemplo de aviso fixo.</p></article>`;
+// loadStickyNotices function removed as it's no longer needed.
+
+// MOCK getUserRoles - REMOVE THIS WHEN auth.js IS UPDATED
+function getUserRoles() {
+    // Alterne para simular diferentes perfis:
+    // return ['Sindico'];
+    // return ['Condomino'];
+    // return ['Inquilino'];
+    const user = JSON.parse(localStorage.getItem('userInfo')); // Supondo que userInfo tenha 'roles'
+    if (user && user.roles) return user.roles;
+    return ['Condomino']; // Default para desenvolvimento se não houver info
 }
-function updateUserSpecificUI() {
-    const fabMural = document.querySelector('.js-fab-mural');
-    if (fabMural) {
-        fabMural.style.display = 'block'; // Or based on user role for creating Avisos
+// FIM DO MOCK
+
+function updateUserSpecificUI(activeTabId) {
+    const userRoles = getUserRoles(); // Usa o mock ou a função real de auth.js
+    const isSindico = userRoles.includes('Sindico') || userRoles.includes('Administrador'); // Adicionar 'Administrador' se for um papel válido
+
+    const fabMural = document.querySelector('.js-fab-mural'); // Para criar Avisos
+    const fabEnquetes = document.querySelector('.js-fab-enquetes'); // Para criar Enquetes
+    const fabSolicitacoes = document.querySelector('.js-fab-chamados'); // Para criar Chamados/Solicitações
+
+    // Reset all FABs
+    if (fabMural) fabMural.style.display = 'none';
+    if (fabEnquetes) fabEnquetes.style.display = 'none';
+    if (fabSolicitacoes) fabSolicitacoes.style.display = 'none';
+
+    // Configure FAB listeners (fazemos isso uma vez, mas a visibilidade muda)
+    if (fabMural && !fabMural.dataset.listenerAttached) {
         fabMural.addEventListener('click', openCriarAvisoModal);
+        fabMural.dataset.listenerAttached = 'true';
     }
-    // Update other FABs based on current tab or general permissions
-    const currentActiveTabId = activeTabId || document.querySelector('.cv-tab-button.active')?.id;
-    const fabEnquetes = document.querySelector('.js-fab-enquetes');
-    const fabSolicitacoes = document.querySelector('.js-fab-chamados'); // This FAB's class might need renaming if it's specific
+    if (fabEnquetes && !fabEnquetes.dataset.listenerAttached) {
+        // A função openCreateEnqueteModal já é definida em setupEnqueteModalAndFAB
+        // que é chamado por setupEnquetesTab quando a aba é inicializada.
+        // Se setupEnquetesTab não for mais chamada, precisamos garantir que openCreateEnqueteModal esteja disponível.
+        // Por agora, setupEnquetesTab ainda configura o modal de criação.
+        // Certificar que o listener do FAB é adicionado corretamente
+        // if (typeof openCreateEnqueteModal === 'function') { // Checar se a função existe
+        //     fabEnquetes.addEventListener('click', openCreateEnqueteModal);
+        // } else {
+        //     console.warn("openCreateEnqueteModal não definida ao tentar anexar listener ao FAB de enquetes.");
+        // }
+        // setupEnqueteModalAndFAB já adiciona o listener ao .js-fab-enquetes
+        // Não precisamos adicionar outro aqui se setupEnquetesTab for chamado.
+        // Se setupEnquetesTab for removida, então o listener precisa ser adicionado aqui.
+        // Por ora, a lógica de setupEnquetesTab ainda existe e anexa o listener.
+        fabEnquetes.dataset.listenerAttached = 'true'; // Marcamos para evitar múltiplas adições de qualquer forma
+    }
+    if (fabSolicitacoes && !fabSolicitacoes.dataset.listenerAttached) {
+        // Similar para chamados, openCreateChamadoModal é configurado por setupChamadoModalAndFAB
+        // if (typeof openCreateChamadoModal === 'function') {
+        //    fabSolicitacoes.addEventListener('click', openCreateChamadoModal);
+        // } else {
+        //     console.warn("openCreateChamadoModal não definida ao tentar anexar listener ao FAB de chamados.");
+        // }
+        fabSolicitacoes.dataset.listenerAttached = 'true';
+    }
 
-    if(fabEnquetes) fabEnquetes.style.display = (currentActiveTabId === 'tab-enquetes' /* && userIsAdmin */) ? 'block' : 'none';
-    if(fabSolicitacoes) fabSolicitacoes.style.display = (currentActiveTabId === 'tab-solicitacoes') ? 'block' : 'none';
 
+    if (activeTabId === 'tab-mural') {
+        if (isSindico) {
+            if (fabMural) fabMural.style.display = 'block'; // Síndico pode criar Aviso
+        } else {
+            // Morador na aba Mural: o plano original dizia "Novo Chamado / Solicitação".
+            // Para manter simples com os FABs existentes, vamos mostrar o FAB de chamados.
+            if (fabSolicitacoes) fabSolicitacoes.style.display = 'block';
+        }
+    } else if (activeTabId === 'tab-enquetes') {
+        if (isSindico) {
+            if (fabEnquetes) fabEnquetes.style.display = 'block'; // Síndico pode criar Enquete
+        }
+        // Morador não tem FAB na aba Enquetes (apenas visualiza/vota no feed)
+    } else if (activeTabId === 'tab-solicitacoes') {
+        // Todos os usuários (Síndico e Morador) podem criar um novo chamado/solicitação
+        if (fabSolicitacoes) fabSolicitacoes.style.display = 'block';
+    }
 }
+
 function setupFilterButtonListener() {
     const btn = document.getElementById('apply-filters-button');
     if (btn) btn.addEventListener('click', () => {
@@ -415,9 +553,25 @@ function renderFeedItem(item) {
             <span class="feed-item__type">Tipo: ${item.itemType}</span>
             <span class="feed-item__date">Data: ${new Date(item.dataHoraPrincipal).toLocaleString()}</span>
             ${item.status ? `<span class="feed-item__status">Status: ${item.status}</span>` : ''}
-            ${item.categoria ? `<span class="feed-item__category">Categoria: ${item.categoria}</span>` : ''}
+            ${item.categoria ? `<span class="feed-item__category">Categoria Principal: ${item.categoria}</span>` : ''}
         </div>
     `;
+
+    // Tags / Chips
+    let tagsHtml = '<div class="feed-item__tags">';
+    // Tag para o ItemType
+    if (item.itemType) {
+        tagsHtml += `<span class="feed-item__tag feed-item__tag--${item.itemType.toLowerCase()}">${item.itemType}</span>`;
+    }
+    // Tag para a Categoria específica do item, se diferente do ItemType e existir
+    if (item.categoria && item.categoria.toLowerCase() !== item.itemType.toLowerCase()) {
+        tagsHtml += `<span class="feed-item__tag">${item.categoria}</span>`;
+    }
+    // Adicionar mais tags se necessário, ex: tags de prioridade, status específico etc.
+    tagsHtml += '</div>';
+
+    contentHtml += tagsHtml;
+
 
     // Basic actions - Details link and specific actions for some types
     let actionsHtml = `<div class="feed-item__actions">`;
@@ -542,43 +696,255 @@ function handleAvisoClick(itemId, targetElementOrCard) {
     }
 }
 
-function handleEnqueteClick(itemId, targetElementOrCard) {
-    const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Enquete');
-    showGlobalFeedback(`Enquete: ${item?.titulo || itemId}. Funcionalidade de visualização/votação a ser implementada.`, 'info');
-    // TODO: Integrate with enquete viewing/voting modal logic from setupEnquetesTab.js
-    // This might involve:
-    // 1. Fetching full enquete details if 'item' is just a summary.
-    // 2. Adapting viewPollResults(itemId, isHistory) or parts of loadActiveEnquetes to show options/results in a modal.
-}
+let currentEnqueteId = null; // Armazena o ID da enquete atualmente no modal de detalhes
 
-function handleChamadoClick(itemId, targetElementOrCard) {
-    const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Chamado');
-    showGlobalFeedback(`Chamado: ${item?.titulo || itemId}. Tentando exibir detalhes...`, 'info');
-    // Attempt to use existing viewChamadoDetail
-    // This is a placeholder integration. True integration requires careful state management
-    // if viewChamadoDetail manipulates general page layout rather than a modal.
-    // It also assumes 'chamadosData' is populated or viewChamadoDetail can fetch its own data.
-    // For now, we pass a simplified object if the original function expects it, or just the ID.
+async function handleEnqueteClick(itemId, targetElementOrCard) {
+    currentEnqueteId = itemId; // Armazena o ID da enquete atual
+    if (!modalEnqueteDetalhe || !apiClient) return; // Garantir que o modal e apiClient estão disponíveis
 
-    // Switch to "Solicitações" tab and display details
-    // This is a bit of a hack for now. Ideally, details are shown in a modal within the Mural tab.
-    const solicitacoesTabButton = document.getElementById('tab-solicitacoes');
-    if (solicitacoesTabButton) {
-        solicitacoesTabButton.click(); // Switch tab
-        // Wait for tab switch and content to potentially initialize/load
-        setTimeout(() => {
-            // Check if viewChamadoDetail is available and if it can work with just an ID
-            // The existing viewChamadoDetail relies on a global `chamadosData` array which is sample data.
-            // This will not work correctly without significant refactoring of viewChamadoDetail.
-            // For this subtask, we'll show a message.
-            // viewChamadoDetail(itemId);
-            showGlobalFeedback(`Chamado item: ${item?.titulo || itemId}. Detalhes seriam exibidos aqui ou na aba Solicitações.`, 'info', 5000);
-            console.log("Original Chamado Data for Detail View (if needed by an adapted viewChamadoDetail):", item);
-        }, 100);
-    } else {
-         showGlobalFeedback(`Chamado item: ${item?.titulo || itemId}. Detalhes seriam exibidos aqui.`, 'info', 5000);
+    modalEnqueteDetalheOpcoesContainer.innerHTML = '<p class="cv-loading-message">Carregando detalhes da enquete...</p>';
+    modalEnqueteDetalheStatus.innerHTML = '';
+    modalEnqueteSubmitVotoButton.style.display = 'none';
+    modalEnqueteDetalhe.style.display = 'flex';
+
+    try {
+        // Endpoint: GET /api/v1/app/votacoes/{id}
+        const enquete = await apiClient.get(`/api/v1/votacoes/app/votacoes/${itemId}`);
+
+        if (!enquete) {
+            modalEnqueteDetalheOpcoesContainer.innerHTML = '<p class="cv-error-message">Enquete não encontrada.</p>';
+            return;
+        }
+
+        modalEnqueteDetalheTitulo.textContent = enquete.titulo;
+        modalEnqueteDetalheDescricao.innerHTML = enquete.descricao ? `<p>${enquete.descricao.replace(/\n/g, '<br>')}</p>` : '<p><em>Sem descrição adicional.</em></p>';
+
+        if (enquete.status === "Aberta" && !enquete.usuarioJaVotou) {
+            renderOpcoesDeVoto(enquete.opcoes);
+            modalEnqueteSubmitVotoButton.style.display = 'block';
+            modalEnqueteSubmitVotoButton.onclick = () => submitVoto(itemId); // Passa o ID da enquete
+            modalEnqueteDetalheStatus.innerHTML = `<p><strong>Status:</strong> Aberta para votação.</p> <p>Prazo: ${enquete.dataFim ? new Date(enquete.dataFim).toLocaleString() : 'Não definido'}</p>`;
+        } else {
+            renderResultadosEnquete(enquete.opcoes, enquete.status, enquete.usuarioJaVotou, enquete.dataFim);
+        }
+
+    } catch (error) {
+        console.error("Erro ao buscar detalhes da enquete:", error);
+        modalEnqueteDetalheOpcoesContainer.innerHTML = '<p class="cv-error-message">Erro ao carregar detalhes da enquete. Tente novamente.</p>';
+        if (!error.handledByApiClient) {
+            showGlobalFeedback(error.message || 'Falha ao carregar enquete.', 'error');
+        }
     }
 }
+
+function renderOpcoesDeVoto(opcoes) {
+    let html = '<h4>Escolha uma opção:</h4><form id="form-votar-enquete" class="cv-form">';
+    opcoes.forEach(opcao => {
+        html += `
+            <div class="cv-form-group">
+                <input type="radio" name="opcaoVoto" value="${opcao.id}" id="opcao-${opcao.id}" class="cv-input-radio">
+                <label for="opcao-${opcao.id}">${opcao.descricao}</label>
+            </div>
+        `;
+    });
+    html += '</form>';
+    modalEnqueteDetalheOpcoesContainer.innerHTML = html;
+}
+
+function renderResultadosEnquete(opcoes, status, usuarioJaVotou, dataFim) {
+    let html = '<h4>Resultados:</h4>';
+    const totalVotos = opcoes.reduce((sum, opt) => sum + opt.quantidadeVotos, 0);
+
+    if (totalVotos === 0 && status === "Aberta") {
+        html += '<p>Ainda não há votos registrados para esta enquete.</p>';
+        if (usuarioJaVotou) {
+             html += '<p class="poll-status voted">Você já votou.</p>';
+        }
+    } else if (totalVotos === 0 && status !== "Aberta") {
+        html += '<p>Nenhum voto foi registrado nesta enquete.</p>';
+    }
+    else {
+        opcoes.forEach(opcao => {
+            const percentual = totalVotos > 0 ? ((opcao.quantidadeVotos / totalVotos) * 100).toFixed(1) : 0;
+            html += `
+                <div class="poll-result-item">
+                    <span class="poll-result-option-text">${opcao.descricao}: ${opcao.quantidadeVotos} voto(s)</span>
+                    <div class="poll-result-bar-container">
+                        <div class="poll-result-bar" style="width: ${percentual}%; background-color: var(--current-primary-blue);">
+                            ${percentual}%
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    modalEnqueteDetalheOpcoesContainer.innerHTML = html;
+    let statusText = `<strong>Status:</strong> ${status}.`;
+    if (status === "Aberta" && usuarioJaVotou) {
+        statusText += ' <span class="poll-status voted">Você já votou.</span>';
+    }
+    if (dataFim) {
+        statusText += ` <p>Encerrada em: ${new Date(dataFim).toLocaleString()}</p>`;
+    }
+    modalEnqueteDetalheStatus.innerHTML = `<p>${statusText}</p>`;
+}
+
+async function submitVoto(enqueteId) { // enqueteId é passado como argumento
+    const form = document.getElementById('form-votar-enquete');
+    if (!form) return;
+
+    const selectedOption = form.querySelector('input[name="opcaoVoto"]:checked');
+    if (!selectedOption) {
+        showGlobalFeedback('Por favor, selecione uma opção para votar.', 'warning');
+        return;
+    }
+
+    const opcaoId = selectedOption.value;
+
+    try {
+        showGlobalFeedback('Registrando seu voto...', 'info');
+        // Endpoint: POST /api/v1/app/votacoes/{id}/votar
+        // Body: VotoInputDto { OpcaoId: guid }
+        await apiClient.post(`/api/v1/votacoes/app/votacoes/${enqueteId}/votar`, { OpcaoId: opcaoId });
+        showGlobalFeedback('Voto registrado com sucesso!', 'success');
+        modalEnqueteSubmitVotoButton.style.display = 'none'; // Esconde o botão de votar
+        // Recarrega os detalhes da enquete para mostrar os resultados atualizados ou status de "já votou"
+        await handleEnqueteClick(enqueteId, null); // Chama handleEnqueteClick novamente para atualizar o modal
+    } catch (error) {
+        console.error("Erro ao registrar voto:", error);
+        // A mensagem de erro já deve ser exibida pelo showGlobalFeedback dentro do apiClient
+        if (!error.handledByApiClient) {
+            showGlobalFeedback(error.message || 'Falha ao registrar o voto.', 'error');
+        }
+        // Se o erro for "já votou" (Conflict 409), o apiClient deve tratar e mostrar a mensagem.
+        // Se não, o handleEnqueteClick pode ser chamado para atualizar a view de qualquer forma.
+        await handleEnqueteClick(enqueteId, null);
+    }
+}
+
+
+let currentChamadoIdModal = null; // Armazena o ID do chamado no modal de detalhes
+
+async function handleChamadoClick(itemId, targetElementOrCard) {
+    currentChamadoIdModal = itemId;
+    if (!modalChamadoDetalhe || !apiClient) return;
+
+    modalChamadoDetalheConteudo.innerHTML = '<p class="cv-loading-message">Carregando detalhes do chamado...</p>';
+    modalChamadoDetalheInteracoes.innerHTML = '<p class="cv-loading-message">Carregando interações...</p>'; // Limpa interações antigas
+    modalChamadoAddCommentSection.style.display = 'none'; // Esconde por padrão
+    modalChamadoDetalhe.style.display = 'flex';
+
+    try {
+        const userRoles = getUserRoles();
+        const isSindico = userRoles.includes('Sindico') || userRoles.includes('Administrador');
+        // Endpoint: GET /api/v1/app/chamados/{id} ou /api/v1/syndic/chamados/{id}
+        // O ChamadoService.ObterChamadoPorIdAsync já lida com a lógica de permissão.
+        // O controller /app/chamados/{id} chama ObterChamadoPorIdAsync com isSindico=User.IsInRole("Sindico")
+        // Para simplificar, vamos usar o endpoint do app, o backend resolverá a permissão.
+        // Se precisarmos forçar a visão de síndico, teríamos que chamar o endpoint /syndic/.
+        const chamado = await apiClient.get(`/api/v1/chamados/app/chamados/${itemId}`);
+
+        if (!chamado) {
+            modalChamadoDetalheConteudo.innerHTML = '<p class="cv-error-message">Chamado não encontrado ou acesso não permitido.</p>';
+            modalChamadoDetalheInteracoes.innerHTML = '';
+            return;
+        }
+
+        modalChamadoDetalheTitulo.textContent = chamado.titulo || "Detalhes do Chamado";
+        renderDetalhesChamado(chamado);
+        await renderInteracoesChamado(itemId, chamado.usuarioId); // Passar o ID do criador do chamado
+
+        // Lógica para permitir adicionar comentário
+        // const currentUser = getCurrentUser(); // Supondo que getCurrentUser() de auth.js retorne {id, roles}
+        // if (isSindico || (currentUser && currentUser.id === chamado.usuarioId)) {
+        //     modalChamadoAddCommentSection.style.display = 'block';
+        //     modalChamadoSubmitCommentButton.onclick = () => submitComentarioChamado(itemId);
+        // }
+        // Por enquanto, a adição de comentários/respostas será adiada para simplificar.
+        // A API de Chamados tem AddComentario, mas é para Ocorrências, não para Chamados (precisa verificar).
+        // O ChamadosController não tem endpoint para adicionar comentário/interação.
+        // Esta funcionalidade precisaria de um novo endpoint no ChamadosController.
+
+    } catch (error) {
+        console.error("Erro ao buscar detalhes do chamado:", error);
+        modalChamadoDetalheConteudo.innerHTML = '<p class="cv-error-message">Erro ao carregar detalhes do chamado.</p>';
+        modalChamadoDetalheInteracoes.innerHTML = '';
+        if (!error.handledByApiClient) {
+            showGlobalFeedback(error.message || 'Falha ao carregar chamado.', 'error');
+        }
+    }
+}
+
+function renderDetalhesChamado(chamado) {
+    // Formatar datas e outros campos conforme necessário
+    const dataAbertura = new Date(chamado.dataAbertura).toLocaleString();
+    const dataResolucao = chamado.dataResolucao ? new Date(chamado.dataResolucao).toLocaleString() : 'N/A';
+
+    // Tentar extrair categoria da descrição se ela foi prefixada
+    let descricaoPrincipal = chamado.descricao;
+    let categoriaChamado = "Não especificada";
+    const matchCategoria = chamado.descricao.match(/^Categoria: (.*?)\n\n/);
+    if (matchCategoria && matchCategoria[1]) {
+        categoriaChamado = matchCategoria[1];
+        descricaoPrincipal = chamado.descricao.substring(matchCategoria[0].length);
+    }
+
+
+    modalChamadoDetalheConteudo.innerHTML = `
+        <p><strong>Título:</strong> ${chamado.titulo}</p>
+        <p><strong>Descrição:</strong></p>
+        <p style="white-space: pre-wrap;">${descricaoPrincipal}</p>
+        <p><strong>Categoria Informada:</strong> ${categoriaChamado}</p>
+        <p><strong>Status:</strong> <span class="chamado-status-${chamado.status?.toLowerCase()}">${chamado.status || 'N/A'}</span></p>
+        <p><strong>Aberto em:</strong> ${dataAbertura}</p>
+        <p><strong>Resolvido em:</strong> ${dataResolucao}</p>
+        <p><strong>Resposta do Síndico:</strong> ${chamado.respostaDoSindico || '<em>Aguardando resposta...</em>'}</p>
+        ${chamado.avaliacaoNota ? `<p><strong>Sua Avaliação:</strong> ${chamado.avaliacaoNota}/5 - <em>${chamado.avaliacaoComentario || ''}</em></p>` : ''}
+        <!-- Adicionar visualização de fotos se houver: chamado.fotos -->
+    `;
+}
+
+async function renderInteracoesChamado(chamadoId, criadorId) {
+    // Esta função é um placeholder.
+    // O backend (ChamadosController) atualmente não tem um endpoint para listar interações/comentários de um chamado.
+    // Isso seria uma nova funcionalidade no backend.
+    // Se OcorrenciasController.GetComentarios fosse adaptável, poderíamos usar algo similar.
+    // Por agora, vamos simular ou mostrar uma mensagem.
+    modalChamadoDetalheInteracoes.innerHTML = `
+        <div class="interaction-item">
+            <p><strong>Síndico</strong> <span class="meta">em ${new Date().toLocaleDateString()}:</span></p>
+            <p>Recebemos seu chamado e estamos analisando.</p>
+        </div>
+        <div class="interaction-item">
+            <p><strong>Você</strong> <span class="meta">em ${new Date(Date.now() - 86400000).toLocaleDateString()}:</span></p>
+            <p>O problema persiste na área da piscina.</p>
+        </div>
+        <p style="text-align:center; color: var(--current-text-placeholder);"><em>(Interações simuladas. Funcionalidade de comentários em desenvolvimento.)</em></p>
+    `;
+    // const currentUser = getCurrentUser();
+    // const isSindico = getUserRoles().includes('Sindico');
+    // if (isSindico || (currentUser && currentUser.id === criadorId)) {
+    //     modalChamadoAddCommentSection.style.display = 'block';
+    //     modalChamadoSubmitCommentButton.onclick = () => submitComentarioChamado(chamadoId);
+    // }
+}
+
+// async function submitComentarioChamado(chamadoId) {
+//     const textoComentario = modalChamadoCommentText.value.trim();
+//     if (!textoComentario) {
+//         showGlobalFeedback("O comentário não pode estar vazio.", "warning");
+//         return;
+//     }
+//     // Esta função é um placeholder.
+//     // Precisaria de um endpoint POST no ChamadosController para adicionar um comentário.
+//     // Ex: apiClient.post(`/api/v1/chamados/app/chamados/${chamadoId}/comentarios`, { texto: textoComentario });
+//     console.log("Submeter comentário para chamado:", chamadoId, textoComentario);
+//     showGlobalFeedback("Comentário enviado (simulado).", "success");
+//     modalChamadoCommentText.value = '';
+//     // await renderInteracoesChamado(chamadoId); // Recarregar interações
+// }
+
 
 function handleOcorrenciaClick(itemId, targetElementOrCard) {
     const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Ocorrencia');
@@ -656,22 +1022,39 @@ function openCreateEnqueteModal() {
 }
 
 // handleCreateEnquete and handleUpdateEnquete would now be API calls.
-// For this subtask, they are simplified to reflect they are called.
-// After creation/update, the main feed should be refreshed to show changes.
-async function handleCreateEnquete(data) {
-    console.log("Creating enquete:", data);
-    // This would be an API call: await apiClient.post('/api/v1/votacoes', data);
-    showGlobalFeedback('Nova enquete criada com sucesso! (simulado). Ela aparecerá no feed.', 'success');
-    // Consider reloading feed if on Mural tab or if current filter is 'enquetes':
-    // if (document.getElementById('tab-mural').classList.contains('active') ||
-    //     document.getElementById('category-filter')?.value === 'enquetes') {
-    //    loadInitialFeedItems();
-    // }
+async function handleCreateEnquete(enqueteData) {
+    try {
+        showGlobalFeedback('Criando nova enquete...', 'info');
+        // Endpoint: POST /api/v1/syndic/votacoes (conforme VotacoesController)
+        // O controller espera VotacaoInputDto: { Titulo, Descricao?, DataFim?, Opcoes: [{Descricao}] }
+        await apiClient.post('/api/v1/votacoes/syndic/votacoes', enqueteData); // Ajuste de rota
+        showGlobalFeedback('Nova enquete criada com sucesso! Ela aparecerá no feed.', 'success');
+        await loadInitialFeedItems(); // Recarrega o feed principal
+    } catch (error) {
+        console.error("Erro ao criar enquete:", error);
+        if (!error.handledByApiClient) {
+            showGlobalFeedback(error.message || 'Falha ao criar a enquete.', 'error');
+        }
+    }
 }
-async function handleUpdateEnquete(id, data) {
-    console.log("Updating enquete:", id, data);
-    // This would be an API call: await apiClient.put(`/api/v1/votacoes/${id}`, data);
-    showGlobalFeedback('Enquete atualizada com sucesso! (simulado).', 'success');
+
+async function handleUpdateEnquete(id, enqueteData) {
+    // A API de Votações não possui um endpoint PUT para edição no controller atual.
+    // A edição de enquetes/votações geralmente é complexa (ex: o que acontece se já houver votos?).
+    // Por agora, a edição não será implementada no frontend até que o backend suporte.
+    console.warn("handleUpdateEnquete chamado, mas o backend não suporta edição de votações no controller atual.", id, enqueteData);
+    showGlobalFeedback('Funcionalidade de editar enquete não está disponível no momento.', 'warning');
+    // try {
+    //     showGlobalFeedback('Salvando alterações da enquete...', 'info');
+    //     // await apiClient.put(`/api/v1/votacoes/syndic/votacoes/${id}`, enqueteData);
+    //     showGlobalFeedback('Enquete atualizada com sucesso!', 'success');
+    //     await loadInitialFeedItems();
+    // } catch (error) {
+    //     console.error("Erro ao atualizar enquete:", error);
+    //     if (!error.handledByApiClient) {
+    //         showGlobalFeedback(error.message || 'Falha ao atualizar a enquete.', 'error');
+    //     }
+    // }
 }
 
 // This sets up the "Nova Enquete" FAB and the "Criar Enquete" modal.
@@ -688,16 +1071,41 @@ function setupEnqueteModalAndFAB() {
     if (formCriarEnquete) {
         formCriarEnquete.addEventListener('submit', async e => {
             e.preventDefault();
-            const id = enqueteIdField.value;
-            const data = {
-                pergunta: document.getElementById('enquete-pergunta').value,
-                opcoes: document.getElementById('enquete-opcoes').value.split('\n').filter(opt => opt.trim() !== ''),
-                prazo: document.getElementById('enquete-prazo').value,
-                tipo: document.getElementById('enquete-tipo').value
+            const id = enqueteIdField.value; // Usado para determinar se é criação ou edição
+
+            const perguntaOuTitulo = document.getElementById('enquete-pergunta').value;
+            const opcoesTexto = document.getElementById('enquete-opcoes').value;
+            const prazo = document.getElementById('enquete-prazo').value;
+            // O campo 'tipo' do formulário ('informal', 'formal_assembleia') não é usado diretamente pelo VotacaoInputDto.
+            // O backend pode ter lógica interna para isso ou pode ser um campo a ser adicionado no DTO.
+
+            const opcoesDto = opcoesTexto.split('\n')
+                                        .map(opt => opt.trim())
+                                        .filter(opt => opt !== '')
+                                        .map(desc => ({ Descricao: desc }));
+
+            if (opcoesDto.length < 2) {
+                showGlobalFeedback('Uma enquete deve ter pelo menos duas opções.', 'error');
+                return;
+            }
+
+            const enqueteData = {
+                Titulo: perguntaOuTitulo, // Usando 'pergunta' como 'Titulo'
+                Descricao: null, // Pode ser adicionado um campo 'Descrição' ao modal se necessário
+                DataFim: prazo ? prazo : null, // Enviar null se vazio, backend pode ter default
+                Opcoes: opcoesDto
             };
-            if (id) await handleUpdateEnquete(id, data);
-            else await handleCreateEnquete(data);
+
+            if (id) {
+                // A edição não é suportada pelo backend no momento, conforme handleUpdateEnquete.
+                // Chamada a handleUpdateEnquete aqui, mas ela mostrará a mensagem de 'não suportado'.
+                await handleUpdateEnquete(id, enqueteData);
+            } else {
+                await handleCreateEnquete(enqueteData);
+            }
+
             if (criarEnqueteModal) criarEnqueteModal.style.display = 'none';
+            formCriarEnquete.reset(); // Limpar o formulário
         });
     }
 }
@@ -740,35 +1148,66 @@ function setupSolicitacoesTab() {
 }
 
 // This function is still useful for the "Criar Chamado" modal
-async function handleCreateChamado(data) {
-    console.log("Creating chamado (Solicitação):", data);
-    // API call: await apiClient.post('/api/v1/chamados', data); // Or a more generic /api/v1/solicitacoes
-    showGlobalFeedback('Nova solicitação (chamado) criada com sucesso! (simulado). Ela aparecerá no feed.', 'success');
-    // Optionally, reload the feed if the current filter might include this new item
-    const muralCategoryFilter = document.getElementById('category-filter');
-    if (muralCategoryFilter && (muralCategoryFilter.value === 'solicitacoes' || muralCategoryFilter.value === '')) {
-        loadInitialFeedItems();
+async function handleCreateChamado(chamadoData) {
+    try {
+        showGlobalFeedback('Abrindo novo chamado...', 'info');
+        // Endpoint: POST /api/v1/chamados/app/chamados
+        // ChamadoInputDto: { Titulo, Descricao, Fotos?, UnidadeId? }
+        // O campo 'categoria' do formulário não está no DTO. Pode ser incluído na descrição.
+        // Upload de fotos precisa de tratamento especial (upload separado, depois URLs no DTO).
+        // Por agora, não enviaremos fotos.
+
+        const dataParaApi = {
+            Titulo: chamadoData.titulo,
+            Descricao: chamadoData.descricao,
+            // Fotos: [], // Adiar implementação de upload de fotos
+            // UnidadeId: null, // O backend deve associar ao usuário/unidade do token
+        };
+        if (chamadoData.categoria) {
+            dataParaApi.Descricao = `Categoria: ${chamadoData.categoria}\n\n${chamadoData.descricao}`;
+        }
+
+
+        await apiClient.post('/api/v1/chamados/app/chamados', dataParaApi);
+        showGlobalFeedback('Novo chamado aberto com sucesso! Ele aparecerá no feed.', 'success');
+        await loadInitialFeedItems(); // Recarregar o feed
+    } catch (error) {
+        console.error("Erro ao abrir chamado:", error);
+        if (!error.handledByApiClient) {
+            showGlobalFeedback(error.message || 'Falha ao abrir o chamado.', 'error');
+        }
     }
 }
 
 // This function is potentially useful if editing a Chamado/Solicitacao is triggered from the feed
 // and uses the same modal.
-async function handleUpdateChamado(id, data) {
-    console.log("Updating chamado (Solicitação):", id, data);
-    // API call: await apiClient.put(`/api/v1/chamados/${id}`, data);
-    showGlobalFeedback('Solicitação (chamado) atualizada com sucesso! (simulado).', 'success');
-    const muralCategoryFilter = document.getElementById('category-filter');
-    if (muralCategoryFilter && (muralCategoryFilter.value === 'solicitacoes' || muralCategoryFilter.value === '')) {
-        loadInitialFeedItems(); // Reload to see changes
-    }
+async function handleUpdateChamado(id, chamadoData) {
+    // Edição de chamado pelo usuário não está no escopo atual dos endpoints do controller.
+    // O endpoint PUT /api/v1/chamados/syndic/chamados/{id} é para o síndico.
+    console.warn("handleUpdateChamado (usuário) chamado, mas não implementado.", id, chamadoData);
+    showGlobalFeedback('Funcionalidade de editar chamado (usuário) não implementada.', 'warning');
+    // try {
+    //     showGlobalFeedback('Salvando alterações do chamado...', 'info');
+    //     // Endpoint para síndico: PUT /api/v1/chamados/syndic/chamados/{id}
+    //     // Precisa de um ChamadoUpdateDto: { Status, RespostaDoSindico? }
+    //     // await apiClient.put(`/api/v1/chamados/syndic/chamados/${id}`, chamadoData);
+    //     showGlobalFeedback('Chamado atualizado com sucesso!', 'success');
+    //     await loadInitialFeedItems();
+    // } catch (error) {
+    //     console.error("Erro ao atualizar chamado:", error);
+    //     if (!error.handledByApiClient) {
+    //         showGlobalFeedback(error.message || 'Falha ao atualizar o chamado.', 'error');
+    //     }
+    // }
 }
 
 
 // This sets up the "Novo Chamado" FAB and the "Criar Chamado" modal. This is still relevant.
 function setupChamadoModalAndFAB() {
     const fab = document.querySelector('.js-fab-chamados');
-    if (fab) {
+    if (fab && !fab.dataset.listenerAttachedFAB) { // Adicionar verificação de listener
         fab.addEventListener('click', openCreateChamadoModal);
+        fab.dataset.listenerAttachedFAB = 'true';
     }
     // Modal close buttons
     const closeButtons = document.querySelectorAll('.js-modal-criar-chamado-close');
@@ -786,20 +1225,30 @@ function setupChamadoModalAndFAB() {
     if (formCriarChamado && chamadoIdFieldModal && formChamadoSubmitButtonModal) {
         formCriarChamado.addEventListener('submit', async (event) => {
             event.preventDefault();
-            const currentChamadoId = chamadoIdFieldModal.value;
-            const data = {
+            const currentChamadoId = chamadoIdFieldModal.value; // Para determinar se é criação ou edição (edição não implementada aqui)
+
+            // Ignorar anexos por enquanto, pois requerem upload separado.
+            // const anexos = document.getElementById('chamado-anexos-modal').files;
+
+            const chamadoData = {
                 titulo: document.getElementById('chamado-titulo-modal').value,
                 descricao: document.getElementById('chamado-descricao-modal').value,
                 categoria: document.getElementById('chamado-categoria-modal').value,
+                // anexos: anexos // Adiar
             };
 
+
             if (currentChamadoId) {
-                data.status = document.getElementById('chamado-status-modal').value;
-                await handleUpdateChamado(currentChamadoId, data);
+                // Este modal é primariamente para criação. A edição pelo usuário não está implementada.
+                // A edição pelo síndico (mudar status, adicionar resposta) seria um fluxo diferente.
+                chamadoData.status = document.getElementById('chamado-status-modal').value; // Se fosse um admin editando
+                await handleUpdateChamado(currentChamadoId, chamadoData); // Vai mostrar warning
             } else {
-                await handleCreateChamado(data);
+                await handleCreateChamado(chamadoData);
             }
+
             if (criarChamadoModal) criarChamadoModal.style.display = 'none';
+            formCriarChamado.reset(); // Limpar formulário
         });
     }
 }

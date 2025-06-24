@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System;
 using System.Threading.Tasks;
+using conViver.Core.Interfaces; // Adicionado para INotificacaoService
 
 namespace conViver.API.Controllers;
 
@@ -16,10 +17,12 @@ namespace conViver.API.Controllers;
 public class AvisosController : ControllerBase
 {
     private readonly AvisoService _avisos;
+    private readonly INotificacaoService _notificacaoService; // Adicionado
 
-    public AvisosController(AvisoService avisos)
+    public AvisosController(AvisoService avisos, INotificacaoService notificacaoService) // Adicionado
     {
         _avisos = avisos;
+        _notificacaoService = notificacaoService; // Adicionado
     }
 
     /// <summary>
@@ -68,6 +71,15 @@ public class AvisosController : ControllerBase
 
         var novoAviso = await _avisos.PublicarAsync(condominioId, avisoDto.Categoria, avisoDto.Titulo, avisoDto.Corpo, userId);
 
+        // Enviar notificação (simples)
+        // O "destino" aqui precisaria ser resolvido para os usuários do condomínio.
+        // Poderia ser um tópico como "condominio_{condominioId}_avisos"
+        // ou buscar todos os usuários e enviar individualmente (menos performático para muitos usuários).
+        // Para este exemplo, vamos simular um destino genérico.
+        var mensagemNotificacao = $"Novo aviso publicado: '{novoAviso.Titulo}' na categoria '{novoAviso.Categoria}'.";
+        await _notificacaoService.SendAsync($"condominio:{condominioId}", mensagemNotificacao);
+
+
         // Assumindo que ListarAvisosPorApp é o endpoint GET para listar todos,
         // mas o ideal seria um GetAvisoPorId se existisse.
         return CreatedAtAction(nameof(ListarAvisosPorApp), new { /* id = novoAviso.Id */ }, novoAviso);
@@ -102,6 +114,11 @@ public class AvisosController : ControllerBase
         {
             return NotFound();
         }
+
+        // Enviar notificação de edição
+        var mensagemNotificacaoEdicao = $"Aviso '{avisoEditado.Titulo}' foi atualizado.";
+        await _notificacaoService.SendAsync($"condominio:{condominioId}:aviso:{avisoEditado.Id}", mensagemNotificacaoEdicao);
+
 
         return Ok(avisoEditado);
     }
