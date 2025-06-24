@@ -133,6 +133,8 @@
     box-shadow: 0 0 0 3px var(--current-input-focus-shadow); /* This might need adjustment */
 }
 
+/* REMOVED .cv-modal__content from components.css to rely on .cv-modal-content in styles.css for consistency */
+/*
 .cv-modal__content {
     background-color: var(--current-bg-white);
     margin: 5% auto;
@@ -152,6 +154,7 @@
         margin: 10% auto;
     }
 }
+*/
 
 /* === Global Feedback Toast Styles === */
 .global-feedback-container {
@@ -289,15 +292,27 @@
 }
 
 .cv-header {
-    background-color: var(--current-bg-white);
+    /* Apple-inspired styling */
+    background-color: rgba(242, 242, 247, 0.8); /* Light mode translucent background (System Gray 6 with alpha) */
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
     color: var(--current-text-primary);
     padding: var(--cv-spacing-sm) var(--cv-spacing-md);
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    border-bottom: var(--cv-border-width) solid var(--current-border-color);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* Subtle border for light mode */
+    position: sticky; /* Make header sticky */
+    top: 0;
+    z-index: 1020; /* Ensure it's above other content but below modals */
 }
+
+html[data-theme="dark"] .cv-header {
+    background-color: rgba(44, 44, 46, 0.75); /* Dark mode translucent background (System Gray 2 Dark with alpha) */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Subtle border for dark mode */
+}
+
 @media (min-width: 768px) {
     .cv-header {
         padding: var(--cv-spacing-md) var(--cv-spacing-lg); /* Desktop padding */
@@ -306,12 +321,12 @@
 }
 .cv-header__title {
     margin: 0;
-    font-size: 1.5rem; /* Mobile title size */
-    font-weight: 600;
+    font-size: 1.25rem; /* Adjusted for a more Apple-like feel */
+    font-weight: 600; /* Open Sans Semibold */
 }
 @media (min-width: 768px) {
     .cv-header__title {
-        font-size: 1.75rem; /* Desktop title size */
+        font-size: 1.5rem; /* Desktop title size */
     }
 }
 
@@ -321,20 +336,33 @@
     align-items: flex-start;
     width: 100%;
     gap: var(--cv-spacing-xs);
-    background-color: var(--current-nav-bg); /* Was --cv-gray-100 */
+    /* Apple-inspired styling for nav - similar to header but can be slightly different */
+    background-color: rgba(248, 248, 250, 0.85); /* Slightly different from header, or could be same */
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    backdrop-filter: blur(18px) saturate(170%);
     padding: var(--cv-spacing-sm) var(--cv-spacing-md);
-    border-bottom: var(--cv-border-width) solid var(--current-border-color);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08); /* Subtle border for light mode */
+    /* position: sticky; /* If nav should also stick below header */
+    /* top: YOUR_HEADER_HEIGHT; /* Calculate or set fixed header height */
+    /* z-index: 1010; */
 }
+
+html[data-theme="dark"] .cv-nav {
+    background-color: rgba(50, 50, 52, 0.8); /* Dark mode nav bg */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 .cv-nav__link {
-    color: var(--current-text-link);
+    color: var(--current-text-primary); /* Changed from text-link for a more subdued default state */
     text-decoration: none;
     font-weight: normal;
     display: block; /* Make links take full width for easier tapping */
     width: 100%;
     text-align: left;
     padding: var(--cv-spacing-sm); /* Larger padding for easier tapping */
-    border-radius: var(--cv-border-radius-sm);
-    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    border-radius: var(--cv-border-radius-md); /* Slightly larger radius for nav links */
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.1s ease-in-out;
+    font-weight: 500; /* Medium weight for nav links */
 }
 @media (min-width: 768px) {
     .cv-nav {
@@ -343,26 +371,38 @@
         width: auto; /* Revert to auto width for desktop */
         gap: var(--cv-spacing-sm); /* Restore original gap */
         /* padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Ensure this is suitable or adjust */
+        /* Consider removing bottom border for desktop if header has one and they are visually connected */
+        /* border-bottom: none; */
+    }
+    html[data-theme="dark"] .cv-nav {
+        /* border-bottom: none; */ /* Example for dark theme desktop */
     }
     .cv-nav__link {
         display: inline-block; /* Revert for desktop */
         width: auto;
         text-align: center; /* Or left, depending on design */
-        padding: var(--cv-spacing-xs) var(--cv-spacing-sm); /* Restore original padding */
+        padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Adjusted padding for desktop */
     }
 }
 .cv-nav__link:hover {
-    background-color: var(--current-bg-element); /* Was --cv-gray-200, now maps to element bg */
+    background-color: rgba(0, 0, 0, 0.05); /* Subtle hover for light mode */
     color: var(--current-primary-blue);
-    transform: translateY(-1px);
+    /* transform: translateY(-1px); /* Optional: subtle lift */
 }
+html[data-theme="dark"] .cv-nav__link:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Subtle hover for dark mode */
+}
+
 .cv-nav__link--active {
     background-color: var(--current-primary-blue);
-    color: var(--current-text-on-primary);
-    font-weight: 600;
+    color: var(--current-text-on-primary) !important; /* Ensure text color overrides default */
+    font-weight: 600; /* Semibold for active link */
+    box-shadow: 0 1px 3px rgba(0, 122, 255, 0.2); /* Subtle shadow for active link */
 }
 .cv-nav__link--active:hover {
+    background-color: var(--current-primary-blue); /* Keep background color */
     filter: brightness(90%); /* Similar to primary button hover */
+    color: var(--current-text-on-primary); /* Keep text color */
 }
 
 /* Responsive Table Wrapper */
@@ -412,8 +452,13 @@
     font-weight: 600;
     text-transform: uppercase;
     overflow: hidden;
-    border: none;
+    border: 1.5px solid var(--current-primary-blue); /* Subtle border, themed */
     cursor: pointer;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.user-avatar:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 8px rgba(0, 122, 255, 0.5); /* Subtle glow effect */
 }
 .user-avatar img {
     width: 100%;
@@ -424,6 +469,8 @@
 /* User menu modal overrides */
 .user-menu-modal .cv-modal-content {
     padding: var(--cv-spacing-md);
+    max-width: 300px; /* Smaller max-width for user menu modal */
+    /* Ensure it still gets the primary modal animation and shadow from styles.css */
 }
 .user-menu-list {
     list-style: none;

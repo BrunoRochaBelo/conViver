@@ -935,58 +935,92 @@ main {
     color: var(--current-semantic-error);
 }
 
-/* Modal Styles */
+/* Modal Styles - Apple Inspired */
 .cv-modal {
     /* display: none; */ /* JS handles display */
     position: fixed;
-    z-index: 1051; /* Higher than FAB */
+    z-index: 1050; /* Ensure it's above sticky header/nav but below highest system elements if any */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto; /* Enable scroll if content is too long */
-    background-color: rgba(0,0,0,0.5); /* Dim background */
-    display: flex; /* Added for centering */
-    align-items: center; /* Added for centering */
-    justify-content: center; /* Added for centering */
+    background-color: rgba(0,0,0,0.4); /* Standard overlay, slightly less dim than before */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--cv-spacing-md); /* Add some padding for smaller screens so modal doesn't touch edges */
+    box-sizing: border-box;
 }
 
 .cv-modal-content {
-    background-color: var(--current-bg-white, #fefefe);
-    /* margin: 10% auto; */ /* Replaced by flex centering on .cv-modal */
-    padding: var(--cv-spacing-lg, 20px);
-    border: 1px solid var(--current-border-color, #888);
-    width: 80%;
-    max-width: 600px;
-    border-radius: var(--cv-border-radius-lg, 8px);
+    background-color: var(--current-bg-white);
+    padding: var(--cv-spacing-lg); /* e.g. 24px */
+    border: none; /* Remove default border, rely on shadow and bg */
+    width: 100%; /* Take full width of padding container on small screens */
+    max-width: 560px; /* Apple modals are often not excessively wide */
+    border-radius: var(--cv-border-radius-lg); /* e.g. 12px, consistent with other elements */
     position: relative;
-    box-shadow: var(--current-shadow-lg);
-    max-height: 90vh; /* Limit height to 90% of viewport height */
-    overflow-y: auto; /* Allow internal scrolling if content exceeds max-height */
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1), 0 20px 60px rgba(0,0,0,0.15); /* Softer, more layered shadow */
+    max-height: calc(100vh - (var(--cv-spacing-md) * 2)); /* Ensure modal fits with padding */
+    overflow-y: auto;
+    animation: cv-modal-scale-up 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-.cv-modal-content h2 {
+html[data-theme="dark"] .cv-modal-content {
+     background-color: var(--cv-dark-gray-200); /* Slightly darker element background for modals in dark mode */
+     box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 20px 60px rgba(0,0,0,0.35);
+}
+
+@keyframes cv-modal-scale-up {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.cv-modal-content h2 { /* Modal Title */
     margin-top: 0;
-    font-size: var(--cv-font-size-h3);
+    font-size: var(--cv-font-size-h3); /* 1.5rem */
     color: var(--current-text-primary);
     border-bottom: 1px solid var(--current-border-subtle);
-    padding-bottom: var(--cv-spacing-sm);
-    margin-bottom: var(--cv-spacing-md);
+    padding-bottom: var(--cv-spacing-md); /* Increased padding for title section */
+    margin-bottom: var(--cv-spacing-lg); /* Increased margin after title */
+    font-weight: 600; /* Semibold */
 }
 
 .cv-modal-close {
-    color: var(--current-text-placeholder, #aaa);
+    color: var(--current-text-placeholder);
+    background-color: var(--cv-gray-200); /* Light gray background for the button itself */
+    border-radius: 50%; /* Circular button */
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: absolute;
-    top: var(--cv-spacing-sm, 10px);
-    right: var(--cv-spacing-md, 15px);
-    font-size: 28px;
-    font-weight: bold;
+    top: var(--cv-spacing-md); /* Consistent spacing */
+    right: var(--cv-spacing-md);
+    font-size: 20px; /* Adjust size of '×' */
+    font-weight: normal; /* Not too bold */
     line-height: 1;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+html[data-theme="dark"] .cv-modal-close {
+    background-color: var(--cv-dark-gray-400);
+    color: var(--cv-dark-text-placeholder);
 }
 
 .cv-modal-close:hover,
 .cv-modal-close:focus {
-    color: var(--current-text-primary, black);
+    color: var(--current-text-primary);
+    background-color: var(--cv-gray-300); /* Darken background on hover */
+    outline: none;
     text-decoration: none;
     cursor: pointer;
 }
