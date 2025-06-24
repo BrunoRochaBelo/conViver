@@ -1,5 +1,4 @@
-// Base path for the API. With app.UsePathBase("/api/v1") the
-// frontend must explicitly prefix requests with /api/v1.
+// Base path for the API. Endpoints already include the `/api/v1` prefix.
 // const API_BASE = 'http://localhost:5000/api/v1'; // Replaced by config
 const API_BASE = window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL ? window.APP_CONFIG.API_BASE_URL : '';
 

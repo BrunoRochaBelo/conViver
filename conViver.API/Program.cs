@@ -107,7 +107,6 @@ using (var scope = app.Services.CreateScope())
     DataSeeder.Seed(db);
 }
 
-app.UsePathBase("/api/v1");
 
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
