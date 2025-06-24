@@ -5,6 +5,28 @@
     <title>conViver - Comunicação</title>
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .cv-tabs {
+            display: flex;
+            justify-content: space-between; /* Alinha botões de aba à esquerda e filtro à direita */
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--current-border-subtle, #eee);
+        }
+        .cv-tabs-buttons {
+            display: flex;
+        }
+        .icon-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            color: var(--current-text-secondary);
+        }
+        .icon-button:hover {
+            color: var(--current-primary-blue);
+        }
+    </style>
 </head>
 <body>
     <header class="cv-header">
@@ -26,60 +48,82 @@
     <nav id="mainNav"></nav>
     <main class="cv-container">
         <div class="cv-tabs">
-            <button class="cv-tab-button active" id="tab-mural">Mural</button>
-            <button class="cv-tab-button" id="tab-enquetes">Enquetes</button>
-            <button class="cv-tab-button" id="tab-solicitacoes">Solicitações</button>
+            <div class="cv-tabs-buttons">
+                <button class="cv-tab-button active" id="tab-mural">Mural</button>
+                <button class="cv-tab-button" id="tab-enquetes">Enquetes</button>
+                <button class="cv-tab-button" id="tab-solicitacoes">Solicitações</button>
+            </div>
+            <button id="open-filter-modal-button" class="cv-button icon-button" title="Filtros">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+            </button>
         </div>
 
         <div class="cv-tab-content" id="content-mural">
-            <h2 class="communication__title">Mural</h2>
-
-            <div class="filters-container cv-form-group">
-                <label for="category-filter">Categoria:</label>
-                <select id="category-filter" name="category-filter" class="cv-input">
-                    <option value="">Todas</option>
-                    <option value="comunicados">Comunicados</option>
-                    <option value="enquetes">Enquetes</option>
-                    <option value="solicitacoes">Solicitações</option>
-                    <option value="ocorrencias">Ocorrências</option>
-                    <option value="documentos">Documentos</option>
-                    <option value="reservas">Reservas</option>
-                    <option value="servicos">Serviços</option>
-                </select>
-
-                <label for="period-filter">Período:</label>
-                <input type="month" id="period-filter" name="period-filter" class="cv-input">
-
-                <button id="apply-filters-button" class="cv-button">Aplicar Filtros</button>
-            </div>
-
-            <div class="sticky-notices-container js-sticky-notices">
-                <!-- Sticky notices will be loaded here by JS -->
-            </div>
-
+            <!-- O título foi removido. O feed ocupa o espaço. -->
             <section class="communication__mural js-avisos">
-                <!-- Regular notices will be loaded here by JS (infinite scroll) -->
+                <!-- Feed items (including prioritized ones) will be loaded here by JS (infinite scroll) -->
             </section>
-
-            <button class="fab js-fab-mural" title="Nova Ação">+</button>
-            <!-- Floating Action Button for Enquetes (Síndico only) - Moved from content-enquetes -->
-            <button class="fab js-fab-enquetes" title="Nova Enquete" style="display:none;">+</button>
-            <!-- Floating Action Button for Chamados (All users) - Moved from content-solicitacoes -->
-            <button class="fab js-fab-chamados" title="Novo Chamado" style="display:none;">+</button>
+            <!-- O FAB .js-fab-mural foi movido para o final do body para ser global -->
         </div>
 
-        <!-- content-enquetes and content-solicitacoes are removed as their content is now part of the filtered mural -->
-        <!-- Modals are kept as they are global -->
+        <div class="cv-tab-content" id="content-enquetes" style="display:none;">
+             <p class="cv-info-message" style="padding: 20px; text-align: center;">
+                As enquetes são exibidas no Mural principal.
+                <span class="js-sindico-only-message" style="display:none;">Use o botão (+) para criar uma nova enquete.</span>
+            </p>
+        </div>
+
+        <div class="cv-tab-content" id="content-solicitacoes" style="display:none;">
+            <p class="cv-info-message" style="padding: 20px; text-align: center;">
+                As solicitações (chamados, ocorrências, etc.) são exibidas no Mural principal.
+                Use o botão (+) para criar uma nova solicitação.
+            </p>
+        </div>
 
     </main>
 
-    <!-- Modal for Creating/Editing Avisos (Mural) -->
+    <!-- Modais Globais -->
+
+    <div id="modal-filtros" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close js-modal-filtros-close">&times;</span>
+            <h2>Filtros do Mural</h2>
+            <div class="cv-form">
+                <div class="cv-form-group">
+                    <label for="category-filter-modal">Categoria:</label>
+                    <select id="category-filter-modal" name="category-filter-modal" class="cv-input">
+                        <option value="">Todas</option>
+                        <option value="comunicados">Comunicados</option>
+                        <option value="enquete">Enquetes</option>
+                        <option value="solicitacoes">Solicitações (Chamados/Ocorrências)</option>
+                        <option value="servicos">Serviços (OS)</option>
+                        <option value="documentos">Documentos</option>
+                        <option value="reservas">Reservas</option>
+                        <option value="financeiro">Financeiro</option>
+                        <option value="portaria">Portaria (Encomendas)</option>
+                        <option value="urgente">Urgente</option>
+                    </select>
+                </div>
+                <div class="cv-form-group">
+                    <label for="period-filter-modal">Período (Mês/Ano):</label>
+                    <input type="month" id="period-filter-modal" name="period-filter-modal" class="cv-input">
+                </div>
+                <div class="cv-form-actions">
+                    <button id="apply-filters-button-modal" class="cv-button primary">Aplicar Filtros</button>
+                    <button type="button" class="cv-button js-modal-filtros-close">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-criar-aviso" class="cv-modal" style="display:none;">
         <div class="cv-modal-content">
             <span class="cv-modal-close js-modal-criar-aviso-close">&times;</span>
             <h2>Criar Novo Aviso</h2>
             <form id="form-criar-aviso" class="cv-form">
-                <input type="hidden" id="aviso-id" name="id"> <!-- Hidden field for notice ID -->
+                <input type="hidden" id="aviso-id" name="id">
                 <div class="cv-form-group">
                     <label for="aviso-titulo">Título:</label>
                     <input type="text" id="aviso-titulo" name="titulo" class="cv-input" required>
@@ -104,6 +148,7 @@
                         <option value="comunicados">📢 Comunicados Gerais</option>
                         <option value="enquetes">🗳️ Enquetes</option>
                         <option value="assembleias">🧑‍⚖️ Assembleias</option>
+                        <option value="urgente">🚨 Urgente</option>
                     </select>
                      <small>Segure Ctrl/Cmd para selecionar múltiplas.</small>
                 </div>
@@ -115,9 +160,142 @@
         </div>
     </div>
 
+    <div id="modal-enquete-detalhe" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close js-modal-enquete-detalhe-close">&times;</span>
+            <h2 id="modal-enquete-detalhe-titulo">Detalhes da Enquete</h2>
+            <div id="modal-enquete-detalhe-descricao" class="enquete-descricao" style="margin-bottom: 15px;"></div>
+            <div id="modal-enquete-detalhe-opcoes-container">
+            </div>
+            <div id="modal-enquete-detalhe-status" class="enquete-status" style="margin-top: 15px;"></div>
+            <div class="cv-form-actions">
+                <button type="button" class="cv-button js-modal-enquete-detalhe-close">Fechar</button>
+                <button type="button" id="modal-enquete-submit-voto" class="cv-button primary" style="display:none;">Votar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-chamado-detalhe" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close js-modal-chamado-detalhe-close">&times;</span>
+            <h2 id="modal-chamado-detalhe-titulo">Detalhes do Chamado</h2>
+            <div id="modal-chamado-detalhe-conteudo" class="chamado-detalhe-view">
+            </div>
+            <div id="modal-chamado-detalhe-interacoes" class="chamado-interactions-view" style="margin-top:15px;">
+                <h4>Histórico de Interações:</h4>
+            </div>
+            <div id="sindico-chamado-update-section" class="admin-only-field" style="display:none; margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 15px;">
+                <h4>Atualização do Síndico</h4>
+                <div class="cv-form-group" id="modal-chamado-status-update-group">
+                    <label for="modal-chamado-status-select">Novo Status:</label>
+                    <select id="modal-chamado-status-select" class="cv-input">
+                        <option value="Aberto">Aberto</option>
+                        <option value="EmAndamento">Em Andamento</option>
+                        <option value="Concluido">Concluído</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                </div>
+                <div class="cv-form-group" id="modal-chamado-resposta-sindico-group">
+                    <label for="modal-chamado-resposta-textarea">Resposta do Síndico:</label>
+                    <textarea id="modal-chamado-resposta-textarea" class="cv-input" rows="3"></textarea>
+                </div>
+                <button id="modal-chamado-submit-sindico-update" class="cv-button primary" style="margin-top: 10px; display:none;">Salvar Atualização</button>
+            </div>
+            <div id="modal-chamado-add-comment-section" class="cv-form-group" style="margin-top:20px; display:none;">
+                <label for="modal-chamado-comment-text">Adicionar Comentário/Resposta:</label>
+                <textarea id="modal-chamado-comment-text" class="cv-input" rows="3"></textarea>
+                <button id="modal-chamado-submit-comment" class="cv-button primary" style="margin-top:10px;">Enviar</button>
+            </div>
+            <div class="cv-form-actions" style="margin-top:20px;">
+                <button type="button" class="cv-button js-modal-chamado-detalhe-close">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-criar-enquete" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close js-modal-criar-enquete-close">&times;</span>
+            <h2 id="modal-enquete-title">Nova Enquete</h2>
+            <form id="form-criar-enquete" class="cv-form">
+                <input type="hidden" id="enquete-id" name="id">
+                <div class="cv-form-group">
+                    <label for="enquete-pergunta">Pergunta:</label>
+                    <input type="text" id="enquete-pergunta" name="pergunta" class="cv-input" required>
+                </div>
+                <div class="cv-form-group">
+                    <label for="enquete-opcoes">Opções (uma por linha):</label>
+                    <textarea id="enquete-opcoes" name="opcoes" class="cv-input" rows="4" required></textarea>
+                </div>
+                <div class="cv-form-group">
+                    <label for="enquete-prazo">Prazo Final:</label>
+                    <input type="datetime-local" id="enquete-prazo" name="prazo" class="cv-input" required>
+                </div>
+                <div class="cv-form-group">
+                    <label for="enquete-tipo">Tipo:</label>
+                    <select id="enquete-tipo" name="tipo" class="cv-input" required>
+                        <option value="informal">Enquete Informal</option>
+                        <option value="formal_assembleia">Votação Formal (Assembleia)</option>
+                    </select>
+                </div>
+                <div class="cv-form-actions">
+                    <button type="submit" id="form-enquete-submit-button" class="cv-button primary">Salvar Enquete</button>
+                    <button type="button" class="cv-button js-modal-criar-enquete-close">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-criar-chamado" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close js-modal-criar-chamado-close">&times;</span>
+            <h2 id="modal-chamado-title">Novo Chamado</h2>
+            <form id="form-criar-chamado" class="cv-form">
+                <input type="hidden" id="chamado-id" name="id">
+                <div class="cv-form-group">
+                    <label for="chamado-titulo-modal">Título Resumido:</label>
+                    <input type="text" id="chamado-titulo-modal" name="titulo" class="cv-input" required>
+                </div>
+                <div class="cv-form-group">
+                    <label for="chamado-descricao-modal">Descrição Detalhada:</label>
+                    <textarea id="chamado-descricao-modal" name="descricao" class="cv-input" rows="5" required></textarea>
+                </div>
+                <div class="cv-form-group js-chamado-categoria-form-group">
+                    <label for="chamado-categoria-modal">Categoria:</label>
+                    <select id="chamado-categoria-modal" name="categoria" class="cv-input" required>
+                        <option value="limpeza">Limpeza</option>
+                        <option value="seguranca">Segurança</option>
+                        <option value="manutencao_geral">Manutenção Geral</option>
+                        <option value="barulho">Barulho</option>
+                        <option value="outros">Outros</option>
+                    </select>
+                </div>
+                <div class="cv-form-group">
+                    <label for="chamado-anexos-modal">Anexos (Fotos, Documentos - Opcional):</label>
+                    <input type="file" id="chamado-anexos-modal" name="anexos" class="cv-input" multiple accept="image/*,application/pdf">
+                </div>
+                <div class="cv-form-group admin-only-field js-chamado-status-form-group" style="display:none;">
+                    <label for="chamado-status-modal">Status (Admin):</label>
+                    <select id="chamado-status-modal" name="status" class="cv-input">
+                        <option value="aberto">Aberto</option>
+                        <option value="em_andamento">Em Andamento</option>
+                        <option value="concluido">Concluído</option>
+                    </select>
+                </div>
+                <div class="cv-form-actions">
+                    <button type="submit" id="form-chamado-submit-button" class="cv-button primary">Abrir Chamado</button>
+                    <button type="button" class="cv-button js-modal-criar-chamado-close">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Action Buttons (controlados por JS) -->
+    <button class="fab js-fab-mural" title="Criar Aviso" style="display:none;">+</button>
+    <button class="fab js-fab-enquetes" title="Nova Enquete" style="display:none;">+</button>
+    <button class="fab js-fab-chamados" title="Novo Chamado" style="display:none;">+</button>
+
     <script type="module" src="../js/nav.js"></script>
     <script type="module" src="../js/userMenu.js"></script>
-    <script type="module" src="../js/fabMenu.js"></script> <!-- Adicionado fabMenu.js -->
     <script type="module" src="../js/comunicacao.js"></script>
 </body>
 </html>
