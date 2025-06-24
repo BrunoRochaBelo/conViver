@@ -14,3 +14,15 @@ export function logout() {
     const prefix = isInPagesDir ? '../' : '';
     window.location.href = `${prefix}login.html`;
 }
+
+export function getUserRoles() {
+    try {
+        const info = JSON.parse(localStorage.getItem('userInfo'));
+        if (info && Array.isArray(info.roles)) {
+            return info.roles;
+        }
+    } catch {
+        // ignore
+    }
+    return [];
+}

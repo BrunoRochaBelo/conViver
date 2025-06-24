@@ -931,6 +931,35 @@ main {
     transform: translateY(0px); /* Press down effect */
 }
 
+/* Container e menu de opções do FAB */
+.fab-menu {
+    position: fixed;
+    bottom: var(--cv-spacing-lg, 20px);
+    right: var(--cv-spacing-lg, 20px);
+    z-index: 1050;
+}
+.fab-menu-options {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    gap: var(--cv-spacing-xs, 5px);
+    background-color: var(--current-bg-white);
+    padding: var(--cv-spacing-sm, 8px);
+    border-radius: var(--cv-border-radius-md, 8px);
+    box-shadow: var(--current-shadow-md, 0 2px 10px rgba(0,0,0,0.2));
+}
+html[data-theme="dark"] .fab-menu-options {
+    background-color: var(--cv-dark-gray-200);
+}
+.fab-menu--open .fab-menu-options {
+    display: flex;
+}
+.fab-menu-options .cv-button {
+    width: 160px;
+}
+
 
 /* Helper class for loading messages if not already present */
 .cv-loading-message, .cv-error-message, .cv-no-more-message {
