@@ -1,5 +1,5 @@
 import apiClient, { ApiError } from './apiClient.js';
-import { checkAuth, getCurrentUser } from './auth.js'; // Assuming auth.js provides getCurrentUser
+import { requireAuth, getCurrentUser } from './auth.js';
 
 // --- DOM Elements ---
 const listaOcorrenciasEl = document.getElementById('listaOcorrencias');
@@ -154,12 +154,8 @@ async function postWithFiles(path, formData) {
 
 
 // --- Initialization ---
-document.addEventListener('DOMContentLoaded', async () => {
-    const userIsAuthenticated = await checkAuth();
-    if (!userIsAuthenticated) {
-        window.location.href = '/pages/login.html';
-        return;
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    requireAuth();
     initOcorrenciasPage();
 });
 
