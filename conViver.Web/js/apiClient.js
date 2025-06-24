@@ -1,3 +1,4 @@
+import { showGlobalFeedback } from './main.js';
 // Base path for the API. With app.UsePathBase("/api/v1") the
 // frontend must explicitly prefix requests with /api/v1.
 // const API_BASE = 'http://localhost:5000/api/v1'; // Replaced by config
@@ -5,7 +6,6 @@ const API_BASE = window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL ? window.AP
 
 // DOM Elements for visual feedback
 const loadingOverlay = document.getElementById('global-loading-overlay');
-const messageBanner = document.getElementById('global-message-banner');
 
 // Helper functions for visual feedback
 function showLoading() {
@@ -17,15 +17,7 @@ function hideLoading() {
 }
 
 function showMessage(message, type = 'info', duration = 3000) {
-    if (messageBanner) {
-        messageBanner.textContent = message;
-        messageBanner.className = 'message-banner'; // Clear existing type classes
-        messageBanner.classList.add(type); // Add new type
-        messageBanner.style.display = 'block';
-        setTimeout(() => {
-            messageBanner.style.display = 'none';
-        }, duration);
-    }
+    showGlobalFeedback(message, type, duration);
 }
 
 /**

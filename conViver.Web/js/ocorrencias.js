@@ -414,7 +414,7 @@ async function handleNovaOcorrenciaSubmit(event) {
         await loadOcorrencias(1, 'minhas'); // Refresh list to 'minhas' and go to first page
         // TODO: Show success message (e.g., using a global banner)
         // For now, just log it.
-        alert('Ocorrência criada com sucesso!');
+        showGlobalFeedback('Ocorrência criada com sucesso!', 'success', 4000);
     } catch (error) {
         console.error('Erro ao criar nova ocorrência:', error);
         if (error.errors) { // Validation errors from API
@@ -442,7 +442,7 @@ async function handleAdicionarNovosAnexosSubmit() {
 
     const files = detalheNovosAnexosInput.files;
     if (!files || files.length === 0) {
-        alert('Nenhum arquivo selecionado para adicionar.');
+        showGlobalFeedback('Nenhum arquivo selecionado para adicionar.', 'warning', 4000);
         return;
     }
 
@@ -454,7 +454,7 @@ async function handleAdicionarNovosAnexosSubmit() {
 
     try {
         await postWithFiles(`/api/ocorrencias/${currentOcorrenciaId}/anexos`, formData);
-        alert('Novos anexos adicionados com sucesso!');
+        showGlobalFeedback('Novos anexos adicionados com sucesso!', 'success', 4000);
         // Refresh the anexos section in the detail modal
         const updatedOcorrencia = await apiClient.get(`/api/ocorrencias/${currentOcorrenciaId}`);
         renderAnexosDetalhe(updatedOcorrencia.anexos || []);
@@ -462,7 +462,7 @@ async function handleAdicionarNovosAnexosSubmit() {
         novosAnexosPreviewContainer.innerHTML = ''; // Clear previews
     } catch (error) {
         console.error('Erro ao adicionar novos anexos:', error);
-        alert(`Erro ao adicionar anexos: ${error.message}`);
+        showGlobalFeedback(`Erro ao adicionar anexos: ${error.message}`, 'error', 6000);
     } finally {
         isLoading = false;
     }
@@ -587,7 +587,7 @@ async function openDetalheOcorrenciaModal(ocorrenciaId) {
         modalDetalheOcorrencia.style.display = 'flex';
     } catch (error) {
         console.error(`Erro ao carregar detalhes da ocorrência ${ocorrenciaId}:`, error);
-        alert(`Erro ao carregar detalhes: ${error.message}`);
+        showGlobalFeedback(`Erro ao carregar detalhes: ${error.message}`, 'error', 6000);
         currentOcorrenciaId = null;
     } finally {
         isLoading = false;
@@ -697,7 +697,7 @@ async function handleAlterarStatusSubmit(event) {
 
 
         await loadOcorrencias(currentPage, currentFilter); // Refresh main list
-        alert('Status da ocorrência alterado com sucesso!');
+        showGlobalFeedback('Status da ocorrência alterado com sucesso!', 'success', 4000);
 
     } catch (error) {
         console.error('Erro ao alterar status:', error);
@@ -724,10 +724,10 @@ async function handleDeleteOcorrencia() {
         await apiClient.delete(`/api/ocorrencias/${currentOcorrenciaId}`);
         closeDetalheOcorrenciaModal();
         await loadOcorrencias(1, currentFilter); // Refresh list, go to first page
-        alert('Ocorrência excluída com sucesso!');
+        showGlobalFeedback('Ocorrência excluída com sucesso!', 'success', 4000);
     } catch (error) {
         console.error('Erro ao excluir ocorrência:', error);
-        alert(`Erro ao excluir ocorrência: ${error.message}`);
+        showGlobalFeedback(`Erro ao excluir ocorrência: ${error.message}`, 'error', 6000);
         // Potentially show error in modal if it's still relevant or a global message
     } finally {
         isLoading = false;

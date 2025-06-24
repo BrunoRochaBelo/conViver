@@ -53,10 +53,8 @@ export function delegateEvent(parentElement, eventType, selector, callback) {
  * @param {string} message A mensagem de erro a ser exibida.
  */
 export function showGlobalError(message) {
-  // Poderia ser um modal ou um toast no futuro.
-  // Por enquanto, um simples console.error e alert.
   console.error(`ERRO GLOBAL: ${message}`);
-  alert(`Erro: ${message}`);
+  showGlobalFeedback(message, 'error');
 }
 
 // /**
@@ -118,14 +116,16 @@ export function showGlobalFeedback(message, type = 'info', duration) {
         feedbackElement.classList.add('global-feedback-toast--visible');
     }, 10); // Small delay to allow CSS transition to take effect
 
-    if (duration && duration > 0) {
+    const defaultDurations = { success: 4000, info: 3000, warning: 5000, error: 8000 };
+    const hideAfter = typeof duration === 'number' ? duration : defaultDurations[type] || 5000;
+
+    if (hideAfter && hideAfter > 0) {
         setTimeout(() => {
-            // Check if element still exists (wasn't closed manually)
             if (feedbackElement.parentElement) {
                 feedbackElement.classList.add('global-feedback-toast--hiding');
                 setTimeout(() => feedbackElement.remove(), 300);
             }
-        }, duration);
+        }, hideAfter);
     }
 }
 

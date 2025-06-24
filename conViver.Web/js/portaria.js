@@ -161,7 +161,7 @@ if (btnValidarQRCode && registrarVisitanteMsg && formRegistrarVisitante) {
     btnValidarQRCode.addEventListener('click', async () => {
         const qrCodeValue = document.getElementById('visQRCodeEntrada').value;
         if (!qrCodeValue) {
-            alert('Por favor, insira um QR Code.');
+            showGlobalFeedback('Por favor, insira um QR Code.', 'warning', 4000);
             return;
         }
 
