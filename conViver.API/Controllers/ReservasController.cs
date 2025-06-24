@@ -1,38 +1,31 @@
 using Microsoft.AspNetCore.Mvc;
-using conViver.Core.Entities; // Será substituído por DTOs na maioria dos retornos
-using conViver.Application;    // Assumindo que ReservaService está aqui
 using conViver.Application.Services;
-using conViver.Core.DTOs;      // Adicionado para DTOs
+using conViver.Core.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Security.Claims;  // Adicionado
-using System.ComponentModel.DataAnnotations; // Para [Required]
+using System.Security.Claims;
+using System.ComponentModel.DataAnnotations;
 
 namespace conViver.API.Controllers;
 
 [ApiController]
-[Route("api/v1")] // Rota base ajustada para consistência, endpoints especificarão o resto
+[Route("api/v1")]
 [Authorize]
 public class ReservasController : ControllerBase
 {
-    private readonly ReservaService _reservas;
+    private readonly ReservaService _reservaService;
 
-    public ReservasController(ReservaService reservas)
+    public ReservasController(ReservaService reservaService)
     {
-        _reservas = reservas;
+        _reservaService = reservaService;
     }
 
     /// <summary>
-    /// Obtém a agenda de reservas para um determinado mês/ano.
+    /// Obtém a agenda de reservas para um determinado mês/ano. (App)
     /// </summary>
-    /// <param name="mesAno">O mês e ano no formato YYYY-MM.</param>
-    /// <returns>Uma lista de reservas para o período.</returns>
-    /// <response code="200">Retorna a agenda de reservas.</response>
-    /// <response code="400">Formato de data inválido.</response>
-    /// <response code="401">Usuário não autorizado ou CondominioId inválido.</response>
-    [HttpGet("app/reservas/agenda")] // Rota completa: /api/v1/app/reservas/agenda
+    [HttpGet("app/reservas/agenda")]
     [Authorize(Roles = "Sindico,Condomino,Inquilino")]
     public async Task<ActionResult<IEnumerable<AgendaReservaDto>>> GetAgenda([FromQuery, Required] string mesAno)
     {
@@ -40,24 +33,39 @@ public class ReservasController : ControllerBase
             return BadRequest(new { error = "INVALID_DATE", message = "Formato de mesAno deve ser YYYY-MM." });
 
         var condominioIdClaim = User.FindFirstValue("condominioId");
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
+            string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid usuarioLogadoId))
+        {
+            return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
+        }
+
+        var items = await _reservaService.GetAgendaAsync(condominioId, mes, usuarioLogadoId);
+        return Ok(items);
+    }
+
+    /// <summary>
+    /// Lista todos os espaços comuns disponíveis para reserva no condomínio. (App)
+    /// </summary>
+    [HttpGet("app/reservas/espacos-comuns")]
+    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    public async Task<ActionResult<IEnumerable<EspacoComumDto>>> ListarEspacosComuns()
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
         if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
         {
             return Unauthorized("CondominioId não encontrado ou inválido no token.");
         }
 
-        // Assumindo que _reservas.GetAgendaAsync foi atualizado para receber condominioId e retornar DTOs
-        var items = await _reservas.GetAgendaAsync(condominioId, mes);
-        return Ok(items);
+        var espacos = await _reservaService.ListarEspacosComunsAsync(condominioId);
+        return Ok(espacos);
     }
 
+
     /// <summary>
-    /// Obtém detalhes de uma reserva específica.
+    /// Obtém detalhes de uma reserva específica. (App)
     /// </summary>
-    /// <param name="id">ID da reserva.</param>
-    /// <returns>Detalhes da reserva.</returns>
-    /// <response code="200">Retorna os detalhes da reserva.</response>
-    /// <response code="401">Usuário não autorizado ou não tem permissão para ver esta reserva.</response>
-    /// <response code="404">Reserva não encontrada.</response>
     [HttpGet("app/reservas/{id:guid}")]
     [Authorize(Roles = "Sindico,Condomino,Inquilino")]
     public async Task<ActionResult<ReservaDto>> GetReservaPorId(Guid id)
@@ -70,20 +78,16 @@ public class ReservasController : ControllerBase
             return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
         }
 
-        // Assumindo que _reservas.GetByIdAsync foi atualizado para receber condominioId e userId (para verificação de permissão)
-        var reservaDto = await _reservas.GetByIdAsync(id, condominioId, userId);
+        bool isSindico = User.IsInRole("Sindico");
+        var reservaDto = await _reservaService.GetByIdAsync(id, condominioId, userId, isSindico);
+
         if (reservaDto == null) return NotFound("Reserva não encontrada ou acesso não permitido.");
         return Ok(reservaDto);
     }
 
     /// <summary>
-    /// Cria uma nova solicitação de reserva para uma área comum.
+    /// Cria uma nova solicitação de reserva para uma área comum. (App)
     /// </summary>
-    /// <param name="inputDto">Dados da reserva.</param>
-    /// <returns>A reserva criada.</returns>
-    /// <response code="201">Retorna a reserva criada.</response>
-    /// <response code="400">Dados de entrada inválidos.</response>
-    /// <response code="401">Usuário não autorizado ou claims inválidas.</response>
     [HttpPost("app/reservas")]
     [Authorize(Roles = "Sindico,Condomino,Inquilino")]
     public async Task<ActionResult<ReservaDto>> SolicitarReserva([FromBody] ReservaInputDto inputDto)
@@ -99,31 +103,93 @@ public class ReservasController : ControllerBase
             return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
         }
 
-        // Assumindo que _reservas.SolicitarAsync foi atualizado
-        var reservaDto = await _reservas.SolicitarAsync(condominioId, usuarioId, inputDto);
-        if (reservaDto == null)
+        try
         {
-            // Pode ocorrer se, por exemplo, a área não existir, já estiver reservada, etc.
-            return BadRequest("Não foi possível criar a reserva. Verifique os dados e a disponibilidade.");
+            var reservaDto = await _reservaService.SolicitarAsync(condominioId, usuarioId, inputDto);
+            return CreatedAtAction(nameof(GetReservaPorId), new { id = reservaDto.Id }, reservaDto);
         }
-        return CreatedAtAction(nameof(GetReservaPorId), new { id = reservaDto.Id }, reservaDto);
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = "INVALID_ARGUMENT", message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { error = "BUSINESS_RULE_VIOLATION", message = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = "NOT_FOUND", message = ex.Message });
+        }
     }
 
     /// <summary>
-    /// (Síndico) Aprova ou recusa uma solicitação de reserva.
+    /// Cancela uma reserva (solicitada pelo próprio usuário ou síndico). (App)
     /// </summary>
-    /// <param name="id">ID da reserva a ser atualizada.</param>
-    /// <param name="updateDto">Novo status e justificativa.</param>
-    /// <returns>Nenhum conteúdo ou a reserva atualizada.</returns>
-    /// <response code="200">Reserva atualizada com sucesso (se retornar o objeto).</response>
-    /// <response code="204">Reserva atualizada com sucesso (se não retornar corpo).</response>
-    /// <response code="400">Dados de entrada inválidos (ex: status inválido).</response>
-    /// <response code="401">Usuário não autorizado ou CondominioId inválido.</response>
-    /// <response code="403">Usuário não tem permissão (não é Síndico).</response>
-    /// <response code="404">Reserva não encontrada.</response>
-    [HttpPut("syndic/reservas/{id:guid}")] // Rota ajustada para API Ref 6.3
+    [HttpDelete("app/reservas/{id:guid}")]
+    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    public async Task<IActionResult> CancelarReserva(Guid id)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
+            string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid usuarioId))
+        {
+            return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
+        }
+
+        try
+        {
+            bool isSindico = User.IsInRole("Sindico");
+            var sucesso = await _reservaService.CancelarAsync(id, condominioId, usuarioId, isSindico);
+            if (!sucesso) // Serviço agora lança exceção em caso de não encontrar, então essa checagem pode ser redundante.
+            {
+                return NotFound(new { error="CANCEL_FAILED", message = "Reserva não encontrada ou não pôde ser cancelada."});
+            }
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = "NOT_FOUND", message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = "CANCEL_RULE_VIOLATION", message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// (App) Lista as reservas do usuário logado.
+    /// </summary>
+    [HttpGet("app/reservas/minhas")]
+    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    public async Task<ActionResult<IEnumerable<ReservaDto>>> ListarMinhasReservas()
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
+            string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid usuarioId))
+        {
+            return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
+        }
+
+        var reservas = await _reservaService.ListarMinhasReservasAsync(condominioId, usuarioId);
+        return Ok(reservas);
+    }
+
+    // --- Endpoints de Gestão de Reservas para Síndico ---
+
+    /// <summary>
+    /// (Síndico) Aprova, recusa ou modifica o status de uma solicitação de reserva.
+    /// </summary>
+    [HttpPut("syndic/reservas/{id:guid}/status")]
     [Authorize(Roles = "Sindico")]
-    public async Task<IActionResult> AtualizarStatusReserva(Guid id, [FromBody] ReservaStatusUpdateDto updateDto)
+    public async Task<ActionResult<ReservaDto>> SyndicAtualizarStatusReserva(Guid id, [FromBody] ReservaStatusUpdateDto updateDto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -138,46 +204,213 @@ public class ReservasController : ControllerBase
 
         try
         {
-            // Assumindo que _reservas.AtualizarStatusAsync foi atualizado
-            var reservaAtualizadaDto = await _reservas.AtualizarStatusAsync(id, condominioId, sindicoUserId, updateDto);
-            if(reservaAtualizadaDto == null) return NotFound("Reserva não encontrada ou não pôde ser atualizada.");
-            return Ok(reservaAtualizadaDto); // Retornar DTO atualizado
+            var reservaAtualizadaDto = await _reservaService.AtualizarStatusAsync(id, condominioId, sindicoUserId, updateDto);
+            // AtualizarStatusAsync agora lança KeyNotFoundException se não encontrar
+            return Ok(reservaAtualizadaDto);
         }
-        catch (InvalidOperationException ex) // Ex: tentativa de aprovar reserva já cancelada
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = "NOT_FOUND", message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+             return BadRequest(new { error="INVALID_ARGUMENT", message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
         {
             return BadRequest(new { error="INVALID_OPERATION", message = ex.Message });
         }
     }
 
     /// <summary>
-    /// Cancela uma reserva (solicitada pelo próprio usuário ou síndico).
+    /// (Síndico) Lista todas as reservas do condomínio com filtros e paginação.
     /// </summary>
-    /// <param name="id">ID da reserva a ser cancelada.</param>
-    /// <returns>Nenhum conteúdo.</returns>
-    /// <response code="204">Reserva cancelada com sucesso.</response>
-    /// <response code="401">Usuário não autorizado ou claims inválidas.</response>
-    /// <response code="403">Usuário não tem permissão para cancelar esta reserva.</response>
-    /// <response code="404">Reserva não encontrada.</response>
-    [HttpDelete("app/reservas/{id:guid}")] // Rota para API Ref 6.4
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")] // Síndico também pode cancelar
-    public async Task<IActionResult> CancelarReserva(Guid id)
+    [HttpGet("syndic/reservas")]
+    [Authorize(Roles = "Sindico")]
+    public async Task<ActionResult<PaginatedResultDto<ReservaDto>>> SyndicListarTodasReservas([FromQuery] ReservaFilterDto filters)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+
+        var paginatedResult = await _reservaService.ListarTodasReservasAsync(condominioId, filters, true); // true for isSindico
+        return Ok(paginatedResult);
+    }
+
+    /// <summary>
+    /// (Síndico) Edita uma reserva existente.
+    /// </summary>
+    [HttpPut("syndic/reservas/{id:guid}/editar")]
+    [Authorize(Roles = "Sindico")]
+    public async Task<ActionResult<ReservaDto>> SyndicEditarReserva(Guid id, [FromBody] ReservaInputDto inputDto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        var sindicoUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
-            string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid usuarioId))
+            string.IsNullOrEmpty(sindicoUserIdClaim) || !Guid.TryParse(sindicoUserIdClaim, out Guid sindicoUserId))
         {
-            return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
+            return Unauthorized("CondominioId ou UserId do síndico não encontrado ou inválido no token.");
         }
 
-        // Assumindo que _reservas.CancelarAsync foi atualizado
-        var sucesso = await _reservas.CancelarAsync(id, condominioId, usuarioId, User.IsInRole("Sindico"));
-        if (!sucesso)
+        try
         {
-            // Pode ser NotFound ou Forbidden dependendo do motivo da falha
-            return NotFound("Reserva não encontrada ou não pôde ser cancelada (verifique permissões).");
+            var reservaAtualizadaDto = await _reservaService.EditarReservaAsync(id, condominioId, sindicoUserId, inputDto);
+            return Ok(reservaAtualizadaDto);
         }
-        return NoContent();
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = "NOT_FOUND", message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = "INVALID_ARGUMENT", message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { error = "BUSINESS_RULE_VIOLATION", message = ex.Message });
+        }
+    }
+
+
+    // --- Endpoints de Gestão de Espaços Comuns para Síndico ---
+
+    /// <summary>
+    /// (Síndico) Lista todos os espaços comuns do condomínio (incluindo suas regras).
+    /// </summary>
+    [HttpGet("syndic/reservas/espacos-comuns")]
+    [Authorize(Roles = "Sindico")]
+    public async Task<ActionResult<IEnumerable<EspacoComumDto>>> SyndicListarEspacosComuns()
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+        var espacos = await _reservaService.ListarEspacosComunsAsync(condominioId);
+        return Ok(espacos);
+    }
+
+    /// <summary>
+    /// (Síndico) Obtém detalhes de um espaço comum específico.
+    /// </summary>
+    [HttpGet("syndic/reservas/espacos-comuns/{id:guid}")]
+    [Authorize(Roles = "Sindico")]
+    public async Task<ActionResult<EspacoComumDto>> SyndicGetEspacoComumPorId(Guid id)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+        var espacoDto = await _reservaService.GetEspacoComumByIdAsync(id, condominioId);
+        if (espacoDto == null) return NotFound("Espaço comum não encontrado.");
+        return Ok(espacoDto);
+    }
+
+    /// <summary>
+    /// (Síndico) Cria um novo espaço comum.
+    /// </summary>
+    [HttpPost("syndic/reservas/espacos-comuns")]
+    [Authorize(Roles = "Sindico")]
+    public async Task<ActionResult<EspacoComumDto>> SyndicCriarEspacoComum([FromBody] EspacoComumDto inputDto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+        try
+        {
+            var espacoCriadoDto = await _reservaService.CriarEspacoComumAsync(condominioId, inputDto);
+            return CreatedAtAction(nameof(SyndicGetEspacoComumPorId), new { id = espacoCriadoDto.Id }, espacoCriadoDto);
+        }
+        catch (ArgumentException ex)
+        {
+             return BadRequest(new { error="INVALID_INPUT", message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { error="CREATION_FAILED", message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// (Síndico) Atualiza um espaço comum existente.
+    /// </summary>
+    [HttpPut("syndic/reservas/espacos-comuns/{id:guid}")]
+    [Authorize(Roles = "Sindico")]
+    public async Task<ActionResult<EspacoComumDto>> SyndicAtualizarEspacoComum(Guid id, [FromBody] EspacoComumDto inputDto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+        try
+        {
+            if (inputDto.Id != Guid.Empty && inputDto.Id != id)
+            {
+                return BadRequest("Conflito entre ID da rota e ID do corpo da requisição.");
+            }
+            inputDto.Id = id;
+
+            var espacoAtualizadoDto = await _reservaService.AtualizarEspacoComumAsync(id, condominioId, inputDto);
+            // AtualizarEspacoComumAsync agora lança KeyNotFoundException
+            return Ok(espacoAtualizadoDto);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = "NOT_FOUND", message = ex.Message });
+        }
+         catch (ArgumentException ex)
+        {
+             return BadRequest(new { error="INVALID_INPUT", message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { error="UPDATE_FAILED", message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// (Síndico) Exclui um espaço comum.
+    /// </summary>
+    [HttpDelete("syndic/reservas/espacos-comuns/{id:guid}")]
+    [Authorize(Roles = "Sindico")]
+    public async Task<IActionResult> SyndicExcluirEspacoComum(Guid id)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+        try
+        {
+            var sucesso = await _reservaService.ExcluirEspacoComumAsync(id, condominioId);
+            // ExcluirEspacoComumAsync agora lança KeyNotFoundException
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = "NOT_FOUND", message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { error="DELETE_RULE_VIOLATION", message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // Log ex
+            return StatusCode(500, new { error="INTERNAL_ERROR", message = "Erro ao excluir espaço comum."});
+        }
     }
 }
