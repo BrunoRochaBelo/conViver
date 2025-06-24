@@ -307,6 +307,12 @@
     top: 0;
     z-index: 1020; /* Ensure it's above other content but below modals */
 }
+.cv-header__container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
 
 html[data-theme="dark"] .cv-header {
     background-color: rgba(44, 44, 46, 0.75); /* Dark mode translucent background (System Gray 2 Dark with alpha) */
@@ -345,6 +351,13 @@ html[data-theme="dark"] .cv-header {
     /* position: sticky; /* If nav should also stick below header */
     /* top: YOUR_HEADER_HEIGHT; /* Calculate or set fixed header height */
     /* z-index: 1010; */
+}
+.cv-nav__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: var(--cv-spacing-sm);
 }
 
 html[data-theme="dark"] .cv-nav {
