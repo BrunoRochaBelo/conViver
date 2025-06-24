@@ -1,6 +1,7 @@
 import apiClient, { ApiError } from './apiClient.js';
-import { requireAuth } from './auth.js';
+import { requireAuth, getUserRoles } from './auth.js';
 import { formatCurrency, formatDate, showGlobalFeedback } from './main.js'; // Updated import
+import { initFabMenu } from './fabMenu.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     requireAuth(); // Ensures user is authenticated before proceeding
@@ -270,4 +271,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     carregarDadosDashboard();
+
+    const roles = getUserRoles();
+    const actions = [];
+    if (roles.includes('Sindico')) {
+        actions.push({ label: 'Novo Aviso', href: 'comunicacao.html' });
+    } else {
+        actions.push({ label: 'Novo Chamado', href: 'comunicacao.html' });
+    }
+    initFabMenu(actions);
 });
