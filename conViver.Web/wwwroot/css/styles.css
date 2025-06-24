@@ -937,7 +937,7 @@ main {
 
 /* Modal Styles - Apple Inspired */
 .cv-modal {
-    /* display: none; */ /* JS handles display */
+    display: none; /* Hidden by default; JS will set to flex when opened */
     position: fixed;
     z-index: 1050; /* Ensure it's above sticky header/nav but below highest system elements if any */
     left: 0;
@@ -946,7 +946,6 @@ main {
     height: 100%;
     overflow: auto; /* Enable scroll if content is too long */
     background-color: rgba(0,0,0,0.4); /* Standard overlay, slightly less dim than before */
-    display: flex;
     align-items: center;
     justify-content: center;
     padding: var(--cv-spacing-md); /* Add some padding for smaller screens so modal doesn't touch edges */
