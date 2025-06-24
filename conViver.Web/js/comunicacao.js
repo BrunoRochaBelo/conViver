@@ -3,30 +3,20 @@ import { requireAuth } from './auth.js';
 import { showGlobalFeedback } from './main.js';
 
 // --- Global state & constants ---
-// Unified Feed (replaces Notices for Mural Tab)
 let currentFeedPage = 1; let isLoadingFeedItems = false; let noMoreFeedItems = false;
-const feedContainerSelector = '.js-avisos'; // Using existing container for Mural feed
-const feedScrollSentinelId = 'notice-scroll-sentinel'; // Reusing existing sentinel ID
+const feedContainerSelector = '.js-avisos';
+const feedScrollSentinelId = 'notice-scroll-sentinel';
 let fetchedFeedItems = [];
 
-// Modals (Avisos)
-let criarAvisoModal; let formCriarAviso; let avisoIdField;
+// Modals
+let criarAvisoModal, formCriarAviso, avisoIdField;
+let criarEnqueteModal, formCriarEnquete, enqueteIdField, modalEnqueteTitle, formEnqueteSubmitButton;
+let modalEnqueteDetalhe, modalEnqueteDetalheTitulo, modalEnqueteDetalheDescricao, modalEnqueteDetalheOpcoesContainer, modalEnqueteDetalheStatus, modalEnqueteSubmitVotoButton;
+let criarChamadoModal, formCriarChamado, chamadoIdFieldModal, modalChamadoTitle, formChamadoSubmitButtonModal;
+let modalChamadoDetalhe, modalChamadoDetalheTitulo, modalChamadoDetalheConteudo, modalChamadoDetalheInteracoes, modalChamadoAddCommentSection, modalChamadoCommentText, modalChamadoSubmitCommentButton;
+let modalFiltros; // Novo modal de filtros
 
-// Modals (Enquetes)
-let criarEnqueteModal; let formCriarEnquete; let enqueteIdField;
-let modalEnqueteTitle; let formEnqueteSubmitButton;
-let modalEnqueteDetalhe; let modalEnqueteDetalheTitulo; let modalEnqueteDetalheDescricao;
-let modalEnqueteDetalheOpcoesContainer; let modalEnqueteDetalheStatus; let modalEnqueteSubmitVotoButton;
-
-
-// Modals (Chamados / Solicitações)
-let criarChamadoModal; let formCriarChamado; let chamadoIdFieldModal;
-let modalChamadoTitle; let formChamadoSubmitButtonModal;
-let modalChamadoDetalhe; let modalChamadoDetalheTitulo; let modalChamadoDetalheConteudo;
-let modalChamadoDetalheInteracoes; let modalChamadoAddCommentSection;
-let modalChamadoCommentText; let modalChamadoSubmitCommentButton;
-
-// Modal specific form groups (still needed as modals are global)
+// Modal specific form groups
 let chamadoStatusModalFormGroup;
 let chamadoCategoriaModalFormGroup;
 
@@ -34,12 +24,11 @@ let chamadoCategoriaModalFormGroup;
 document.addEventListener('DOMContentLoaded', async () => {
     requireAuth();
 
-    // Avisos Modal
+    // Modals Init
     criarAvisoModal = document.getElementById('modal-criar-aviso');
     formCriarAviso = document.getElementById('form-criar-aviso');
     avisoIdField = document.getElementById('aviso-id');
 
-    // Enquetes Modals
     criarEnqueteModal = document.getElementById('modal-criar-enquete');
     formCriarEnquete = document.getElementById('form-criar-enquete');
     enqueteIdField = document.getElementById('enquete-id');
@@ -52,21 +41,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     modalEnqueteDetalheStatus = document.getElementById('modal-enquete-detalhe-status');
     modalEnqueteSubmitVotoButton = document.getElementById('modal-enquete-submit-voto');
 
-    // Chamados Modals
     criarChamadoModal = document.getElementById('modal-criar-chamado');
     formCriarChamado = document.getElementById('form-criar-chamado');
-    chamadoIdFieldModal = document.getElementById('chamado-id'); // This is for the modal's hidden ID field
+    chamadoIdFieldModal = document.getElementById('chamado-id');
     modalChamadoTitle = document.getElementById('modal-chamado-title');
     formChamadoSubmitButtonModal = document.getElementById('form-chamado-submit-button');
     modalChamadoDetalhe = document.getElementById('modal-chamado-detalhe');
     modalChamadoDetalheTitulo = document.getElementById('modal-chamado-detalhe-titulo');
     modalChamadoDetalheConteudo = document.getElementById('modal-chamado-detalhe-conteudo');
     modalChamadoDetalheInteracoes = document.getElementById('modal-chamado-detalhe-interacoes');
-    modalChamadoAddCommentSection = document.getElementById('modal-chamado-add-comment-section'); // General comment section in modal
-    modalChamadoCommentText = document.getElementById('modal-chamado-comment-text'); // Textarea for general comment
-    modalChamadoSubmitCommentButton = document.getElementById('modal-chamado-submit-comment'); // Button for general comment
+    modalChamadoAddCommentSection = document.getElementById('modal-chamado-add-comment-section');
+    modalChamadoCommentText = document.getElementById('modal-chamado-comment-text');
+    modalChamadoSubmitCommentButton = document.getElementById('modal-chamado-submit-comment');
 
-    // References to elements within modals (these are fine as modals are global)
+    modalFiltros = document.getElementById('modal-filtros');
+
     chamadoStatusModalFormGroup = document.querySelector('#modal-criar-chamado .js-chamado-status-form-group');
     chamadoCategoriaModalFormGroup = document.querySelector('#modal-criar-chamado .js-chamado-categoria-form-group');
 
@@ -74,24 +63,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadInitialFeedItems();
     setupFeedObserver();
     setupFeedContainerClickListener();
-    updateUserSpecificUI();
-    setupFilterButtonListener();
-    setupModalEventListeners();
+    updateUserSpecificUI(); // Setup FABs
+    setupFilterModalAndButton(); // Setup filter modal and its trigger
+    setupModalEventListeners(); // Setup generic close/submit for other modals
 });
 
 // --- Tab System ---
 function setupTabs() {
     const tabButtons = document.querySelectorAll('.cv-tab-button');
-    const tabContents = document.querySelectorAll('.cv-tab-content'); // These are #content-mural, #content-enquetes, etc.
-    const muralContent = document.getElementById('content-mural'); // The main feed display area
-    const muralCategoryFilter = document.getElementById('category-filter');
-    const sindicoOnlyMessages = document.querySelectorAll('.js-sindico-only-message');
+    const tabContents = document.querySelectorAll('.cv-tab-content');
+    const muralContent = document.getElementById('content-mural');
+    const globalCategoryFilter = document.getElementById('category-filter-modal'); // Filter is now in modal
 
-    const userRoles = getUserRoles(); // Assuming getUserRoles() is available and returns array of roles
+    const userRoles = getUserRoles();
     const isSindico = userRoles.includes('Sindico') || userRoles.includes('Administrador');
 
-    sindicoOnlyMessages.forEach(msg => {
-        msg.style.display = isSindico ? 'inline' : 'none'; // Show message if Sindico
+    document.querySelectorAll('.js-sindico-only-message').forEach(msg => {
+        msg.style.display = isSindico ? 'inline' : 'none';
     });
 
     tabButtons.forEach(button => {
@@ -106,22 +94,26 @@ function setupTabs() {
 
             if (muralContent) muralContent.style.display = 'block';
 
-            let categoryToFilter = '';
+            let categoryToSetInGlobalFilter = '';
             if (button.id === 'tab-enquetes') {
-                categoryToFilter = 'enquete';
+                categoryToSetInGlobalFilter = 'enquete';
                 if (!button.dataset.initialized) {
                     setupEnquetesTab();
                     button.dataset.initialized = 'true';
                 }
             } else if (button.id === 'tab-solicitacoes') {
-                categoryToFilter = 'solicitacoes';
+                categoryToSetInGlobalFilter = 'solicitacoes';
                 if (!button.dataset.initialized) {
                     setupSolicitacoesTab();
                     button.dataset.initialized = 'true';
                 }
             }
 
-            if (muralCategoryFilter) muralCategoryFilter.value = categoryToFilter;
+            if (globalCategoryFilter) globalCategoryFilter.value = categoryToSetInGlobalFilter;
+
+            // Reset period filter when changing tabs? Optional. For now, no.
+            // document.getElementById('period-filter-modal').value = '';
+
             loadInitialFeedItems();
             updateUserSpecificUI(button.id);
         });
@@ -133,6 +125,38 @@ function setupTabs() {
     } else {
         const firstTab = document.querySelector('.cv-tab-button');
         if (firstTab) firstTab.click();
+    }
+}
+
+// --- Filter Modal ---
+function setupFilterModalAndButton() {
+    const openFilterButton = document.getElementById('open-filter-modal-button');
+    const closeFilterModalButton = document.querySelector('.js-modal-filtros-close');
+    const applyFiltersModalButton = document.getElementById('apply-filters-button-modal');
+
+    if (openFilterButton && modalFiltros) {
+        openFilterButton.addEventListener('click', () => {
+            modalFiltros.style.display = 'flex';
+        });
+    }
+    if (closeFilterModalButton && modalFiltros) {
+        closeFilterModalButton.addEventListener('click', () => {
+            modalFiltros.style.display = 'none';
+        });
+    }
+    if (modalFiltros) { // Close on outside click
+        window.addEventListener('click', (event) => {
+            if (event.target === modalFiltros) {
+                modalFiltros.style.display = 'none';
+            }
+        });
+    }
+    if (applyFiltersModalButton) {
+        applyFiltersModalButton.addEventListener('click', () => {
+            showGlobalFeedback("Aplicando filtros ao feed...", 'info');
+            loadInitialFeedItems(); // Reloads feed using values from modal's filters
+            if (modalFiltros) modalFiltros.style.display = 'none'; // Close modal after applying
+        });
     }
 }
 
@@ -155,7 +179,7 @@ function openEditFeedItemModal(itemType, itemId) {
             const categoriasSelect = document.getElementById('aviso-categorias');
             if (categoriasSelect) {
                 Array.from(categoriasSelect.options).forEach(option => option.selected = false);
-                if (itemData.categoria) {
+                if (itemData.categoria) { // Avisos (no DTO atual) têm uma única categoria
                     const optionToSelect = Array.from(categoriasSelect.options).find(opt => opt.value === itemData.categoria);
                     if (optionToSelect) optionToSelect.selected = true;
                 }
@@ -200,8 +224,6 @@ function setupModalEventListeners() {
                     categoria: categoriaParaApi,
                 };
                 // Nota: Upload de arquivos (imagem, anexos) requer backend e apiClient preparados para FormData.
-                // O código atual envia JSON. Para uploads, seria necessário construir um FormData e
-                // o apiClient.post/put precisaria lidar com isso. Esta parte é um TODO para backend.
 
                 try {
                     showGlobalFeedback(currentAvisoId ? 'Salvando alterações...' : 'Criando aviso...', 'info');
@@ -291,16 +313,15 @@ function setupModalEventListeners() {
             formCriarChamado.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const currentChamadoId = chamadoIdFieldModal.value;
-                // Nota: Upload de anexos requer backend e FormData.
                 const chamadoData = {
                     titulo: document.getElementById('chamado-titulo-modal').value,
                     descricao: document.getElementById('chamado-descricao-modal').value,
                     categoria: document.getElementById('chamado-categoria-modal').value,
                 };
-                if (currentChamadoId) { // Edição (atualmente não usado para usuário final)
+                if (currentChamadoId) {
                     chamadoData.status = document.getElementById('chamado-status-modal').value;
                     await handleUpdateChamado(currentChamadoId, chamadoData);
-                } else { // Criação
+                } else {
                     await handleCreateChamado(chamadoData);
                 }
                 if (criarChamadoModal) criarChamadoModal.style.display = 'none';
@@ -317,7 +338,7 @@ function setupFeedItemActionButtons() {
     document.querySelectorAll('.js-edit-feed-item').forEach(button => {
         const newButton = button.cloneNode(true);
         button.parentNode.replaceChild(newButton, button);
-        if (isSindico && newButton.dataset.itemType === 'Aviso') { // Apenas Sindico edita Avisos
+        if (isSindico && newButton.dataset.itemType === 'Aviso') {
             newButton.style.display = 'inline-block';
             newButton.addEventListener('click', (event) => {
                 const itemType = event.target.dataset.itemType;
@@ -332,7 +353,7 @@ function setupFeedItemActionButtons() {
     document.querySelectorAll('.js-delete-feed-item').forEach(button => {
         const newButton = button.cloneNode(true);
         button.parentNode.replaceChild(newButton, button);
-        if (isSindico && newButton.dataset.itemType === 'Aviso') { // Apenas Sindico deleta Avisos
+        if (isSindico && newButton.dataset.itemType === 'Aviso') {
             newButton.style.display = 'inline-block';
             newButton.addEventListener('click', async (event) => {
                 const itemType = event.target.dataset.itemType;
@@ -401,14 +422,11 @@ async function handleDeleteAviso(itemId) {
     }
 }
 
-// MOCK getUserRoles - REMOVE THIS WHEN auth.js IS UPDATED
 function getUserRoles() {
     const user = JSON.parse(localStorage.getItem('userInfo'));
     if (user && user.roles) return user.roles;
-    // return ['Sindico'];
     return ['Condomino'];
 }
-// FIM DO MOCK
 
 function updateUserSpecificUI(activeTabId = 'tab-mural') {
     const userRoles = getUserRoles();
@@ -455,13 +473,9 @@ function updateUserSpecificUI(activeTabId = 'tab-mural') {
     });
 }
 
-function setupFilterButtonListener() {
-    const btn = document.getElementById('apply-filters-button');
-    if (btn) btn.addEventListener('click', () => {
-        showGlobalFeedback("Aplicando filtros ao feed...", 'info');
-        loadInitialFeedItems();
-    });
-}
+// This function is now replaced by setupFilterModalAndButton
+// function setupFilterButtonListener() { ... }
+
 async function loadInitialFeedItems() {
     currentFeedPage = 1;
     noMoreFeedItems = false;
@@ -476,7 +490,7 @@ async function loadInitialFeedItems() {
         sentinel.id = feedScrollSentinelId;
         sentinel.style.height = '10px';
     }
-    if (container.lastChild !== sentinel) { // Ensure sentinel is last for correct observation
+    if (container.lastChild !== sentinel) {
         container.appendChild(sentinel);
     }
     sentinel.style.display = 'block';
@@ -506,7 +520,7 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     let loadingP = container.querySelector(`.${loadingMessageClass}`);
 
     if (!append) {
-        const CategoriaFilterValue = document.getElementById('category-filter')?.value?.toLowerCase() || '';
+        const CategoriaFilterValue = document.getElementById('category-filter-modal')?.value?.toLowerCase() || ''; // From modal
         document.querySelectorAll(`${feedContainerSelector} > .feed-item:not(.prio-0)`).forEach(el => el.remove());
 
         fetchedFeedItems = fetchedFeedItems.filter(fi => {
@@ -543,9 +557,9 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     }
     if (sentinelElement) sentinelElement.style.display = 'block';
 
-
-    const categoriaFilter = document.getElementById('category-filter')?.value || null;
-    const periodoFilterInput = document.getElementById('period-filter')?.value;
+    // Read filters from the modal
+    const categoriaFilter = document.getElementById('category-filter-modal')?.value || null;
+    const periodoFilterInput = document.getElementById('period-filter-modal')?.value;
     let periodoInicio = null, periodoFim = null;
     if (periodoFilterInput) {
         const [year, monthStr] = periodoFilterInput.split('-');
@@ -1096,7 +1110,7 @@ function handleBoletoLembreteClick(itemId, targetElementOrCard) {
 // --- Enquetes e Votações Tab ---
 function setupEnquetesTab() {
     console.log("Modo de filtro de Enquetes ativado.");
-    setupEnqueteModalAndFAB();
+    // setupEnqueteModalAndFAB(); // Listeners are now more globally managed or within updateUserSpecificUI
 }
 
 function openCreateEnqueteModal() {
@@ -1176,7 +1190,9 @@ async function handleGenerateAtaEnquete(enqueteId) {
 
 
 function setupEnqueteModalAndFAB() {
-    console.log("setupEnqueteModalAndFAB called (listeners moved to central setupModalEventListeners)");
+    // Listeners for FAB are in updateUserSpecificUI
+    // Listeners for modal form are in setupModalEventListeners
+    console.log("setupEnqueteModalAndFAB (major logic moved)");
 }
 
 
@@ -1192,7 +1208,7 @@ function formatChamadoCategoria(categoria) {
 
 function setupSolicitacoesTab() {
     console.log("Modo de filtro de Solicitações ativado.");
-    setupChamadoModalAndFAB();
+    // setupChamadoModalAndFAB(); // Listeners are now more globally managed
 }
 
 async function handleCreateChamado(chamadoData) {
@@ -1201,6 +1217,7 @@ async function handleCreateChamado(chamadoData) {
         const dataParaApi = {
             Titulo: chamadoData.titulo,
             Descricao: `Categoria: ${chamadoData.categoria}\n\n${chamadoData.descricao}`,
+            // Fotos e UnidadeId são opcionais e seriam adicionados aqui se presentes em chamadoData e suportados pelo DTO.
         };
         await apiClient.post('/api/v1/chamados/app/chamados', dataParaApi);
         showGlobalFeedback('Novo chamado aberto com sucesso! Ele aparecerá no feed.', 'success');
@@ -1219,7 +1236,9 @@ async function handleUpdateChamado(id, chamadoData) {
 }
 
 function setupChamadoModalAndFAB() {
-    console.log("setupChamadoModalAndFAB ensuring openCreateChamadoModal is available.");
+    // Listeners for FAB are in updateUserSpecificUI
+    // Listeners for modal form are in setupModalEventListeners
+    console.log("setupChamadoModalAndFAB (major logic moved)");
 }
 
 function openCreateChamadoModal() {
