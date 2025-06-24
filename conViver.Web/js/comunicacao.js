@@ -1,6 +1,7 @@
 import apiClient from './apiClient.js';
 import { requireAuth } from './auth.js';
 import { showGlobalFeedback } from './main.js';
+import { initFabMenu } from './fabMenu.js';
 
 // --- Global state & constants ---
 // Unified Feed (replaces Notices for Mural Tab)
@@ -76,6 +77,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadInitialFeedItems();
     setupFeedObserver();
     setupFeedContainerClickListener(); // Added for item clicks
+
+    initFabMenu(() => [
+        { label: 'Novo Aviso', onClick: openCriarAvisoModal },
+        { label: 'Nova Enquete', onClick: openCreateEnqueteModal },
+        { label: 'Novo Chamado', onClick: openCreateChamadoModal }
+    ]);
 
     updateUserSpecificUI(); // This might need review if FAB actions change per tab
     setupFilterButtonListener(); // This will now apply to the feed
