@@ -8,7 +8,7 @@ export function buildNavigation() {
     const currentPage = window.location.pathname.split('/').pop().replace('.html', '') || 'index';
 
     const items = [
-        { key: 'dashboard', label: 'Dashboard', href: 'dashboard.html' },
+        { key: 'index', label: 'Dashboard', href: 'index.html' }, // Alterado dashboard.html para index.html e key para index
         { key: 'financeiro', label: 'Financeiro', href: 'financeiro.html' },
         { key: 'reservas', label: 'Reservas', href: 'reservas.html' },
         { key: 'portaria', label: 'Portaria', href: 'portaria.html' },
@@ -28,7 +28,7 @@ export function buildNavigation() {
         a.href = `${hrefPrefix}${item.href}`;
         a.textContent = item.label;
         a.className = 'cv-nav__link';
-        if (currentPage === item.key || (currentPage === 'index' && item.key === 'dashboard')) {
+        if (currentPage === item.key) { // Simplificado: currentPage será 'index' para a página inicial
             a.classList.add('cv-nav__link--active');
         }
         li.appendChild(a);
