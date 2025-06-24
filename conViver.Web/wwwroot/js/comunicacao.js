@@ -513,6 +513,9 @@ async function handleFeedItemClick(event) {
             case 'BoletoLembrete':
                 handleBoletoLembreteClick(itemId, cardElement);
                 break;
+            case 'OrdemServico':
+                handleOrdemServicoClick(itemId, cardElement);
+                break;
             default:
                 showGlobalFeedback(`Interação para tipo '${itemType}' não definida.`, 'info');
                 break;
@@ -612,6 +615,11 @@ function handleBoletoLembreteClick(itemId, targetElementOrCard) {
     } else {
         showGlobalFeedback(`Boleto: ${item?.titulo || itemId}. Link para detalhes não disponível.`, 'info');
     }
+}
+
+function handleOrdemServicoClick(itemId, targetElementOrCard) {
+    const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'OrdemServico');
+    showGlobalFeedback(`OS: ${item?.titulo || itemId}. Detalhes da ordem de serviço seriam exibidos aqui.`, 'info', 5000);
 }
 
 
