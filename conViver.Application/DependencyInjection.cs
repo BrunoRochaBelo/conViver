@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddTransient<OrdemServicoService>();
         services.AddTransient<AvisoService>();
         services.AddTransient<VotacaoService>();
+        services.AddTransient<ChamadoService>();
         services.AddTransient<VisitanteService>();
         services.AddTransient<EncomendaService>();
         services.AddTransient<FeedService>();
