@@ -92,6 +92,10 @@ function setupTabs() {
             tabButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
+            tabContents.forEach(content => content.style.display = 'none');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
             const muralContent = document.getElementById('content-mural');
             const muralCategoryFilter = document.getElementById('category-filter');
             // const periodFilter = document.getElementById('period-filter'); // If we want to reset period
@@ -256,7 +260,7 @@ function updateUserSpecificUI() {
         fabMural.addEventListener('click', openCriarAvisoModal);
     }
     // Update other FABs based on current tab or general permissions
-    const currentActiveTabId = document.querySelector('.cv-tab-button.active')?.id;
+    const currentActiveTabId = activeTabId || document.querySelector('.cv-tab-button.active')?.id;
     const fabEnquetes = document.querySelector('.js-fab-enquetes');
     const fabSolicitacoes = document.querySelector('.js-fab-chamados'); // This FAB's class might need renaming if it's specific
 
