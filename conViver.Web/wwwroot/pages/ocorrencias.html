@@ -14,12 +14,19 @@
     <header class="cv-header">
         <div class="cv-container cv-header__container">
             <img src="../assets/logo_conviver.png" alt="conViver Logo" class="cv-header__logo">
-            <div class="cv-header__user-info">
-                <span id="headerUserName">Usuário</span>
-                <button id="btnLogout" class="cv-button cv-button--secondary cv-button--small">Sair</button>
-            </div>
+            <button id="userMenuButton" class="user-avatar"></button>
         </div>
     </header>
+    <div id="userMenuModal" class="cv-modal user-menu-modal">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close" id="userMenuClose">&times;</span>
+            <ul class="user-menu-list">
+                <li><button id="toggleThemeButton" class="cv-button">Alterar Tema</button></li>
+                <li><button id="goProfileButton" class="cv-button">Gerenciar Perfil</button></li>
+                <li><button id="userLogoutButton" class="cv-button">Logout</button></li>
+            </ul>
+        </div>
+    </div>
 
     <nav id="mainNav"></nav>
 
@@ -166,6 +173,7 @@
 
     <script src="../js/config.js"></script>
     <script type="module" src="../js/nav.js"></script>
+    <script type="module" src="../js/userMenu.js"></script>
     <script src="../js/apiClient.js" type="module"></script>
     <script src="../js/auth.js" type="module"></script>
     <script src="../js/ocorrencias.js" type="module"></script>

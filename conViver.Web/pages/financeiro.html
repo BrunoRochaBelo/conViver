@@ -9,9 +9,21 @@
 </head>
 <body class="financeiro-page">
     <header class="cv-header">
-        <h1 class="cv-header__title">conViver</h1>
-        <button id="logoutButton" class="cv-button cv-button--secondary cv-header__logout">Sair</button>
+        <div class="cv-container cv-header__container">
+            <h1 class="cv-header__title">conViver</h1>
+            <button id="userMenuButton" class="user-avatar"></button>
+        </div>
     </header>
+    <div id="userMenuModal" class="cv-modal user-menu-modal">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close" id="userMenuClose">&times;</span>
+            <ul class="user-menu-list">
+                <li><button id="toggleThemeButton" class="cv-button">Alterar Tema</button></li>
+                <li><button id="goProfileButton" class="cv-button">Gerenciar Perfil</button></li>
+                <li><button id="userLogoutButton" class="cv-button">Logout</button></li>
+            </ul>
+        </div>
+    </div>
     <nav id="mainNav"></nav>
     <main class="cv-container fin-cobrancas-main">
         <h1 class="fin-cobrancas__title">Emissão e Gestão de Cobranças</h1>
@@ -86,6 +98,7 @@
         </div>
     </main>
     <script type="module" src="../js/nav.js"></script>
+    <script type="module" src="../js/userMenu.js"></script>
     <script type="module" src="../js/financeiro.js"></script>
     <!-- <script type="module" src="../js/main.js"></script> --> <!-- main.js likely imported by financeiro.js if needed -->
 </body>

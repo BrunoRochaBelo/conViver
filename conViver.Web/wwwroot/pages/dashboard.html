@@ -10,10 +10,21 @@
 </head>
 <body class="dashboard-page">
     <header class="cv-header">
-        <h1 class="cv-header__title">conViver</h1>
-        <!-- Botão de Logout (será implementado/funcional depois) -->
-        <button id="logoutButton" class="cv-button cv-button--secondary cv-header__logout">Sair</button>
+        <div class="cv-container cv-header__container">
+            <h1 class="cv-header__title">conViver</h1>
+            <button id="userMenuButton" class="user-avatar"></button>
+        </div>
     </header>
+    <div id="userMenuModal" class="cv-modal user-menu-modal">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close" id="userMenuClose">&times;</span>
+            <ul class="user-menu-list">
+                <li><button id="toggleThemeButton" class="cv-button">Alterar Tema</button></li>
+                <li><button id="goProfileButton" class="cv-button">Gerenciar Perfil</button></li>
+                <li><button id="userLogoutButton" class="cv-button">Logout</button></li>
+            </ul>
+        </div>
+    </div>
     <nav id="mainNav"></nav>
     <main class="cv-container db-main">
         <section class="db-section db-section--metrics">
@@ -75,6 +86,7 @@
         </section>
     </main>
     <script type="module" src="../js/nav.js"></script>
+    <script type="module" src="../js/userMenu.js"></script>
     <script type="module" src="../js/dashboard.js"></script>
     <!-- Adicionar main.js se ele tiver inicializações globais ou se dashboard.js for usá-lo -->
     <!-- <script type="module" src="../js/main.js"></script> -->

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>conViver - Perfil</title>
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <header class="cv-header">
+        <div class="cv-container cv-header__container">
+            <h1 class="cv-header__title">conViver</h1>
+            <button id="userMenuButton" class="user-avatar"></button>
+        </div>
+    </header>
+    <div id="userMenuModal" class="cv-modal user-menu-modal">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close" id="userMenuClose">&times;</span>
+            <ul class="user-menu-list">
+                <li><button id="toggleThemeButton" class="cv-button">Alterar Tema</button></li>
+                <li><button id="goProfileButton" class="cv-button">Gerenciar Perfil</button></li>
+                <li><button id="userLogoutButton" class="cv-button">Logout</button></li>
+            </ul>
+        </div>
+    </div>
+    <nav id="mainNav"></nav>
+    <main class="cv-container perfil-main">
+        <h1 class="perfil-title">Configurações do Perfil</h1>
+        <form class="perfil-form">
+            <div class="perfil-form-group">
+                <label for="profilePhoto">Foto:</label>
+                <input type="file" id="profilePhoto" class="cv-input">
+            </div>
+            <div class="perfil-form-group">
+                <label for="notifications">Notificações:</label>
+                <select id="notifications" class="cv-input">
+                    <option value="all">Todas</option>
+                    <option value="important">Apenas importantes</option>
+                    <option value="none">Nenhuma</option>
+                </select>
+            </div>
+            <div class="perfil-form-group">
+                <label for="themeSelect">Tema:</label>
+                <select id="themeSelect" class="cv-input">
+                    <option value="light">Claro</option>
+                    <option value="dark">Escuro</option>
+                </select>
+            </div>
+            <button type="submit" class="cv-button cv-button--primary">Salvar</button>
+        </form>
+    </main>
+
+    <script type="module" src="../js/nav.js"></script>
+    <script type="module" src="../js/userMenu.js"></script>
+</body>
+</html>
