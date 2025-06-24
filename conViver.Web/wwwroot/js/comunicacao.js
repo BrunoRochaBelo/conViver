@@ -97,55 +97,82 @@ function setupTabs() {
             button.classList.add('active');
 
             const muralContent = document.getElementById('content-mural');
+            const enquetesContent = document.getElementById('content-enquetes');
+            const solicitacoesContent = document.getElementById('content-solicitacoes');
             const muralCategoryFilter = document.getElementById('category-filter');
-            // const periodFilter = document.getElementById('period-filter'); // If we want to reset period
+            const periodFilter = document.getElementById('period-filter');
+
+            // Hide all specific content sections first
+            if (enquetesContent) enquetesContent.style.display = 'none';
+            if (solicitacoesContent) solicitacoesContent.style.display = 'none';
+            // Mural content will be shown by default or after filtering
+            if (muralContent) muralContent.style.display = 'block';
+
+
+            let filterChanged = false;
+            const currentCategory = muralCategoryFilter ? muralCategoryFilter.value : '';
+            const currentPeriod = periodFilter ? periodFilter.value : '';
 
             if (button.id === 'tab-mural') {
-                if (muralCategoryFilter) muralCategoryFilter.value = ''; // 'Todas'
-                // if (periodFilter) periodFilter.value = ''; // Reset period
-                if (!button.dataset.initializedFeed) { // Different flag if Mural itself has specific init
-                    loadInitialFeedItems(); // Load all items
-                    button.dataset.initializedFeed = 'true';
-                } else {
-                    loadInitialFeedItems(); // Still reload if filters changed or just to refresh
+                if (muralCategoryFilter && muralCategoryFilter.value !== '') {
+                    muralCategoryFilter.value = ''; // 'Todas'
+                    filterChanged = true;
                 }
-                if (muralContent) muralContent.style.display = 'block';
+                // Optionally reset period filter too, or leave as is
+                // if (periodFilter && periodFilter.value !== '') { periodFilter.value = ''; filterChanged = true; }
+
+                if (!button.dataset.initializedMural) {
+                    // loadInitialFeedItems(); // Load all items - Handled below by filterChanged or initial load
+                    button.dataset.initializedMural = 'true';
+                }
             } else if (button.id === 'tab-enquetes') {
-                if (!button.dataset.initialized) {
-                    setupEnquetesTab(); // Sets up one-time things for this filter mode
-                    button.dataset.initialized = 'true';
+                if (!button.dataset.initializedEnquetes) {
+                    setupEnquetesTab(); // Sets up one-time things for this filter mode (e.g. FAB modal)
+                    button.dataset.initializedEnquetes = 'true';
                 }
-                // Subsequent clicks also apply the filter and show mural
-                if (muralCategoryFilter) muralCategoryFilter.value = 'enquetes';
-                // if (periodFilter) periodFilter.value = ''; // Reset period
-                loadInitialFeedItems();
-                if (muralContent) muralContent.style.display = 'block';
+                if (muralCategoryFilter && muralCategoryFilter.value !== 'enquetes') {
+                    muralCategoryFilter.value = 'enquetes';
+                    filterChanged = true;
+                }
             } else if (button.id === 'tab-solicitacoes') {
-                if (!button.dataset.initialized) {
-                    setupSolicitacoesTab(); // Sets up one-time things for this filter mode
-                    button.dataset.initialized = 'true';
+                if (!button.dataset.initializedSolicitacoes) {
+                    setupSolicitacoesTab(); // Sets up one-time things for this filter mode (e.g. FAB modal)
+                    button.dataset.initializedSolicitacoes = 'true';
                 }
-                // Subsequent clicks also apply the filter and show mural
-                if (muralCategoryFilter) muralCategoryFilter.value = 'solicitacoes';
-                // if (periodFilter) periodFilter.value = ''; // Reset period
-                loadInitialFeedItems();
-                if (muralContent) muralContent.style.display = 'block';
+                if (muralCategoryFilter && muralCategoryFilter.value !== 'solicitacoes') {
+                    muralCategoryFilter.value = 'solicitacoes';
+                    filterChanged = true;
+                }
             }
-            // Show/hide FABs based on the *logical* tab, not the content div
+
+            // Reload feed if the filter was changed by selecting a tab, or if it's the first time for that tab.
+            // The initial load on DOMContentLoaded will handle the very first page view.
+            if (filterChanged ||
+                (button.id === 'tab-mural' && button.dataset.initializedMural === 'true') || // Always reload mural if re-clicked
+                (button.id === 'tab-enquetes' && button.dataset.initializedEnquetes === 'true') ||
+                (button.id === 'tab-solicitacoes' && button.dataset.initializedSolicitacoes === 'true') ) {
+                loadInitialFeedItems();
+            }
+
+            // Show/hide FABs based on the *logical* tab
             updateUserSpecificUI(button.id);
         });
     });
 
-    // Ensure the default active tab's logic is triggered correctly
+    // Ensure the default active tab's logic is triggered correctly on page load
     const activeTab = document.querySelector('.cv-tab-button.active');
     if (activeTab) {
-        // Manually trigger the click handler to ensure correct content display and filtering
-        activeTab.click();
-        // The above click() will also handle dataset.initialized flags.
+        // Set the initialized flag before click to prevent double load if filter logic doesn't change.
+        if (activeTab.id === 'tab-mural') activeTab.dataset.initializedMural = 'true';
+        else if (activeTab.id === 'tab-enquetes') activeTab.dataset.initializedEnquetes = 'true';
+        else if (activeTab.id === 'tab-solicitacoes') activeTab.dataset.initializedSolicitacoes = 'true';
+        activeTab.click(); // This will now correctly set filters and call loadInitialFeedItems if needed.
     } else {
-        // Fallback if no tab is active by default (shouldn't happen with current HTML)
         const firstTab = document.querySelector('.cv-tab-button');
-        if (firstTab) firstTab.click();
+        if (firstTab) {
+            if (firstTab.id === 'tab-mural') firstTab.dataset.initializedMural = 'true';
+            firstTab.click();
+        }
     }
 }
 
@@ -262,11 +289,30 @@ function updateUserSpecificUI() {
     // Update other FABs based on current tab or general permissions
     const currentActiveTabId = activeTabId || document.querySelector('.cv-tab-button.active')?.id;
     const fabEnquetes = document.querySelector('.js-fab-enquetes');
-    const fabSolicitacoes = document.querySelector('.js-fab-chamados'); // This FAB's class might need renaming if it's specific
+    const fabSolicitacoes = document.querySelector('.js-fab-chamados');
 
-    if(fabEnquetes) fabEnquetes.style.display = (currentActiveTabId === 'tab-enquetes' /* && userIsAdmin */) ? 'block' : 'none';
-    if(fabSolicitacoes) fabSolicitacoes.style.display = (currentActiveTabId === 'tab-solicitacoes') ? 'block' : 'none';
+    // Hide all FABs first
+    if (fabMural) fabMural.style.display = 'none';
+    if (fabEnquetes) fabEnquetes.style.display = 'none';
+    if (fabSolicitacoes) fabSolicitacoes.style.display = 'none';
 
+    // Show the correct FAB based on the active tab
+    if (currentActiveTabId === 'tab-mural') {
+        if (fabMural) {
+            fabMural.style.display = 'block';
+            // Ensure event listener is attached (it's currently attached in DOMContentLoaded, which is fine)
+        }
+    } else if (currentActiveTabId === 'tab-enquetes') {
+        if (fabEnquetes) {
+            fabEnquetes.style.display = 'block';
+            // Event listener for fabEnquetes is attached in setupEnqueteModalAndFAB
+        }
+    } else if (currentActiveTabId === 'tab-solicitacoes') {
+        if (fabSolicitacoes) {
+            fabSolicitacoes.style.display = 'block';
+            // Event listener for fabSolicitacoes is attached in setupChamadoModalAndFAB
+        }
+    }
 }
 function setupFilterButtonListener() {
     const btn = document.getElementById('apply-filters-button');
