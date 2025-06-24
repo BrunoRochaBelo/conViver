@@ -58,4 +58,3 @@ export function initUserMenu() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', initUserMenu);

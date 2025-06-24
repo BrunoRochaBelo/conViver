@@ -41,4 +41,3 @@ export function buildNavigation() {
     navContainer.appendChild(container);
 }
 
-document.addEventListener('DOMContentLoaded', buildNavigation);
