@@ -209,6 +209,9 @@ O menu é montado dinamicamente pelo script `js/nav.js`. Para incluir uma nova p
 Mantenha os links relativos usando a pasta `pages/` como base. Assim o componente consegue calcular corretamente o prefixo e evita links quebrados.
 Se criar rotas novas, lembre-se de atualizar `scripts/check-html-routes.ps1` para que o script de verificação reconheça o caminho.
 
+Para refletir suas alterações em `wwwroot`, execute `./scripts/sync_wwwroot.sh`. Ele sincroniza as páginas, estilos e scripts a partir de `conViver.Web` para a pasta `wwwroot` antes de rodar a aplicação.
+O projeto não armazena mais arquivos de fonte locais. A folha de estilos importa as fontes "Open Sans" direto do Google Fonts.
+
 ### Feedback Visual (Mobile)
 O cliente móvel (`conViver.Mobile`) utiliza um serviço centralizado para feedback:
 - `Services/FeedbackService.cs` é responsável por exibir feedback.

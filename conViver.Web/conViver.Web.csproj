@@ -4,6 +4,19 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+</PropertyGroup>
+
+  <!-- Copy pages, styles, scripts and fonts to wwwroot before build -->
+  <Target Name="SyncStaticFiles" BeforeTargets="Build">
+    <ItemGroup>
+      <PageFiles Include="pages\**\*.*" />
+      <StyleFiles Include="css\**\*.*" />
+      <ScriptFiles Include="js\**\*.*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(PageFiles)" DestinationFiles="@(PageFiles->'wwwroot/pages/%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(StyleFiles)" DestinationFiles="@(StyleFiles->'wwwroot/css/%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(ScriptFiles)" DestinationFiles="@(ScriptFiles->'wwwroot/js/%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
 
 </Project>
