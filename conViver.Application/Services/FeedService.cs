@@ -21,7 +21,6 @@ namespace conViver.Application.Services
         private readonly EncomendaService _encomendaService;
         private readonly FinanceiroService _financeiroService;
         private readonly ReservaService _reservaService;
-        private readonly OrdemServicoService _ordemServicoService;
         private readonly IRepository<Votacao> _votacaoRepository;
         private readonly IRepository<Encomenda> _encomendaRepository;
         private readonly IRepository<Usuario> _usuarioRepository;
@@ -41,8 +40,7 @@ namespace conViver.Application.Services
             IRepository<Unidade> unidadeRepository,
             IRepository<Reserva> reservaRepository, // Added
             FinanceiroService financeiroService,
-            ReservaService reservaService,
-            OrdemServicoService ordemServicoService)
+            ReservaService reservaService)
         {
             _avisoService = avisoService;
             _votacaoService = votacaoService;
@@ -57,7 +55,6 @@ namespace conViver.Application.Services
             _reservaRepository = reservaRepository; // Added
             _financeiroService = financeiroService;
             _reservaService = reservaService;
-            _ordemServicoService = ordemServicoService;
         }
 
         public async Task<IEnumerable<FeedItemDto>> GetFeedAsync(
@@ -81,7 +78,6 @@ namespace conViver.Application.Services
             allFeedItems.AddRange(await FetchLembretesBoletoAsync(condominioId, usuarioId, ct));
             allFeedItems.AddRange(await FetchDocumentosRecentesAsync(condominioId, usuarioId, ct));
             allFeedItems.AddRange(await FetchReservasConfirmadasAsync(condominioId, usuarioId, ct));
-            allFeedItems.AddRange(await FetchOrdensServicoAsync(condominioId, usuarioId, ct));
 
             // Apply category and period filters
             var filteredItems = allFeedItems.AsQueryable();
@@ -465,33 +461,6 @@ namespace conViver.Application.Services
                     DetalhesAdicionais = new { reserva.Area, reserva.Fim, reserva.Taxa }
                 });
             }
-            return feedItems;
-        }
-
-        private async Task<IEnumerable<FeedItemDto>> FetchOrdensServicoAsync(Guid condominioId, Guid usuarioId, CancellationToken ct)
-        {
-            var feedItems = new List<FeedItemDto>();
-            var ordens = await _ordemServicoService.ListarOSPorUsuarioAsync(condominioId, usuarioId, null, ct);
-
-            foreach (var os in ordens)
-            {
-                feedItems.Add(new FeedItemDto
-                {
-                    ItemType = "OrdemServico",
-                    Id = os.Id,
-                    Titulo = os.Descricao ?? "Ordem de Serviço",
-                    Resumo = $"Status: {os.Status}",
-                    DataHoraPrincipal = os.CriadoEm,
-                    DataHoraAtualizacao = os.UpdatedAt,
-                    PrioridadeOrdenacao = 1,
-                    UrlDestino = $"/app/ordens-servico/{os.Id}",
-                    Icone = "icon-ordem-servico",
-                    Status = os.Status.ToString(),
-                    Categoria = "Servicos",
-                    DetalhesAdicionais = null
-                });
-            }
-
             return feedItems;
         }
 
