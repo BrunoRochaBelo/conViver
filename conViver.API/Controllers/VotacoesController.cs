@@ -222,4 +222,83 @@ public class VotacoesController : ControllerBase
 
         return Ok("Votação encerrada com sucesso."); // Ou NoContent()
     }
+
+    /// <summary>
+    /// Gera uma ata em PDF para uma votação encerrada.
+    /// </summary>
+    /// <param name="id">ID da votação.</param>
+    /// <returns>Um arquivo PDF da ata.</returns>
+    /// <response code="200">Retorna o arquivo PDF da ata.</response>
+    /// <response code="400">Se a votação não puder gerar ata (ex: não encerrada).</response>
+    /// <response code="401">Usuário não autorizado ou claims não encontradas.</response>
+    /// <response code="403">Usuário não tem permissão (não é Síndico).</response>
+    /// <response code="404">Votação não encontrada.</response>
+    /// <response code="501">Funcionalidade de geração de PDF não implementada.</response>
+    [HttpGet("syndic/votacoes/{id:guid}/gerar-ata")]
+    [Authorize(Roles = "Sindico")]
+    public async Task<IActionResult> GerarAtaVotacao(Guid id)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+
+        // No VotacaoService, existiria um método como GerarAtaPdfAsync(votacaoId, condominioId)
+        // Este método buscaria os dados da votação, os resultados, e usaria uma biblioteca de PDF.
+
+        // Simulação da chamada ao serviço e retorno:
+        try
+        {
+            // byte[] pdfBytes = await _votacaoService.GerarAtaPdfAsync(id, condominioId);
+            // if (pdfBytes == null || pdfBytes.Length == 0)
+            // {
+            //     return BadRequest("Não foi possível gerar a ata para esta votação. Verifique se ela está encerrada e possui resultados.");
+            // }
+            // return File(pdfBytes, "application/pdf", $"Ata_Votacao_{id}.pdf");
+
+            // Por enquanto, retornamos 501 Not Implemented, pois a geração do PDF é complexa.
+            // O _votacaoService precisaria ser injetado com um IPdfGeneratorService, por exemplo.
+            var votacaoDetalhe = await _votacaoService.ObterResultadoComoSindicoAsync(id, condominioId);
+            if (votacaoDetalhe == null)
+            {
+                return NotFound("Votação não encontrada.");
+            }
+            if (votacaoDetalhe.Status.Equals("Aberta", StringComparison.OrdinalIgnoreCase) ||
+                votacaoDetalhe.Status.Equals("Agendada", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest("A ata só pode ser gerada para votações encerradas.");
+            }
+
+            // Simulação de dados da ata para o PDF (o serviço faria isso)
+            AtaVotacaoDto ataDto = new AtaVotacaoDto
+            {
+                VotacaoId = votacaoDetalhe.Id,
+                TituloVotacao = votacaoDetalhe.Titulo,
+                Pergunta = votacaoDetalhe.Descricao, // Supondo que Descricao é a pergunta
+                DataCriacao = votacaoDetalhe.DataInicio,
+                DataEncerramento = votacaoDetalhe.DataFim,
+                TotalVotos = votacaoDetalhe.Opcoes.Sum(o => o.QuantidadeVotos),
+                ResultadosPorOpcao = votacaoDetalhe.Opcoes.Select(o => new ResultadoOpcaoAtaDto
+                {
+                    DescricaoOpcao = o.Descricao,
+                    QuantidadeVotos = o.QuantidadeVotos,
+                    Percentual = (votacaoDetalhe.Opcoes.Sum(opt => opt.QuantidadeVotos) > 0) ?
+                                 Math.Round((double)o.QuantidadeVotos / votacaoDetalhe.Opcoes.Sum(opt => opt.QuantidadeVotos) * 100, 2) : 0
+                }).ToList(),
+                Observacoes = $"Ata gerada em {DateTime.UtcNow:dd/MM/yyyy HH:mm} UTC. Total de unidades votantes: {votacaoDetalhe.Opcoes.Sum(o => o.QuantidadeVotos)}." // Exemplo
+            };
+
+            // Aqui viria a lógica de geração do PDF usando o ataDto.
+            // Como placeholder, retornamos o DTO como JSON e um 501.
+            // Em uma implementação real, o _votacaoService.GerarAtaPdfAsync retornaria byte[].
+            _ = ataDto; // Para evitar warning de variável não usada.
+            return StatusCode(StatusCodes.Status501NotImplemented, new { message = "Geração de PDF da ata ainda não implementada.", debug_ata_data = ataDto });
+
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }

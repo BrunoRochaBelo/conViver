@@ -211,6 +211,14 @@ html[data-theme="dark"] {
     --current-nav-bg: var(--cv-dark-bg-element); /* Match element bg for dark nav */
 }
 
+html[data-theme="dark"] .feed-item.prio-0 {
+    background-color: var(--cv-dark-gray-300); /* Um pouco mais claro que o fundo do card normal no escuro */
+    border-left-color: var(--cv-dark-primary-orange); /* Usar a versão escura da cor laranja */
+}
+/* O ::before do feed-item.prio-0 (emoji) geralmente se adapta bem, mas se precisar de ajuste: */
+/* html[data-theme="dark"] .feed-item.prio-0::before { color: var(--some-dark-theme-emoji-color); } */
+
+
 body {
     font-family: var(--cv-font-family-sans-serif);
     margin: 0;
@@ -1458,10 +1466,144 @@ html[data-theme="dark"] .cv-modal-close {
     position: absolute;
     left: 5px;
     top: 5px;
+    font-size: 1.2em; /* Ajustar tamanho do emoji se necessário */
 }
 
 .feed-item__pin {
     font-size: 0.85em;
     color: var(--cv-primary-orange);
     margin-right: 4px;
+}
+
+/* Feed Item Chip/Tag Styles */
+.feed-item__tags {
+    margin-top: var(--cv-spacing-sm);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cv-spacing-xs);
+}
+
+.feed-item__tag {
+    background-color: var(--cv-gray-200);
+    color: var(--cv-gray-700);
+    padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
+    border-radius: var(--cv-border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase; /* Opcional */
+}
+
+html[data-theme="dark"] .feed-item__tag {
+    background-color: var(--cv-dark-gray-400);
+    color: var(--cv-dark-gray-900);
+}
+
+/* Example of type-specific tag colors (optional) */
+.feed-item__tag--aviso { background-color: var(--cv-primary-blue); color: white; }
+.feed-item__tag--enquete { background-color: var(--cv-primary-green); color: white; }
+.feed-item__tag--chamado { background-color: var(--cv-primary-orange); color: white; }
+.feed-item__tag--documento { background-color: var(--cv-gray-500); color: white; }
+
+html[data-theme="dark"] .feed-item__tag--aviso { background-color: var(--cv-dark-primary-blue); }
+html[data-theme="dark"] .feed-item__tag--enquete { background-color: var(--cv-dark-primary-green); }
+html[data-theme="dark"] .feed-item__tag--chamado { background-color: var(--cv-dark-primary-orange); }
+/* Note: Dark theme for 'documento' tag might need a different dark gray if cv-gray-500 is too light on dark bg */
+html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-dark-gray-500); }
+
+
+/* Biblioteca de Documentos Styles */
+.cv-page-title { /* Estilo para o título principal da página, como "Biblioteca de Documentos" */
+    font-size: var(--cv-font-size-h2, 1.75rem);
+    margin-bottom: var(--cv-spacing-lg, 20px);
+    color: var(--current-text-primary);
+    font-weight: 600;
+    padding-bottom: var(--cv-spacing-sm);
+    border-bottom: 1px solid var(--current-border-subtle);
+}
+
+.cv-section--actions { /* Para a seção de filtros e botão de upload */
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cv-spacing-md);
+    align-items: center;
+    margin-bottom: var(--cv-spacing-lg);
+    padding: var(--cv-spacing-md);
+    background-color: var(--current-bg-white);
+    border-radius: var(--cv-border-radius-md);
+    box-shadow: var(--current-shadow-sm);
+}
+.cv-section--actions .cv-input,
+.cv-section--actions .cv-button {
+    flex-grow: 1; /* Inputs e botões podem crescer */
+}
+@media (min-width: 768px) {
+    .cv-section--actions .cv-input,
+    .cv-section--actions .cv-button {
+        flex-grow: 0; /* Não crescer demais em telas maiores */
+        min-width: 200px; /* Largura mínima */
+    }
+}
+
+
+.document-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Layout responsivo em grid */
+    gap: var(--cv-spacing-md);
+}
+
+.document-item { /* Estilo para cada card de documento - usa .cv-card como base */
+    /* .cv-card já fornece background, border, padding, shadow */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Para alinhar ações na parte inferior */
+}
+
+.document-item__info {
+    margin-bottom: var(--cv-spacing-sm);
+}
+
+.document-item__title {
+    font-size: var(--cv-font-size-lg); /* 1.125rem */
+    font-weight: 600;
+    color: var(--current-text-primary);
+    margin-bottom: var(--cv-spacing-xs);
+}
+
+.document-item__meta {
+    font-size: 0.85rem;
+    color: var(--current-text-secondary);
+    line-height: 1.4;
+}
+.document-item__meta span {
+    display: block; /* Cada meta info em uma nova linha, ou usar flex/grid para layout em linha */
+    margin-bottom: 2px;
+}
+
+.document-item__actions {
+    margin-top: auto; /* Empurra as ações para o final do card se o card tiver altura variável */
+    padding-top: var(--cv-spacing-sm);
+    border-top: 1px solid var(--current-border-subtle);
+    display: flex;
+    justify-content: flex-end; /* Alinha botões à direita */
+    gap: var(--cv-spacing-sm);
+}
+.document-item__actions .cv-button {
+    font-size: 0.9rem; /* Botões de ação um pouco menores */
+    padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
+}
+
+
+/* Estilos para o modal de upload de documentos, se necessário além do .cv-modal */
+#formUploadDocumento .cv-form-group {
+    margin-bottom: var(--cv-spacing-md);
+}
+#formUploadDocumento label {
+    display: block;
+    margin-bottom: var(--cv-spacing-xs);
+    font-weight: 500;
+    color: var(--current-text-secondary);
+}
+#formUploadDocumento .cv-input { /* Garante que inputs dentro do form do modal usem o estilo global */
+    width: 100%;
+    box-sizing: border-box;
 }

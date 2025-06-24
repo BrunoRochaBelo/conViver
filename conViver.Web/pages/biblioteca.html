@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>conViver - Biblioteca</title>
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <!-- Futuramente, um CSS específico para biblioteca: <link rel="stylesheet" href="../css/biblioteca.css"> -->
+</head>
+<body>
+    <header class="cv-header">
+        <div class="cv-container cv-header__container">
+            <h1 class="cv-header__title">conViver</h1>
+            <button id="userMenuButton" class="user-avatar"></button>
+        </div>
+    </header>
+    <div id="userMenuModal" class="cv-modal user-menu-modal">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close" id="userMenuClose">&times;</span>
+            <ul class="user-menu-list">
+                <li><button id="toggleThemeButton" class="cv-button">Alterar Tema</button></li>
+                <li><button id="goProfileButton" class="cv-button">Gerenciar Perfil</button></li>
+                <li><button id="userLogoutButton" class="cv-button">Logout</button></li>
+            </ul>
+        </div>
+    </div>
+    <nav id="mainNav"></nav>
+    <main class="cv-container">
+        <h2 class="cv-page-title">Biblioteca de Documentos</h2>
+
+        <!-- Filtros e Ações (para Síndico) -->
+        <div class="cv-section cv-section--actions cv-form-group admin-only-section" style="display: none;"> <!-- Ocultar por padrão, JS controla visibilidade -->
+            <button id="uploadDocButton" class="cv-button primary">Upload de Documento</button>
+            <input type="text" id="docSearchInput" class="cv-input" placeholder="Buscar documento...">
+            <select id="docCategoryFilter" class="cv-input">
+                <option value="">Todas as Categorias</option>
+                <!-- Categorias serão populadas por JS ou definidas aqui -->
+                <option value="Regulamento">Regulamento</option>
+                <option value="Atas">Atas</option>
+                <option value="Financeiro">Financeiro</option>
+                <option value="Comunicados Antigos">Comunicados Antigos</option>
+                <option value="Outros">Outros</option>
+            </select>
+        </div>
+
+        <!-- Lista de Documentos -->
+        <section class="cv-section">
+            <div class="document-list js-document-list">
+                <!-- Documentos serão carregados aqui por JS -->
+                <p class="cv-loading-message">Carregando documentos...</p>
+            </div>
+        </section>
+
+        <!-- Modal de Upload de Documento (para Síndico) -->
+        <div id="modalUploadDocumento" class="cv-modal" style="display:none;">
+            <div class="cv-modal-content">
+                <span class="cv-modal-close js-modal-upload-doc-close">&times;</span>
+                <h2>Upload de Novo Documento</h2>
+                <form id="formUploadDocumento" class="cv-form">
+                    <div class="cv-form-group">
+                        <label for="doc-titulo">Título Descritivo:</label>
+                        <input type="text" id="doc-titulo" name="tituloDescritivo" class="cv-input" required>
+                    </div>
+                    <div class="cv-form-group">
+                        <label for="doc-categoria-modal">Categoria:</label>
+                        <select id="doc-categoria-modal" name="categoria" class="cv-input" required>
+                            <option value="Regulamento">Regulamento</option>
+                            <option value="Atas">Atas</option>
+                            <option value="Financeiro">Financeiro</option>
+                            <option value="Comunicados Antigos">Comunicados Antigos</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="cv-form-group">
+                        <label for="doc-file">Arquivo:</label>
+                        <input type="file" id="doc-file" name="file" class="cv-input" required accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png">
+                    </div>
+                    <div class="cv-form-actions">
+                        <button type="submit" class="cv-button primary">Salvar Documento</button>
+                        <button type="button" class="cv-button js-modal-upload-doc-close">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+    <script type="module" src="../js/nav.js"></script>
+    <script type="module" src="../js/userMenu.js"></script>
+    <script type="module" src="../js/biblioteca.js"></script>
+</body>
+</html>
