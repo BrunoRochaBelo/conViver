@@ -18,6 +18,12 @@ public class NotificationService : INotificacaoService
         return Task.CompletedTask;
     }
 
+    public Task SendToUserAsync(Guid usuarioId, string mensagem, CancellationToken cancellationToken = default)
+    {
+        string destino = $"user:{usuarioId}";
+        return SendAsync(destino, mensagem, cancellationToken);
+    }
+
     public Task NotificarChegadaVisitanteAsync(Guid unidadeId, string nomeVisitante, string? motivoVisita)
     {
         string mensagem = $"[NOTIFICACAO] Unidade {unidadeId}: Visitante '{nomeVisitante}' chegou.";
