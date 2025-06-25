@@ -837,14 +837,6 @@ main {
     /* border-top: none; */ /* Optional */
 }
 
-/* Ensure communication__title is styled if not already */
-/* This might already be covered by .db-section__title or similar, but let's ensure it has base styling */
-.communication__title {
-    font-size: var(--cv-font-size-h2, 1.75rem); /* Use variable or fallback */
-    margin-bottom: var(--cv-spacing-md, 15px); /* Use variable or fallback */
-    color: var(--current-text-primary);
-    font-weight: 600; /* From OpenSansSemibold */
-}
 
 /* Styles for new elements in Mural Digital */
 .sticky-notices-container {
