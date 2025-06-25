@@ -56,13 +56,15 @@ public class ReservaService
     public async Task<IEnumerable<AgendaReservaDto>> GetAgendaAsync(Guid condominioId, DateTime mesAno, Guid usuarioLogadoId, CancellationToken ct = default)
     {
         var inicioMes = new DateTime(mesAno.Year, mesAno.Month, 1);
-        var fimMes = inicioMes.AddMonths(1).AddDays(-1).AddHours(23).AddMinutes(59).AddSeconds(59);
+        var fimDoMes = inicioMes.AddMonths(1).AddDays(-1);
+        var fimMesComHorario = new DateTime(fimDoMes.Year, fimDoMes.Month, fimDoMes.Day, 23, 59, 59, 999);
+
 
         var reservasNoMes = await _reservaRepository.Query()
             .Include(r => r.EspacoComum)
             .Include(r => r.Unidade)
             .Where(r => r.EspacoComum != null && r.EspacoComum.CondominioId == condominioId &&
-                         r.Inicio <= fimMes && r.Fim >= inicioMes &&
+                         r.Inicio <= fimMesComHorario && r.Fim >= inicioMes &&
                          r.Status != ReservaStatus.Recusada && r.Status != ReservaStatus.CanceladaPeloUsuario && r.Status != ReservaStatus.CanceladaPeloSindico)
             .ToListAsync(ct);
 
@@ -93,8 +95,6 @@ public class ReservaService
         var usuario = await _usuarioRepository.GetByIdAsync(usuarioId, ct);
         if(usuario == null) throw new ArgumentException("Usuário solicitante não encontrado.");
 
-        // Definindo UnidadeId: usa a do DTO se fornecida (e válida), senão a do usuário.
-        // Adicionar validação se síndico pode reservar para qualquer unidade.
         if (dto.UnidadeId.HasValue && dto.UnidadeId.Value != Guid.Empty) {
              var unidadeEspecificada = await _unidadeRepository.GetByIdAsync(dto.UnidadeId.Value, ct);
              if (unidadeEspecificada == null || unidadeEspecificada.CondominioId != condominioId) {
@@ -102,13 +102,12 @@ public class ReservaService
              }
              // TODO: Adicionar lógica de permissão: Síndico pode especificar qualquer UnidadeId válida do condomínio.
              // Não-síndico só pode usar sua própria UnidadeId (ou se dto.UnidadeId for nulo/Guid.Empty).
+             // Por ora, se fornecido, usamos, assumindo que a validação de permissão ocorreria no controller ou aqui.
              unidadeIdParaReserva = unidadeEspecificada.Id;
         } else {
             unidadeIdParaReserva = usuario.UnidadeId;
         }
 
-
-        // Validação de Regras do Espaço Comum
         if (TimeSpan.TryParse(espacoComum.HorarioFuncionamentoInicio, out var inicioFuncionamento) &&
             TimeSpan.TryParse(espacoComum.HorarioFuncionamentoFim, out var fimFuncionamento))
         {
@@ -161,7 +160,7 @@ public class ReservaService
                            r.Status != ReservaStatus.CanceladaPeloSindico && r.Status != ReservaStatus.CanceladaPeloUsuario && r.Status != ReservaStatus.Recusada &&
                            ((dto.Inicio >= r.Inicio && dto.Inicio < r.Fim) ||
                             (dto.Fim > r.Inicio && dto.Fim <= r.Fim) ||
-                            (dto.Inicio <= r.Inicio && dto.Fim >= r.Fim))),
+                            (dto.Inicio <= r.Inicio && dto.Fim >= r.Fim)),
                            ct);
 
         if (hasConflict)
@@ -188,7 +187,7 @@ public class ReservaService
         await _reservaRepository.AddAsync(reserva, ct);
         await _reservaRepository.SaveChangesAsync(ct);
 
-        return await GetByIdAsync(reserva.Id, condominioId, usuarioId, false, ct); // isSindico = false para solicitante
+        return await GetByIdAsync(reserva.Id, condominioId, usuarioId, false, ct);
     }
 
     public async Task<ReservaDto?> AtualizarStatusAsync(Guid reservaId, Guid condominioId, Guid sindicoUserId, ReservaStatusUpdateDto dto, CancellationToken ct = default)
@@ -201,11 +200,9 @@ public class ReservaService
             throw new ArgumentException("Status inválido fornecido.");
         }
 
-        if ((reserva.Status == ReservaStatus.CanceladaPeloUsuario || reserva.Status == ReservaStatus.CanceladaPeloSindico) && novoStatus != reserva.Status) { // Não pode mudar status de cancelada, exceto se for para o mesmo.
+        if ((reserva.Status == ReservaStatus.CanceladaPeloUsuario || reserva.Status == ReservaStatus.CanceladaPeloSindico) && novoStatus != reserva.Status) {
             throw new InvalidOperationException("Não é possível alterar o status de uma reserva já cancelada.");
         }
-        // Adicionar mais lógica de transição se necessário
-        // Ex: if (reserva.Status == ReservaStatus.Recusada && novoStatus == ReservaStatus.Confirmada) { ... }
 
         reserva.Status = novoStatus;
         reserva.JustificativaAprovacaoRecusa = dto.Justificativa;
@@ -215,7 +212,7 @@ public class ReservaService
         await _reservaRepository.UpdateAsync(reserva, ct);
         await _reservaRepository.SaveChangesAsync(ct);
 
-        return await GetByIdAsync(reservaId, condominioId, sindicoUserId, true, ct); // isSindico = true
+        return await GetByIdAsync(reservaId, condominioId, sindicoUserId, true, ct);
     }
 
     public async Task<ReservaDto?> GetByIdAsync(Guid reservaId, Guid condominioId, Guid usuarioId, bool isSindico, CancellationToken ct = default)
@@ -276,9 +273,6 @@ public class ReservaService
 
         reserva.Status = isSindico ? ReservaStatus.CanceladaPeloSindico : ReservaStatus.CanceladaPeloUsuario;
         reserva.UpdatedAt = DateTime.UtcNow;
-        // if(isSindico && string.IsNullOrEmpty(reserva.JustificativaAprovacaoRecusa)){
-        //     reserva.JustificativaAprovacaoRecusa = "Cancelado pelo síndico.";
-        // }
 
         await _reservaRepository.UpdateAsync(reserva, ct);
         await _reservaRepository.SaveChangesAsync(ct);
@@ -369,7 +363,7 @@ public class ReservaService
         foreach (var r in reservas)
         {
              var aprovador = r.AprovadorId.HasValue ? await _usuarioRepository.GetByIdAsync(r.AprovadorId.Value, ct) : null;
-            var solicitante = await _usuarioRepository.GetByIdAsync(r.UsuarioId, ct); // Solicitante é o próprio usuário
+            var solicitante = await _usuarioRepository.GetByIdAsync(r.UsuarioId, ct);
 
             reservaDtos.Add(new ReservaDto
             {
@@ -421,7 +415,6 @@ public class ReservaService
 
         if (espacoComumParaValidacao == null) throw new ArgumentException("Espaço comum da reserva não pôde ser determinado para validação.");
 
-        // Revalidar Regras do Espaço Comum (usando espacoComumParaValidacao)
         if (TimeSpan.TryParse(espacoComumParaValidacao.HorarioFuncionamentoInicio, out var inicioFuncionamento) &&
             TimeSpan.TryParse(espacoComumParaValidacao.HorarioFuncionamentoFim, out var fimFuncionamento))
         {
@@ -441,22 +434,18 @@ public class ReservaService
             throw new InvalidOperationException($"A duração máxima da reserva para este espaço é de {espacoComumParaValidacao.TempoMaximoReservaMinutos} minutos.");
         }
 
-        // Não permitir editar para o passado se a data de início for alterada para antes de agora.
-        // Se a data de início não mudou, mas o horário sim, e o dia é hoje, ainda precisa ser no futuro.
-        if (dto.Inicio < DateTime.UtcNow)
-        {
-             throw new InvalidOperationException("Não é possível editar a reserva para uma data ou horário no passado.");
-        }
-        // Antecedência máxima só se aplica se a data de início for *alterada* para mais longe no futuro.
         if (dto.Inicio.Date > reserva.Inicio.Date && espacoComumParaValidacao.AntecedenciaMaximaReservaDias.HasValue && dto.Inicio.Date > DateTime.UtcNow.Date.AddDays(espacoComumParaValidacao.AntecedenciaMaximaReservaDias.Value))
         {
              throw new InvalidOperationException($"Não é possível reagendar com mais de {espacoComumParaValidacao.AntecedenciaMaximaReservaDias} dias de antecedência.");
         }
+         if (dto.Inicio < DateTime.UtcNow && dto.Inicio.Date < DateTime.UtcNow.Date)
+        {
+             throw new InvalidOperationException("Não é possível editar a reserva para uma data ou horário no passado.");
+        }
 
-        // Validação de Conflito de Horário (excluindo a própria reserva sendo editada)
         bool hasConflict = await _reservaRepository.Query()
             .AnyAsync(r => r.Id != reservaId &&
-                           r.EspacoComumId == dto.EspacoComumId && // Conflito no mesmo espaço (novo ou o mesmo)
+                           r.EspacoComumId == dto.EspacoComumId &&
                            r.Status != ReservaStatus.CanceladaPeloSindico && r.Status != ReservaStatus.CanceladaPeloUsuario && r.Status != ReservaStatus.Recusada &&
                            ((dto.Inicio >= r.Inicio && dto.Inicio < r.Fim) ||
                             (dto.Fim > r.Inicio && dto.Fim <= r.Fim) ||
@@ -468,36 +457,34 @@ public class ReservaService
             throw new InvalidOperationException("Conflito de horário com outra reserva existente para o novo período/espaço solicitado.");
         }
 
-        // Atualizar os campos da reserva
         reserva.EspacoComumId = dto.EspacoComumId;
         reserva.Inicio = dto.Inicio;
         reserva.Fim = dto.Fim;
         reserva.Observacoes = dto.Observacoes;
-        // Se o UnidadeId foi fornecido no DTO de edição (pelo síndico)
-        if(dto.UnidadeId.HasValue && dto.UnidadeId.Value != Guid.Empty) {
+
+        // Atualizar UnidadeId se fornecido e diferente (geralmente para síndico)
+        if(dto.UnidadeId.HasValue && dto.UnidadeId.Value != Guid.Empty && dto.UnidadeId.Value != reserva.UnidadeId)
+        {
             var unidadeParaEdicao = await _unidadeRepository.GetByIdAsync(dto.UnidadeId.Value, ct);
             if(unidadeParaEdicao == null || unidadeParaEdicao.CondominioId != condominioId) {
-                throw new ArgumentException("Unidade especificada para edição é inválida.");
+                throw new ArgumentException("Unidade especificada para edição é inválida ou não pertence ao condomínio.");
             }
             reserva.UnidadeId = dto.UnidadeId.Value;
-            // Se a unidade muda, o UsuarioId original da reserva (solicitante) deve ser mantido ou atualizado?
-            // Por ora, mantemos o UsuarioId original, assumindo que o síndico está editando em nome da unidade/usuário.
+            // Se a unidade muda, o UsuarioId original (solicitante) deve ser mantido.
         }
 
-        // Atualizar taxa se o espaço mudou ou se a taxa do espaço mudou
+
         if (reserva.EspacoComumId != espacoComumParaValidacao.Id || reserva.Taxa != espacoComumParaValidacao.TaxaReserva) {
              reserva.Taxa = espacoComumParaValidacao.TaxaReserva;
         }
 
         reserva.UpdatedAt = DateTime.UtcNow;
-        // reserva.AprovadorId = sindicoUserId; // A edição pelo síndico pode ser considerada uma forma de "re-aprovação"
 
         await _reservaRepository.UpdateAsync(reserva, ct);
         await _reservaRepository.SaveChangesAsync(ct);
 
         return await GetByIdAsync(reservaId, condominioId, sindicoUserId, true, ct);
     }
-
 
     // Métodos CRUD para EspacoComum (para Síndico)
     public async Task<EspacoComumDto?> GetEspacoComumByIdAsync(Guid espacoId, Guid condominioId, CancellationToken ct = default)
