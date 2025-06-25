@@ -30,7 +30,9 @@ public class ReservaService
         _usuarioRepository = usuarioRepository;
     }
 
-    public async Task<IEnumerable<EspacoComumDto>> ListarEspacosComunsAsync(Guid condominioId, CancellationToken ct = default)
+    public async Task<IEnumerable<EspacoComumDto>> ListarEspacosComunsAsync(
+        Guid condominioId,
+        CancellationToken ct = default)
     {
         return await _espacoComumRepository.Query()
             .Where(e => e.CondominioId == condominioId)
@@ -50,22 +52,30 @@ public class ReservaService
                 LimiteReservasPorUnidadeMes = e.LimiteReservasPorUnidadeMes,
                 RequerAprovacaoSindico = e.RequerAprovacaoSindico,
                 ExibirNoMural = e.ExibirNoMural
-            }).ToListAsync(ct);
+            })
+            .ToListAsync(ct);
     }
 
-    public async Task<IEnumerable<AgendaReservaDto>> GetAgendaAsync(Guid condominioId, DateTime mesAno, Guid usuarioLogadoId, CancellationToken ct = default)
+    public async Task<IEnumerable<AgendaReservaDto>> GetAgendaAsync(
+        Guid condominioId,
+        DateTime mesAno,
+        Guid usuarioLogadoId,
+        CancellationToken ct = default)
     {
         var inicioMes = new DateTime(mesAno.Year, mesAno.Month, 1);
-        var fimDoMes = inicioMes.AddMonths(1).AddDays(-1);
-        var fimMesComHorario = new DateTime(fimDoMes.Year, fimDoMes.Month, fimDoMes.Day, 23, 59, 59, 999);
-
+        var fimMes = inicioMes.AddMonths(1).AddMilliseconds(-1);
 
         var reservasNoMes = await _reservaRepository.Query()
             .Include(r => r.EspacoComum)
             .Include(r => r.Unidade)
-            .Where(r => r.EspacoComum != null && r.EspacoComum.CondominioId == condominioId &&
-                         r.Inicio <= fimMesComHorario && r.Fim >= inicioMes &&
-                         r.Status != ReservaStatus.Recusada && r.Status != ReservaStatus.CanceladaPeloUsuario && r.Status != ReservaStatus.CanceladaPeloSindico)
+            .Where(r =>
+                r.EspacoComum != null &&
+                r.EspacoComum.CondominioId == condominioId &&
+                r.Inicio <= fimMes &&
+                r.Fim >= inicioMes &&
+                r.Status is not (ReservaStatus.Recusada or
+                                 ReservaStatus.CanceladaPeloUsuario or
+                                 ReservaStatus.CanceladaPeloSindico))
             .ToListAsync(ct);
 
         return reservasNoMes.Select(r => new AgendaReservaDto
@@ -78,108 +88,134 @@ public class ReservaService
             Status = r.Status.ToString(),
             UnidadeId = r.UnidadeId,
             NomeUnidade = r.Unidade?.Nome,
-            TituloReserva = $"{r.EspacoComum?.Nome} - {(r.Unidade?.Nome ?? $"Unid. {r.UnidadeId.ToString().Substring(0,4)}")}",
+            TituloReserva = $"{r.EspacoComum?.Nome} - " +
+                $"{(r.Unidade?.Nome ?? $"Unid. {r.UnidadeId.ToString()[..4]}")}",
             PertenceAoUsuarioLogado = r.UsuarioId == usuarioLogadoId
         });
     }
 
-    public async Task<ReservaDto?> SolicitarAsync(Guid condominioId, Guid usuarioId, ReservaInputDto dto, CancellationToken ct = default)
+    public async Task<ReservaDto?> SolicitarAsync(
+        Guid condominioId,
+        Guid usuarioId,
+        ReservaInputDto dto,
+        CancellationToken ct = default)
     {
-        var espacoComum = await _espacoComumRepository.GetByIdAsync(dto.EspacoComumId, ct);
-        if (espacoComum == null || espacoComum.CondominioId != condominioId)
-        {
+        // validando espaço
+        var espaco = await _espacoComumRepository.GetByIdAsync(dto.EspacoComumId, ct);
+        if (espaco == null || espaco.CondominioId != condominioId)
             throw new ArgumentException("Espaço comum inválido ou não pertence ao condomínio.");
-        }
 
-        Guid unidadeIdParaReserva;
+        // validando usuário
         var usuario = await _usuarioRepository.GetByIdAsync(usuarioId, ct);
-        if(usuario == null) throw new ArgumentException("Usuário solicitante não encontrado.");
+        if (usuario == null)
+            throw new ArgumentException("Usuário solicitante não encontrado.");
 
-        if (dto.UnidadeId.HasValue && dto.UnidadeId.Value != Guid.Empty) {
-             var unidadeEspecificada = await _unidadeRepository.GetByIdAsync(dto.UnidadeId.Value, ct);
-             if (unidadeEspecificada == null || unidadeEspecificada.CondominioId != condominioId) {
-                  throw new ArgumentException("Unidade especificada no DTO é inválida ou não pertence ao condomínio.");
-             }
-             // TODO: Adicionar lógica de permissão: Síndico pode especificar qualquer UnidadeId válida do condomínio.
-             // Não-síndico só pode usar sua própria UnidadeId (ou se dto.UnidadeId for nulo/Guid.Empty).
-             // Por ora, se fornecido, usamos, assumindo que a validação de permissão ocorreria no controller ou aqui.
-             unidadeIdParaReserva = unidadeEspecificada.Id;
-        } else {
-            unidadeIdParaReserva = usuario.UnidadeId;
-        }
-
-        if (TimeSpan.TryParse(espacoComum.HorarioFuncionamentoInicio, out var inicioFuncionamento) &&
-            TimeSpan.TryParse(espacoComum.HorarioFuncionamentoFim, out var fimFuncionamento))
+        // definindo unidade
+        Guid unidadeParaReserva;
+        if (dto.UnidadeId.HasValue && dto.UnidadeId.Value != Guid.Empty)
         {
-            if (dto.Inicio.TimeOfDay < inicioFuncionamento || dto.Fim.TimeOfDay > fimFuncionamento || dto.Inicio.TimeOfDay >= fimFuncionamento )
-            {
-                throw new InvalidOperationException($"O horário solicitado está fora do período de funcionamento do espaço ({espacoComum.HorarioFuncionamentoInicio} - {espacoComum.HorarioFuncionamentoFim}).");
-            }
+            var unid = await _unidadeRepository.GetByIdAsync(dto.UnidadeId.Value, ct);
+            if (unid == null || unid.CondominioId != condominioId)
+                throw new ArgumentException("Unidade inválida ou fora do condomínio.");
+
+            unidadeParaReserva = unid.Id;
+        }
+        else
+        {
+            unidadeParaReserva = usuario.UnidadeId;
         }
 
-        var duracaoReservaMinutos = (dto.Fim - dto.Inicio).TotalMinutes;
-        if (espacoComum.TempoMinimoReservaMinutos.HasValue && duracaoReservaMinutos < espacoComum.TempoMinimoReservaMinutos.Value)
-        {
-            throw new InvalidOperationException($"A duração mínima da reserva para este espaço é de {espacoComum.TempoMinimoReservaMinutos} minutos.");
-        }
-        if (espacoComum.TempoMaximoReservaMinutos.HasValue && duracaoReservaMinutos > espacoComum.TempoMaximoReservaMinutos.Value)
-        {
-            throw new InvalidOperationException($"A duração máxima da reserva para este espaço é de {espacoComum.TempoMaximoReservaMinutos} minutos.");
-        }
-
-        if (espacoComum.AntecedenciaMaximaReservaDias.HasValue && dto.Inicio.Date > DateTime.UtcNow.Date.AddDays(espacoComum.AntecedenciaMaximaReservaDias.Value))
-        {
-            throw new InvalidOperationException($"Não é possível reservar com mais de {espacoComum.AntecedenciaMaximaReservaDias} dias de antecedência.");
-        }
-
+        // validação básica de datas
+        if (dto.Fim <= dto.Inicio)
+            throw new ArgumentException("Data/hora de término deve ser posterior ao início.");
         if (dto.Inicio < DateTime.UtcNow)
+            throw new InvalidOperationException("Não é possível reservar em data/hora passada.");
+
+        // horário de funcionamento
+        if (TimeSpan.TryParse(espaco.HorarioFuncionamentoInicio, out var iniFunc) &&
+            TimeSpan.TryParse(espaco.HorarioFuncionamentoFim, out var fimFunc))
         {
-             throw new InvalidOperationException("Não é possível realizar reservas para datas ou horários no passado.");
+            var inicioDay = dto.Inicio.TimeOfDay;
+            var fimDay = dto.Fim.TimeOfDay;
+            if (inicioDay < iniFunc || fimDay > fimFunc || inicioDay >= fimFunc)
+                throw new InvalidOperationException(
+                    $"Fora do horário ({espaco.HorarioFuncionamentoInicio}–{espaco.HorarioFuncionamentoFim}).");
         }
 
-        if (espacoComum.LimiteReservasPorUnidadeMes.HasValue && espacoComum.LimiteReservasPorUnidadeMes > 0)
+        // duração mínima/máxima
+        var duracao = (dto.Fim - dto.Inicio).TotalMinutes;
+        if (espaco.TempoMinimoReservaMinutos.HasValue
+            && duracao < espaco.TempoMinimoReservaMinutos.Value)
+            throw new InvalidOperationException(
+                $"Duração mínima de {espaco.TempoMinimoReservaMinutos.Value} minutos.");
+        if (espaco.TempoMaximoReservaMinutos.HasValue
+            && duracao > espaco.TempoMaximoReservaMinutos.Value)
+            throw new InvalidOperationException(
+                $"Duração máxima de {espaco.TempoMaximoReservaMinutos.Value} minutos.");
+
+        // antecedência máxima
+        if (espaco.AntecedenciaMaximaReservaDias.HasValue
+            && dto.Inicio.Date > DateTime.UtcNow.Date
+                .AddDays(espaco.AntecedenciaMaximaReservaDias.Value))
+            throw new InvalidOperationException(
+                $"Não é possível reservar com mais de " +
+                $"{espaco.AntecedenciaMaximaReservaDias.Value} dias de antecedência.");
+
+        // limite mensal por unidade
+        if (espaco.LimiteReservasPorUnidadeMes.HasValue
+            && espaco.LimiteReservasPorUnidadeMes.Value > 0)
         {
-            var inicioDoMesDaReserva = new DateTime(dto.Inicio.Year, dto.Inicio.Month, 1);
-            var fimDoMesDaReserva = inicioDoMesDaReserva.AddMonths(1).AddDays(-1).AddHours(23).AddMinutes(59).AddSeconds(59);
+            var inicioDoMes = new DateTime(dto.Inicio.Year, dto.Inicio.Month, 1);
+            var fimDoMes = inicioDoMes.AddMonths(1).AddMilliseconds(-1);
 
-            var reservasNoMesPelaUnidade = await _reservaRepository.Query()
-                .CountAsync(r => r.EspacoComumId == dto.EspacoComumId &&
-                                 r.UnidadeId == unidadeIdParaReserva &&
-                                 r.Inicio >= inicioDoMesDaReserva && r.Inicio <= fimDoMesDaReserva &&
-                                 (r.Status == ReservaStatus.Confirmada || r.Status == ReservaStatus.Pendente),
-                                 ct);
+            var qtd = await _reservaRepository.Query()
+                .CountAsync(r =>
+                    r.EspacoComumId == dto.EspacoComumId
+                    && r.UnidadeId == unidadeParaReserva
+                    && r.Inicio >= inicioDoMes
+                    && r.Inicio <= fimDoMes
+                    && (r.Status == ReservaStatus.Confirmada
+                        || r.Status == ReservaStatus.Pendente),
+                    ct);
 
-            if (reservasNoMesPelaUnidade >= espacoComum.LimiteReservasPorUnidadeMes.Value)
-            {
-                throw new InvalidOperationException($"A unidade já atingiu o limite de {espacoComum.LimiteReservasPorUnidadeMes} reservas para este espaço neste mês.");
-            }
+            if (qtd >= espaco.LimiteReservasPorUnidadeMes.Value)
+                throw new InvalidOperationException(
+                    $"Limite de {espaco.LimiteReservasPorUnidadeMes.Value} " +
+                    "reservas/mês atingido.");
         }
 
-        bool hasConflict = await _reservaRepository.Query()
-            .AnyAsync(r => r.EspacoComumId == dto.EspacoComumId &&
-                           r.Status != ReservaStatus.CanceladaPeloSindico && r.Status != ReservaStatus.CanceladaPeloUsuario && r.Status != ReservaStatus.Recusada &&
-                           ((dto.Inicio >= r.Inicio && dto.Inicio < r.Fim) ||
-                            (dto.Fim > r.Inicio && dto.Fim <= r.Fim) ||
-                            (dto.Inicio <= r.Inicio && dto.Fim >= r.Fim)),
-                           ct);
+        // conflito de horários
+            var conflito = await _reservaRepository.Query()
+                .AnyAsync(r =>
+                    r.EspacoComumId == dto.EspacoComumId
+                    && r.Status != ReservaStatus.Recusada
+                    && r.Status != ReservaStatus.CanceladaPeloUsuario
+                    && r.Status != ReservaStatus.CanceladaPeloSindico
+                    // overlap: início < fimExistente && inícioExistente < fim
+                    && dto.Inicio < r.Fim
+                    && r.Inicio < dto.Fim,
+                ct);
 
-        if (hasConflict)
-        {
-            throw new InvalidOperationException("Conflito de horário. O espaço já está reservado para o período solicitado.");
-        }
 
+        if (conflito)
+            throw new InvalidOperationException(
+                "Conflito de horário com outra reserva existente.");
+
+        // criação da reserva
         var reserva = new Reserva
         {
             Id = Guid.NewGuid(),
             CondominioId = condominioId,
-            UnidadeId = unidadeIdParaReserva,
+            UnidadeId = unidadeParaReserva,
             UsuarioId = usuarioId,
             EspacoComumId = dto.EspacoComumId,
             Inicio = dto.Inicio,
             Fim = dto.Fim,
             Observacoes = dto.Observacoes,
-            Status = espacoComum.RequerAprovacaoSindico ? ReservaStatus.Pendente : ReservaStatus.Confirmada,
-            Taxa = espacoComum.TaxaReserva,
+            Status = espaco.RequerAprovacaoSindico
+                ? ReservaStatus.Pendente
+                : ReservaStatus.Confirmada,
+            Taxa = espaco.TaxaReserva,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -190,18 +226,29 @@ public class ReservaService
         return await GetByIdAsync(reserva.Id, condominioId, usuarioId, false, ct);
     }
 
-    public async Task<ReservaDto?> AtualizarStatusAsync(Guid reservaId, Guid condominioId, Guid sindicoUserId, ReservaStatusUpdateDto dto, CancellationToken ct = default)
+    public async Task<ReservaDto?> AtualizarStatusAsync(
+        Guid reservaId,
+        Guid condominioId,
+        Guid sindicoUserId,
+        ReservaStatusUpdateDto dto,
+        CancellationToken ct = default)
     {
-        var reserva = await _reservaRepository.Query().FirstOrDefaultAsync(r => r.Id == reservaId && r.CondominioId == condominioId, ct);
-        if (reserva == null)  throw new KeyNotFoundException("Reserva não encontrada.");
+        var reserva = await _reservaRepository.Query()
+            .FirstOrDefaultAsync(r =>
+                r.Id == reservaId && r.CondominioId == condominioId,
+                ct);
+        if (reserva == null)
+            throw new KeyNotFoundException("Reserva não encontrada.");
 
         if (!Enum.TryParse<ReservaStatus>(dto.Status, true, out var novoStatus))
-        {
-            throw new ArgumentException("Status inválido fornecido.");
-        }
+            throw new ArgumentException("Status inválido.");
 
-        if ((reserva.Status == ReservaStatus.CanceladaPeloUsuario || reserva.Status == ReservaStatus.CanceladaPeloSindico) && novoStatus != reserva.Status) {
-            throw new InvalidOperationException("Não é possível alterar o status de uma reserva já cancelada.");
+        if ((reserva.Status == ReservaStatus.CanceladaPeloUsuario
+             || reserva.Status == ReservaStatus.CanceladaPeloSindico)
+            && novoStatus != reserva.Status)
+        {
+            throw new InvalidOperationException(
+                "Não é possível alterar status de reserva já cancelada.");
         }
 
         reserva.Status = novoStatus;
@@ -215,19 +262,26 @@ public class ReservaService
         return await GetByIdAsync(reservaId, condominioId, sindicoUserId, true, ct);
     }
 
-    public async Task<ReservaDto?> GetByIdAsync(Guid reservaId, Guid condominioId, Guid usuarioId, bool isSindico, CancellationToken ct = default)
+    public async Task<ReservaDto?> GetByIdAsync(
+        Guid reservaId,
+        Guid condominioId,
+        Guid usuarioId,
+        bool isSindico,
+        CancellationToken ct = default)
     {
         var reserva = await _reservaRepository.Query()
             .Include(r => r.EspacoComum)
             .Include(r => r.Unidade)
-            .FirstOrDefaultAsync(r => r.Id == reservaId && r.CondominioId == condominioId, ct);
-
+            .FirstOrDefaultAsync(r =>
+                r.Id == reservaId && r.CondominioId == condominioId,
+                ct);
         if (reserva == null) return null;
-
         if (!isSindico && reserva.UsuarioId != usuarioId) return null;
 
         var solicitante = await _usuarioRepository.GetByIdAsync(reserva.UsuarioId, ct);
-        var aprovador = reserva.AprovadorId.HasValue ? await _usuarioRepository.GetByIdAsync(reserva.AprovadorId.Value, ct) : null;
+        var aprovador = reserva.AprovadorId.HasValue
+            ? await _usuarioRepository.GetByIdAsync(reserva.AprovadorId.Value, ct)
+            : null;
 
         return new ReservaDto
         {
@@ -252,26 +306,37 @@ public class ReservaService
         };
     }
 
-    public async Task<bool> CancelarAsync(Guid reservaId, Guid condominioId, Guid usuarioId, bool isSindico, CancellationToken ct = default)
+    public async Task<bool> CancelarAsync(
+        Guid reservaId,
+        Guid condominioId,
+        Guid usuarioId,
+        bool isSindico,
+        CancellationToken ct = default)
     {
         var reserva = await _reservaRepository.Query()
             .Include(r => r.EspacoComum)
-            .FirstOrDefaultAsync(r => r.Id == reservaId && r.CondominioId == condominioId, ct);
-
-        if (reserva == null) throw new KeyNotFoundException("Reserva não encontrada.");
+            .FirstOrDefaultAsync(r =>
+                r.Id == reservaId && r.CondominioId == condominioId,
+                ct);
+        if (reserva == null)
+            throw new KeyNotFoundException("Reserva não encontrada.");
 
         if (!isSindico && reserva.UsuarioId != usuarioId)
-            throw new UnauthorizedAccessException("Usuário não autorizado a cancelar esta reserva.");
+            throw new UnauthorizedAccessException(
+                "Usuário não autorizado a cancelar esta reserva.");
 
-        if (!isSindico && reserva.EspacoComum?.AntecedenciaMinimaCancelamentoHoras.HasValue)
+        if (!isSindico
+            && reserva.EspacoComum?.AntecedenciaMinimaCancelamentoHoras.HasValue == true)
         {
-            if (DateTime.UtcNow.AddHours(reserva.EspacoComum.AntecedenciaMinimaCancelamentoHoras.Value) > reserva.Inicio)
-            {
-                throw new InvalidOperationException($"Cancelamento não permitido. É necessário cancelar com pelo menos {reserva.EspacoComum.AntecedenciaMinimaCancelamentoHoras} horas de antecedência.");
-            }
+            var horas = reserva.EspacoComum.AntecedenciaMinimaCancelamentoHoras.Value;
+            if (DateTime.UtcNow.AddHours(horas) > reserva.Inicio)
+                throw new InvalidOperationException(
+                    $"Cancelamento exige ao menos {horas}h de antecedência.");
         }
 
-        reserva.Status = isSindico ? ReservaStatus.CanceladaPeloSindico : ReservaStatus.CanceladaPeloUsuario;
+        reserva.Status = isSindico
+            ? ReservaStatus.CanceladaPeloSindico
+            : ReservaStatus.CanceladaPeloUsuario;
         reserva.UpdatedAt = DateTime.UtcNow;
 
         await _reservaRepository.UpdateAsync(reserva, ct);
@@ -279,36 +344,32 @@ public class ReservaService
         return true;
     }
 
-    public async Task<PaginatedResultDto<ReservaDto>> ListarTodasReservasAsync(Guid condominioId, ReservaFilterDto filters, CancellationToken ct = default)
+    public async Task<PaginatedResultDto<ReservaDto>> ListarTodasReservasAsync(
+        Guid condominioId,
+        ReservaFilterDto filters,
+        CancellationToken ct = default)
     {
         var query = _reservaRepository.Query()
             .Where(r => r.CondominioId == condominioId);
 
         if (filters.EspacoComumId.HasValue)
-        {
             query = query.Where(r => r.EspacoComumId == filters.EspacoComumId.Value);
-        }
         if (filters.UnidadeId.HasValue)
-        {
             query = query.Where(r => r.UnidadeId == filters.UnidadeId.Value);
-        }
-        if (!string.IsNullOrEmpty(filters.Status) && Enum.TryParse<ReservaStatus>(filters.Status, true, out var statusEnum))
-        {
-            query = query.Where(r => r.Status == statusEnum);
-        }
+        if (!string.IsNullOrEmpty(filters.Status)
+            && Enum.TryParse<ReservaStatus>(filters.Status, true, out var st))
+            query = query.Where(r => r.Status == st);
         if (filters.PeriodoInicio.HasValue)
-        {
             query = query.Where(r => r.Fim >= filters.PeriodoInicio.Value);
-        }
         if (filters.PeriodoFim.HasValue)
         {
-            DateTime fimDoDiaPeriodoFim = filters.PeriodoFim.Value.Date.AddDays(1).AddTicks(-1);
-            query = query.Where(r => r.Inicio <= fimDoDiaPeriodoFim);
+            var fimDia = filters.PeriodoFim.Value.Date.AddDays(1).AddTicks(-1);
+            query = query.Where(r => r.Inicio <= fimDia);
         }
 
-        var totalItems = await query.CountAsync(ct);
+        var total = await query.CountAsync(ct);
 
-        var reservas = await query
+        var lista = await query
             .Include(r => r.EspacoComum)
             .Include(r => r.Unidade)
             .OrderByDescending(r => r.Inicio)
@@ -316,20 +377,22 @@ public class ReservaService
             .Take(filters.PageSize)
             .ToListAsync(ct);
 
-        var reservaDtos = new List<ReservaDto>();
-        foreach (var r in reservas)
+        var dtos = new List<ReservaDto>(lista.Count);
+        foreach (var r in lista)
         {
-            var solicitante = await _usuarioRepository.GetByIdAsync(r.UsuarioId, ct);
-            var aprovador = r.AprovadorId.HasValue ? await _usuarioRepository.GetByIdAsync(r.AprovadorId.Value, ct) : null;
+            var sol = await _usuarioRepository.GetByIdAsync(r.UsuarioId, ct);
+            var apr = r.AprovadorId.HasValue
+                ? await _usuarioRepository.GetByIdAsync(r.AprovadorId.Value, ct)
+                : null;
 
-            reservaDtos.Add(new ReservaDto
+            dtos.Add(new ReservaDto
             {
                 Id = r.Id,
                 CondominioId = r.CondominioId,
                 UnidadeId = r.UnidadeId,
                 NomeUnidade = r.Unidade?.Nome,
                 UsuarioId = r.UsuarioId,
-                NomeUsuarioSolicitante = solicitante?.Nome,
+                NomeUsuarioSolicitante = sol?.Nome,
                 EspacoComumId = r.EspacoComumId,
                 NomeEspacoComum = r.EspacoComum?.Nome,
                 Inicio = r.Inicio,
@@ -339,40 +402,45 @@ public class ReservaService
                 TaxaCobrada = r.Taxa,
                 Observacoes = r.Observacoes,
                 AprovadorId = r.AprovadorId,
-                NomeAprovador = aprovador?.Nome,
+                NomeAprovador = apr?.Nome,
                 JustificativaAprovacaoRecusa = r.JustificativaAprovacaoRecusa,
                 UpdatedAt = r.UpdatedAt
             });
         }
 
-        return new PaginatedResultDto<ReservaDto>(reservaDtos, totalItems, filters.PageNumber, filters.PageSize);
+        return new PaginatedResultDto<ReservaDto>(
+            dtos, total, filters.PageNumber, filters.PageSize);
     }
 
-    public async Task<List<ReservaDto>> ListarMinhasReservasAsync(Guid condominioId, Guid usuarioId, CancellationToken ct = default)
+    public async Task<List<ReservaDto>> ListarMinhasReservasAsync(
+        Guid condominioId,
+        Guid usuarioId,
+        CancellationToken ct = default)
     {
-        var query = _reservaRepository.Query()
-            .Where(r => r.CondominioId == condominioId && r.UsuarioId == usuarioId);
-
-        var reservas = await query
+        var reservas = await _reservaRepository.Query()
+            .Where(r => r.CondominioId == condominioId
+                        && r.UsuarioId == usuarioId)
             .Include(r => r.EspacoComum)
             .Include(r => r.Unidade)
             .OrderByDescending(r => r.Inicio)
             .ToListAsync(ct);
 
-        var reservaDtos = new List<ReservaDto>();
+        var dtos = new List<ReservaDto>(reservas.Count);
         foreach (var r in reservas)
         {
-             var aprovador = r.AprovadorId.HasValue ? await _usuarioRepository.GetByIdAsync(r.AprovadorId.Value, ct) : null;
-            var solicitante = await _usuarioRepository.GetByIdAsync(r.UsuarioId, ct);
+            var sol = await _usuarioRepository.GetByIdAsync(r.UsuarioId, ct);
+            var apr = r.AprovadorId.HasValue
+                ? await _usuarioRepository.GetByIdAsync(r.AprovadorId.Value, ct)
+                : null;
 
-            reservaDtos.Add(new ReservaDto
+            dtos.Add(new ReservaDto
             {
                 Id = r.Id,
                 CondominioId = r.CondominioId,
                 UnidadeId = r.UnidadeId,
                 NomeUnidade = r.Unidade?.Nome,
                 UsuarioId = r.UsuarioId,
-                NomeUsuarioSolicitante = solicitante?.Nome,
+                NomeUsuarioSolicitante = sol?.Nome,
                 EspacoComumId = r.EspacoComumId,
                 NomeEspacoComum = r.EspacoComum?.Nome,
                 Inicio = r.Inicio,
@@ -382,147 +450,62 @@ public class ReservaService
                 TaxaCobrada = r.Taxa,
                 Observacoes = r.Observacoes,
                 AprovadorId = r.AprovadorId,
-                NomeAprovador = aprovador?.Nome,
+                NomeAprovador = apr?.Nome,
                 JustificativaAprovacaoRecusa = r.JustificativaAprovacaoRecusa,
                 UpdatedAt = r.UpdatedAt
             });
         }
-        return reservaDtos;
+
+        return dtos;
     }
 
-    public async Task<ReservaDto?> EditarReservaAsync(Guid reservaId, Guid condominioId, Guid sindicoUserId, ReservaInputDto dto, CancellationToken ct = default)
+    // --- CRUD de Espaço Comum ---
+
+    public async Task<EspacoComumDto?> GetEspacoComumByIdAsync(
+        Guid espacoId,
+        Guid condominioId,
+        CancellationToken ct = default)
     {
-        var reserva = await _reservaRepository.Query()
-            .Include(r => r.EspacoComum)
-            .FirstOrDefaultAsync(r => r.Id == reservaId && r.CondominioId == condominioId, ct);
-
-        if (reserva == null)
-        {
-            throw new KeyNotFoundException("Reserva não encontrada.");
-        }
-
-        var espacoComumOriginal = reserva.EspacoComum;
-        var espacoComumParaValidacao = espacoComumOriginal;
-
-        if (dto.EspacoComumId != reserva.EspacoComumId)
-        {
-            espacoComumParaValidacao = await _espacoComumRepository.GetByIdAsync(dto.EspacoComumId, ct);
-            if (espacoComumParaValidacao == null || espacoComumParaValidacao.CondominioId != condominioId)
-            {
-                throw new ArgumentException("Novo espaço comum inválido ou não pertence ao condomínio.");
-            }
-        }
-
-        if (espacoComumParaValidacao == null) throw new ArgumentException("Espaço comum da reserva não pôde ser determinado para validação.");
-
-        if (TimeSpan.TryParse(espacoComumParaValidacao.HorarioFuncionamentoInicio, out var inicioFuncionamento) &&
-            TimeSpan.TryParse(espacoComumParaValidacao.HorarioFuncionamentoFim, out var fimFuncionamento))
-        {
-            if (dto.Inicio.TimeOfDay < inicioFuncionamento || dto.Fim.TimeOfDay > fimFuncionamento || dto.Inicio.TimeOfDay >= fimFuncionamento)
-            {
-                throw new InvalidOperationException($"O novo horário solicitado está fora do período de funcionamento do espaço ({espacoComumParaValidacao.HorarioFuncionamentoInicio} - {espacoComumParaValidacao.HorarioFuncionamentoFim}).");
-            }
-        }
-
-        var duracaoReservaMinutos = (dto.Fim - dto.Inicio).TotalMinutes;
-        if (espacoComumParaValidacao.TempoMinimoReservaMinutos.HasValue && duracaoReservaMinutos < espacoComumParaValidacao.TempoMinimoReservaMinutos.Value)
-        {
-            throw new InvalidOperationException($"A duração mínima da reserva para este espaço é de {espacoComumParaValidacao.TempoMinimoReservaMinutos} minutos.");
-        }
-        if (espacoComumParaValidacao.TempoMaximoReservaMinutos.HasValue && duracaoReservaMinutos > espacoComumParaValidacao.TempoMaximoReservaMinutos.Value)
-        {
-            throw new InvalidOperationException($"A duração máxima da reserva para este espaço é de {espacoComumParaValidacao.TempoMaximoReservaMinutos} minutos.");
-        }
-
-        if (dto.Inicio.Date > reserva.Inicio.Date && espacoComumParaValidacao.AntecedenciaMaximaReservaDias.HasValue && dto.Inicio.Date > DateTime.UtcNow.Date.AddDays(espacoComumParaValidacao.AntecedenciaMaximaReservaDias.Value))
-        {
-             throw new InvalidOperationException($"Não é possível reagendar com mais de {espacoComumParaValidacao.AntecedenciaMaximaReservaDias} dias de antecedência.");
-        }
-         if (dto.Inicio < DateTime.UtcNow && dto.Inicio.Date < DateTime.UtcNow.Date)
-        {
-             throw new InvalidOperationException("Não é possível editar a reserva para uma data ou horário no passado.");
-        }
-
-        bool hasConflict = await _reservaRepository.Query()
-            .AnyAsync(r => r.Id != reservaId &&
-                           r.EspacoComumId == dto.EspacoComumId &&
-                           r.Status != ReservaStatus.CanceladaPeloSindico && r.Status != ReservaStatus.CanceladaPeloUsuario && r.Status != ReservaStatus.Recusada &&
-                           ((dto.Inicio >= r.Inicio && dto.Inicio < r.Fim) ||
-                            (dto.Fim > r.Inicio && dto.Fim <= r.Fim) ||
-                            (dto.Inicio <= r.Inicio && dto.Fim >= r.Fim))),
-                           ct);
-
-        if (hasConflict)
-        {
-            throw new InvalidOperationException("Conflito de horário com outra reserva existente para o novo período/espaço solicitado.");
-        }
-
-        reserva.EspacoComumId = dto.EspacoComumId;
-        reserva.Inicio = dto.Inicio;
-        reserva.Fim = dto.Fim;
-        reserva.Observacoes = dto.Observacoes;
-
-        // Atualizar UnidadeId se fornecido e diferente (geralmente para síndico)
-        if(dto.UnidadeId.HasValue && dto.UnidadeId.Value != Guid.Empty && dto.UnidadeId.Value != reserva.UnidadeId)
-        {
-            var unidadeParaEdicao = await _unidadeRepository.GetByIdAsync(dto.UnidadeId.Value, ct);
-            if(unidadeParaEdicao == null || unidadeParaEdicao.CondominioId != condominioId) {
-                throw new ArgumentException("Unidade especificada para edição é inválida ou não pertence ao condomínio.");
-            }
-            reserva.UnidadeId = dto.UnidadeId.Value;
-            // Se a unidade muda, o UsuarioId original (solicitante) deve ser mantido.
-        }
-
-
-        if (reserva.EspacoComumId != espacoComumParaValidacao.Id || reserva.Taxa != espacoComumParaValidacao.TaxaReserva) {
-             reserva.Taxa = espacoComumParaValidacao.TaxaReserva;
-        }
-
-        reserva.UpdatedAt = DateTime.UtcNow;
-
-        await _reservaRepository.UpdateAsync(reserva, ct);
-        await _reservaRepository.SaveChangesAsync(ct);
-
-        return await GetByIdAsync(reservaId, condominioId, sindicoUserId, true, ct);
-    }
-
-    // Métodos CRUD para EspacoComum (para Síndico)
-    public async Task<EspacoComumDto?> GetEspacoComumByIdAsync(Guid espacoId, Guid condominioId, CancellationToken ct = default)
-    {
-        var espaco = await _espacoComumRepository.Query()
-            .FirstOrDefaultAsync(e => e.Id == espacoId && e.CondominioId == condominioId, ct);
-
-        if (espaco == null) return null;
+        var e = await _espacoComumRepository.Query()
+            .FirstOrDefaultAsync(x =>
+                x.Id == espacoId && x.CondominioId == condominioId,
+                ct);
+        if (e == null) return null;
 
         return new EspacoComumDto
         {
-            Id = espaco.Id,
-            Nome = espaco.Nome,
-            Descricao = espaco.Descricao,
-            Capacidade = espaco.Capacidade,
-            TaxaReserva = espaco.TaxaReserva,
-            HorarioFuncionamentoInicio = espaco.HorarioFuncionamentoInicio,
-            HorarioFuncionamentoFim = espaco.HorarioFuncionamentoFim,
-            TempoMinimoReservaMinutos = espaco.TempoMinimoReservaMinutos,
-            TempoMaximoReservaMinutos = espaco.TempoMaximoReservaMinutos,
-            AntecedenciaMaximaReservaDias = espaco.AntecedenciaMaximaReservaDias,
-            AntecedenciaMinimaCancelamentoHoras = espaco.AntecedenciaMinimaCancelamentoHoras,
-            LimiteReservasPorUnidadeMes = espaco.LimiteReservasPorUnidadeMes,
-            RequerAprovacaoSindico = espaco.RequerAprovacaoSindico,
-            ExibirNoMural = espaco.ExibirNoMural
+            Id = e.Id,
+            Nome = e.Nome,
+            Descricao = e.Descricao,
+            Capacidade = e.Capacidade,
+            TaxaReserva = e.TaxaReserva,
+            HorarioFuncionamentoInicio = e.HorarioFuncionamentoInicio,
+            HorarioFuncionamentoFim = e.HorarioFuncionamentoFim,
+            TempoMinimoReservaMinutos = e.TempoMinimoReservaMinutos,
+            TempoMaximoReservaMinutos = e.TempoMaximoReservaMinutos,
+            AntecedenciaMaximaReservaDias = e.AntecedenciaMaximaReservaDias,
+            AntecedenciaMinimaCancelamentoHoras = e.AntecedenciaMinimaCancelamentoHoras,
+            LimiteReservasPorUnidadeMes = e.LimiteReservasPorUnidadeMes,
+            RequerAprovacaoSindico = e.RequerAprovacaoSindico,
+            ExibirNoMural = e.ExibirNoMural
         };
     }
 
-    public async Task<EspacoComumDto?> CriarEspacoComumAsync(Guid condominioId, EspacoComumDto dto, CancellationToken ct = default)
+    public async Task<EspacoComumDto?> CriarEspacoComumAsync(
+        Guid condominioId,
+        EspacoComumDto dto,
+        CancellationToken ct = default)
     {
-        bool nomeEmUso = await _espacoComumRepository.Query()
-            .AnyAsync(e => e.CondominioId == condominioId && e.Nome.ToLower() == dto.Nome.ToLower(), ct);
-        if (nomeEmUso)
-        {
-            throw new InvalidOperationException($"Já existe um espaço comum com o nome '{dto.Nome}' neste condomínio.");
-        }
+        var exists = await _espacoComumRepository.Query()
+            .AnyAsync(e =>
+                e.CondominioId == condominioId &&
+                e.Nome.ToLower() == dto.Nome.ToLower(),
+                ct);
+        if (exists)
+            throw new InvalidOperationException(
+                $"Já existe espaço com nome '{dto.Nome}'.");
 
-        var espaco = new EspacoComum
+        var e = new EspacoComum
         {
             Id = Guid.NewGuid(),
             CondominioId = condominioId,
@@ -543,70 +526,85 @@ public class ReservaService
             UpdatedAt = DateTime.UtcNow
         };
 
-        await _espacoComumRepository.AddAsync(espaco, ct);
+        await _espacoComumRepository.AddAsync(e, ct);
         await _espacoComumRepository.SaveChangesAsync(ct);
 
-        dto.Id = espaco.Id;
+        dto.Id = e.Id;
         return dto;
     }
 
-    public async Task<EspacoComumDto?> AtualizarEspacoComumAsync(Guid espacoId, Guid condominioId, EspacoComumDto dto, CancellationToken ct = default)
+    public async Task<EspacoComumDto?> AtualizarEspacoComumAsync(
+        Guid espacoId,
+        Guid condominioId,
+        EspacoComumDto dto,
+        CancellationToken ct = default)
     {
-        var espaco = await _espacoComumRepository.Query()
-            .FirstOrDefaultAsync(e => e.Id == espacoId && e.CondominioId == condominioId, ct);
+        var e = await _espacoComumRepository.Query()
+            .FirstOrDefaultAsync(x =>
+                x.Id == espacoId && x.CondominioId == condominioId,
+                ct);
+        if (e == null)
+            throw new KeyNotFoundException("Espaço comum não encontrado.");
 
-        if (espaco == null) throw new KeyNotFoundException("Espaço comum não encontrado.");
-
-        if (espaco.Nome.ToLower() != dto.Nome.ToLower())
+        if (!e.Nome.Equals(dto.Nome, StringComparison.OrdinalIgnoreCase))
         {
-            bool nomeEmUso = await _espacoComumRepository.Query()
-                .AnyAsync(e => e.CondominioId == condominioId && e.Id != espacoId && e.Nome.ToLower() == dto.Nome.ToLower(), ct);
-            if (nomeEmUso)
-            {
-                throw new InvalidOperationException($"Já existe outro espaço comum com o nome '{dto.Nome}' neste condomínio.");
-            }
+            var conflict = await _espacoComumRepository.Query()
+                .AnyAsync(x =>
+                    x.CondominioId == condominioId
+                    && x.Id != espacoId
+                    && x.Nome.ToLower() == dto.Nome.ToLower(),
+                    ct);
+            if (conflict)
+                throw new InvalidOperationException(
+                    $"Outro espaço já usa o nome '{dto.Nome}'.");
         }
 
-        espaco.Nome = dto.Nome;
-        espaco.Descricao = dto.Descricao;
-        espaco.Capacidade = dto.Capacidade;
-        espaco.TaxaReserva = dto.TaxaReserva;
-        espaco.HorarioFuncionamentoInicio = dto.HorarioFuncionamentoInicio;
-        espaco.HorarioFuncionamentoFim = dto.HorarioFuncionamentoFim;
-        espaco.TempoMinimoReservaMinutos = dto.TempoMinimoReservaMinutos;
-        espaco.TempoMaximoReservaMinutos = dto.TempoMaximoReservaMinutos;
-        espaco.AntecedenciaMaximaReservaDias = dto.AntecedenciaMaximaReservaDias;
-        espaco.AntecedenciaMinimaCancelamentoHoras = dto.AntecedenciaMinimaCancelamentoHoras;
-        espaco.LimiteReservasPorUnidadeMes = dto.LimiteReservasPorUnidadeMes;
-        espaco.RequerAprovacaoSindico = dto.RequerAprovacaoSindico;
-        espaco.ExibirNoMural = dto.ExibirNoMural;
-        espaco.UpdatedAt = DateTime.UtcNow;
+        e.Nome = dto.Nome;
+        e.Descricao = dto.Descricao;
+        e.Capacidade = dto.Capacidade;
+        e.TaxaReserva = dto.TaxaReserva;
+        e.HorarioFuncionamentoInicio = dto.HorarioFuncionamentoInicio;
+        e.HorarioFuncionamentoFim = dto.HorarioFuncionamentoFim;
+        e.TempoMinimoReservaMinutos = dto.TempoMinimoReservaMinutos;
+        e.TempoMaximoReservaMinutos = dto.TempoMaximoReservaMinutos;
+        e.AntecedenciaMaximaReservaDias = dto.AntecedenciaMaximaReservaDias;
+        e.AntecedenciaMinimaCancelamentoHoras = dto.AntecedenciaMinimaCancelamentoHoras;
+        e.LimiteReservasPorUnidadeMes = dto.LimiteReservasPorUnidadeMes;
+        e.RequerAprovacaoSindico = dto.RequerAprovacaoSindico;
+        e.ExibirNoMural = dto.ExibirNoMural;
+        e.UpdatedAt = DateTime.UtcNow;
 
-        await _espacoComumRepository.UpdateAsync(espaco, ct);
+        await _espacoComumRepository.UpdateAsync(e, ct);
         await _espacoComumRepository.SaveChangesAsync(ct);
 
-        dto.Id = espaco.Id;
+        dto.Id = e.Id;
         return dto;
     }
 
-    public async Task<bool> ExcluirEspacoComumAsync(Guid espacoId, Guid condominioId, CancellationToken ct = default)
+    public async Task<bool> ExcluirEspacoComumAsync(
+        Guid espacoId,
+        Guid condominioId,
+        CancellationToken ct = default)
     {
-        var espaco = await _espacoComumRepository.Query()
-            .Include(e => e.Reservas)
-            .FirstOrDefaultAsync(e => e.Id == espacoId && e.CondominioId == condominioId, ct);
+        var e = await _espacoComumRepository.Query()
+            .Include(x => x.Reservas)
+            .FirstOrDefaultAsync(x =>
+                x.Id == espacoId && x.CondominioId == condominioId,
+                ct);
+        if (e == null)
+            throw new KeyNotFoundException("Espaço comum não encontrado.");
 
-        if (espaco == null) throw new KeyNotFoundException("Espaço comum não encontrado.");
-
-        if (espaco.Reservas != null && espaco.Reservas.Any(r => r.Inicio >= DateTime.UtcNow &&
-            (r.Status == ReservaStatus.Confirmada || r.Status == ReservaStatus.Pendente)))
+        if (e.Reservas.Any(r =>
+            r.Inicio >= DateTime.UtcNow
+            && (r.Status == ReservaStatus.Confirmada
+                || r.Status == ReservaStatus.Pendente)))
         {
-            throw new InvalidOperationException("Não é possível excluir o espaço comum pois existem reservas futuras ou pendentes associadas a ele.");
+            throw new InvalidOperationException(
+                "Existem reservas futuras/pendentes — não é possível excluir.");
         }
 
-        await _espacoComumRepository.DeleteAsync(espaco, ct);
+        await _espacoComumRepository.DeleteAsync(e, ct);
         await _espacoComumRepository.SaveChangesAsync(ct);
         return true;
     }
 }
-
-[end of conViver.Application/Services/ReservaService.cs]
