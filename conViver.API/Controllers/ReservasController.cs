@@ -27,7 +27,11 @@ public class ReservasController : ControllerBase
     /// </summary>
     [HttpGet("app/reservas/agenda")]
     [Authorize(Roles = "Sindico,Condomino,Inquilino")]
-    public async Task<ActionResult<IEnumerable<AgendaReservaDto>>> GetAgenda([FromQuery, Required] string mesAno)
+    public async Task<ActionResult<IEnumerable<AgendaReservaDto>>> GetAgenda(
+        [FromQuery, Required] string mesAno,
+        [FromQuery] Guid? espacoComumId,
+        [FromQuery] string? status,
+        [FromQuery] Guid? unidadeId)
     {
         if (!DateTime.TryParse($"{mesAno}-01", out var mes))
             return BadRequest(new { error = "INVALID_DATE", message = "Formato de mesAno deve ser YYYY-MM." });
@@ -41,7 +45,15 @@ public class ReservasController : ControllerBase
             return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
         }
 
-        var items = await _reservaService.GetAgendaAsync(condominioId, mes, usuarioLogadoId);
+        bool isSindico = User.IsInRole("Sindico");
+        var items = await _reservaService.GetAgendaAsync(
+            condominioId,
+            mes,
+            usuarioLogadoId,
+            espacoComumId,
+            status,
+            unidadeId,
+            isSindico);
         return Ok(items);
     }
 
@@ -106,6 +118,8 @@ public class ReservasController : ControllerBase
         try
         {
             var reservaDto = await _reservaService.SolicitarAsync(condominioId, usuarioId, inputDto);
+            if (reservaDto == null)
+                return StatusCode(500, "Erro ao criar reserva.");
             return CreatedAtAction(nameof(GetReservaPorId), new { id = reservaDto.Id }, reservaDto);
         }
         catch (ArgumentException ex)
@@ -329,6 +343,8 @@ public class ReservasController : ControllerBase
         try
         {
             var espacoCriadoDto = await _reservaService.CriarEspacoComumAsync(condominioId, inputDto);
+            if (espacoCriadoDto == null)
+                return StatusCode(500, "Erro ao criar espaço comum.");
             return CreatedAtAction(nameof(SyndicGetEspacoComumPorId), new { id = espacoCriadoDto.Id }, espacoCriadoDto);
         }
         catch (ArgumentException ex)
@@ -410,6 +426,7 @@ public class ReservasController : ControllerBase
         catch (Exception ex)
         {
             // Log ex
+            Console.Error.WriteLine(ex);
             return StatusCode(500, new { error="INTERNAL_ERROR", message = "Erro ao excluir espaço comum."});
         }
     }
