@@ -14,7 +14,7 @@ let criarEnqueteModal, formCriarEnquete, enqueteIdField, modalEnqueteTitle, form
 let modalEnqueteDetalhe, modalEnqueteDetalheTitulo, modalEnqueteDetalheDescricao, modalEnqueteDetalheOpcoesContainer, modalEnqueteDetalheStatus, modalEnqueteSubmitVotoButton;
 let criarChamadoModal, formCriarChamado, chamadoIdFieldModal, modalChamadoTitle, formChamadoSubmitButtonModal;
 let modalChamadoDetalhe, modalChamadoDetalheTitulo, modalChamadoDetalheConteudo, modalChamadoDetalheInteracoes, modalChamadoAddCommentSection, modalChamadoCommentText, modalChamadoSubmitCommentButton;
-let modalFiltros; // Novo modal de filtros
+let modalFiltros;
 
 // Modal specific form groups
 let chamadoStatusModalFormGroup;
@@ -63,9 +63,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadInitialFeedItems();
     setupFeedObserver();
     setupFeedContainerClickListener();
-    updateUserSpecificUI(); // Setup FABs
-    setupFilterModalAndButton(); // Setup filter modal and its trigger
-    setupModalEventListeners(); // Setup generic close/submit for other modals
+    updateUserSpecificUI();
+    setupFilterModalAndButton();
+    setupModalEventListeners();
 });
 
 // --- Tab System ---
@@ -73,7 +73,7 @@ function setupTabs() {
     const tabButtons = document.querySelectorAll('.cv-tab-button');
     const tabContents = document.querySelectorAll('.cv-tab-content');
     const muralContent = document.getElementById('content-mural');
-    const globalCategoryFilter = document.getElementById('category-filter-modal'); // Filter is now in modal
+    const globalCategoryFilter = document.getElementById('category-filter-modal');
 
     const userRoles = getUserRoles();
     const isSindico = userRoles.includes('Sindico') || userRoles.includes('Administrador');
@@ -110,10 +110,6 @@ function setupTabs() {
             }
 
             if (globalCategoryFilter) globalCategoryFilter.value = categoryToSetInGlobalFilter;
-
-            // Reset period filter when changing tabs? Optional. For now, no.
-            // document.getElementById('period-filter-modal').value = '';
-
             loadInitialFeedItems();
             updateUserSpecificUI(button.id);
         });
@@ -144,7 +140,7 @@ function setupFilterModalAndButton() {
             modalFiltros.style.display = 'none';
         });
     }
-    if (modalFiltros) { // Close on outside click
+    if (modalFiltros) {
         window.addEventListener('click', (event) => {
             if (event.target === modalFiltros) {
                 modalFiltros.style.display = 'none';
@@ -154,8 +150,8 @@ function setupFilterModalAndButton() {
     if (applyFiltersModalButton) {
         applyFiltersModalButton.addEventListener('click', () => {
             showGlobalFeedback("Aplicando filtros ao feed...", 'info');
-            loadInitialFeedItems(); // Reloads feed using values from modal's filters
-            if (modalFiltros) modalFiltros.style.display = 'none'; // Close modal after applying
+            loadInitialFeedItems();
+            if (modalFiltros) modalFiltros.style.display = 'none';
         });
     }
 }
@@ -179,7 +175,7 @@ function openEditFeedItemModal(itemType, itemId) {
             const categoriasSelect = document.getElementById('aviso-categorias');
             if (categoriasSelect) {
                 Array.from(categoriasSelect.options).forEach(option => option.selected = false);
-                if (itemData.categoria) { // Avisos (no DTO atual) têm uma única categoria
+                if (itemData.categoria) {
                     const optionToSelect = Array.from(categoriasSelect.options).find(opt => opt.value === itemData.categoria);
                     if (optionToSelect) optionToSelect.selected = true;
                 }
@@ -223,7 +219,6 @@ function setupModalEventListeners() {
                     corpo: corpo,
                     categoria: categoriaParaApi,
                 };
-                // Nota: Upload de arquivos (imagem, anexos) requer backend e apiClient preparados para FormData.
 
                 try {
                     showGlobalFeedback(currentAvisoId ? 'Salvando alterações...' : 'Criando aviso...', 'info');
@@ -264,7 +259,6 @@ function setupModalEventListeners() {
         });
     }
 
-    // Listeners for Criar Enquete Modal
     if (criarEnqueteModal) {
         document.querySelectorAll('.js-modal-criar-enquete-close').forEach(b => b.addEventListener('click', () => criarEnqueteModal.style.display = 'none'));
         window.addEventListener('click', e => { if (e.target === criarEnqueteModal) criarEnqueteModal.style.display = 'none'; });
@@ -301,7 +295,6 @@ function setupModalEventListeners() {
         }
     }
 
-    // Listeners for Criar Chamado Modal
     if (criarChamadoModal) {
         document.querySelectorAll('.js-modal-criar-chamado-close').forEach(btn => {
             btn.addEventListener('click', () => { if (criarChamadoModal) criarChamadoModal.style.display = 'none'; });
@@ -473,8 +466,6 @@ function updateUserSpecificUI(activeTabId = 'tab-mural') {
     });
 }
 
-// This function is now replaced by setupFilterModalAndButton
-// function setupFilterButtonListener() { ... }
 
 async function loadInitialFeedItems() {
     currentFeedPage = 1;
@@ -520,7 +511,7 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     let loadingP = container.querySelector(`.${loadingMessageClass}`);
 
     if (!append) {
-        const CategoriaFilterValue = document.getElementById('category-filter-modal')?.value?.toLowerCase() || ''; // From modal
+        const CategoriaFilterValue = document.getElementById('category-filter-modal')?.value?.toLowerCase() || '';
         document.querySelectorAll(`${feedContainerSelector} > .feed-item:not(.prio-0)`).forEach(el => el.remove());
 
         fetchedFeedItems = fetchedFeedItems.filter(fi => {
@@ -557,7 +548,6 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     }
     if (sentinelElement) sentinelElement.style.display = 'block';
 
-    // Read filters from the modal
     const categoriaFilter = document.getElementById('category-filter-modal')?.value || null;
     const periodoFilterInput = document.getElementById('period-filter-modal')?.value;
     let periodoInicio = null, periodoFim = null;
@@ -651,10 +641,30 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     }
 }
 
+function renderReservaFeedItem(item) {
+    const reserva = item.reservaInfo; // Assumindo que os detalhes da reserva estão aqui
+    if (!reserva) return ''; // Ou um card de erro/placeholder
+
+    const dataReservaFmt = new Date(reserva.dataInicio).toLocaleDateString('pt-BR', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+    });
+
+    let html = `
+        <p><strong>Espaço:</strong> ${reserva.nomeEspacoComum}</p>
+        <p><strong>Data:</strong> ${dataReservaFmt}</p>
+        <p><strong>Horário:</strong> ${reserva.horaInicio} às ${reserva.horaFim}</p>
+    `;
+    if (reserva.nomeUnidade) {
+        html += `<p><strong>Unidade:</strong> ${reserva.nomeUnidade}</p>`;
+    }
+    return html;
+}
+
+
 function renderFeedItem(item) {
     const card = document.createElement('article');
     card.className = `cv-card feed-item feed-item-${item.itemType.toLowerCase()} prio-${item.prioridadeOrdenacao}`;
-    card.dataset.itemId = item.id;
+    card.dataset.itemId = item.id; // Para Reserva, este será o IdReserva
     card.dataset.itemType = item.itemType;
 
     const pinLabel = item.prioridadeOrdenacao === 0 ? '<span class="feed-item__pin">📌 </span>' : '';
@@ -667,13 +677,13 @@ function renderFeedItem(item) {
     else if (item.itemType === "Documento") categoriaParaTag = "Documentos";
     else if (item.itemType === "Aviso" && item.categoria?.toLowerCase() === "urgente") categoriaParaTag = "Urgente";
     else if (item.itemType === "Aviso") categoriaParaTag = "Comunicados";
-    else if (item.itemType === "Reserva") categoriaParaTag = "Reservas";
+    else if (item.itemType === "Reserva") categoriaParaTag = "Reservas"; // Categoria para o tag visual
     else if (item.itemType === "Encomenda") categoriaParaTag = "Portaria";
 
 
     const categoriaMap = {
         "manutenção": "🛠️ Manutenção",
-        "reservas": "🏡 Reservas",
+        "reservas": "🏡 Reservas", // Emoji para a tag
         "comunicados": "📢 Comunicados",
         "enquete": "🗳️ Enquetes",
         "assembleias": "🧑‍⚖️ Assembleias",
@@ -687,12 +697,25 @@ function renderFeedItem(item) {
 
     let tagDisplay = categoriaMap[categoriaParaTag?.toLowerCase()] || categoriaParaTag;
 
+    // Título principal do card do feed
+    let cardTitle = item.titulo;
+    if (item.itemType === "Reserva" && item.reservaInfo) {
+        cardTitle = item.reservaInfo.tituloCustomizado || item.reservaInfo.tituloGerado || item.titulo;
+    }
 
     let contentHtml = `
-        <h3 class="feed-item__title">${pinLabel}${item.titulo}</h3>
+        <h3 class="feed-item__title">${pinLabel}${cardTitle}</h3>
         <p class="feed-item__summary">${item.resumo}</p>
+    `;
+
+    // Detalhes específicos para Reserva
+    if (item.itemType === "Reserva" && item.reservaInfo) {
+        contentHtml += renderReservaFeedItem(item); // Chama a função para detalhes da reserva
+    }
+
+    contentHtml += `
         <div class="feed-item__meta">
-            <span class="feed-item__date">Data: ${new Date(item.dataHoraPrincipal).toLocaleString()}</span>
+            <span class="feed-item__date">Data Principal: ${new Date(item.dataHoraPrincipal).toLocaleString('pt-BR')}</span>
             ${item.status ? `<span class="feed-item__status">Status: ${item.status}</span>` : ''}
         </div>
     `;
@@ -705,7 +728,8 @@ function renderFeedItem(item) {
     contentHtml += tagsHtml;
 
     let actionsHtml = `<div class="feed-item__actions">`;
-    if (item.urlDestino || ['Enquete', 'Chamado', 'Ocorrencia', 'OrdemServico', 'BoletoLembrete', 'Documento'].includes(item.itemType)) {
+    // Para reservas, o botão "Ver Detalhes" usará a urlDestino que leva para a página de reservas.
+    if (item.urlDestino || ['Enquete', 'Chamado', 'Ocorrencia', 'OrdemServico', 'BoletoLembrete', 'Documento', 'Reserva'].includes(item.itemType)) {
         actionsHtml += `<button class="cv-button-link js-view-item-detail" data-item-id="${item.id}" data-item-type="${item.itemType}">Ver Detalhes</button>`;
     }
 
@@ -724,6 +748,7 @@ function renderFeedItem(item) {
                 actionsHtml += `<button class="cv-button-link js-generate-ata-enquete-item" data-item-id="${item.id}" data-item-type="${item.itemType}">Gerar Ata</button>`;
             }
         }
+        // Ações de síndico para reservas (Ex: Cancelar diretamente do feed) podem ser adicionadas aqui se necessário.
     }
 
     actionsHtml += `</div>`;
@@ -743,7 +768,7 @@ async function handleFeedItemClick(event) {
     const cardElement = clickedElement.closest('.feed-item');
     if (!cardElement) return;
 
-    const itemId = cardElement.dataset.itemId;
+    const itemId = cardElement.dataset.itemId; // Para Reserva, este será o IdReserva
     const itemType = cardElement.dataset.itemType;
     if (!itemId || !itemType) return;
 
@@ -768,13 +793,16 @@ async function handleFeedItemClick(event) {
         return;
     }
 
-    if (clickedElement.classList.contains('js-view-item-detail') || event.target === cardElement || cardElement.contains(event.target)) {
-        if (clickedElement.closest('.feed-item__actions') && !clickedElement.classList.contains('js-view-item-detail')) {
-            return;
-        }
+    // Ação padrão de clique no card ou no botão "Ver Detalhes"
+    if (clickedElement.classList.contains('js-view-item-detail') ||
+        (event.target === cardElement || cardElement.contains(event.target) && !clickedElement.closest('.feed-item__actions button:not(.js-view-item-detail)'))
+       ) {
+
+        const itemData = fetchedFeedItems.find(i => i.id.toString() === itemId.toString() && i.itemType === itemType);
 
         switch (itemType) {
             case 'Aviso':
+                // Poderia abrir um modal com detalhes completos do aviso se o resumo for muito curto.
                 showGlobalFeedback(`Visualizando detalhes do Aviso (se houver modal dedicado).`, 'info');
                 break;
             case 'Enquete':
@@ -789,7 +817,7 @@ async function handleFeedItemClick(event) {
                 handleDocumentoClick(itemId, cardElement);
                 break;
             case 'Reserva':
-                handleReservaClick(itemId, cardElement);
+                handleReservaClick(itemId, cardElement); // Usa itemData.urlDestino
                 break;
             case 'Encomenda':
                 handleEncomendaClick(itemId, cardElement);
@@ -930,8 +958,6 @@ async function handleChamadoClick(itemId, targetElementOrCard, itemType = 'Chama
     modalChamadoDetalheInteracoes.innerHTML = '';
 
     const sindicoUpdateSection = document.getElementById('sindico-chamado-update-section');
-    const statusUpdateGroup = document.getElementById('modal-chamado-status-update-group'); // Not used directly here, but part of section
-    const respostaSindicoGroup = document.getElementById('modal-chamado-resposta-sindico-group'); // Not used directly here
     const submitSindicoUpdateButton = document.getElementById('modal-chamado-submit-sindico-update');
 
     if (sindicoUpdateSection) sindicoUpdateSection.style.display = 'none';
@@ -978,8 +1004,6 @@ async function handleChamadoClick(itemId, targetElementOrCard, itemType = 'Chama
             const newUpdateButton = submitSindicoUpdateButton.cloneNode(true);
             submitSindicoUpdateButton.parentNode.replaceChild(newUpdateButton, submitSindicoUpdateButton);
             newUpdateButton.onclick = () => submitChamadoUpdateBySindico(itemId);
-        } else if (itemType === 'Chamado' && userCommentSection) {
-             // userCommentSection.style.display = 'block'; // Logic for user comments can be added here
         }
 
     } catch (error) {
@@ -1089,7 +1113,11 @@ function handleDocumentoClick(itemId, targetElementOrCard) {
 
 function handleReservaClick(itemId, targetElementOrCard) {
     const item = fetchedFeedItems.find(i => i.id.toString() === itemId.toString() && i.itemType === 'Reserva');
-    showGlobalFeedback(`Reserva: ${item?.titulo || itemId}. Detalhes da reserva seriam exibidos aqui.`, 'info', 5000);
+    if (item && item.urlDestino) {
+        window.location.href = item.urlDestino;
+    } else {
+        showGlobalFeedback(`Reserva: ${item?.titulo || itemId}. Link para detalhes não encontrado.`, 'info', 5000);
+    }
 }
 
 function handleEncomendaClick(itemId, targetElementOrCard) {
@@ -1110,7 +1138,6 @@ function handleBoletoLembreteClick(itemId, targetElementOrCard) {
 // --- Enquetes e Votações Tab ---
 function setupEnquetesTab() {
     console.log("Modo de filtro de Enquetes ativado.");
-    // setupEnqueteModalAndFAB(); // Listeners are now more globally managed or within updateUserSpecificUI
 }
 
 function openCreateEnqueteModal() {
@@ -1190,8 +1217,6 @@ async function handleGenerateAtaEnquete(enqueteId) {
 
 
 function setupEnqueteModalAndFAB() {
-    // Listeners for FAB are in updateUserSpecificUI
-    // Listeners for modal form are in setupModalEventListeners
     console.log("setupEnqueteModalAndFAB (major logic moved)");
 }
 
@@ -1208,7 +1233,6 @@ function formatChamadoCategoria(categoria) {
 
 function setupSolicitacoesTab() {
     console.log("Modo de filtro de Solicitações ativado.");
-    // setupChamadoModalAndFAB(); // Listeners are now more globally managed
 }
 
 async function handleCreateChamado(chamadoData) {
@@ -1217,7 +1241,6 @@ async function handleCreateChamado(chamadoData) {
         const dataParaApi = {
             Titulo: chamadoData.titulo,
             Descricao: `Categoria: ${chamadoData.categoria}\n\n${chamadoData.descricao}`,
-            // Fotos e UnidadeId são opcionais e seriam adicionados aqui se presentes em chamadoData e suportados pelo DTO.
         };
         await apiClient.post('/api/v1/chamados/app/chamados', dataParaApi);
         showGlobalFeedback('Novo chamado aberto com sucesso! Ele aparecerá no feed.', 'success');
@@ -1236,8 +1259,6 @@ async function handleUpdateChamado(id, chamadoData) {
 }
 
 function setupChamadoModalAndFAB() {
-    // Listeners for FAB are in updateUserSpecificUI
-    // Listeners for modal form are in setupModalEventListeners
     console.log("setupChamadoModalAndFAB (major logic moved)");
 }
 
@@ -1253,3 +1274,4 @@ function openCreateChamadoModal() {
         criarChamadoModal.style.display = 'flex';
     }
 }
+>>>>>>> REPLACE
