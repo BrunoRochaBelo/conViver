@@ -4,6 +4,8 @@ public enum ReservaStatus
 {
     Pendente,
     Confirmada,
-    Concluida,
-    Cancelada
+    Recusada,
+    CanceladaPeloUsuario,
+    CanceladaPeloSindico,
+    Concluida
 }

@@ -235,7 +235,7 @@ public class ReservasController : ControllerBase
             return Unauthorized("CondominioId não encontrado ou inválido no token.");
         }
 
-        var paginatedResult = await _reservaService.ListarTodasReservasAsync(condominioId, filters, true); // true for isSindico
+        var paginatedResult = await _reservaService.ListarTodasReservasAsync(condominioId, filters);
         return Ok(paginatedResult);
     }
 

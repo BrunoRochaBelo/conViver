@@ -73,9 +73,9 @@ public class ReservaService
                 r.EspacoComum.CondominioId == condominioId &&
                 r.Inicio <= fimMes &&
                 r.Fim >= inicioMes &&
-                r.Status is not (ReservaStatus.Recusada or
-                                 ReservaStatus.CanceladaPeloUsuario or
-                                 ReservaStatus.CanceladaPeloSindico))
+                r.Status != ReservaStatus.Recusada &&
+                r.Status != ReservaStatus.CanceladaPeloUsuario &&
+                r.Status != ReservaStatus.CanceladaPeloSindico)
             .ToListAsync(ct);
 
         return reservasNoMes.Select(r => new AgendaReservaDto
@@ -87,9 +87,9 @@ public class ReservaService
             Fim = r.Fim,
             Status = r.Status.ToString(),
             UnidadeId = r.UnidadeId,
-            NomeUnidade = r.Unidade?.Nome,
+            NomeUnidade = r.Unidade?.Identificacao,
             TituloReserva = $"{r.EspacoComum?.Nome} - " +
-                $"{(r.Unidade?.Nome ?? $"Unid. {r.UnidadeId.ToString()[..4]}")}",
+                $"{(r.Unidade?.Identificacao ?? $"Unid. {r.UnidadeId.ToString()[..4]}")}",
             PertenceAoUsuarioLogado = r.UsuarioId == usuarioLogadoId
         });
     }
@@ -288,7 +288,7 @@ public class ReservaService
             Id = reserva.Id,
             CondominioId = reserva.CondominioId,
             UnidadeId = reserva.UnidadeId,
-            NomeUnidade = reserva.Unidade?.Nome,
+            NomeUnidade = reserva.Unidade?.Identificacao,
             UsuarioId = reserva.UsuarioId,
             NomeUsuarioSolicitante = solicitante?.Nome,
             EspacoComumId = reserva.EspacoComumId,
@@ -344,6 +344,31 @@ public class ReservaService
         return true;
     }
 
+    public async Task<ReservaDto?> EditarReservaAsync(
+        Guid reservaId,
+        Guid condominioId,
+        Guid sindicoUserId,
+        ReservaInputDto dto,
+        CancellationToken ct = default)
+    {
+        var reserva = await _reservaRepository.Query()
+            .FirstOrDefaultAsync(r => r.Id == reservaId && r.CondominioId == condominioId, ct);
+        if (reserva == null)
+            throw new KeyNotFoundException("Reserva não encontrada.");
+
+        // Atualiza informações básicas. Validações mais complexas podem ser adicionadas conforme necessário.
+        reserva.Inicio = dto.Inicio;
+        reserva.Fim = dto.Fim;
+        reserva.Observacoes = dto.Observacoes;
+        reserva.UpdatedAt = DateTime.UtcNow;
+        reserva.AprovadorId = sindicoUserId;
+
+        await _reservaRepository.UpdateAsync(reserva, ct);
+        await _reservaRepository.SaveChangesAsync(ct);
+
+        return await GetByIdAsync(reservaId, condominioId, sindicoUserId, true, ct);
+    }
+
     public async Task<PaginatedResultDto<ReservaDto>> ListarTodasReservasAsync(
         Guid condominioId,
         ReservaFilterDto filters,
@@ -390,7 +415,7 @@ public class ReservaService
                 Id = r.Id,
                 CondominioId = r.CondominioId,
                 UnidadeId = r.UnidadeId,
-                NomeUnidade = r.Unidade?.Nome,
+                NomeUnidade = r.Unidade?.Identificacao,
                 UsuarioId = r.UsuarioId,
                 NomeUsuarioSolicitante = sol?.Nome,
                 EspacoComumId = r.EspacoComumId,
@@ -438,7 +463,7 @@ public class ReservaService
                 Id = r.Id,
                 CondominioId = r.CondominioId,
                 UnidadeId = r.UnidadeId,
-                NomeUnidade = r.Unidade?.Nome,
+                NomeUnidade = r.Unidade?.Identificacao,
                 UsuarioId = r.UsuarioId,
                 NomeUsuarioSolicitante = sol?.Nome,
                 EspacoComumId = r.EspacoComumId,

@@ -456,8 +456,8 @@ namespace conViver.Application.Services
                 {
                     ItemType = "Reserva",
                     Id = reserva.Id,
-                    Titulo = $"Reserva Confirmada: {reserva.Area}",
-                    Resumo = $"Sua reserva para {reserva.Area} está confirmada para {reserva.Inicio:dd/MM/yyyy HH:mm} até {reserva.Fim:HH:mm}.",
+                    Titulo = $"Reserva Confirmada: {reserva.EspacoComum?.Nome}",
+                    Resumo = $"Sua reserva para {reserva.EspacoComum?.Nome} está confirmada para {reserva.Inicio:dd/MM/yyyy HH:mm} até {reserva.Fim:HH:mm}.",
                     DataHoraPrincipal = reserva.Inicio,
                     DataHoraAtualizacao = reserva.UpdatedAt,
                     PrioridadeOrdenacao = 1, // Normal priority
@@ -465,7 +465,7 @@ namespace conViver.Application.Services
                     Icone = "icon-reserva-confirmada",
                     Status = reserva.Status.ToString(),
                     Categoria = "Reservas",
-                    DetalhesAdicionais = new { reserva.Area, reserva.Fim, reserva.Taxa }
+                    DetalhesAdicionais = new { Area = reserva.EspacoComum?.Nome, reserva.Fim, reserva.Taxa }
                 });
             }
             return feedItems;
