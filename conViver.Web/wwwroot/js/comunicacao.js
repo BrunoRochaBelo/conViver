@@ -34,6 +34,7 @@ let chamadoInteractionsContainer;
 // Modal specific (global as modal is global)
 let chamadoStatusModalFormGroup;
 let chamadoCategoriaModalFormGroup;
+let modalFiltros;
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -68,6 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     chamadoInteractionsContainer = document.querySelector('#content-solicitacoes .js-chamado-interactions');
     chamadoStatusModalFormGroup = document.querySelector('#modal-criar-chamado .js-chamado-status-form-group'); // Modal is global
     chamadoCategoriaModalFormGroup = document.querySelector('#modal-criar-chamado .js-chamado-categoria-form-group'); // Modal is global
+    modalFiltros = document.getElementById('modal-filtros');
 
     setupTabs();
 
@@ -78,7 +80,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupFeedContainerClickListener(); // Added for item clicks
 
     updateUserSpecificUI(); // This might need review if FAB actions change per tab
-    setupFilterButtonListener(); // This will now apply to the feed
+    setupFilterModalAndButton();
     setupModalEventListeners(); // Generic modal listeners (close, etc.)
 });
 
@@ -86,93 +88,52 @@ document.addEventListener('DOMContentLoaded', async () => {
 function setupTabs() {
     const tabButtons = document.querySelectorAll('.cv-tab-button');
     const tabContents = document.querySelectorAll('.cv-tab-content');
+    const globalCategoryFilter = document.getElementById('category-filter-modal');
+
+    const userRoles = getUserRoles();
+    const isSindico = userRoles.includes('Sindico') || userRoles.includes('Administrador');
+
+    document.querySelectorAll('.js-sindico-only-message').forEach(msg => {
+        msg.style.display = isSindico ? 'inline' : 'none';
+    });
+
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            tabContents.forEach(content => content.style.display = 'none');
             tabButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
-            tabContents.forEach(content => content.style.display = 'none');
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
+            tabContents.forEach(content => {
+                const targetId = 'content-' + button.id.replace('tab-', '');
+                content.style.display = content.id === targetId ? 'block' : 'none';
+            });
 
-            const muralContent = document.getElementById('content-mural');
-            const enquetesContent = document.getElementById('content-enquetes');
-            const solicitacoesContent = document.getElementById('content-solicitacoes');
-            const muralCategoryFilter = document.getElementById('category-filter');
-            const periodFilter = document.getElementById('period-filter');
-
-            // Hide all specific content sections first
-            if (enquetesContent) enquetesContent.style.display = 'none';
-            if (solicitacoesContent) solicitacoesContent.style.display = 'none';
-            // Mural content will be shown by default or after filtering
-            if (muralContent) muralContent.style.display = 'block';
-
-
-            let filterChanged = false;
-            const currentCategory = muralCategoryFilter ? muralCategoryFilter.value : '';
-            const currentPeriod = periodFilter ? periodFilter.value : '';
-
-            if (button.id === 'tab-mural') {
-                if (muralCategoryFilter && muralCategoryFilter.value !== '') {
-                    muralCategoryFilter.value = ''; // 'Todas'
-                    filterChanged = true;
-                }
-                // Optionally reset period filter too, or leave as is
-                // if (periodFilter && periodFilter.value !== '') { periodFilter.value = ''; filterChanged = true; }
-
-                if (!button.dataset.initializedMural) {
-                    // loadInitialFeedItems(); // Load all items - Handled below by filterChanged or initial load
-                    button.dataset.initializedMural = 'true';
-                }
-            } else if (button.id === 'tab-enquetes') {
-                if (!button.dataset.initializedEnquetes) {
-                    setupEnquetesTab(); // Sets up one-time things for this filter mode (e.g. FAB modal)
-                    button.dataset.initializedEnquetes = 'true';
-                }
-                if (muralCategoryFilter && muralCategoryFilter.value !== 'enquetes') {
-                    muralCategoryFilter.value = 'enquetes';
-                    filterChanged = true;
+            let categoryToSetInGlobalFilter = '';
+            if (button.id === 'tab-enquetes') {
+                categoryToSetInGlobalFilter = 'enquete';
+                if (!button.dataset.initialized) {
+                    setupEnquetesTab();
+                    button.dataset.initialized = 'true';
                 }
             } else if (button.id === 'tab-solicitacoes') {
-                if (!button.dataset.initializedSolicitacoes) {
-                    setupSolicitacoesTab(); // Sets up one-time things for this filter mode (e.g. FAB modal)
-                    button.dataset.initializedSolicitacoes = 'true';
-                }
-                if (muralCategoryFilter && muralCategoryFilter.value !== 'solicitacoes') {
-                    muralCategoryFilter.value = 'solicitacoes';
-                    filterChanged = true;
+                categoryToSetInGlobalFilter = 'solicitacoes';
+                if (!button.dataset.initialized) {
+                    setupSolicitacoesTab();
+                    button.dataset.initialized = 'true';
                 }
             }
 
-            // Reload feed if the filter was changed by selecting a tab, or if it's the first time for that tab.
-            // The initial load on DOMContentLoaded will handle the very first page view.
-            if (filterChanged ||
-                (button.id === 'tab-mural' && button.dataset.initializedMural === 'true') || // Always reload mural if re-clicked
-                (button.id === 'tab-enquetes' && button.dataset.initializedEnquetes === 'true') ||
-                (button.id === 'tab-solicitacoes' && button.dataset.initializedSolicitacoes === 'true') ) {
-                loadInitialFeedItems();
-            }
-
-            // Show/hide FABs based on the *logical* tab
+            if (globalCategoryFilter) globalCategoryFilter.value = categoryToSetInGlobalFilter;
+            loadInitialFeedItems();
             updateUserSpecificUI(button.id);
         });
     });
 
-    // Ensure the default active tab's logic is triggered correctly on page load
     const activeTab = document.querySelector('.cv-tab-button.active');
     if (activeTab) {
-        // Set the initialized flag before click to prevent double load if filter logic doesn't change.
-        if (activeTab.id === 'tab-mural') activeTab.dataset.initializedMural = 'true';
-        else if (activeTab.id === 'tab-enquetes') activeTab.dataset.initializedEnquetes = 'true';
-        else if (activeTab.id === 'tab-solicitacoes') activeTab.dataset.initializedSolicitacoes = 'true';
-        activeTab.click(); // This will now correctly set filters and call loadInitialFeedItems if needed.
+        activeTab.click();
     } else {
         const firstTab = document.querySelector('.cv-tab-button');
-        if (firstTab) {
-            if (firstTab.id === 'tab-mural') firstTab.dataset.initializedMural = 'true';
-            firstTab.click();
-        }
+        if (firstTab) firstTab.click();
     }
 }
 
@@ -314,13 +275,35 @@ function updateUserSpecificUI() {
         }
     }
 }
-function setupFilterButtonListener() {
-    const btn = document.getElementById('apply-filters-button');
-    if (btn) btn.addEventListener('click', () => {
-        // Filter values are now read directly in fetchAndDisplayFeedItems
-        showGlobalFeedback("Aplicando filtros ao feed...", 'info');
-        loadInitialFeedItems();
-    });
+function setupFilterModalAndButton() {
+    const openFilterButton = document.getElementById('open-filter-modal-button');
+    const closeFilterModalButton = document.querySelector('.js-modal-filtros-close');
+    const applyFiltersModalButton = document.getElementById('apply-filters-button-modal');
+
+    if (openFilterButton && modalFiltros) {
+        openFilterButton.addEventListener('click', () => {
+            modalFiltros.style.display = 'flex';
+        });
+    }
+    if (closeFilterModalButton && modalFiltros) {
+        closeFilterModalButton.addEventListener('click', () => {
+            modalFiltros.style.display = 'none';
+        });
+    }
+    if (modalFiltros) {
+        window.addEventListener('click', (event) => {
+            if (event.target === modalFiltros) {
+                modalFiltros.style.display = 'none';
+            }
+        });
+    }
+    if (applyFiltersModalButton) {
+        applyFiltersModalButton.addEventListener('click', () => {
+            showGlobalFeedback("Aplicando filtros ao feed...", 'info');
+            loadInitialFeedItems();
+            if (modalFiltros) modalFiltros.style.display = 'none';
+        });
+    }
 }
 async function loadInitialFeedItems() {
     currentFeedPage = 1;
