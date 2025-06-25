@@ -14,6 +14,8 @@ public class NotificationService : INotificacaoService
 
     public Task SendAsync(string destino, string mensagem, CancellationToken cancellationToken = default)
     {
+        // TODO: Implementar a lógica real de envio de notificação (e.g., Firebase, SendGrid, etc.)
+        // Por enquanto, apenas loga a tentativa.
         _logger.LogInformation("Sending notification to {destino}: {msg}", destino, mensagem);
         return Task.CompletedTask;
     }
@@ -56,5 +58,16 @@ public class NotificationService : INotificacaoService
         string mensagem = $"[NOTIFICACAO] Unidade {unidadeId}: Visitante '{nomeVisitante}' registrou saída.";
         _logger.LogInformation(mensagem);
         return Task.CompletedTask;
+    }
+
+    // Novo método implementado
+    public Task SendToUserAsync(Guid userId, string message, CancellationToken cancellationToken = default)
+    {
+        string userDestino = $"user:{userId}";
+        // Loga a intenção de enviar para um usuário específico.
+        // A implementação real dependeria de como o sistema de notificação lida com usuários individuais.
+        // Por ora, reutiliza o SendAsync genérico que apenas loga.
+        _logger.LogInformation("Preparing user-specific notification for {userDestino}", userDestino);
+        return SendAsync(userDestino, message, cancellationToken);
     }
 }
