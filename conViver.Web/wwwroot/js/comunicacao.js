@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupTabs();
 
     // Mural Tab (Unified Feed)
-    await loadStickyNotices(); // Keep for now, may be integrated or removed later
+    // await loadStickyNotices(); // Removed as sticky items are part of the main feed logic
     await loadInitialFeedItems();
     setupFeedObserver();
     setupFeedContainerClickListener(); // Added for item clicks
@@ -86,91 +86,77 @@ document.addEventListener('DOMContentLoaded', async () => {
 function setupTabs() {
     const tabButtons = document.querySelectorAll('.cv-tab-button');
     const tabContents = document.querySelectorAll('.cv-tab-content');
+    const fabMural = document.querySelector('.js-fab-mural');
+    const fabEnquetes = document.querySelector('.js-fab-enquetes');
+    const fabSolicitacoes = document.querySelector('.js-fab-chamados');
+    const categoryFilterModal = document.getElementById('category-filter-modal'); // Get the filter dropdown
+
+    // Ensure #content-mural is visible, others are not (as they are placeholders or managed differently)
+    document.getElementById('content-mural').style.display = 'block';
+    document.getElementById('content-enquetes').style.display = 'none'; // Keep placeholder hidden
+    document.getElementById('content-solicitacoes').style.display = 'none'; // Keep placeholder hidden
+
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            tabContents.forEach(content => content.style.display = 'none');
             tabButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
-            tabContents.forEach(content => content.style.display = 'none');
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
+            // FAB visibility
+            if (fabMural) fabMural.style.display = 'none';
+            if (fabEnquetes) fabEnquetes.style.display = 'none';
+            if (fabSolicitacoes) fabSolicitacoes.style.display = 'none';
 
-            const muralContent = document.getElementById('content-mural');
-            const enquetesContent = document.getElementById('content-enquetes');
-            const solicitacoesContent = document.getElementById('content-solicitacoes');
-            const muralCategoryFilter = document.getElementById('category-filter');
-            const periodFilter = document.getElementById('period-filter');
-
-            // Hide all specific content sections first
-            if (enquetesContent) enquetesContent.style.display = 'none';
-            if (solicitacoesContent) solicitacoesContent.style.display = 'none';
-            // Mural content will be shown by default or after filtering
-            if (muralContent) muralContent.style.display = 'block';
-
-
-            let filterChanged = false;
-            const currentCategory = muralCategoryFilter ? muralCategoryFilter.value : '';
-            const currentPeriod = periodFilter ? periodFilter.value : '';
+            let newCategoryFilter = ''; // Default to 'Todas'
 
             if (button.id === 'tab-mural') {
-                if (muralCategoryFilter && muralCategoryFilter.value !== '') {
-                    muralCategoryFilter.value = ''; // 'Todas'
-                    filterChanged = true;
-                }
-                // Optionally reset period filter too, or leave as is
-                // if (periodFilter && periodFilter.value !== '') { periodFilter.value = ''; filterChanged = true; }
-
+                if (fabMural) fabMural.style.display = 'block';
+                newCategoryFilter = ''; // 'Todas'
+                // Initialize create aviso modal if not done (assuming setupAvisoModalAndFAB exists or is part of general modal setup)
                 if (!button.dataset.initializedMural) {
-                    // loadInitialFeedItems(); // Load all items - Handled below by filterChanged or initial load
+                    // setupAvisoModalAndFAB(); // Or ensure it's covered by setupModalEventListeners
                     button.dataset.initializedMural = 'true';
                 }
             } else if (button.id === 'tab-enquetes') {
+                if (fabEnquetes) fabEnquetes.style.display = 'block';
+                newCategoryFilter = 'enquete'; // Value for filtering enquetes
                 if (!button.dataset.initializedEnquetes) {
-                    setupEnquetesTab(); // Sets up one-time things for this filter mode (e.g. FAB modal)
+                    setupEnqueteModalAndFAB();
                     button.dataset.initializedEnquetes = 'true';
                 }
-                if (muralCategoryFilter && muralCategoryFilter.value !== 'enquetes') {
-                    muralCategoryFilter.value = 'enquetes';
-                    filterChanged = true;
-                }
             } else if (button.id === 'tab-solicitacoes') {
+                if (fabSolicitacoes) fabSolicitacoes.style.display = 'block';
+                newCategoryFilter = 'solicitacoes'; // Value for filtering solicitações
                 if (!button.dataset.initializedSolicitacoes) {
-                    setupSolicitacoesTab(); // Sets up one-time things for this filter mode (e.g. FAB modal)
+                    setupChamadoModalAndFAB();
                     button.dataset.initializedSolicitacoes = 'true';
                 }
-                if (muralCategoryFilter && muralCategoryFilter.value !== 'solicitacoes') {
-                    muralCategoryFilter.value = 'solicitacoes';
-                    filterChanged = true;
-                }
             }
 
-            // Reload feed if the filter was changed by selecting a tab, or if it's the first time for that tab.
-            // The initial load on DOMContentLoaded will handle the very first page view.
-            if (filterChanged ||
-                (button.id === 'tab-mural' && button.dataset.initializedMural === 'true') || // Always reload mural if re-clicked
-                (button.id === 'tab-enquetes' && button.dataset.initializedEnquetes === 'true') ||
-                (button.id === 'tab-solicitacoes' && button.dataset.initializedSolicitacoes === 'true') ) {
+            // Apply the filter if it has changed
+            if (categoryFilterModal && categoryFilterModal.value !== newCategoryFilter) {
+                categoryFilterModal.value = newCategoryFilter;
+                loadInitialFeedItems(); // Reload feed with the new category
+            } else if (!categoryFilterModal && newCategoryFilter !== '') {
+                // If filter modal doesn't exist but we want to filter, this is an issue.
+                // For now, assume it exists. If it might not, we'd need to handle it.
+                loadInitialFeedItems(); // Load if filter should be applied but modal wasn't there to compare
+            } else if (button.dataset.initialClick !== 'true') {
+                 // If it's the first click on this tab (after page load) and filter didn't change, still load.
+                 // This handles the case where the default active tab on load needs its specific items.
                 loadInitialFeedItems();
             }
-
-            // Show/hide FABs based on the *logical* tab
-            updateUserSpecificUI(button.id);
+            button.dataset.initialClick = 'true'; // Mark that this tab has been clicked at least once
         });
     });
 
-    // Ensure the default active tab's logic is triggered correctly on page load
+    // Programmatically click the default active tab to apply its filter and load content
     const activeTab = document.querySelector('.cv-tab-button.active');
     if (activeTab) {
-        // Set the initialized flag before click to prevent double load if filter logic doesn't change.
-        if (activeTab.id === 'tab-mural') activeTab.dataset.initializedMural = 'true';
-        else if (activeTab.id === 'tab-enquetes') activeTab.dataset.initializedEnquetes = 'true';
-        else if (activeTab.id === 'tab-solicitacoes') activeTab.dataset.initializedSolicitacoes = 'true';
-        activeTab.click(); // This will now correctly set filters and call loadInitialFeedItems if needed.
+        activeTab.click(); // Trigger the click handler to set up content and FABs
     } else {
+        // If no tab is active by default, activate the first one
         const firstTab = document.querySelector('.cv-tab-button');
         if (firstTab) {
-            if (firstTab.id === 'tab-mural') firstTab.dataset.initializedMural = 'true';
             firstTab.click();
         }
     }
@@ -273,13 +259,7 @@ async function handleDeleteAviso(itemId) { // Parameter changed to itemId
     }
     showGlobalFeedback('Aviso excluído! (simulado)', 'success');
 }
-async function loadStickyNotices() {
-    const stickyContainer = document.querySelector('.js-sticky-notices');
-    if (!stickyContainer) return;
-    // This might be replaced or augmented by prioritized items from the backend feed
-    // For now, keeping example sticky notice.
-    stickyContainer.innerHTML = `<article class="cv-card communication__post"><h3 class="communication__post-title">Aviso Urgente Fixo Exemplo</h3><p>Este é um exemplo de aviso fixo.</p></article>`;
-}
+
 function updateUserSpecificUI() {
     const fabMural = document.querySelector('.js-fab-mural');
     if (fabMural) {
@@ -590,41 +570,316 @@ function handleAvisoClick(itemId, targetElementOrCard) {
 
 function handleEnqueteClick(itemId, targetElementOrCard) {
     const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Enquete');
-    showGlobalFeedback(`Enquete: ${item?.titulo || itemId}. Funcionalidade de visualização/votação a ser implementada.`, 'info');
-    // TODO: Integrate with enquete viewing/voting modal logic from setupEnquetesTab.js
-    // This might involve:
-    // 1. Fetching full enquete details if 'item' is just a summary.
-    // 2. Adapting viewPollResults(itemId, isHistory) or parts of loadActiveEnquetes to show options/results in a modal.
+    if (!item) {
+        showGlobalFeedback('Detalhes da enquete não encontrados no feed local.', 'error');
+        return;
+    }
+    openEnqueteDetalheModal(itemId);
+}
+
+async function openEnqueteDetalheModal(enqueteId) {
+    const modal = document.getElementById('modal-enquete-detalhe');
+    const tituloEl = document.getElementById('modal-enquete-detalhe-titulo');
+    const descricaoEl = document.getElementById('modal-enquete-detalhe-descricao');
+    const opcoesContainerEl = document.getElementById('modal-enquete-detalhe-opcoes-container');
+    const statusEl = document.getElementById('modal-enquete-detalhe-status');
+    const votarBtn = document.getElementById('modal-enquete-submit-voto');
+    const fecharBtn = modal.querySelector('.js-modal-enquete-detalhe-close');
+
+    if (!modal || !tituloEl || !descricaoEl || !opcoesContainerEl || !statusEl || !votarBtn || !fecharBtn) {
+        console.error("Elementos do modal de detalhe da enquete não encontrados.");
+        return;
+    }
+
+    // Clear previous content
+    tituloEl.textContent = 'Carregando enquete...';
+    descricaoEl.innerHTML = '';
+    opcoesContainerEl.innerHTML = '';
+    statusEl.innerHTML = '';
+    votarBtn.style.display = 'none';
+    votarBtn.onclick = null; // Remove previous listener
+
+    modal.style.display = 'flex';
+
+    try {
+        // Path updated based on VotacoesController
+        const enqueteDetalhe = await apiClient.get(`/api/v1/Votacoes/app/votacoes/${enqueteId}`);
+
+        tituloEl.textContent = enqueteDetalhe.titulo;
+        descricaoEl.innerHTML = enqueteDetalhe.descricao ? `<p>${enqueteDetalhe.descricao.replace(/\n/g, '<br>')}</p>` : '<p><em>Sem descrição adicional.</em></p>';
+
+        let statusContent = `Status: ${enqueteDetalhe.status}`;
+        if (enqueteDetalhe.dataFim) {
+            statusContent += ` | Termina em: ${new Date(enqueteDetalhe.dataFim).toLocaleString()}`;
+        }
+        statusEl.innerHTML = statusContent;
+
+        if (enqueteDetalhe.status !== 'Aberta' || enqueteDetalhe.usuarioJaVotou) {
+            // Poll closed or user already voted - show results
+            opcoesContainerEl.innerHTML = '<h4>Resultados:</h4>';
+            if (enqueteDetalhe.opcoes && enqueteDetalhe.opcoes.length > 0) {
+                const totalVotos = enqueteDetalhe.opcoes.reduce((sum, opt) => sum + opt.quantidadeVotos, 0);
+                enqueteDetalhe.opcoes.forEach(opcao => {
+                    const percentual = totalVotos > 0 ? ((opcao.quantidadeVotos / totalVotos) * 100).toFixed(1) : 0;
+                    const resultadoDiv = document.createElement('div');
+                    resultadoDiv.className = 'enquete-resultado-opcao';
+                    resultadoDiv.innerHTML = `
+                        <p>${opcao.descricao}: ${opcao.quantidadeVotos} voto(s) (${percentual}%)</p>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: ${percentual}%;"></div>
+                        </div>
+                    `;
+                    opcoesContainerEl.appendChild(resultadoDiv);
+                });
+                if (enqueteDetalhe.usuarioJaVotou) {
+                     const jaVotouMsg = document.createElement('p');
+                     jaVotouMsg.style.marginTop = '10px';
+                     jaVotouMsg.innerHTML = '<em>Você já votou nesta enquete.</em>';
+                     opcoesContainerEl.appendChild(jaVotouMsg);
+                }
+            } else {
+                opcoesContainerEl.innerHTML += '<p>Ainda não há resultados ou opções para esta enquete.</p>';
+            }
+            votarBtn.style.display = 'none';
+        } else {
+            // Poll is open and user has not voted - show options for voting
+            opcoesContainerEl.innerHTML = '<h4>Opções:</h4>';
+            if (enqueteDetalhe.opcoes && enqueteDetalhe.opcoes.length > 0) {
+                enqueteDetalhe.opcoes.forEach(opcao => {
+                    const label = document.createElement('label');
+                    label.className = 'cv-radio-option';
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = 'enquete_opcao';
+                    input.value = opcao.id;
+                    input.required = true;
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(` ${opcao.descricao}`));
+                    opcoesContainerEl.appendChild(label);
+                });
+                votarBtn.style.display = 'block';
+                votarBtn.dataset.enqueteId = enqueteId; // Store enqueteId for the submit handler
+                votarBtn.onclick = handleSubmitVoto; // Assign new listener
+            } else {
+                opcoesContainerEl.innerHTML += '<p>Não há opções de voto disponíveis.</p>';
+                votarBtn.style.display = 'none';
+            }
+        }
+
+    } catch (error) {
+        console.error("Erro ao buscar detalhes da enquete:", error);
+        tituloEl.textContent = 'Erro ao carregar enquete';
+        descricaoEl.innerHTML = `<p class="cv-error-message">Não foi possível carregar os detalhes: ${error.message}</p>`;
+    }
+
+    // Ensure close button works
+    const currentCloseHandler = () => {
+        modal.style.display = 'none';
+        fecharBtn.removeEventListener('click', currentCloseHandler); // Clean up listener
+    };
+    fecharBtn.addEventListener('click', currentCloseHandler);
+
+    // Close on clicking outside modal content
+    const currentWindowClickHandler = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+            window.removeEventListener('click', currentWindowClickHandler); // Clean up listener
+        }
+    };
+    window.addEventListener('click', currentWindowClickHandler);
+}
+
+
+async function handleSubmitVoto(event) {
+    const votarBtn = event.target;
+    const enqueteId = votarBtn.dataset.enqueteId;
+    const opcoesContainerEl = document.getElementById('modal-enquete-detalhe-opcoes-container');
+    const selectedOptionInput = opcoesContainerEl.querySelector('input[name="enquete_opcao"]:checked');
+
+    if (!selectedOptionInput) {
+        showGlobalFeedback('Por favor, selecione uma opção para votar.', 'warning');
+        return;
+    }
+    const opcaoId = selectedOptionInput.value;
+
+    try {
+        // Path updated
+        await apiClient.post(`/api/v1/Votacoes/app/votacoes/${enqueteId}/votar`, { opcaoId });
+        showGlobalFeedback('Voto registrado com sucesso!', 'success');
+        votarBtn.style.display = 'none';
+        // Refresh modal content to show results
+        await openEnqueteDetalheModal(enqueteId);
+        // Optionally, refresh the main feed if the item's appearance might change (e.g., status in summary)
+        loadInitialFeedItems(); // This will re-fetch and re-render all items
+    } catch (error) {
+        console.error("Erro ao registrar voto:", error);
+        let errorMessage = 'Erro ao registrar voto.';
+        if (error.response && error.response.data && error.response.data.message) {
+            errorMessage = error.response.data.message;
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        // Specific handling for 409 Conflict (already voted)
+        if (error.response && error.response.status === 409) {
+            errorMessage = "Você já votou nesta enquete.";
+            // Refresh modal to show results, as the user might have voted in another session
+            await openEnqueteDetalheModal(enqueteId);
+        }
+        showGlobalFeedback(errorMessage, 'error');
+    }
 }
 
 function handleChamadoClick(itemId, targetElementOrCard) {
     const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Chamado');
-    showGlobalFeedback(`Chamado: ${item?.titulo || itemId}. Tentando exibir detalhes...`, 'info');
-    // Attempt to use existing viewChamadoDetail
-    // This is a placeholder integration. True integration requires careful state management
-    // if viewChamadoDetail manipulates general page layout rather than a modal.
-    // It also assumes 'chamadosData' is populated or viewChamadoDetail can fetch its own data.
-    // For now, we pass a simplified object if the original function expects it, or just the ID.
+    if (!item) {
+        showGlobalFeedback('Detalhes do chamado não encontrados no feed local.', 'error');
+        return;
+    }
+    openChamadoDetalheModal(itemId);
+}
 
-    // Switch to "Solicitações" tab and display details
-    // This is a bit of a hack for now. Ideally, details are shown in a modal within the Mural tab.
-    const solicitacoesTabButton = document.getElementById('tab-solicitacoes');
-    if (solicitacoesTabButton) {
-        solicitacoesTabButton.click(); // Switch tab
-        // Wait for tab switch and content to potentially initialize/load
-        setTimeout(() => {
-            // Check if viewChamadoDetail is available and if it can work with just an ID
-            // The existing viewChamadoDetail relies on a global `chamadosData` array which is sample data.
-            // This will not work correctly without significant refactoring of viewChamadoDetail.
-            // For this subtask, we'll show a message.
-            // viewChamadoDetail(itemId);
-            showGlobalFeedback(`Chamado item: ${item?.titulo || itemId}. Detalhes seriam exibidos aqui ou na aba Solicitações.`, 'info', 5000);
-            console.log("Original Chamado Data for Detail View (if needed by an adapted viewChamadoDetail):", item);
-        }, 100);
-    } else {
-         showGlobalFeedback(`Chamado item: ${item?.titulo || itemId}. Detalhes seriam exibidos aqui.`, 'info', 5000);
+async function openChamadoDetalheModal(chamadoId) {
+    const modal = document.getElementById('modal-chamado-detalhe');
+    const tituloEl = document.getElementById('modal-chamado-detalhe-titulo');
+    const conteudoEl = document.getElementById('modal-chamado-detalhe-conteudo');
+    const interacoesEl = document.getElementById('modal-chamado-detalhe-interacoes');
+    const sindicoUpdateSection = document.getElementById('sindico-chamado-update-section');
+    const statusSelect = document.getElementById('modal-chamado-status-select');
+    const respostaTextarea = document.getElementById('modal-chamado-resposta-textarea');
+    const submitSindicoUpdateBtn = document.getElementById('modal-chamado-submit-sindico-update');
+    const addCommentSection = document.getElementById('modal-chamado-add-comment-section');
+    const commentTextarea = document.getElementById('modal-chamado-comment-text');
+    const submitCommentBtn = document.getElementById('modal-chamado-submit-comment');
+    const fecharBtn = modal.querySelector('.js-modal-chamado-detalhe-close');
+
+    // Clear previous content
+    tituloEl.textContent = 'Carregando chamado...';
+    conteudoEl.innerHTML = '';
+    interacoesEl.innerHTML = '<h4>Histórico de Interações:</h4>';
+    sindicoUpdateSection.style.display = 'none';
+    addCommentSection.style.display = 'none';
+    submitSindicoUpdateBtn.onclick = null;
+    submitCommentBtn.onclick = null;
+
+    modal.style.display = 'flex';
+
+    try {
+        // Determine user role (simplified - real app would use a more robust check from auth context)
+        const userRole = localStorage.getItem('userRole') || 'Condomino'; // Example: 'Sindico', 'Condomino'
+        const isSindico = userRole === 'Sindico';
+
+        const endpoint = isSindico ? `/api/v1/Chamados/syndic/chamados/${chamadoId}` : `/api/v1/Chamados/app/chamados/${chamadoId}`;
+        const chamadoDetalhe = await apiClient.get(endpoint);
+
+        tituloEl.textContent = `Chamado: ${chamadoDetalhe.titulo}`;
+
+        let conteudoHtml = `
+            <p><strong>ID:</strong> ${chamadoDetalhe.id}</p>
+            <p><strong>Status:</strong> ${chamadoDetalhe.status}</p>
+            <p><strong>Categoria:</strong> ${chamadoDetalhe.categoria}</p>
+            <p><strong>Aberto em:</strong> ${new Date(chamadoDetalhe.dataAbertura).toLocaleString()}</p>
+            ${chamadoDetalhe.dataResolucao ? `<p><strong>Resolvido em:</strong> ${new Date(chamadoDetalhe.dataResolucao).toLocaleString()}</p>` : ''}
+            <p><strong>Descrição:</strong></p>
+            <div class="cv-well">${chamadoDetalhe.descricao ? chamadoDetalhe.descricao.replace(/\n/g, '<br>') : 'N/A'}</div>
+        `;
+        // TODO: Display attachments if present in chamadoDetalhe.anexos
+        conteudoEl.innerHTML = conteudoHtml;
+
+        // Render interactions (assuming chamadoDetalhe.interacoes is an array)
+        if (chamadoDetalhe.interacoes && chamadoDetalhe.interacoes.length > 0) {
+            chamadoDetalhe.interacoes.forEach(int => {
+                const p = document.createElement('p');
+                p.innerHTML = `<strong>${new Date(int.dataHora).toLocaleString()} - ${int.autor}:</strong> ${int.texto}`;
+                interacoesEl.appendChild(p);
+            });
+        } else {
+            interacoesEl.innerHTML += '<p><em>Nenhuma interação registrada.</em></p>';
+        }
+
+        // Setup Síndico actions
+        if (isSindico && chamadoDetalhe.status !== 'Concluido' && chamadoDetalhe.status !== 'Cancelado') { // Example condition
+            sindicoUpdateSection.style.display = 'block';
+            statusSelect.value = chamadoDetalhe.status; // Assuming status values match
+            respostaTextarea.value = ''; // Clear previous
+            submitSindicoUpdateBtn.style.display = 'block';
+            submitSindicoUpdateBtn.dataset.chamadoId = chamadoId;
+            submitSindicoUpdateBtn.onclick = handleSindicoChamadoUpdate;
+        }
+
+        // Setup Add Comment (for user or Sindico, if applicable)
+        // For now, only if not Concluido/Cancelado. More complex logic might be needed.
+        if (chamadoDetalhe.status !== 'Concluido' && chamadoDetalhe.status !== 'Cancelado') {
+            addCommentSection.style.display = 'block';
+            commentTextarea.value = '';
+            submitCommentBtn.dataset.chamadoId = chamadoId;
+            submitCommentBtn.onclick = handleAddChamadoComment;
+        }
+
+    } catch (error) {
+        console.error("Erro ao buscar detalhes do chamado:", error);
+        tituloEl.textContent = 'Erro ao carregar chamado';
+        conteudoEl.innerHTML = `<p class="cv-error-message">Não foi possível carregar os detalhes: ${error.message}</p>`;
+    }
+
+    const currentCloseHandler = () => {
+        modal.style.display = 'none';
+        fecharBtn.removeEventListener('click', currentCloseHandler);
+    };
+    fecharBtn.addEventListener('click', currentCloseHandler);
+
+    const currentWindowClickHandler = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+            window.removeEventListener('click', currentWindowClickHandler);
+        }
+    };
+    window.addEventListener('click', currentWindowClickHandler);
+}
+
+async function handleSindicoChamadoUpdate(event) {
+    const chamadoId = event.target.dataset.chamadoId;
+    const status = document.getElementById('modal-chamado-status-select').value;
+    const resposta = document.getElementById('modal-chamado-resposta-textarea').value;
+
+    const updateDto = { status, respostaDoSindico: resposta }; // Assuming ChamadoUpdateDto structure
+
+    try {
+        await apiClient.put(`/api/v1/Chamados/syndic/chamados/${chamadoId}`, updateDto);
+        showGlobalFeedback('Chamado atualizado com sucesso!', 'success');
+        await openChamadoDetalheModal(chamadoId); // Refresh modal
+        loadInitialFeedItems(); // Refresh feed
+    } catch (error) {
+        console.error("Erro ao atualizar chamado:", error);
+        showGlobalFeedback(`Erro ao atualizar chamado: ${error.message || 'Erro desconhecido'}`, 'error');
     }
 }
+
+async function handleAddChamadoComment(event) {
+    const chamadoId = event.target.dataset.chamadoId;
+    const comentario = document.getElementById('modal-chamado-comment-text').value;
+
+    if (!comentario.trim()) {
+        showGlobalFeedback('O comentário não pode estar vazio.', 'warning');
+        return;
+    }
+
+    // Assuming a DTO like { texto: comentario } for the comment endpoint
+    // And an endpoint like POST /api/v1/Chamados/app/chamados/{id}/comments
+    try {
+        // TODO: Replace with actual API call when endpoint is available
+        // await apiClient.post(`/api/v1/Chamados/app/chamados/${chamadoId}/comments`, { texto: comentario });
+        console.log(`Simulating add comment to ${chamadoId}: ${comentario}`);
+        showGlobalFeedback('Comentário adicionado (simulado). Endpoint de comentários pendente.', 'info');
+        // On actual success:
+        // document.getElementById('modal-chamado-comment-text').value = ''; // Clear textarea
+        // await openChamadoDetalheModal(chamadoId); // Refresh modal to show new comment
+        // loadInitialFeedItems(); // Refresh feed if summaries change
+    } catch (error) {
+        console.error("Erro ao adicionar comentário:", error);
+        showGlobalFeedback(`Erro ao adicionar comentário: ${error.message || 'Erro desconhecido'}`, 'error');
+    }
+}
+
 
 function handleOcorrenciaClick(itemId, targetElementOrCard) {
     const item = fetchedFeedItems.find(i => i.id === itemId && i.itemType === 'Ocorrencia');
@@ -707,17 +962,34 @@ function openCreateEnqueteModal() {
 async function handleCreateEnquete(data) {
     console.log("Creating enquete:", data);
     // This would be an API call: await apiClient.post('/api/v1/votacoes', data);
-    showGlobalFeedback('Nova enquete criada com sucesso! (simulado). Ela aparecerá no feed.', 'success');
-    // Consider reloading feed if on Mural tab or if current filter is 'enquetes':
-    // if (document.getElementById('tab-mural').classList.contains('active') ||
-    //     document.getElementById('category-filter')?.value === 'enquetes') {
-    //    loadInitialFeedItems();
-    // }
+    try {
+        const novaEnquete = await apiClient.post('/api/v1/Votacoes/syndic/votacoes', data); // Adjusted path
+        showGlobalFeedback('Nova enquete criada com sucesso! Ela aparecerá no feed.', 'success');
+        if (document.getElementById('tab-mural').classList.contains('active') ||
+            document.getElementById('category-filter-modal')?.value === 'enquete') { // Check modal filter
+           loadInitialFeedItems();
+        }
+        console.log("Enquete criada:", novaEnquete);
+    } catch (error) {
+        console.error("Erro ao criar enquete:", error);
+        showGlobalFeedback(`Erro ao criar enquete: ${error.message || 'Erro desconhecido'}`, 'error');
+    }
 }
 async function handleUpdateEnquete(id, data) {
     console.log("Updating enquete:", id, data);
-    // This would be an API call: await apiClient.put(`/api/v1/votacoes/${id}`, data);
-    showGlobalFeedback('Enquete atualizada com sucesso! (simulado).', 'success');
+    // TODO: Implement API call to PUT /api/v1/Votacoes/syndic/votacoes/{id} when backend endpoint is available
+    showGlobalFeedback('Funcionalidade de atualizar enquete ainda não implementada no backend. (simulado)', 'info');
+    // try {
+    //     await apiClient.put(`/api/v1/Votacoes/syndic/votacoes/${id}`, data);
+    //     showGlobalFeedback('Enquete atualizada com sucesso!', 'success');
+    //     if (document.getElementById('tab-mural').classList.contains('active') ||
+    //         document.getElementById('category-filter-modal')?.value === 'enquete') {
+    //        loadInitialFeedItems();
+    //     }
+    // } catch (error) {
+    //     console.error("Erro ao atualizar enquete:", error);
+    //     showGlobalFeedback(`Erro ao atualizar enquete: ${error.message || 'Erro desconhecido'}`, 'error');
+    // }
 }
 
 // This sets up the "Nova Enquete" FAB and the "Criar Enquete" modal.
@@ -786,14 +1058,41 @@ function setupSolicitacoesTab() {
 }
 
 // This function is still useful for the "Criar Chamado" modal
-async function handleCreateChamado(data) {
-    console.log("Creating chamado (Solicitação):", data);
-    // API call: await apiClient.post('/api/v1/chamados', data); // Or a more generic /api/v1/solicitacoes
-    showGlobalFeedback('Nova solicitação (chamado) criada com sucesso! (simulado). Ela aparecerá no feed.', 'success');
-    // Optionally, reload the feed if the current filter might include this new item
-    const muralCategoryFilter = document.getElementById('category-filter');
-    if (muralCategoryFilter && (muralCategoryFilter.value === 'solicitacoes' || muralCategoryFilter.value === '')) {
-        loadInitialFeedItems();
+async function handleCreateChamado(formData) { // formData will be a FormData object if files are included
+    console.log("Creating chamado (Solicitação):", formData);
+
+    // If sending JSON and not files:
+    // const data = {
+    //     titulo: formData.get('titulo'),
+    //     descricao: formData.get('descricao'),
+    //     categoria: formData.get('categoria')
+    // };
+    // Add other fields as necessary from ChamadoInputDto
+
+    try {
+        // Assuming apiClient can handle FormData directly if files are present.
+        // If ChamadoInputDto expects files as base64 strings or URLs from a separate upload step,
+        // this logic would need to be more complex. For now, direct FormData pass-through.
+        const novoChamado = await apiClient.post('/api/v1/Chamados/app/chamados', formData, {
+            // If apiClient needs explicit headers for FormData, set them here,
+            // but usually it's automatic if FormData is detected.
+            // headers: { 'Content-Type': 'multipart/form-data' } // Usually not needed with fetch/axios
+        });
+        showGlobalFeedback('Nova solicitação (chamado) criada com sucesso! Ela aparecerá no feed.', 'success');
+
+        // Reload feed if current view might include this new chamado
+        const categoryFilterModal = document.getElementById('category-filter-modal');
+        if (categoryFilterModal && (categoryFilterModal.value === 'solicitacoes' || categoryFilterModal.value === '')) {
+            loadInitialFeedItems();
+        } else if (!categoryFilterModal) { // If filter doesn't exist, assume it might be relevant
+            loadInitialFeedItems();
+        }
+        console.log("Chamado criado:", novoChamado);
+        return true; // Indicate success
+    } catch (error) {
+        console.error("Erro ao criar chamado:", error);
+        showGlobalFeedback(`Erro ao criar chamado: ${error.message || 'Erro desconhecido'}`, 'error');
+        return false; // Indicate failure
     }
 }
 
@@ -832,20 +1131,32 @@ function setupChamadoModalAndFAB() {
     if (formCriarChamado && chamadoIdFieldModal && formChamadoSubmitButtonModal) {
         formCriarChamado.addEventListener('submit', async (event) => {
             event.preventDefault();
-            const currentChamadoId = chamadoIdFieldModal.value;
-            const data = {
-                titulo: document.getElementById('chamado-titulo-modal').value,
-                descricao: document.getElementById('chamado-descricao-modal').value,
-                categoria: document.getElementById('chamado-categoria-modal').value,
-            };
+            const currentChamadoId = chamadoIdFieldModal.value; // For potential update logic later
 
-            if (currentChamadoId) {
-                data.status = document.getElementById('chamado-status-modal').value;
-                await handleUpdateChamado(currentChamadoId, data);
-            } else {
-                await handleCreateChamado(data);
+            const formData = new FormData(formCriarChamado);
+            // The 'id' field from the hidden input should not be sent for new chamados.
+            // If 'chamado-id' is part of formData and it's empty, it's fine.
+            // If the backend expects no 'id' field for creation, remove it:
+            if (!currentChamadoId) {
+                formData.delete('id'); // Remove 'id' if it was from the hidden input and is empty
             }
-            if (criarChamadoModal) criarChamadoModal.style.display = 'none';
+
+            // For file inputs, FormData handles them automatically.
+            // Example: if you have <input type="file" name="anexos" multiple>
+            // formData will contain 'anexos' with the file(s).
+
+            let success = false;
+            if (currentChamadoId) {
+                // Update logic would go here, potentially also using FormData
+                // success = await handleUpdateChamado(currentChamadoId, formData);
+                showGlobalFeedback('Atualização de chamados ainda não implementada.', 'info'); // Placeholder
+            } else {
+                success = await handleCreateChamado(formData);
+            }
+
+            if (success && criarChamadoModal) {
+                criarChamadoModal.style.display = 'none';
+            }
         });
     }
 }
