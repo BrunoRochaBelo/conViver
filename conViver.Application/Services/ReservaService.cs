@@ -619,10 +619,10 @@ public class ReservaService
         if (e == null)
             throw new KeyNotFoundException("Espaço comum não encontrado.");
 
-        if (e.Reservas.Any(r =>
-            r.Inicio >= DateTime.UtcNow
-            && (r.Status == ReservaStatus.Confirmada
-                || r.Status == ReservaStatus.Pendente)))
+        if (e.Reservas?.Any(r =>
+            r.Inicio >= DateTime.UtcNow &&
+            (r.Status == ReservaStatus.Confirmada ||
+             r.Status == ReservaStatus.Pendente)) == true)
         {
             throw new InvalidOperationException(
                 "Existem reservas futuras/pendentes — não é possível excluir.");

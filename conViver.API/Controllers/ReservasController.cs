@@ -106,7 +106,7 @@ public class ReservasController : ControllerBase
         try
         {
             var reservaDto = await _reservaService.SolicitarAsync(condominioId, usuarioId, inputDto);
-            return CreatedAtAction(nameof(GetReservaPorId), new { id = reservaDto.Id }, reservaDto);
+            return CreatedAtAction(nameof(GetReservaPorId), new { id = reservaDto!.Id }, reservaDto);
         }
         catch (ArgumentException ex)
         {
@@ -329,7 +329,7 @@ public class ReservasController : ControllerBase
         try
         {
             var espacoCriadoDto = await _reservaService.CriarEspacoComumAsync(condominioId, inputDto);
-            return CreatedAtAction(nameof(SyndicGetEspacoComumPorId), new { id = espacoCriadoDto.Id }, espacoCriadoDto);
+            return CreatedAtAction(nameof(SyndicGetEspacoComumPorId), new { id = espacoCriadoDto!.Id }, espacoCriadoDto);
         }
         catch (ArgumentException ex)
         {
@@ -409,7 +409,7 @@ public class ReservasController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Log ex
+            _ = ex; // log placeholder
             return StatusCode(500, new { error="INTERNAL_ERROR", message = "Erro ao excluir espaço comum."});
         }
     }

@@ -275,7 +275,7 @@ public class VotacoesController : ControllerBase
             {
                 VotacaoId = votacaoDetalhe.Id,
                 TituloVotacao = votacaoDetalhe.Titulo,
-                Pergunta = votacaoDetalhe.Descricao, // Supondo que Descricao é a pergunta
+                Pergunta = votacaoDetalhe.Descricao ?? string.Empty, // Supondo que Descricao é a pergunta
                 DataCriacao = votacaoDetalhe.DataInicio,
                 DataEncerramento = votacaoDetalhe.DataFim,
                 TotalVotos = votacaoDetalhe.Opcoes.Sum(o => o.QuantidadeVotos),
