@@ -72,7 +72,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 function setupTabs() {
     const tabButtons = document.querySelectorAll('.cv-tab-button');
     const tabContents = document.querySelectorAll('.cv-tab-content');
-    const muralContent = document.getElementById('content-mural');
     const globalCategoryFilter = document.getElementById('category-filter-modal');
 
     const userRoles = getUserRoles();
@@ -84,15 +83,13 @@ function setupTabs() {
 
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            tabContents.forEach(content => {
-                if (content.id !== 'content-mural') {
-                    content.style.display = 'none';
-                }
-            });
             tabButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
-            if (muralContent) muralContent.style.display = 'block';
+            tabContents.forEach(content => {
+                const targetId = 'content-' + button.id.replace('tab-', '');
+                content.style.display = content.id === targetId ? 'block' : 'none';
+            });
 
             let categoryToSetInGlobalFilter = '';
             if (button.id === 'tab-enquetes') {
