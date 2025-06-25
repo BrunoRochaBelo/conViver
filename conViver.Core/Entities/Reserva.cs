@@ -6,6 +6,7 @@ namespace conViver.Core.Entities;
 public class Reserva
 {
     public Guid Id { get; set; }
+    public Guid CondominioId { get; set; }
     public Guid UnidadeId { get; set; } // Unidade que fez a reserva
     public Guid UsuarioId { get; set; } // Usuário (morador/inquilino) que solicitou a reserva
 
@@ -25,9 +26,8 @@ public class Reserva
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    // Propriedades de navegação para Unidade e Usuario (solicitante e aprovador)
-    // Estas são opcionais dependendo de como você quer carregar os dados, mas úteis.
-    // public virtual Unidade? Unidade { get; set; }
-    // public virtual Usuario? Solicitante { get; set; } // Mapeado para UsuarioId
-    // public virtual Usuario? Aprovador { get; set; } // Mapeado para AprovadorId
+    // Propriedades de navegação para Unidade e Usuario (opcionais)
+    public virtual Unidade? Unidade { get; set; }
+    public virtual Usuario? Solicitante { get; set; } // Mapeado para UsuarioId
+    public virtual Usuario? Aprovador { get; set; } // Mapeado para AprovadorId
 }
