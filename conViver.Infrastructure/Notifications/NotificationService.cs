@@ -66,14 +66,5 @@ public class NotificationService : INotificacaoService
         return Task.CompletedTask;
     }
 
-    // Novo método implementado
-    public Task SendToUserAsync(Guid userId, string message, CancellationToken cancellationToken = default)
-    {
-        string userDestino = $"user:{userId}";
-        // Loga a intenção de enviar para um usuário específico.
-        // A implementação real dependeria de como o sistema de notificação lida com usuários individuais.
-        // Por ora, reutiliza o SendAsync genérico que apenas loga.
-        _logger.LogInformation("Preparing user-specific notification for {userDestino}", userDestino);
-        return SendAsync(userDestino, message, cancellationToken);
     }
 }
