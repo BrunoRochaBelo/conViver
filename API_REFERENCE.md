@@ -706,25 +706,44 @@ Endpoints gerenciados por `FinanceiroController.cs`.
 Endpoints gerenciados por `ReservasController.cs`. Rota base: `/api/v1`.
 Acesso geral: `Sindico`, `Condomino`, `Inquilino`.
 
+### Nota sobre DTOs de Reserva:
+*   **`EspacoComumDto`** (usado internamente e em endpoints de gestão de espaços):
+    *   Inclui `diasIndisponiveis` (string, nullable): Dias da semana ou datas específicas em que o espaço não está disponível. Ex: "Segunda,25/12".
+    *   Inclui `permiteVisualizacaoPublicaDetalhes` (boolean): Se `true`, outros condôminos podem ver detalhes da reserva (além de "ocupado") no calendário.
+    *   Inclui `exibirNoMural` (boolean): Se `true`, reservas confirmadas neste espaço podem aparecer no mural digital.
+*   **`ReservaInputDto`** (usado para criar/editar reservas):
+    *   Inclui `tituloParaMural` (string, nullable, max 150 chars): Título opcional para exibição da reserva no mural digital.
+*   **`ReservaDto`** (usado para detalhes de reserva):
+    *   Inclui `tituloParaMural` (string, nullable).
+*   **`AgendaReservaDto`** (usado em `/app/reservas/agenda`):
+    *   `tituloReserva` (string): Pode utilizar `TituloParaMural` da reserva, se disponível.
+    *   Inclui `permiteVisualizacaoPublicaDetalhes` (boolean): Indica se detalhes além do básico podem ser mostrados publicamente.
+
 ### 6.1. **GET** `/app/reservas/agenda`
 
-**Descrição**: Retorna todas as reservas do mês para todas as áreas comuns do condomínio.
+**Descrição**: Retorna as reservas do mês para as áreas comuns do condomínio, com possibilidade de filtros.
 **Path**: `/api/v1/app/reservas/agenda`
 **Query Params**:
 *   `mesAno` (string `YYYY-MM`, obrigatório): Mês e ano para consulta da agenda.
+*   `espacoComumIdFiltro` (uuid, opcional): Filtra por um espaço comum específico.
+*   `statusFiltro` (string, opcional): Filtra por status da reserva (e.g., "Confirmada", "Pendente").
+*   `unidadeIdFiltro` (uuid, opcional): (Apenas Síndico) Filtra por unidade específica.
+*   `isSindico` (boolean, opcional): Indica se a consulta é feita por um síndico (para liberar `unidadeIdFiltro`).
 **Response 200** (`IEnumerable<AgendaReservaDto>`)
 ```json
 [
   {
     "id": "uuid",
-    "areaComumId": "string", // ID da área comum
-    // "nomeAreaComum": "Salão de Festas", // (requer lookup)
+    "espacoComumId": "uuid",
+    "nomeEspacoComum": "string",
     "inicio": "2025-07-10T14:00:00Z",
     "fim": "2025-07-10T18:00:00Z",
-    "status": "Aprovada" | "Pendente" | "Recusada" | "Cancelada",
+    "status": "Confirmada" | "Pendente", // etc.
     "unidadeId": "uuid",
-    // "nomeUnidade": "Apto 101", // (requer lookup)
-    "tituloReserva": "string (e.g., Apto 101 - Churrasqueira)"
+    "nomeUnidade": "string|null",
+    "tituloReserva": "string (e.g., Salão de Festas - Festa Unid 101)",
+    "pertenceAoUsuarioLogado": true,
+    "permiteVisualizacaoPublicaDetalhes": false
   }
 ]
 ```
@@ -740,10 +759,11 @@ Acesso geral: `Sindico`, `Condomino`, `Inquilino`.
 ```json
 {
   "unidadeId": "uuid", // ID da unidade que está reservando
-  "areaComumId": "string (ID ou nome da área comum)",
+  "espacoComumId": "uuid", // ID da área comum
   "inicio": "datetime (YYYY-MM-DDTHH:mm:ss)",
   "fim": "datetime (YYYY-MM-DDTHH:mm:ss)",
-  "observacoes": "string|null (max 500 chars)"
+  "observacoes": "string|null (max 500 chars)",
+  "tituloParaMural": "string|null (max 150 chars)"
 }
 ```
 **Response 201** (`ReservaDto`)
@@ -752,49 +772,67 @@ Acesso geral: `Sindico`, `Condomino`, `Inquilino`.
   "id": "uuid",
   "condominioId": "uuid",
   "unidadeId": "uuid",
-  "usuarioId": "uuid", // Quem solicitou
-  "areaComumId": "string",
+  "nomeUnidade": "string|null",
+  "usuarioId": "uuid",
+  "nomeUsuarioSolicitante": "string|null",
+  "espacoComumId": "uuid",
+  "nomeEspacoComum": "string|null",
   "inicio": "datetime",
   "fim": "datetime",
-  "status": "Pendente" | "Aprovada" | ...,
+  "status": "Pendente" | "Confirmada" | ...,
   "dataSolicitacao": "datetime",
+  "taxaCobrada": "decimal|null",
   "observacoes": "string|null",
+  "tituloParaMural": "string|null",
   "aprovadorId": "uuid|null",
-  "justificativaAprovacaoRecusa": "string|null"
+  "nomeAprovador": "string|null",
+  "justificativaAprovacaoRecusa": "string|null",
+  "updatedAt": "datetime"
 }
 ```
 **Erros Comuns**:
-*   `400 Bad Request`: Dados inválidos ou falha na criação (e.g., área não existe, conflito de horário).
+*   `400 Bad Request`: Dados inválidos ou falha na criação (e.g., área não existe, conflito de horário, regras do espaço violadas).
 *   `401 Unauthorized`: Claims inválidas.
 
 ### 6.3. **GET** `/app/reservas/{id}`
 
 **Descrição**: Obtém detalhes de uma reserva específica.
 **Path**: `/api/v1/app/reservas/{id:guid}`
-**Response 200** (`ReservaDto`) - Mesma estrutura de 6.2.
+**Response 200** (`ReservaDto`) - Mesma estrutura de 6.2 Response.
 **Erros Comuns**:
 *   `401 Unauthorized`: Não tem permissão para ver esta reserva.
 *   `404 Not Found`: Reserva não encontrada.
 
-### 6.4. **PUT** `/syndic/reservas/{id}` (Aprovar/Recusar Reserva)
+### 6.4. **PUT** `/syndic/reservas/{id}/status` (Aprovar/Recusar/Modificar Status Reserva)
 
-**Descrição**: (Síndico) Aprova ou recusa uma solicitação de reserva.
-**Path**: `/api/v1/syndic/reservas/{id:guid}`
+**Descrição**: (Síndico) Aprova, recusa ou modifica o status de uma solicitação de reserva.
+**Path**: `/api/v1/syndic/reservas/{id:guid}/status`
 **Acesso**: `Sindico`
 **Request Body** (`ReservaStatusUpdateDto`)
 ```json
 {
-  "status": "Aprovada" | "Recusada", // Outros status conforme o fluxo
+  "status": "Confirmada" | "Recusada" | "CanceladaPeloSindico", // Outros status conforme o fluxo
   "justificativa": "string|null (max 500 chars)"
 }
 ```
-**Response 200** (`ReservaDto`) - Reserva atualizada, mesma estrutura de 6.2.
+**Response 200** (`ReservaDto`) - Reserva atualizada, mesma estrutura de 6.2 Response.
 **Erros Comuns**:
 *   `400 Bad Request`: Dados inválidos (ex: status não permitido) ou `INVALID_OPERATION`.
 *   `401 Unauthorized`.
 *   `404 Not Found`: Reserva não encontrada.
 
-### 6.5. **DELETE** `/app/reservas/{id}` (Cancelar Reserva)
+### 6.5. **PUT** `/syndic/reservas/{id}/editar` (Síndico Edita Reserva)
+
+**Descrição**: (Síndico) Edita uma reserva existente.
+**Path**: `/api/v1/syndic/reservas/{id:guid}/editar`
+**Acesso**: `Sindico`
+**Request Body** (`ReservaInputDto`) - Mesma estrutura do POST em 6.2.
+**Response 200** (`ReservaDto`) - Reserva atualizada.
+**Erros Comuns**:
+*   `400 Bad Request`, `401 Unauthorized`, `404 Not Found`, `409 Conflict`.
+
+
+### 6.6. **DELETE** `/app/reservas/{id}` (Cancelar Reserva)
 
 **Descrição**: Cancela uma reserva (solicitada pelo próprio usuário ou síndico).
 **Path**: `/api/v1/app/reservas/{id:guid}`
@@ -803,7 +841,61 @@ Acesso geral: `Sindico`, `Condomino`, `Inquilino`.
 **Erros Comuns**:
 *   `401 Unauthorized`.
 *   `403 Forbidden`: Não tem permissão para cancelar.
-*   `404 Not Found`: Reserva não encontrada ou não pôde ser cancelada.
+*   `404 Not Found`: Reserva não encontrada ou não pôde ser cancelada (ex: prazo expirado).
+
+### 6.7. **GET** `/app/reservas/list-view` (List View de Reservas)
+
+**Descrição**: Lista reservas para a visualização em lista cronológica, com filtros e paginação.
+**Path**: `/api/v1/app/reservas/list-view`
+**Acesso**: `Sindico`, `Condomino`, `Inquilino`
+**Query Params**:
+*   `espacoComumId` (uuid, opcional): Filtra por ID do espaço comum.
+*   `status` (string, opcional): Filtra por status da reserva (e.g., "Confirmada", "Pendente").
+*   `periodoInicio` (string `YYYY-MM-DD`, opcional): Data de início do período de filtro.
+*   `periodoFim` (string `YYYY-MM-DD`, opcional): Data de fim do período de filtro.
+*   `unidadeId` (uuid, opcional): (Apenas Síndico) Filtra por ID da unidade.
+*   `pageNumber` (int, default 1): Número da página.
+*   `pageSize` (int, default 10): Tamanho da página.
+**Response 200** (`PaginatedResultDto<ReservaDto>`) - Lista paginada de `ReservaDto` (estrutura de 6.2 Response).
+
+### 6.8. **GET** `/app/reservas/para-mural` (Reservas para o Mural Digital)
+
+**Descrição**: Lista as reservas confirmadas e públicas para exibição no mural digital.
+**Path**: `/api/v1/app/reservas/para-mural`
+**Acesso**: Qualquer usuário autenticado.
+**Query Params**:
+*   `pageNumber` (int, default 1).
+*   `pageSize` (int, default 10).
+**Response 200** (`PaginatedResultDto<ReservaMuralDto>`)
+**`ReservaMuralDto`**:
+```json
+{
+  "idReserva": "uuid",
+  "nomeEspacoComum": "string",
+  "nomeUnidade": "string|null",
+  "dataInicio": "date (YYYY-MM-DD)",
+  "horaInicio": "string (HH:mm)",
+  "horaFim": "string (HH:mm)",
+  "tituloCustomizado": "string|null",
+  "tituloGerado": "string",
+  "urlDetalhes": "string (e.g., /pages/reservas.html?idReserva=uuid)"
+}
+```
+
+### 6.9. Endpoints de Gestão de Espaços Comuns (Síndico)
+
+*Nota: Estes endpoints são para o síndico gerenciar os espaços comuns. O `EspacoComumDto` referenciado aqui é o mesmo da nota no início da Seção 6.*
+*   **GET** `/syndic/reservas/espacos-comuns`
+    *   Lista todos os espaços comuns do condomínio. Response: `IEnumerable<EspacoComumDto>`.
+*   **POST** `/syndic/reservas/espacos-comuns`
+    *   Cria um novo espaço comum. Request Body: `EspacoComumDto`. Response: `EspacoComumDto`.
+*   **GET** `/syndic/reservas/espacos-comuns/{id}`
+    *   Detalhes de um espaço. Response: `EspacoComumDto`.
+*   **PUT** `/syndic/reservas/espacos-comuns/{id}`
+    *   Atualiza um espaço. Request Body: `EspacoComumDto`. Response: `EspacoComumDto`.
+*   **DELETE** `/syndic/reservas/espacos-comuns/{id}`
+    *   Exclui um espaço. Response: `204 No Content`.
+
 
 ---
 ## 7. Avisos (Mural Digital)

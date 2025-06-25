@@ -26,6 +26,11 @@ public class Reserva
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    // Novos campos conforme plano
+    public bool NotificadoLembrete24h { get; set; } = false;
+    public string? TituloParaMural { get; set; }
+
+
     // Propriedades de navegação para Unidade e Usuario (opcionais)
     public virtual Unidade? Unidade { get; set; }
     public virtual Usuario? Solicitante { get; set; } // Mapeado para UsuarioId

@@ -20,6 +20,8 @@ public class EspacoComumDto
     public int? LimiteReservasPorUnidadeMes { get; set; }
     public bool RequerAprovacaoSindico { get; set; }
     public bool ExibirNoMural { get; set; }
+    public string? DiasIndisponiveis { get; set; } // Novo
+    public bool PermiteVisualizacaoPublicaDetalhes { get; set; } // Novo
     // Poderia incluir uma lista de horários já reservados para um dia específico se o DTO for usado nesse contexto.
 }
 public class ReservaInputDto
@@ -40,6 +42,9 @@ public class ReservaInputDto
 
     [StringLength(500, ErrorMessage = "Observações não podem exceder 500 caracteres.")]
     public string? Observacoes { get; set; }
+
+    [StringLength(150, ErrorMessage = "Título para o mural não pode exceder 150 caracteres.")]
+    public string? TituloParaMural { get; set; } // Novo
 }
 
 public class ReservaStatusUpdateDto
@@ -72,6 +77,7 @@ public class ReservaDto
     public DateTime DataSolicitacao { get; set; }
     public decimal? TaxaCobrada { get; set; } // Taxa efetivamente cobrada
     public string? Observacoes { get; set; }
+    public string? TituloParaMural { get; set; } // Novo
 
     public Guid? AprovadorId { get; set; } // Síndico ou sistema que aprovou/recusou
     public string? NomeAprovador { get; set; } // (requereria join/lookup no service)
@@ -90,8 +96,9 @@ public class AgendaReservaDto
     public string Status { get; set; } = string.Empty; // Status da reserva
     public Guid UnidadeId { get; set; }
     public string? NomeUnidade { get; set; } // Identificação da unidade, ex: "Bloco A - Apto 101"
-    public string TituloReserva { get; set; } = string.Empty; // Um título breve para exibição, ex: "Festa - Apto 101" ou Nome do Espaço
+    public string TituloReserva { get; set; } = string.Empty; // Um título breve para exibição, ex: "Festa - Apto 101" ou Nome do Espaço (pode usar TituloParaMural se disponível)
     public bool PertenceAoUsuarioLogado { get; set; } // Para destacar no calendário/lista
+    public bool PermiteVisualizacaoPublicaDetalhes { get; set; } // Novo, vindo do EspacoComum
 }
 
 // DTO para filtros de reserva (usado pelo síndico, por exemplo)
@@ -104,4 +111,18 @@ public class ReservaFilterDto
     public Guid? UnidadeId { get; set; }
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 10;
+}
+
+// Novo DTO para itens de reserva no Mural Digital
+public class ReservaMuralDto
+{
+    public Guid IdReserva { get; set; }
+    public string NomeEspacoComum { get; set; } = string.Empty;
+    public string? NomeUnidade { get; set; } // Ou alguma identificação da unidade
+    public DateTime DataInicio { get; set; }
+    public string HoraInicio { get; set; } = string.Empty; // Formato HH:mm
+    public string HoraFim { get; set; } = string.Empty; // Formato HH:mm
+    public string? TituloCustomizado { get; set; } // Vem de Reserva.TituloParaMural
+    public string TituloGerado { get; set; } = string.Empty; // Gerado se TituloCustomizado for nulo
+    public string UrlDetalhes { get; set; } = string.Empty; // Link para ver mais detalhes da reserva (se aplicável)
 }

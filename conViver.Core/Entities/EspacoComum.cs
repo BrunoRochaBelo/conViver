@@ -27,9 +27,10 @@ public class EspacoComum
 
     public int? LimiteReservasPorUnidadeMes { get; set; }
     public bool RequerAprovacaoSindico { get; set; } = false;
-    public bool ExibirNoMural { get; set; } = false;
+    public bool ExibirNoMural { get; set; } = true; // Default true para novos espaços, pode ser ajustado
+    public bool PermiteVisualizacaoPublicaDetalhes { get; set; } = false; // Default false
+    public string? DiasIndisponiveis { get; set; } // Ex: "Terca,Quinta" ou "2024-12-25,2025-01-01" ou JSON "[0,6]" (Dom,Sab)
 
-    // DiasIndisponiveis será tratado posteriormente ou com entidade separada para manter simples por agora.
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
