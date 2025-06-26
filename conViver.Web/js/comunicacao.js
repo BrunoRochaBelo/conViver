@@ -246,6 +246,13 @@ function setupTabs() {
           setupSolicitacoesTab(); // This function currently just logs.
           button.dataset.initialized = "true";
         }
+      } else if (button.id === "tab-ocorrencias") {
+        categoryToSetInGlobalFilter = "ocorrencias";
+        showFeedSkeleton("content-mural");
+        if (!button.dataset.initialized) {
+          setupOcorrenciasTab();
+          button.dataset.initialized = "true";
+        }
       }
 
       if (globalCategoryFilter && categoryToSetInGlobalFilter) {
@@ -733,7 +740,7 @@ function updateUserSpecificUI(activeTabId = "tab-mural") {
     if (isSindico) {
       if (fabEnquetes) fabEnquetes.style.display = "block";
     }
-  } else if (activeTabId === "tab-solicitacoes") {
+  } else if (activeTabId === "tab-solicitacoes" || activeTabId === "tab-ocorrencias") {
     if (fabSolicitacoes) fabSolicitacoes.style.display = "block";
   }
 
@@ -1754,6 +1761,10 @@ function formatChamadoCategoria(categoria) {
 function setupSolicitacoesTab() {
   console.log("Modo de filtro de Solicitações ativado.");
   // setupChamadoModalAndFAB(); // Listeners are now more globally managed
+}
+
+function setupOcorrenciasTab() {
+  console.log("Modo de filtro de Ocorrências ativado.");
 }
 
 async function handleCreateChamado(chamadoData) {
