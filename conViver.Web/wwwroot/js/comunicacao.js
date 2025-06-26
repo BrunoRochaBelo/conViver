@@ -1,6 +1,7 @@
 import apiClient from "./apiClient.js";
 import { requireAuth } from "./auth.js";
 import { showGlobalFeedback } from "./main.js";
+import { initFabMenu } from "./fabMenu.js";
 
 // --- Global state & constants ---
 let currentFeedPage = 1;
@@ -182,7 +183,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadInitialFeedItems();
   setupFeedObserver();
   setupFeedContainerClickListener();
-  updateUserSpecificUI(); // Setup FABs
+  setupFabMenu();
   setupFilterModalAndButton(); // Setup filter modal and its trigger
   setupModalEventListeners(); // Setup generic close/submit for other modals
 });
@@ -271,8 +272,6 @@ function setupTabs() {
       if (loadFeed) {
         loadInitialFeedItems(); // This function will handle its own skeleton for content-mural's feed
       }
-
-      updateUserSpecificUI(button.id);
     });
   });
 
@@ -284,7 +283,6 @@ function setupTabs() {
     // Fallback if no tab buttons found, ensure mural skeleton is managed if needed
     showFeedSkeleton("content-mural"); // Show skeleton for default view
     loadInitialFeedItems(); // Load default items
-    updateUserSpecificUI("tab-mural");
   }
 }
 
@@ -704,55 +702,21 @@ function getUserRoles() {
   return ["Condomino"];
 }
 
-function updateUserSpecificUI(activeTabId = "tab-mural") {
-  const userRoles = getUserRoles();
-  const isSindico =
-    userRoles.includes("Sindico") || userRoles.includes("Administrador");
+function setupFabMenu() {
+  const roles = getUserRoles();
+  const isSindico = roles.includes("Sindico") || roles.includes("Administrador");
 
-  const fabMural = document.querySelector(".js-fab-mural");
-  const fabEnquetes = document.querySelector(".js-fab-enquetes");
-  const fabSolicitacoes = document.querySelector(".js-fab-chamados");
-
-  if (fabMural) fabMural.style.display = "none";
-  if (fabEnquetes) fabEnquetes.style.display = "none";
-  if (fabSolicitacoes) fabSolicitacoes.style.display = "none";
-
-  if (fabMural && !fabMural.dataset.listenerAttached) {
-    fabMural.addEventListener("click", openCriarAvisoModal);
-    fabMural.dataset.listenerAttached = "true";
+  const actions = [];
+  if (isSindico) {
+    actions.push({ label: "Novo Aviso", onClick: openCriarAvisoModal });
+    actions.push({ label: "Nova Enquete", onClick: openCreateEnqueteModal });
   }
-  if (fabEnquetes && !fabEnquetes.dataset.listenerAttached) {
-    fabEnquetes.addEventListener("click", openCreateEnqueteModal);
-    fabEnquetes.dataset.listenerAttached = "true";
-  }
-  if (fabSolicitacoes && !fabSolicitacoes.dataset.listenerAttached) {
-    fabSolicitacoes.addEventListener("click", openCreateChamadoModal);
-    fabSolicitacoes.dataset.listenerAttached = "true";
-  }
+  actions.push({ label: "Novo Chamado", onClick: openCreateChamadoModal });
 
-  if (activeTabId === "tab-mural") {
-    if (isSindico) {
-      if (fabMural) fabMural.style.display = "block";
-    } else {
-      if (fabSolicitacoes) fabSolicitacoes.style.display = "block";
-    }
-  } else if (activeTabId === "tab-enquetes") {
-    if (isSindico) {
-      if (fabEnquetes) fabEnquetes.style.display = "block";
-    }
-  } else if (activeTabId === "tab-solicitacoes" || activeTabId === "tab-ocorrencias") {
-    if (fabSolicitacoes) fabSolicitacoes.style.display = "block";
-  }
-
-  const sindicoOnlyMessages = document.querySelectorAll(
-    ".js-sindico-only-message"
-  );
-  sindicoOnlyMessages.forEach((msg) => {
-    msg.style.display = isSindico ? "inline" : "none";
-  });
+  initFabMenu(actions);
 }
 
-// This function is now replaced by setupFilterModalAndButton
+// This function was replaced by setupFilterModalAndButton
 // function setupFilterButtonListener() { ... }
 
 async function loadInitialFeedItems() {
@@ -1624,7 +1588,6 @@ function handleBoletoLembreteClick(itemId, targetElementOrCard) {
 // --- Enquetes e Votações Tab ---
 function setupEnquetesTab() {
   console.log("Modo de filtro de Enquetes ativado.");
-  // setupEnqueteModalAndFAB(); // Listeners are now more globally managed or within updateUserSpecificUI
 }
 
 function openCreateEnqueteModal() {
@@ -1732,7 +1695,6 @@ async function handleGenerateAtaEnquete(enqueteId) {
 }
 
 function setupEnqueteModalAndFAB() {
-  // Listeners for FAB are in updateUserSpecificUI
   // Listeners for modal form are in setupModalEventListeners
   console.log("setupEnqueteModalAndFAB (major logic moved)");
 }
@@ -1760,7 +1722,7 @@ function formatChamadoCategoria(categoria) {
 
 function setupSolicitacoesTab() {
   console.log("Modo de filtro de Solicitações ativado.");
-  // setupChamadoModalAndFAB(); // Listeners are now more globally managed
+  // setupChamadoModalAndFAB();
 }
 
 function setupOcorrenciasTab() {
@@ -1802,7 +1764,6 @@ async function handleUpdateChamado(id, chamadoData) {
 }
 
 function setupChamadoModalAndFAB() {
-  // Listeners for FAB are in updateUserSpecificUI
   // Listeners for modal form are in setupModalEventListeners
   console.log("setupChamadoModalAndFAB (major logic moved)");
 }
