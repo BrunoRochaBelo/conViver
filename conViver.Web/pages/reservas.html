@@ -150,34 +150,16 @@
             <div id="calendario-view-container">
                 <section class="reservas-section cv-card">
                     <h2 class="cv-section__title">Agenda e Disponibilidade</h2>
-                    <div class="reservas-filtros-container">
-                        <div class="cv-form-group">
-                            <label for="select-espaco-comum-calendario">Filtrar por Espaço Comum:</label>
-                            <select id="select-espaco-comum-calendario" class="cv-input">
-                                <option value="">Todos os Espaços</option>
-                            </select>
-                        </div>
-                        <div id="filtros-reservas-admin-calendario" class="cv-form" style="flex-basis: 100%; display:flex; gap: var(--cv-spacing-md); flex-wrap: wrap; align-items: flex-end; display: none;">
-                            <div class="cv-form-group">
-                                <label for="filtro-status-reserva-calendario">Status:</label>
-                                <select id="filtro-status-reserva-calendario" class="cv-input">
-                                    <option value="">Todos</option>
-                                    <option value="Pendente">Pendente</option>
-                                    <option value="Confirmada">Confirmada</option>
-                                    <option value="Recusada">Recusada</option>
-                                    <option value="CanceladaPeloUsuario">Cancelada pelo Usuário</option>
-                                    <option value="CanceladaPeloSindico">Cancelada pelo Síndico</option>
-                                </select>
-                            </div>
-                            <div class="cv-form-group">
-                                <label for="filtro-unidade-reserva-calendario">ID da Unidade:</label>
-                                <input type="text" id="filtro-unidade-reserva-calendario" class="cv-input" placeholder="Guid da Unidade">
-                            </div>
-                            <button id="btn-aplicar-filtros-calendario-sindico" class="cv-button cv-button--primary">Filtrar Agenda</button>
-                        </div>
-                    </div>
+                    <!-- Filtros removidos daqui e movidos para o modal -->
                     <div id="calendario-reservas"></div>
                     <div id="info-espaco-selecionado-calendario" class="cv-card cv-alert cv-alert--info" style="margin-top:var(--cv-spacing-md); display:none; font-size:0.9em;">
+                    </div>
+                    <div id="reservas-do-dia-selecionado-container" style="margin-top: var(--cv-spacing-lg); display: none;">
+                        <h3 class="cv-section__subtitle">Reservas para o dia <span id="data-selecionada-agenda"></span></h3>
+                        <div id="reservas-do-dia-lista" class="cv-list">
+                            <!-- Reservas do dia serão listadas aqui -->
+                            <p class="cv-loading-message">Carregando reservas do dia...</p>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -185,31 +167,7 @@
             <div id="list-view-container" style="display:none;">
                 <section class="reservas-section cv-card">
                     <h2 class="cv-section__title">Lista de Reservas</h2>
-                    <div class="reservas-filtros-container">
-                        <div class="cv-form-group">
-                            <label for="filtro-espaco-lista">Espaço Comum:</label>
-                            <select id="filtro-espaco-lista" class="cv-input">
-                                <option value="">Todos</option>
-                                <!-- Populado por JS -->
-                            </select>
-                        </div>
-                        <div class="cv-form-group">
-                            <label for="filtro-status-lista">Status:</label>
-                            <select id="filtro-status-lista" class="cv-input">
-                                <option value="">Todos</option>
-                                <option value="Pendente">Pendente</option>
-                                <option value="Confirmada">Confirmada</option>
-                                <option value="Recusada">Recusada</option>
-                                <option value="CanceladaPeloUsuario">Cancelada</option> <!-- Simplificado para o usuário -->
-                                <!-- <option value="CanceladaPeloSindico">Cancelada pelo Síndico</option> -->
-                            </select>
-                        </div>
-                        <div class="cv-form-group">
-                            <label for="filtro-periodo-lista">Período:</label>
-                            <input type="month" id="filtro-periodo-lista" class="cv-input">
-                        </div>
-                        <button id="btn-aplicar-filtros-lista" class="cv-button cv-button--primary">Filtrar Lista</button>
-                    </div>
+                    <!-- Filtros removidos daqui e movidos para o modal -->
                     <div id="list-view-reservas-items" style="margin-top: var(--cv-spacing-lg);">
                         <!-- Cards de reserva serão inseridos aqui por JS -->
                         <p class="cv-loading-message">Carregando lista de reservas...</p>
@@ -223,29 +181,7 @@
         <div class="cv-tab-content" id="content-minhas-reservas" style="display:none;">
             <section class="reservas-section cv-card">
                 <h2 class="cv-section__title">Minhas Reservas</h2>
-                <div class="reservas-filtros-container">
-                    <div class="cv-form-group">
-                        <label for="filtro-minhas-espaco">Espaço Comum:</label>
-                        <select id="filtro-minhas-espaco" class="cv-input">
-                            <option value="">Todos</option>
-                        </select>
-                    </div>
-                    <div class="cv-form-group">
-                        <label for="filtro-minhas-status">Status:</label>
-                        <select id="filtro-minhas-status" class="cv-input">
-                            <option value="">Todos</option>
-                            <option value="Pendente">Pendente</option>
-                            <option value="Confirmada">Confirmada</option>
-                            <option value="Recusada">Recusada</option>
-                            <option value="CanceladaPeloUsuario">Cancelada</option>
-                        </select>
-                    </div>
-                    <div class="cv-form-group">
-                        <label for="filtro-minhas-periodo">Período:</label>
-                        <input type="month" id="filtro-minhas-periodo" class="cv-input">
-                    </div>
-                    <button id="btn-aplicar-filtros-minhas" class="cv-button cv-button--primary">Filtrar</button>
-                </div>
+                <!-- Filtros removidos daqui e movidos para o modal -->
                 <div id="minhas-reservas-list" class="minhas-reservas-list">
                     <p class="cv-loading-message">Carregando suas reservas...</p>
                     <!-- Items will be appended here -->
@@ -287,30 +223,45 @@
                 <!-- Filtros para Agenda e Disponibilidade -->
                 <div class="cv-form-group-wrapper" id="filtros-modal-agenda">
                     <div class="cv-form-group">
-                        <label for="filtro-espaco-modal-agenda">Espaço:</label>
+                        <label for="filtro-espaco-modal-agenda">Espaço Comum:</label>
                         <select id="filtro-espaco-modal-agenda" class="cv-input">
                             <option value="">Todos os Espaços</option>
                             <!-- Populado por JS -->
                         </select>
                     </div>
                     <div class="cv-form-group">
-                        <label for="filtro-data-modal-agenda">Mês/Ano:</label>
+                        <label for="filtro-data-modal-agenda">Período (Mês/Ano):</label>
                         <input type="month" id="filtro-data-modal-agenda" class="cv-input">
+                    </div>
+                    <div class="cv-form-group">
+                        <label for="filtro-status-modal-agenda">Status:</label>
+                        <select id="filtro-status-modal-agenda" class="cv-input">
+                            <option value="">Todos</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Confirmada">Confirmada</option>
+                            <option value="Recusada">Recusada</option>
+                            <option value="CanceladaPeloUsuario">Cancelada pelo Usuário</option>
+                            <option value="CanceladaPeloSindico">Cancelada pelo Síndico</option>
+                        </select>
+                    </div>
+                    <div class="cv-form-group js-admin-only-filter" style="display: none;"> <!-- Controlar visibilidade por JS -->
+                        <label for="filtro-unidade-modal-agenda">ID da Unidade (Admin):</label>
+                        <input type="text" id="filtro-unidade-modal-agenda" class="cv-input" placeholder="Guid da Unidade">
                     </div>
                 </div>
 
                    <!-- Filtros para Minhas Reservas -->
                 <div class="cv-form-group-wrapper" id="filtros-modal-minhas-reservas" style="display:none;">
                         <div class="cv-form-group">
-                            <label for="filtro-data-modal-minhas">Período (Mês/Ano):</label>
-                            <input type="month" id="filtro-data-modal-minhas" class="cv-input">
-                        </div>
-                        <div class="cv-form-group">
                             <label for="filtro-espaco-modal-minhas">Espaço Comum:</label>
                             <select id="filtro-espaco-modal-minhas" class="cv-input">
                                 <option value="">Todos os Espaços</option>
                                 <!-- Populado por JS -->
                             </select>
+                        </div>
+                        <div class="cv-form-group">
+                            <label for="filtro-data-modal-minhas">Período (Mês/Ano):</label>
+                            <input type="month" id="filtro-data-modal-minhas" class="cv-input">
                         </div>
                         <div class="cv-form-group">
                             <label for="filtro-status-modal-minhas">Situação:</label>
@@ -320,8 +271,7 @@
                                 <option value="Confirmada">Confirmada</option>
                                 <option value="Recusada">Recusada</option>
                                 <option value="CanceladaPeloUsuario">Cancelada pelo Usuário</option>
-                                <option value="CanceladaPeloSindico">Cancelada pelo Síndico</option>
-                                <!-- Mantendo opções completas, o backend/frontend pode simplificar a exibição se necessário -->
+                                <!-- <option value="CanceladaPeloSindico">Cancelada pelo Síndico</option> --><!-- Opção de síndico pode ser agrupada ou mostrada condicionalmente -->
                             </select>
                         </div>
                 </div>

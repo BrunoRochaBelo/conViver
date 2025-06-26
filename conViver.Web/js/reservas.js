@@ -36,22 +36,31 @@ let btnViewCalendario, btnViewLista;
 let tabAgendaBtn, tabMinhasBtn;
 let contentAgenda, contentMinhas;
 let openFilterReservasButton, filtrosModal, aplicarFiltrosModalButton;
-let filtroMinhasEspaco,
-  filtroMinhasStatus,
-  filtroMinhasPeriodo,
-  btnAplicarFiltrosMinhas;
+// filtroMinhasEspaco, filtroMinhasStatus, filtroMinhasPeriodo, btnAplicarFiltrosMinhas; // Removidos
 
-// DOM Elements - List View Filters
+// DOM Elements - List View Filters (on-page, though now mostly superseded by modal for Agenda)
 let filtroEspacoLista,
-  filtroStatusLista,
+  filtroStatusLista, // This specific element might not be used anymore if all filters are modal-driven for Agenda
   filtroPeriodoLista,
   btnAplicarFiltrosLista;
 
 // Modal filter elements for Agenda Tab
-let filtroEspacoModalAgenda, filtroDataModalAgenda;
+let filtroEspacoModalAgenda, filtroDataModalAgenda, filtroStatusModalAgenda, filtroUnidadeModalAgenda;
+
+// Variables to store applied modal filters for Agenda tab
+let filtroStatusModalAgendaAplicado = '';
+let filtroUnidadeModalAgendaAplicado = '';
+
+// Variables to store applied modal filters for Minhas Reservas tab
+let filtroEspacoMinhasAplicado = '';
+let filtroStatusMinhasAplicado = '';
+let filtroPeriodoMinhasAplicado = '';
 
 // Modal filter elements for Minhas Reservas Tab
 let filtroDataModalMinhas, filtroEspacoModalMinhas, filtroStatusModalMinhas;
+
+// DOM Elements for "Reservas do Dia"
+let reservasDiaSelecionadoContainer, dataSelecionadaAgendaSpan, reservasDiaListaDiv;
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Autenticação e info do usuário
@@ -86,21 +95,30 @@ document.addEventListener("DOMContentLoaded", async () => {
   aplicarFiltrosModalButton = document.getElementById(
     "aplicar-filtros-modal-reservas"
   );
-  filtroMinhasEspaco = document.getElementById("filtro-minhas-espaco");
-  filtroMinhasStatus = document.getElementById("filtro-minhas-status");
-  filtroMinhasPeriodo = document.getElementById("filtro-minhas-periodo");
-  btnAplicarFiltrosMinhas = document.getElementById(
-    "btn-aplicar-filtros-minhas"
-  );
+  // // Filtros on-page para Minhas Reservas (removidos, agora via modal)
+  // filtroMinhasEspaco = document.getElementById("filtro-minhas-espaco");
+  // filtroMinhasStatus = document.getElementById("filtro-minhas-status");
+  // filtroMinhasPeriodo = document.getElementById("filtro-minhas-periodo");
+  // btnAplicarFiltrosMinhas = document.getElementById(
+  //   "btn-aplicar-filtros-minhas"
+  // );
 
+  // Filtros on-page para Lista da Agenda (ainda podem ser usados se o modal não os substituir completamente)
   filtroEspacoLista = document.getElementById("filtro-espaco-lista");
-  filtroStatusLista = document.getElementById("filtro-status-lista");
+  filtroStatusLista = document.getElementById("filtro-status-lista"); // Pode não ser mais usado
   filtroPeriodoLista = document.getElementById("filtro-periodo-lista");
   btnAplicarFiltrosLista = document.getElementById("btn-aplicar-filtros-lista");
 
   // Modal Filter elements for Agenda
   filtroEspacoModalAgenda = document.getElementById("filtro-espaco-modal-agenda");
   filtroDataModalAgenda = document.getElementById("filtro-data-modal-agenda");
+  filtroStatusModalAgenda = document.getElementById("filtro-status-modal-agenda");
+  filtroUnidadeModalAgenda = document.getElementById("filtro-unidade-modal-agenda");
+
+  // DOM elements for "Reservas do Dia" section
+  reservasDiaSelecionadoContainer = document.getElementById("reservas-do-dia-selecionado-container");
+  dataSelecionadaAgendaSpan = document.getElementById("data-selecionada-agenda");
+  reservasDiaListaDiv = document.getElementById("reservas-do-dia-lista");
 
   // Modal Filter elements for Minhas Reservas
   filtroDataModalMinhas = document.getElementById("filtro-data-modal-minhas");
@@ -114,11 +132,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   );
   btnViewLista?.addEventListener("click", () => toggleReservasView("lista"));
 
-  btnViewLista?.addEventListener("click", () => toggleReservasView("lista"));
-
   setupTabs(); // This will also trigger initial load for the active tab.
 
-  // Filtros da lista (on-page for Agenda Tab's List View)
+  // Botão de aplicar filtros da lista (on-page para Agenda Tab's List View) - pode ser removido se o modal for exclusivo
   btnAplicarFiltrosLista?.addEventListener("click", () => {
     currentPageListView = 1;
     noMoreItemsListView = false;
@@ -127,12 +143,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     carregarReservasListView(1, false);
   });
 
+  // // Botão de aplicar filtros de Minhas Reservas (on-page) - Removido, agora via modal
+  // btnAplicarFiltrosMinhas?.addEventListener("click", () => {
+  //   currentPageMinhasReservas = 1;
+  //   noMoreItemsMinhasReservas = false;
+  //   const c = document.getElementById(minhasReservasItemsContainerId);
+  //   if (c) c.dataset.loadedOnce = "false";
+  //   carregarMinhasReservas(1, false);
+  // });
+
+
   // Modal de filtros gerais
   if (openFilterReservasButton && filtrosModal) {
-        console.log("Filter modal button and modal element found. Attaching listener."); // Log
     openFilterReservasButton.addEventListener("click", () => {
-            console.log("Filter icon button clicked."); // Log
-      // Determine active tab to show correct filters
       const agendaTabActive = tabAgendaBtn.classList.contains("active");
       const minhasReservasTabActive = tabMinhasBtn.classList.contains("active");
 
@@ -141,25 +164,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (agendaTabActive && filtrosAgendaContent) {
         filtrosAgendaContent.style.display = "block";
-        // Pre-fill modal filters from current page filters for Agenda
-        if (filtroEspacoModalAgenda) filtroEspacoModalAgenda.value = document.getElementById("select-espaco-comum-calendario").value;
-        if (filtroDataModalAgenda) filtroDataModalAgenda.value = filtroPeriodoLista.value; // Assuming YYYY-MM format
-      } else {
-        if (filtrosAgendaContent) filtrosAgendaContent.style.display = "none";
-      }
-
-      if (minhasReservasTabActive && filtrosMinhasReservasContent) {
-        filtrosMinhasReservasContent.style.display = "block";
-        // Pre-fill modal filters for Minhas Reservas from current on-page filters
-        if (filtroDataModalMinhas) filtroDataModalMinhas.value = filtroMinhasPeriodo.value;
-        if (filtroEspacoModalMinhas) filtroEspacoModalMinhas.value = filtroMinhasEspaco.value;
-        if (filtroStatusModalMinhas) filtroStatusModalMinhas.value = filtroMinhasStatus.value;
-      } else {
         if (filtrosMinhasReservasContent) filtrosMinhasReservasContent.style.display = "none";
+        // Pre-fill modal filters for Agenda
+        if (filtroEspacoModalAgenda) filtroEspacoModalAgenda.value = document.getElementById("select-espaco-comum-calendario").value; // From calendar's own selector
+        if (filtroDataModalAgenda && filtroPeriodoLista) filtroDataModalAgenda.value = filtroPeriodoLista.value;
+        if (filtroStatusModalAgenda) filtroStatusModalAgenda.value = filtroStatusModalAgendaAplicado;
+        if (filtroUnidadeModalAgenda) filtroUnidadeModalAgenda.value = filtroUnidadeModalAgendaAplicado;
+
+      } else if (minhasReservasTabActive && filtrosMinhasReservasContent) {
+        filtrosMinhasReservasContent.style.display = "block";
+        if (filtrosAgendaContent) filtrosAgendaContent.style.display = "none";
+        // Pre-fill modal filters for Minhas Reservas
+        if (filtroDataModalMinhas && filtroMinhasPeriodo) filtroDataModalMinhas.value = filtroMinhasPeriodo.value;
+        if (filtroEspacoModalMinhas && filtroMinhasEspaco) filtroEspacoModalMinhas.value = filtroMinhasEspaco.value;
+        if (filtroStatusModalMinhas && filtroMinhasStatus) filtroStatusModalMinhas.value = filtroMinhasStatus.value;
       }
-      console.log(`Attempting to show modal. Current display: ${filtrosModal.style.display}`); // Log
       filtrosModal.style.display = "flex";
-      console.log(`Modal display set to: ${filtrosModal.style.display}`); // Log
     });
 
     filtrosModal
@@ -180,74 +200,72 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (agendaTabActive) {
       const espacoSelecionadoModal = filtroEspacoModalAgenda.value;
-      const dataSelecionadaModal = filtroDataModalAgenda.value; // YYYY-MM
+      const dataSelecionadaModal = filtroDataModalAgenda.value;
+      filtroStatusModalAgendaAplicado = filtroStatusModalAgenda.value;
+      filtroUnidadeModalAgendaAplicado = filtroUnidadeModalAgenda.value;
 
-      // Atualizar filtros da página principal (Agenda e Disponibilidade)
       document.getElementById("select-espaco-comum-calendario").value = espacoSelecionadoModal;
-      filtroEspacoLista.value = espacoSelecionadoModal; // Para a visualização em lista
 
-      // Para o filtro de período da lista, que é type="month"
-      filtroPeriodoLista.value = dataSelecionadaModal;
+      if (filtroEspacoLista) filtroEspacoLista.value = espacoSelecionadoModal;
+      if (filtroPeriodoLista) filtroPeriodoLista.value = dataSelecionadaModal;
 
-      // Fechar o modal
       if (filtrosModal) filtrosModal.style.display = "none";
 
-      // Disparar atualizações das visualizações
-      // Calendário: refetchEvents() irá pegar o novo valor de 'select-espaco-comum-calendario'.
-      // O filtro de data para o calendário é mais complexo se quisermos substituir a navegação interna.
-      // Por enquanto, o calendário continuará usando seu próprio fetchInfo para datas, mas filtrará por espaço.
-      // Se quisermos que o calendário salte para o mês do filtroDataModalAgenda:
+      if (reservasDiaSelecionadoContainer) reservasDiaSelecionadoContainer.style.display = 'none';
+      if (reservasDiaListaDiv) reservasDiaListaDiv.innerHTML = '<p class="cv-loading-message">Carregando reservas do dia...</p>';
+      if (dataSelecionadaAgendaSpan) dataSelecionadaAgendaSpan.textContent = '';
+
       if (dataSelecionadaModal && calendarioReservas) {
         const [year, month] = dataSelecionadaModal.split('-');
         calendarioReservas.gotoDate(`${year}-${month}-01`);
       } else {
-        calendarioReservas?.refetchEvents(); // Refetch com base no espaço e data atual do calendário
+        calendarioReservas?.refetchEvents();
       }
 
-      // Lista: recarregar com os novos filtros (incluindo o período da modal)
       currentPageListView = 1;
       noMoreItemsListView = false;
       const c = document.getElementById(listViewItemsContainerId);
       if (c) c.dataset.loadedOnce = "false";
-      carregarReservasListView(1, false); // Esta função já usa filtroEspacoLista e filtroPeriodoLista
+      carregarReservasListView(1, false);
 
-    } else if (tabMinhasBtn.classList.contains("active")) { // Minhas Reservas tab is active
+    } else if (tabMinhasBtn.classList.contains("active")) {
       const dataSelecionadaModalMinhas = filtroDataModalMinhas.value;
       const espacoSelecionadoModalMinhas = filtroEspacoModalMinhas.value;
       const statusSelecionadoModalMinhas = filtroStatusModalMinhas.value;
 
-      // Atualizar filtros da página principal (Minhas Reservas)
-      filtroMinhasPeriodo.value = dataSelecionadaModalMinhas;
-      filtroMinhasEspaco.value = espacoSelecionadoModalMinhas;
-      filtroMinhasStatus.value = statusSelecionadoModalMinhas;
+      // Armazenar valores dos filtros do modal nas variáveis globais
+      filtroPeriodoMinhasAplicado = dataSelecionadaModalMinhas;
+      filtroEspacoMinhasAplicado = espacoSelecionadoModalMinhas;
+      filtroStatusMinhasAplicado = statusSelecionadoModalMinhas;
 
-      // Fechar o modal
+      // As linhas que tentavam definir .value dos elementos on-page foram removidas na sobrescrita anterior.
+
       if (filtrosModal) filtrosModal.style.display = "none";
 
-      // Disparar atualização da lista "Minhas Reservas"
       currentPageMinhasReservas = 1;
       noMoreItemsMinhasReservas = false;
       const cMinhas = document.getElementById(minhasReservasItemsContainerId);
-      if (cMinhas) cMinhas.dataset.loadedOnce = "false"; // Force reload
-      carregarMinhasReservas(1, false); // Esta função usa os filtros da página que acabamos de atualizar
+      if (cMinhas) cMinhas.dataset.loadedOnce = "false";
+      carregarMinhasReservas(1, false);
     }
   });
 
-  btnAplicarFiltrosMinhas?.addEventListener("click", () => {
-    currentPageMinhasReservas = 1;
-    noMoreItemsMinhasReservas = false;
-    // Ensure container is marked as not loaded once if we want a full refresh
-    const c = document.getElementById(minhasReservasItemsContainerId);
-    if (c) c.dataset.loadedOnce = "false";
-    carregarMinhasReservas(1, false);
-  });
-
-  // Inicializa tudo
   await initReservasPage();
+
+  // Controlar visibilidade de filtros de admin no modal
+  if (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador")) {
+    const adminOnlyModalFilters = document.querySelectorAll("#modal-filtros-reservas .js-admin-only-filter");
+    adminOnlyModalFilters.forEach(el => el.style.display = "block");
+
+    const adminUnidadeInputGroupNovaReserva = document.getElementById("modal-reserva-unidade-sindico-group");
+    if(adminUnidadeInputGroupNovaReserva) {
+        // A visibilidade deste é controlada ao abrir o modal de nova reserva,
+        // para não mostrar para usuários normais que por acaso tenham role de admin em outro contexto.
+    }
+  }
 });
 
 async function initReservasPage() {
-  // Elementos de nova reserva
   const fabNovaReserva = document.getElementById("fab-nova-reserva");
   const modalNovaReserva = document.getElementById("modal-nova-reserva");
   const closeModalNovaReservaButton = modalNovaReserva?.querySelector(
@@ -259,14 +277,12 @@ async function initReservasPage() {
   );
   const modalSelectEspaco = document.getElementById("modal-reserva-espaco");
 
-  // Termos de uso
   const linkTermosUso = document.getElementById("link-termos-uso-reserva");
   const modalTermosUso = document.getElementById("modal-termos-uso-reserva");
   const closeModalTermosUso = modalTermosUso?.querySelector(
     ".js-modal-termos-uso-close"
   );
 
-  // Detalhe de reserva
   const modalDetalheReserva = document.getElementById("modal-detalhe-reserva");
   const closeModalDetalheReserva = modalDetalheReserva?.querySelector(
     ".js-modal-detalhe-reserva-close"
@@ -284,38 +300,28 @@ async function initReservasPage() {
     "btn-editar-reserva-modal-trigger"
   );
 
-  // Admin Espaços Comuns
-  const adminEspacosSection = document.getElementById("admin-espacos-section");
-  const btnAdicionarEspaco = document.getElementById("btn-adicionar-espaco");
-  const modalGerenciarEspaco = document.getElementById(
-    "modal-gerenciar-espaco-comum"
-  );
-  const closeModalGerenciarEspaco = modalGerenciarEspaco?.querySelector(
-    ".js-modal-gerenciar-espaco-close"
-  );
-  const formGerenciarEspaco = document.getElementById(
-    "form-gerenciar-espaco-comum"
-  );
-
-  // Abre modal de nova reserva
   fabNovaReserva?.addEventListener("click", () => {
     document.getElementById("modal-nova-reserva-title").textContent =
       "Solicitar Nova Reserva";
     formNovaReserva.reset();
     document.getElementById("modal-reserva-id").value = "";
-    document.getElementById(
-      "modal-reserva-unidade-sindico-group"
-    ).style.display = "none";
+
+    const adminUnidadeGroup = document.getElementById("modal-reserva-unidade-sindico-group");
+    if (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador")) {
+        if(adminUnidadeGroup) adminUnidadeGroup.style.display = "block";
+    } else {
+        if(adminUnidadeGroup) adminUnidadeGroup.style.display = "none";
+    }
+
     document.getElementById("btn-submit-nova-reserva").textContent =
       "Solicitar Reserva";
     document.getElementById("modal-reserva-termos").disabled = false;
     modalNovaReserva.style.display = "flex";
 
-    // Pré-seleciona o espaço
     let esp = "";
     if (calendarioViewContainer.style.display !== "none")
       esp = selectEspacoComumCalendario.value;
-    else esp = filtroEspacoLista.value;
+    else if (filtroEspacoLista) esp = filtroEspacoLista.value;
     modalSelectEspaco.value = esp;
     exibirInfoEspacoSelecionadoModal(esp);
   });
@@ -329,7 +335,6 @@ async function initReservasPage() {
   });
   formNovaReserva?.addEventListener("submit", handleSalvarReservaFormSubmit);
 
-  // Termos de uso
   linkTermosUso?.addEventListener("click", (e) => {
     e.preventDefault();
     modalTermosUso.style.display = "flex";
@@ -342,7 +347,6 @@ async function initReservasPage() {
     if (e.target === modalTermosUso) modalTermosUso.style.display = "none";
   });
 
-  // Detalhe de reserva
   closeModalDetalheReserva?.addEventListener(
     "click",
     () => (modalDetalheReserva.style.display = "none")
@@ -352,49 +356,192 @@ async function initReservasPage() {
       modalDetalheReserva.style.display = "none";
   });
 
+  async function obterDataInicioReservaDoModalDetalhes() {
+    const reservaOriginalStr = document.getElementById('btn-editar-reserva-modal-trigger')?.dataset.reservaOriginal;
+    if (reservaOriginalStr) {
+        try {
+            const reservaOriginal = JSON.parse(reservaOriginalStr);
+            return reservaOriginal.inicio; // string ISO
+        } catch (e) { console.error("Erro ao parsear reserva original:", e); }
+    }
+    return null;
+  }
+
   btnCancelarReservaModal?.addEventListener("click", async () => {
     const id = btnCancelarReservaModal.dataset.reservaId;
+    const dataInicio = await obterDataInicioReservaDoModalDetalhes();
     if (id) {
       await handleCancelarReserva(id);
       modalDetalheReserva.style.display = "none";
+      calendarioReservas?.refetchEvents();
+      if (document.getElementById("tab-minhas-reservas").classList.contains("active")) {
+        carregarMinhasReservas(1, false); // Recarrega Minhas Reservas
+      }
+      if (document.getElementById("tab-agenda").classList.contains("active") && listViewContainer.style.display !== 'none') {
+        carregarReservasListView(1, false); // Recarrega Lista da Agenda
+      }
+      if (dataInicio) {
+          atualizarReservasDoDiaSeVisivel(dataInicio);
+      }
     }
   });
-  btnAprovarReservaModal?.addEventListener("click", handleAprovarReserva);
-  btnRecusarReservaModal?.addEventListener("click", handleRecusarReserva);
+
+  btnAprovarReservaModal?.addEventListener("click", async () => {
+      const id = btnAprovarReservaModal.dataset.reservaId;
+      const dataInicio = await obterDataInicioReservaDoModalDetalhes();
+      await handleAprovarReserva(id, dataInicio);
+  });
+  btnRecusarReservaModal?.addEventListener("click", async () => {
+      const id = btnRecusarReservaModal.dataset.reservaId;
+      const dataInicio = await obterDataInicioReservaDoModalDetalhes();
+      await handleRecusarReserva(id, dataInicio);
+  });
+
   btnEditarReservaModalTrigger?.addEventListener(
     "click",
     abrirModalEditarReservaPeloSindico
   );
 
-  // Atualiza seleção de espaço no calendário
   selectEspacoComumCalendario?.addEventListener("change", () => {
     exibirInfoEspacoSelecionadoCalendario(selectEspacoComumCalendario.value);
     calendarioReservas?.refetchEvents();
+    // Se a lista de reservas do dia estiver visível, recarregar com o novo espaço
+    if (reservasDiaSelecionadoContainer && reservasDiaSelecionadoContainer.style.display !== 'none' && dataSelecionadaAgendaSpan) {
+        const dataExibidaTexto = dataSelecionadaAgendaSpan.textContent;
+        if(dataExibidaTexto){
+            const partes = dataExibidaTexto.split('/');
+            if(partes.length === 3) carregarReservasDoDia(`${partes[2]}-${partes[1]}-${partes[0]}`);
+        }
+    }
   });
 
-  // Carrega dados e inicializa componentes
   await carregarEspacosComuns();
-  initializeFullCalendar(); // For Agenda Tab
-  setupListViewObserver(); // For Agenda Tab's List View
-  setupMinhasReservasObserver(); // For Minhas Reservas Tab
-
-  // Initial content load is triggered by setupTabs based on active tab.
-  // Example: await carregarMinhasReservas(1, false); // if Minhas Reservas is default active
-  // Example: carregarReservasListView(1, false); // if Agenda List is default active
-  // FullCalendar loads its own data on render.
-
-  // Define view inicial (within Agenda tab)
+  initializeFullCalendar();
+  setupListViewObserver();
+  setupMinhasReservasObserver();
   toggleReservasView("calendario");
 }
+
+async function handleSalvarReservaFormSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  const formData = new FormData(form);
+  const reservaId = formData.get("reservaId");
+
+  const inicioStr = formData.get("data") + "T" + formData.get("inicio");
+  const fimStr = formData.get("data") + "T" + formData.get("fim");
+
+  const payload = {
+    espacoComumId: formData.get("espacoComumId"),
+    inicio: new Date(inicioStr).toISOString(),
+    fim: new Date(fimStr).toISOString(),
+    observacoes: formData.get("observacoes"),
+  };
+  if (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador")) {
+    const unidadeIdSindico = formData.get("unidadeId");
+    if (unidadeIdSindico) payload.unidadeId = unidadeIdSindico;
+  }
+
+
+  try {
+    if (reservaId) {
+      await apiClient.put(`/api/v1/app/reservas/${reservaId}`, payload);
+    } else {
+      await apiClient.post("/api/v1/app/reservas", payload);
+    }
+
+    form.reset();
+    document.getElementById("modal-nova-reserva").style.display = "none";
+    showGlobalFeedback("Reserva salva com sucesso!", "success");
+    calendarioReservas?.refetchEvents();
+
+    const dataReservaAfetada = formData.get("data"); // YYYY-MM-DD
+
+    if (document.getElementById("tab-minhas-reservas").classList.contains("active")) {
+        currentPageMinhasReservas = 1;
+        noMoreItemsMinhasReservas = false;
+        const cMinhas = document.getElementById(minhasReservasItemsContainerId);
+        if (cMinhas) cMinhas.dataset.loadedOnce = "false";
+        carregarMinhasReservas(1, false);
+    }
+
+    if (document.getElementById("tab-agenda").classList.contains("active") && listViewContainer.style.display !== 'none') {
+        currentPageListView = 1;
+        noMoreItemsListView = false;
+        const cAgendaList = document.getElementById(listViewItemsContainerId);
+        if (cAgendaList) cAgendaList.dataset.loadedOnce = "false";
+        carregarReservasListView(1, false);
+    }
+
+    if (dataReservaAfetada) {
+        atualizarReservasDoDiaSeVisivel(dataReservaAfetada + "T00:00:00.000Z");
+    }
+
+  } catch (err) {
+    console.error("Erro ao salvar reserva:", err);
+    const errorMsg = err.response?.data?.message || "Falha ao salvar reserva. Verifique os dados e horários.";
+    showGlobalFeedback(errorMsg, "error");
+  }
+}
+
+async function handleCancelarReserva(reservaId) {
+  if (!reservaId) return;
+  try {
+    await apiClient.delete(`/api/v1/app/reservas/${reservaId}`);
+    showGlobalFeedback("Reserva cancelada.", "success");
+    // As atualizações de UI (calendário, listas) são feitas pelos chamadores
+  } catch (err) {
+    console.error("Erro ao cancelar reserva:", err);
+    showGlobalFeedback(err.response?.data?.message || "Falha ao cancelar reserva.", "error");
+  }
+}
+
+async function handleAprovarReserva(reservaId, dataInicioReserva) {
+  if (!reservaId) return;
+  try {
+    await apiClient.put(`/api/v1/app/reservas/${reservaId}/aprovar`);
+    showGlobalFeedback("Reserva aprovada!", "success");
+    document.getElementById("modal-detalhe-reserva").style.display = "none";
+    calendarioReservas?.refetchEvents();
+    if (document.getElementById("tab-minhas-reservas").classList.contains("active")) carregarMinhasReservas(1, false);
+    if (document.getElementById("tab-agenda").classList.contains("active") && listViewContainer.style.display !== 'none') carregarReservasListView(1, false);
+    if (dataInicioReserva) atualizarReservasDoDiaSeVisivel(dataInicioReserva);
+  } catch (err) {
+    console.error("Erro ao aprovar reserva:", err);
+    showGlobalFeedback(err.response?.data?.message || "Falha ao aprovar reserva.", "error");
+  }
+}
+
+async function handleRecusarReserva(reservaId, dataInicioReserva) {
+  if (!reservaId) return;
+  const justificativa = document.getElementById("modal-detalhe-reserva-sindico-justificativa")?.value;
+  if (!justificativa) {
+    showGlobalFeedback("Por favor, forneça uma justificativa para recusar.", "warning");
+    return;
+  }
+  try {
+    await apiClient.put(`/api/v1/app/reservas/${reservaId}/recusar`, { justificativa });
+    showGlobalFeedback("Reserva recusada.", "success");
+    document.getElementById("modal-detalhe-reserva").style.display = "none";
+    calendarioReservas?.refetchEvents();
+    if (document.getElementById("tab-minhas-reservas").classList.contains("active")) carregarMinhasReservas(1, false);
+    if (document.getElementById("tab-agenda").classList.contains("active") && listViewContainer.style.display !== 'none') carregarReservasListView(1, false);
+    if (dataInicioReserva) atualizarReservasDoDiaSeVisivel(dataInicioReserva);
+  } catch (err) {
+    console.error("Erro ao recusar reserva:", err);
+    showGlobalFeedback(err.response?.data?.message || "Falha ao recusar reserva.", "error");
+  }
+}
+
 
 async function carregarEspacosComuns() {
   const selects = [
     document.getElementById("select-espaco-comum-calendario"),
     document.getElementById("modal-reserva-espaco"),
     document.getElementById("filtro-espaco-lista"),
-    document.getElementById("filtro-minhas-espaco"), // On-page filter for Minhas Reservas
-    document.getElementById("filtro-espaco-modal-agenda"),
-    document.getElementById("filtro-espaco-modal-minhas"), // Modal filter for Minhas Reservas
+    filtroMinhasEspaco,
+    filtroEspacoModalAgenda,
+    filtroEspacoModalMinhas,
   ];
   selects.forEach((sel) => {
     if (sel) sel.innerHTML = "<option>Carregando...</option>";
@@ -408,9 +555,10 @@ async function carregarEspacosComuns() {
       const isFiltro = [
         "select-espaco-comum-calendario",
         "filtro-espaco-lista",
-        "filtro-minhas-espaco",
-        "filtro-espaco-modal-reservas",
-      ].some((id) => sel.id === id);
+        "filtro-minhas-espaco", // ID do elemento, não a variável
+        "filtro-espaco-modal-agenda", // ID do elemento
+        "filtro-espaco-modal-minhas" // ID do elemento
+      ].includes(sel.id);
       sel.innerHTML = `<option value="">${
         isFiltro ? "Todos os Espaços" : "Selecione um espaço"
       }</option>`;
@@ -440,13 +588,14 @@ function toggleReservasView(view) {
     btnViewCalendario.classList.add("cv-button--primary");
     btnViewLista.classList.remove("cv-button--primary");
     calendarioReservas?.refetchEvents();
-  } else {
+  } else { // 'lista'
     calendarioViewContainer.style.display = "none";
     listViewContainer.style.display = "block";
     btnViewLista.classList.add("cv-button--primary");
     btnViewCalendario.classList.remove("cv-button--primary");
     const c = document.getElementById(listViewItemsContainerId);
-    if (c && (!c.dataset.loadedOnce || c.innerHTML.trim() === "")) {
+    // Carrega a lista apenas se não tiver sido carregada antes ou se estiver vazia (e.g. filtros mudaram)
+    if (c && (!c.dataset.loadedOnce || c.innerHTML.trim() === "" || c.querySelector(".cv-loading-message"))) {
       currentPageListView = 1;
       noMoreItemsListView = false;
       carregarReservasListView(1, false);
@@ -459,49 +608,29 @@ function setupTabs() {
   const tabContents = document.querySelectorAll(".cv-tab-content");
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      console.log(`Tab clicked: ${button.id}`); // Log: Tab button ID
       tabButtons.forEach((btn) => btn.classList.remove("active"));
       button.classList.add("active");
 
-      tabContents.forEach((c) => {
-        // console.log(`Hiding content: ${c.id}`); // Verbose
-        c.style.display = "none";
-      });
+      tabContents.forEach((c) => c.style.display = "none");
       const targetContentId = "content-" + button.id.replace("tab-", "");
-      console.log(`Target content ID: ${targetContentId}`); // Log: Target content ID
       const target = document.getElementById(targetContentId);
       if (target) {
         target.style.display = "block";
-        console.log(`Displayed content: ${target.id}`); // Log: Displayed content
-      } else {
-        console.error(`Target content pane with ID ${targetContentId} not found.`);
       }
 
-      // Specific logic for tab activation
       if (button.id === "tab-minhas-reservas") {
-        console.log("Handling 'tab-minhas-reservas' activation."); // Log
         const container = document.getElementById(minhasReservasItemsContainerId);
-        if (!container) {
-            console.error(`Container for minhas reservas list (#${minhasReservasItemsContainerId}) not found.`);
-            return;
-        }
-        console.log(`'Minhas Reservas' container found. LoadedOnce: ${container.dataset.loadedOnce}, InnerHTML empty: ${container.innerHTML.trim() === ""}, Has loading msg: ${!!container.querySelector(".cv-loading-message")}`); // Log
-        // Load only if not loaded once or if it's empty (e.g. after filters changed by on-page filters)
-        // The `container.querySelector(".cv-loading-message")` checks if it's in its initial loading state.
-        if (!container.dataset.loadedOnce || container.innerHTML.trim() === "" || container.querySelector(".cv-loading-message")) {
-            console.log("Condition to load 'Minhas Reservas' met. Calling carregarMinhasReservas."); // Log
+        if (container && (!container.dataset.loadedOnce || container.innerHTML.trim() === "" || container.querySelector(".cv-loading-message"))) {
             currentPageMinhasReservas = 1;
             noMoreItemsMinhasReservas = false;
-            carregarMinhasReservas(1, false); // Initial load for this tab
+            carregarMinhasReservas(1, false);
         }
       } else if (button.id === "tab-agenda") {
-        // Refresh current view within agenda tab if needed
         if (calendarioViewContainer && calendarioViewContainer.style.display !== 'none') {
             calendarioReservas?.refetchEvents();
         } else if (listViewContainer && listViewContainer.style.display !== 'none') {
-            // List view in agenda tab: only reload if it was never loaded or is empty
             const listContainer = document.getElementById(listViewItemsContainerId);
-            if (!listContainer.dataset.loadedOnce || listContainer.innerHTML.trim() === "") {
+            if (listContainer && (!listContainer.dataset.loadedOnce || listContainer.innerHTML.trim() === "" || listContainer.querySelector(".cv-loading-message"))) {
                 currentPageListView = 1;
                 noMoreItemsListView = false;
                 carregarReservasListView(1, false);
@@ -513,11 +642,8 @@ function setupTabs() {
 
   const initialActive =
     document.querySelector(".cv-tab-button.active") || tabButtons[0];
-  if (initialActive) initialActive.click(); // This will trigger the specific logic above for the initially active tab.
+  if (initialActive) initialActive.click();
 }
-
-// The switchTab function is redundant as its logic is incorporated into setupTabs.
-// function switchTab(tab) { ... }
 
 async function carregarMinhasReservas(page = 1, append = false) {
   if (isLoadingMinhasReservas || (noMoreItemsMinhasReservas && append)) return;
@@ -527,18 +653,17 @@ async function carregarMinhasReservas(page = 1, append = false) {
   const sentinel = document.getElementById(minhasReservasSentinelId);
 
   if (!container) {
-    console.error("Container para 'Minhas Reservas' não encontrado.");
     isLoadingMinhasReservas = false;
     return;
   }
 
   if (!append) {
-    container.innerHTML = ""; // Clear previous items for a fresh load
-    noMoreItemsMinhasReservas = false; // Reset for new filter/load
+    container.innerHTML = "";
+    noMoreItemsMinhasReservas = false;
   }
 
   let loadingMsg = container.querySelector(".cv-loading-message");
-  if (!loadingMsg && !append) { // Only add main loading message if not appending and not already there
+  if (!loadingMsg && !append) {
     loadingMsg = document.createElement("p");
     loadingMsg.className = "cv-loading-message";
     container.appendChild(loadingMsg);
@@ -553,13 +678,13 @@ async function carregarMinhasReservas(page = 1, append = false) {
   try {
     const params = {
       pageNumber: page,
-      pageSize: 10, // Standard page size
-      espacoComumId: filtroMinhasEspaco.value || null,
-      status: filtroMinhasStatus.value || null,
+      pageSize: 10,
+      espacoComumId: filtroEspacoMinhasAplicado || null,
+      status: filtroStatusMinhasAplicado || null,
     };
 
-    if (filtroMinhasPeriodo.value) {
-      const [year, month] = filtroMinhasPeriodo.value.split("-").map(Number);
+    if (filtroPeriodoMinhasAplicado) {
+      const [year, month] = filtroPeriodoMinhasAplicado.split("-").map(Number);
       params.periodoInicio = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0)).toISOString();
       const ultimoDiaDoMes = new Date(Date.UTC(year, month, 0));
       params.periodoFim = new Date(
@@ -576,17 +701,14 @@ async function carregarMinhasReservas(page = 1, append = false) {
     }
 
     const responseData = await apiClient.get("/api/v1/app/reservas/minhas-reservas", params);
-    // Assuming API returns { items: [], pageNumber: X, pageSize: Y, totalCount: Z, hasNextPage: bool }
-    // or similar. For now, we'll use responseData.items and check length against pageSize.
     const items = responseData.items || [];
 
     if (loadingMsg) loadingMsg.style.display = "none";
 
     if (items.length > 0) {
-      if (!append) container.dataset.loadedOnce = "true"; // Mark as loaded once for the tab logic
+      if (!append) container.dataset.loadedOnce = "true";
       items.forEach((reserva) => {
         const card = renderCardReservaListView({ ...reserva, pertenceAoUsuarioLogado: true });
-        // Insert before sentinel if appending, otherwise just append
         if (append && sentinel) container.insertBefore(card, sentinel);
         else container.appendChild(card);
       });
@@ -602,12 +724,12 @@ async function carregarMinhasReservas(page = 1, append = false) {
             container.appendChild(fim);
         }
       }
-    } else if (!append) { // No items on first load for these filters
+    } else if (!append) {
       container.innerHTML =
         '<p class="cv-info-message" style="text-align:center;">Nenhuma reserva encontrada com os filtros aplicados.</p>';
       noMoreItemsMinhasReservas = true;
       if (sentinel) sentinel.style.display = "none";
-    } else { // No more items when appending
+    } else {
       noMoreItemsMinhasReservas = true;
       if (sentinel) sentinel.style.display = "none";
       if (container.querySelector(".fim-lista-minhas") === null && page > 1) {
@@ -637,7 +759,6 @@ async function carregarMinhasReservas(page = 1, append = false) {
 function setupMinhasReservasObserver() {
   const sentinel = document.getElementById(minhasReservasSentinelId);
   if (!sentinel) {
-    console.warn("Sentinel da Minhas Reservas View não encontrado.");
     return;
   }
   new IntersectionObserver(
@@ -662,7 +783,6 @@ async function carregarReservasListView(page, append = false) {
   const sentinel = document.getElementById(listViewSentinelId);
   if (!container) {
     isLoadingListView = false;
-    console.error("Container não encontrado.");
     return;
   }
 
@@ -687,10 +807,18 @@ async function carregarReservasListView(page, append = false) {
       const params = {
         pageNumber: page,
         pageSize: 10,
-        espacoComumId: filtroEspacoLista.value || null,
-        status: filtroStatusLista.value || null,
+        espacoComumId: filtroEspacoLista?.value || null,
       };
-      if (filtroPeriodoLista.value) {
+
+      if (filtroStatusModalAgendaAplicado) {
+        params.status = filtroStatusModalAgendaAplicado;
+      }
+      if (filtroUnidadeModalAgendaAplicado &&
+          (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador"))) {
+        params.unidadeId = filtroUnidadeModalAgendaAplicado;
+      }
+
+      if (filtroPeriodoLista?.value) {
         const [year, month] = filtroPeriodoLista.value.split("-").map(Number);
         params.periodoInicio = new Date(
           Date.UTC(year, month - 1, 1)
@@ -709,15 +837,8 @@ async function carregarReservasListView(page, append = false) {
         ).toISOString();
       }
 
-    // Chamada real à API (substitui o mock)
     const responseData = await apiClient.get("/api/v1/app/reservas/lista", params);
-    // Assumindo que a API retorna um objeto com 'items' e 'hasNextPage' ou similar
-    // ou um array diretamente e verificamos o tamanho para 'noMoreItemsListView'
-    // Para este exemplo, vou assumir que retorna um array de itens.
-    // Se a API retornar estrutura de paginação (ex: { items: [], totalCount: X, page: Y, pageSize: Z }),
-    // a lógica de noMoreItemsListView precisaria ser ajustada.
-
-    const items = responseData.items || responseData; // Adaptar conforme a resposta da API
+    const items = responseData.items || responseData;
 
     loadingMsg.style.display = "none";
 
@@ -726,11 +847,11 @@ async function carregarReservasListView(page, append = false) {
       items.forEach((reserva) =>
         container.appendChild(renderCardReservaListView(reserva))
       );
-      currentPageListView = page; // Atualiza a página atual
-      if (items.length < params.pageSize || (responseData.hasNextPage === false)) { // Verifica se há menos itens que o esperado ou se a API indica que não há mais
+      currentPageListView = page;
+      if (items.length < params.pageSize || (responseData.hasNextPage === false)) {
         noMoreItemsListView = true;
         if (sentinel) sentinel.style.display = "none";
-        if (container.querySelector(".fim-lista") === null) { // Evita duplicar mensagem
+        if (container.querySelector(".fim-lista") === null) {
             const fim = document.createElement("p");
             fim.className = "cv-info-message fim-lista";
             fim.textContent = "Fim das reservas.";
@@ -738,12 +859,12 @@ async function carregarReservasListView(page, append = false) {
             container.appendChild(fim);
         }
       }
-    } else if (!append) { // Nenhuma reserva encontrada na primeira busca com os filtros
+    } else if (!append) {
       container.innerHTML =
         '<p class="cv-info-message" style="text-align:center;">Nenhuma reserva encontrada para os filtros aplicados.</p>';
       noMoreItemsListView = true;
       if (sentinel) sentinel.style.display = "none";
-    } else { // Nenhuma reserva encontrada em uma página subsequente (append = true)
+    } else {
         noMoreItemsListView = true;
         if (sentinel) sentinel.style.display = "none";
          if (container.querySelector(".fim-lista") === null && page > 1) {
@@ -763,8 +884,7 @@ async function carregarReservasListView(page, append = false) {
     } else {
       showGlobalFeedback("Erro ao carregar mais reservas.", "error");
     }
-    // Considerar parar o observer em caso de erro para não ficar tentando carregar.
-    noMoreItemsListView = true; // Para evitar novas tentativas automáticas
+    noMoreItemsListView = true;
     if (sentinel) sentinel.style.display = "none";
   } finally {
     isLoadingListView = false;
@@ -791,7 +911,7 @@ function renderCardReservaListView(reserva) {
   let statusClass = "";
   if (reserva.status === "Confirmada") statusClass = "cv-text-success";
   else if (reserva.status === "Pendente") statusClass = "cv-text-warning";
-  else if (reserva.status.startsWith("Cancelada"))
+  else if (reserva.status?.startsWith("Cancelada")) // Checa se status existe
     statusClass = "cv-text-error";
 
   card.innerHTML = `
@@ -841,18 +961,41 @@ function renderCardReservaListView(reserva) {
     .querySelector(".js-cancelar-reserva-lista")
     ?.addEventListener("click", async () => {
       if (confirm("Tem certeza que deseja cancelar esta reserva?")) {
+        const dataInicioReserva = reserva.inicio;
         await handleCancelarReserva(reserva.id);
-        currentPageListView = 1;
-        noMoreItemsListView = false;
-        const c = document.getElementById(listViewItemsContainerId);
-        if (c) c.dataset.loadedOnce = "false";
-        carregarReservasListView(1, false);
+        if (listViewContainer.style.display !== 'none') {
+            currentPageListView = 1;
+            noMoreItemsListView = false;
+            const c = document.getElementById(listViewItemsContainerId);
+            if (c) c.dataset.loadedOnce = "false";
+            carregarReservasListView(1, false);
+        }
         calendarioReservas?.refetchEvents();
+        atualizarReservasDoDiaSeVisivel(dataInicioReserva);
       }
     });
 
   return card;
 }
+
+// Helper function to refresh the "reservas do dia" list if visible and relevant
+function atualizarReservasDoDiaSeVisivel(dataReservaISO) {
+    if (reservasDiaSelecionadoContainer && reservasDiaSelecionadoContainer.style.display !== 'none' && dataSelecionadaAgendaSpan) {
+        const dataExibidaTexto = dataSelecionadaAgendaSpan.textContent;
+        if (!dataExibidaTexto || !dataReservaISO) return;
+
+        const partesDataExibida = dataExibidaTexto.split('/');
+        if (partesDataExibida.length !== 3) return;
+        const dataExibidaISO = `${partesDataExibida[2]}-${partesDataExibida[1]}-${partesDataExibida[0]}`;
+
+        const dataReservaApenasData = dataReservaISO.substring(0, 10);
+
+        if (dataReservaApenasData === dataExibidaISO) {
+            carregarReservasDoDia(dataExibidaISO);
+        }
+    }
+}
+
 
 function abrirModalDetalhesComDados(reserva) {
   const modal = document.getElementById("modal-detalhe-reserva");
@@ -868,20 +1011,11 @@ function abrirModalDetalhesComDados(reserva) {
     "modal-detalhe-reserva-sindico-justificativa"
   );
   if (
-    !modal ||
-    !conteudo ||
-    !btnCanc ||
-    !btnApr ||
-    !btnRec ||
-    !btnEdt ||
-    !justGroup ||
-    !justText
+    !modal || !conteudo || !btnCanc || !btnApr || !btnRec || !btnEdt || !justGroup || !justText
   ) {
-    console.error("Elementos do modal detalhe não encontrados.");
     return;
   }
 
-  // limpa botões
   [btnCanc, btnApr, btnRec, btnEdt].forEach((b) => (b.style.display = "none"));
   justGroup.style.display = "none";
   justText.value = "";
@@ -961,7 +1095,6 @@ function abrirModalDetalhesComDados(reserva) {
 function setupListViewObserver() {
   const sentinel = document.getElementById(listViewSentinelId);
   if (!sentinel) {
-    console.warn("Sentinel da List View não encontrado.");
     return;
   }
   new IntersectionObserver(
@@ -1043,11 +1176,9 @@ function exibirInfoEspacoSelecionadoModal(espacoId) {
 function initializeFullCalendar() {
   const el = document.getElementById("calendario-reservas");
   if (!el) {
-    console.error("Elemento #calendario-reservas não encontrado.");
     return;
   }
   if (!FullCalendarCalendar) {
-    console.error("FullCalendar library not loaded.");
     return;
   }
 
@@ -1071,23 +1202,15 @@ function initializeFullCalendar() {
       try {
         const mesAno = new Date(fetchInfo.start).toISOString().slice(0, 7);
         const params = { mesAno };
-        const sel = document.getElementById(
-          "select-espaco-comum-calendario"
-        ).value;
-        if (sel) params.espacoComumId = sel;
+        const espacoComumIdCalendario = document.getElementById("select-espaco-comum-calendario").value;
+        if (espacoComumIdCalendario) params.espacoComumId = espacoComumIdCalendario;
 
-        const stat = document.getElementById(
-          "filtro-status-reserva-calendario"
-        )?.value;
-        const uni = document.getElementById(
-          "filtro-unidade-reserva-calendario"
-        )?.value;
-        if (
-          currentUserRoles.includes("Sindico") ||
-          currentUserRoles.includes("Administrador")
-        ) {
-          if (stat) params.status = stat;
-          if (uni) params.unidadeId = uni;
+        if (filtroStatusModalAgendaAplicado) {
+            params.status = filtroStatusModalAgendaAplicado;
+        }
+        if (filtroUnidadeModalAgendaAplicado &&
+            (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador"))) {
+            params.unidadeId = filtroUnidadeModalAgendaAplicado;
         }
 
         const items = await apiClient.get(
@@ -1120,40 +1243,37 @@ function initializeFullCalendar() {
         });
         successCallback(eventos);
       } catch (err) {
-        console.error("Erro ao buscar eventos:", err);
-        showGlobalFeedback("Falha ao carregar agenda.", "error");
         failureCallback(err);
       }
     },
+    eventClick: (clickInfo) => {
+      abrirModalDetalhesComDados(clickInfo.event.extendedProps);
+    },
     dateClick: (info) => {
       const m = document.getElementById("modal-nova-reserva");
-      document.getElementById("modal-nova-reserva-title").textContent =
-        "Solicitar Nova Reserva";
-      document.getElementById("btn-submit-nova-reserva").textContent =
-        "Solicitar Reserva";
+      document.getElementById("modal-nova-reserva-title").textContent = "Solicitar Nova Reserva";
+      document.getElementById("btn-submit-nova-reserva").textContent = "Solicitar Reserva";
       document.getElementById("form-nova-reserva").reset();
       document.getElementById("modal-reserva-id").value = "";
-      document.getElementById(
-        "modal-reserva-unidade-sindico-group"
-      ).style.display = "none";
+
+      const adminUnidadeGroup = document.getElementById("modal-reserva-unidade-sindico-group");
+      if (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador")) {
+        if(adminUnidadeGroup) adminUnidadeGroup.style.display = "block";
+      } else {
+        if(adminUnidadeGroup) adminUnidadeGroup.style.display = "none";
+      }
+
       document.getElementById("modal-reserva-termos").disabled = false;
-      document.getElementById("modal-reserva-data").value =
-        info.dateStr.split("T")[0];
-      document.getElementById("modal-reserva-inicio").value =
-        info.dateStr.includes("T")
-          ? info.dateStr.split("T")[1].substring(0, 5)
-          : "";
-      const sel = document.getElementById(
-        "select-espaco-comum-calendario"
-      ).value;
+      document.getElementById("modal-reserva-data").value = info.dateStr.split("T")[0];
+      document.getElementById("modal-reserva-inicio").value = info.dateStr.includes("T") ? info.dateStr.split("T")[1].substring(0, 5) : "";
+      const sel = document.getElementById("select-espaco-comum-calendario").value;
       const msel = document.getElementById("modal-reserva-espaco");
       if (sel) {
         msel.value = sel;
         exibirInfoEspacoSelecionadoModal(sel);
       } else {
         msel.value = "";
-        document.getElementById("modal-info-espaco-reserva").style.display =
-          "none";
+        document.getElementById("modal-info-espaco-reserva").style.display = "none";
         const tx = document.getElementById("modal-reserva-taxa-info");
         if (tx) {
           tx.textContent = "";
@@ -1161,11 +1281,102 @@ function initializeFullCalendar() {
         }
       }
       m.style.display = "flex";
-    },
-    eventClick: (clickInfo) => {
-      abrirModalDetalhesComDados(clickInfo.event.extendedProps);
+
+      carregarReservasDoDia(info.dateStr.split("T")[0]);
     },
   });
 
   calendarioReservas.render();
+}
+
+async function carregarReservasDoDia(dataISO) {
+  if (!reservasDiaSelecionadoContainer || !dataSelecionadaAgendaSpan || !reservasDiaListaDiv) {
+    return;
+  }
+
+  dataSelecionadaAgendaSpan.textContent = new Date(dataISO + 'T00:00:00Z').toLocaleDateString('pt-BR', { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric' });
+  reservasDiaListaDiv.innerHTML = '<p class="cv-loading-message">Carregando reservas...</p>';
+  reservasDiaSelecionadoContainer.style.display = 'block';
+
+  try {
+    const params = {
+      pageNumber: 1,
+      pageSize: 50,
+      espacoComumId: document.getElementById("select-espaco-comum-calendario").value || null,
+      status: filtroStatusModalAgendaAplicado || null,
+    };
+    if (filtroUnidadeModalAgendaAplicado && (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador"))) {
+      params.unidadeId = filtroUnidadeModalAgendaAplicado;
+    }
+
+    params.periodoInicio = new Date(dataISO + 'T00:00:00.000Z').toISOString();
+    params.periodoFim = new Date(dataISO + 'T23:59:59.999Z').toISOString();
+
+    const responseData = await apiClient.get("/api/v1/app/reservas/lista", params);
+    const items = responseData.items || responseData;
+
+    reservasDiaListaDiv.innerHTML = "";
+
+    if (items.length > 0) {
+      items.forEach(reserva => {
+        const card = renderCardReservaListView(reserva);
+        reservasDiaListaDiv.appendChild(card);
+      });
+    } else {
+      reservasDiaListaDiv.innerHTML = '<p class="cv-info-message" style="text-align:center;">Nenhuma reserva encontrada para este dia com os filtros atuais.</p>';
+    }
+  } catch (err) {
+    reservasDiaListaDiv.innerHTML = '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas do dia.</p>';
+    showGlobalFeedback("Erro ao buscar reservas para o dia selecionado.", "error");
+  }
+}
+
+function abrirModalEditarReservaPeloSindico() {
+    const reservaOriginalStr = this.dataset.reservaOriginal; // 'this' é o botão
+    if (!reservaOriginalStr) {
+        showGlobalFeedback("Dados da reserva original não encontrados.", "error");
+        return;
+    }
+    try {
+        const reserva = JSON.parse(reservaOriginalStr);
+        const modal = document.getElementById("modal-nova-reserva");
+        const form = document.getElementById("form-nova-reserva");
+
+        document.getElementById("modal-nova-reserva-title").textContent = "Editar Reserva (Síndico)";
+        form.reset(); // Limpa o formulário
+
+        document.getElementById("modal-reserva-id").value = reserva.id;
+        document.getElementById("modal-reserva-espaco").value = reserva.espacoComumId;
+        exibirInfoEspacoSelecionadoModal(reserva.espacoComumId); // Mostra infos do espaço
+
+        const dataObj = new Date(reserva.inicio);
+        const dataFormatted = dataObj.toISOString().split('T')[0];
+        const horaInicioFormatted = dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+        const dataFimObj = new Date(reserva.fim);
+        const horaFimFormatted = dataFimObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+        document.getElementById("modal-reserva-data").value = dataFormatted;
+        document.getElementById("modal-reserva-inicio").value = horaInicioFormatted;
+        document.getElementById("modal-reserva-fim").value = horaFimFormatted;
+        document.getElementById("modal-reserva-observacoes").value = reserva.observacoes || "";
+
+        const adminUnidadeGroup = document.getElementById("modal-reserva-unidade-sindico-group");
+        const adminUnidadeInput = document.getElementById("modal-reserva-unidade-sindico");
+        if (adminUnidadeGroup && adminUnidadeInput) {
+            adminUnidadeGroup.style.display = "block"; // Mostrar para síndico
+            adminUnidadeInput.value = reserva.unidadeId || ""; // Preencher se disponível
+        }
+
+        document.getElementById("modal-reserva-termos").checked = true; // Assume que termos já foram aceitos
+        document.getElementById("modal-reserva-termos").disabled = true; // Não pode mudar termos ao editar
+
+        document.getElementById("btn-submit-nova-reserva").textContent = "Salvar Alterações";
+        document.getElementById("modal-detalhe-reserva").style.display = "none"; // Fecha modal de detalhes
+        modal.style.display = "flex";
+
+    } catch (e) {
+        console.error("Erro ao parsear dados da reserva para edição:", e);
+        showGlobalFeedback("Erro ao preparar edição da reserva.", "error");
+    }
 }
