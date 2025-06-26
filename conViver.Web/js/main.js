@@ -129,6 +129,54 @@ export function showGlobalFeedback(message, type = 'info', duration) {
     }
 }
 
+/**
+ * Exibe contêineres de skeleton para um seletor ou elemento.
+ * Se o seletor apontar para o próprio contêiner, ele é exibido; caso
+ * contrário, procura por um filho com `.feed-skeleton-container`.
+ * @param {string|Element|NodeList} target CSS selector ou elemento(s)
+ */
+export function showSkeleton(target) {
+    const elements = typeof target === 'string'
+        ? document.querySelectorAll(target)
+        : target instanceof Element
+            ? [target]
+            : target instanceof NodeList || Array.isArray(target)
+                ? target
+                : [];
+    elements.forEach(el => {
+        if (!el) return;
+        if (el.classList && el.classList.contains('feed-skeleton-container')) {
+            el.style.display = 'block';
+        } else {
+            const container = el.querySelector('.feed-skeleton-container');
+            if (container) container.style.display = 'block';
+        }
+    });
+}
+
+/**
+ * Oculta contêineres de skeleton exibidos com `showSkeleton`.
+ * @param {string|Element|NodeList} target CSS selector ou elemento(s)
+ */
+export function hideSkeleton(target) {
+    const elements = typeof target === 'string'
+        ? document.querySelectorAll(target)
+        : target instanceof Element
+            ? [target]
+            : target instanceof NodeList || Array.isArray(target)
+                ? target
+                : [];
+    elements.forEach(el => {
+        if (!el) return;
+        if (el.classList && el.classList.contains('feed-skeleton-container')) {
+            el.style.display = 'none';
+        } else {
+            const container = el.querySelector('.feed-skeleton-container');
+            if (container) container.style.display = 'none';
+        }
+    });
+}
+
 
 // Exemplo de como poderia ser usado para inicializações (se necessário no futuro):
 // document.addEventListener('DOMContentLoaded', () => {
