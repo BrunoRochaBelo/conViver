@@ -1,4 +1,4 @@
-import { showGlobalFeedback } from "./main.js";
+import { showGlobalFeedback, showSkeleton, hideSkeleton } from "./main.js";
 import { requireAuth, getUserInfo, getRoles } from "./auth.js";
 import apiClient from "./apiClient.js";
 import { initFabMenu } from "./fabMenu.js";
@@ -1203,7 +1203,7 @@ function initializeFullCalendar() {
 async function carregarReservasDia(dataStr) {
   if (!agendaDiaListContainer) return;
   agendaDiaListContainer.innerHTML = "";
-  if (agendaDiaSkeleton) agendaDiaSkeleton.style.display = "block";
+  showSkeleton(agendaDiaSkeleton);
   if (agendaDiaLoading) agendaDiaLoading.style.display = "block";
   try {
     const params = {
@@ -1224,7 +1224,7 @@ async function carregarReservasDia(dataStr) {
     console.error("Erro ao carregar reservas do dia:", err);
     agendaDiaListContainer.innerHTML = '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas.</p>';
   } finally {
-    if (agendaDiaSkeleton) agendaDiaSkeleton.style.display = "none";
+    hideSkeleton(agendaDiaSkeleton);
     if (agendaDiaLoading) agendaDiaLoading.style.display = "none";
   }
 }
