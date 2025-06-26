@@ -353,7 +353,7 @@ if(btnLimparFiltroHistorico) {
 }
 
 // --- DOMContentLoaded ---
-document.addEventListener('DOMContentLoaded', async () => {
+export async function initialize() {
     requireAuth();
     setupTabs();
     await carregarVisitantesAtuais();
@@ -384,7 +384,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         actions.push({ label: 'Registrar Encomenda', onClick: () => openSubTab('gestao-encomendas') });
     }
     initFabMenu(actions);
-});
+}
+
+if (document.readyState !== 'loading') {
+    initialize();
+} else {
+    document.addEventListener('DOMContentLoaded', initialize);
+}
 
 
 // Original carregarEncomendas (can be moved to an 'encomendas.js' or kept if tabs eventually integrate it)

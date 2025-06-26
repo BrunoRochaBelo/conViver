@@ -110,7 +110,7 @@ let modalFiltros; // Novo modal de filtros
 let chamadoStatusModalFormGroup;
 let chamadoCategoriaModalFormGroup;
 
-document.addEventListener("DOMContentLoaded", async () => {
+export async function initialize() {
   requireAuth();
 
   // Modals Init
@@ -185,7 +185,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   updateUserSpecificUI(); // Setup FABs
   setupFilterModalAndButton(); // Setup filter modal and its trigger
   setupModalEventListeners(); // Setup generic close/submit for other modals
-});
+}
+
+if (document.readyState !== "loading") {
+  initialize();
+} else {
+  document.addEventListener("DOMContentLoaded", initialize);
+}
 
 // --- Tab System ---
 function setupTabs() {

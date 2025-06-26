@@ -56,7 +56,7 @@ let filtroEspacoModalAgenda, filtroDataModalAgenda;
 // Modal filter elements for Minhas Reservas Tab
 let filtroDataModalMinhas, filtroEspacoModalMinhas, filtroStatusModalMinhas;
 
-document.addEventListener("DOMContentLoaded", async () => {
+export async function initialize() {
   // Autenticação e info do usuário
   requireAuth();
   const userInfo = getUserInfo();
@@ -265,7 +265,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
   initFabMenu(actions);
-});
+}
+
+if (document.readyState !== "loading") {
+  initialize();
+} else {
+  document.addEventListener("DOMContentLoaded", initialize);
+}
 
 async function initReservasPage() {
   // Elementos de nova reserva
