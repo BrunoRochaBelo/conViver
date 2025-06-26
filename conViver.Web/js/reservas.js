@@ -86,8 +86,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     toggleReservasView("calendario")
   );
   btnViewLista?.addEventListener("click", () => toggleReservasView("lista"));
-  tabAgendaBtn?.addEventListener("click", () => switchTab("agenda"));
-  tabMinhasBtn?.addEventListener("click", () => switchTab("minhas"));
+
+  setupTabs();
 
   // Filtros da lista
   btnAplicarFiltrosLista?.addEventListener("click", () => {
@@ -272,8 +272,7 @@ async function initReservasPage() {
   setupListViewObserver();
   await carregarMinhasReservas();
 
-  // Define aba e view iniciais
-  switchTab("agenda");
+  // Define view inicial
   toggleReservasView("calendario");
 }
 
@@ -341,6 +340,31 @@ function toggleReservasView(view) {
       carregarReservasListView(1, false);
     }
   }
+}
+
+function setupTabs() {
+  const tabButtons = document.querySelectorAll(".cv-tab-button");
+  const tabContents = document.querySelectorAll(".cv-tab-content");
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      tabButtons.forEach((btn) => btn.classList.remove("active"));
+      button.classList.add("active");
+
+      tabContents.forEach((c) => (c.style.display = "none"));
+      const target = document.getElementById(
+        "content-" + button.id.replace("tab-", "")
+      );
+      if (target) target.style.display = "block";
+
+      if (button.id === "tab-minhas-reservas") {
+        carregarMinhasReservas();
+      }
+    });
+  });
+
+  const initialActive =
+    document.querySelector(".cv-tab-button.active") || tabButtons[0];
+  if (initialActive) initialActive.click();
 }
 
 function switchTab(tab) {
