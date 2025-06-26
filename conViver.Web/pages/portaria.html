@@ -12,6 +12,10 @@
 
                 <div id="visitantes-atuais" class="cv-subtab-content active">
                     <h3>Visitantes Atuais no Condomínio</h3>
+                    <div id="visitantes-skeleton" class="feed-skeleton-container" style="display:none;">
+                        <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                        <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                    </div>
                     <div class="filters">
                         <input type="text" id="filterUnidadeVisitantesAtuais" placeholder="Filtrar por Unidade (Ex: A101)">
                         <button id="btnFiltrarVisitantesAtuais" class="cv-button cv-button--small">Filtrar</button>
@@ -79,6 +83,10 @@
 
                 <div id="historico-visitantes" class="cv-subtab-content">
                     <h3>Histórico de Visitantes</h3>
+                    <div id="historico-skeleton" class="feed-skeleton-container" style="display:none;">
+                        <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                        <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                    </div>
                     <div class="filters">
                         <input type="text" id="filterHistUnidadeId" placeholder="ID da Unidade">
                         <input type="date" id="filterHistDataInicio">
@@ -113,6 +121,10 @@
                 <!-- O h2 foi removido daqui -->
                 <!-- Adicionar sub-abas para Encomendas aqui, se necessário no futuro -->
                 <!-- Por enquanto, o conteúdo existente de encomendas permanece aqui -->
+                <div id="encomendas-skeleton" class="feed-skeleton-container" style="display:none;">
+                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                </div>
                 <form id="formNovaEncomenda" class="cv-form">
                     <div class="cv-form-group">
                         <label for="encUnidadeId">Unidade Destino (ID):</label>

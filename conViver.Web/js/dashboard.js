@@ -2,6 +2,7 @@ import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth, getUserRoles } from './auth.js';
 import { formatCurrency, formatDate, showGlobalFeedback } from './main.js'; // Updated import
 import { initFabMenu } from './fabMenu.js';
+import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     requireAuth(); // Ensures user is authenticated before proceeding
@@ -17,6 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const inadimplenciaChartCanvas = document.getElementById('inadimplenciaChart');
     let inadimplenciaChartInstance = null; // Para manter a instância do gráfico
 
+    const dashboardSkeleton = document.getElementById('dashboard-skeleton');
     // Loading indicator (simple text for now, could be a spinner) - Kept for local loading messages if still desired
     const showLoading = (container, message = "Carregando...") => {
         if (container) container.innerHTML = `<p class="loading-message">${message}</p>`;
@@ -220,6 +222,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function carregarDadosDashboard() {
+        if (dashboardSkeleton) showFeedSkeleton(dashboardSkeleton);
         showGlobalFeedback('Carregando dados do dashboard...', 'info', 3000);
 
         // Set loading states for all sections (local indicators can remain or be removed if global is sufficient)
@@ -267,6 +270,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 errorMessage = error.message;
             }
             showGlobalFeedback(errorMessage, 'error');
+        } finally {
+            if (dashboardSkeleton) hideFeedSkeleton(dashboardSkeleton);
         }
     }
 

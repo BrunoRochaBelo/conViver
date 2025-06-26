@@ -1,6 +1,7 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth } from './auth.js';
 import { formatCurrency, formatDate, showGlobalFeedback } from './main.js'; // Updated import
+import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     requireAuth();
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryPixEl = document.querySelector('.js-summary-pix');
     const summaryPendentesEl = document.querySelector('.js-summary-pendentes');
 
+    const cobrancasSkeleton = document.getElementById('financeiro-skeleton');
     // Modal elements
     const modalCobranca = document.getElementById('modalCobranca');
     const modalCobrancaTitle = document.getElementById('modalCobrancaTitle');
@@ -300,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchAndRenderCobrancas(status = '') {
         if (!tbodyCobrancas) return;
         tbodyCobrancas.innerHTML = '<tr><td colspan="6" class="text-center">Carregando cobranças...</td></tr>';
+        if (cobrancasSkeleton) showFeedSkeleton(cobrancasSkeleton);
 
         let apiUrl = '/financeiro/cobrancas';
         if (status) {
@@ -318,10 +321,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 showGlobalFeedback(defaultMessage, 'error');
             }
+        } finally {
+            if (cobrancasSkeleton) hideFeedSkeleton(cobrancasSkeleton);
         }
     }
 
     async function fetchAndRenderDashboard() {
+        if (cobrancasSkeleton) showFeedSkeleton(cobrancasSkeleton);
         if (summaryInadimplenciaEl) summaryInadimplenciaEl.textContent = 'Carregando...';
         if (summaryPixEl) summaryPixEl.textContent = 'Carregando...';
         if (summaryPendentesEl) summaryPendentesEl.textContent = 'Carregando...';
@@ -338,6 +344,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 showGlobalFeedback(defaultMessage, 'error');
             }
+        } finally {
+            if (cobrancasSkeleton) hideFeedSkeleton(cobrancasSkeleton);
         }
     }
 
