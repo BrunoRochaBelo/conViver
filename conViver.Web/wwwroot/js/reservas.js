@@ -1,7 +1,6 @@
 import { showGlobalFeedback } from "./main.js";
 import { requireAuth, getUserInfo, getRoles } from "./auth.js";
 import apiClient from "./apiClient.js";
-import { initFabMenu } from "./fabMenu.js";
 import FullCalendar from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -12,7 +11,6 @@ let espacosComunsList = [];
 let calendarioReservas = null;
 let currentUserId = null;
 let currentUserRoles = [];
-let openNovaReservaModal;
 
 // List View (Agenda e Disponibilidade)
 let currentPageListView = 1;
@@ -132,11 +130,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Inicializa tudo
   await initReservasPage();
-  initFabMenu([{ label: "Reserva", onClick: openNovaReservaModal }]);
 });
 
 async function initReservasPage() {
   // Elementos de nova reserva
+  const fabNovaReserva = document.getElementById("fab-nova-reserva");
   const modalNovaReserva = document.getElementById("modal-nova-reserva");
   const closeModalNovaReservaButton = modalNovaReserva?.querySelector(
     ".js-modal-nova-reserva-close"
@@ -185,7 +183,8 @@ async function initReservasPage() {
     "form-gerenciar-espaco-comum"
   );
 
-  openNovaReservaModal = function () {
+  // Abre modal de nova reserva
+  fabNovaReserva?.addEventListener("click", () => {
     document.getElementById("modal-nova-reserva-title").textContent =
       "Solicitar Nova Reserva";
     formNovaReserva.reset();
@@ -198,13 +197,14 @@ async function initReservasPage() {
     document.getElementById("modal-reserva-termos").disabled = false;
     modalNovaReserva.style.display = "flex";
 
+    // Pré-seleciona o espaço
     let esp = "";
     if (calendarioViewContainer.style.display !== "none")
       esp = selectEspacoComumCalendario.value;
     else esp = filtroEspacoLista.value;
     modalSelectEspaco.value = esp;
     exibirInfoEspacoSelecionadoModal(esp);
-  };
+  });
 
   closeModalNovaReservaButton?.addEventListener(
     "click",
