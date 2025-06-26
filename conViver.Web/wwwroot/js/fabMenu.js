@@ -8,6 +8,7 @@ export function initFabMenu(actions = []) {
     mainBtn.className = 'fab fab-main';
     mainBtn.type = 'button';
     mainBtn.textContent = '+';
+    mainBtn.style.display = 'block';
     container.appendChild(mainBtn);
 
     const menu = document.createElement('div');
