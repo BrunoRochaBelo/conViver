@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <title>conViver - Portaria</title>
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/styles.css">
 </head>
+
 <body>
     <header class="cv-header">
         <div class="cv-container cv-header__container">
@@ -135,47 +137,48 @@
                     <p id="historicoNoDataMsg" style="display:none;">Nenhum registro encontrado para os filtros aplicados.</p>
                 </div>
             </section>
-        <div id="gestao-encomendas" class="cv-subtab-content" style="display:none;">
-            <section class="portaria__encomendas">
-                <!-- O h2 foi removido daqui -->
-                <!-- Adicionar sub-abas para Encomendas aqui, se necessário no futuro -->
-                <!-- Por enquanto, o conteúdo existente de encomendas permanece aqui -->
-                <form id="formNovaEncomenda" class="cv-form">
-                    <div class="cv-form-group">
-                        <label for="encUnidadeId">Unidade Destino (ID):</label>
-                        <input type="text" id="encUnidadeId" name="unidadeId" required>
-                    </div>
-                    <div class="cv-form-group">
-                        <label for="encDescricao">Descrição/Observações:</label>
-                        <input type="text" id="encDescricao" name="descricao">
-                    </div>
-                    <div class="cv-form-actions">
-                        <button type="submit" class="cv-button cv-button--primary">Registrar Encomenda</button>
-                    </div>
-                </form>
-                <p id="novaEncomendaMsg" class="feedback-message" style="display:none;"></p>
-                <h3>Encomendas Pendentes</h3>
-                <table class="cv-table portaria__package-list">
-                    <thead>
-                        <tr>
-                            <th>Encomenda</th>
-                            <th>Unidade</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody class="js-encomendas">
-                        <!-- Dados via JS -->
-                    </tbody>
-                </table>
-                <p id="encomendasLoadingMsg" style="display:none;">Carregando...</p>
-                <p id="encomendasNoDataMsg" style="display:none;">Nenhuma encomenda pendente.</p>
-            </section>
+            <div id="gestao-encomendas" class="cv-subtab-content" style="display:none;">
+                <section class="portaria__encomendas">
+                    <!-- O h2 foi removido daqui -->
+                    <!-- Adicionar sub-abas para Encomendas aqui, se necessário no futuro -->
+                    <!-- Por enquanto, o conteúdo existente de encomendas permanece aqui -->
+                    <form id="formNovaEncomenda" class="cv-form">
+                        <div class="cv-form-group">
+                            <label for="encUnidadeId">Unidade Destino (ID):</label>
+                            <input type="text" id="encUnidadeId" name="unidadeId" required>
+                        </div>
+                        <div class="cv-form-group">
+                            <label for="encDescricao">Descrição/Observações:</label>
+                            <input type="text" id="encDescricao" name="descricao">
+                        </div>
+                        <div class="cv-form-actions">
+                            <button type="submit" class="cv-button cv-button--primary">Registrar Encomenda</button>
+                        </div>
+                    </form>
+                    <p id="novaEncomendaMsg" class="feedback-message" style="display:none;"></p>
+                    <h3>Encomendas Pendentes</h3>
+                    <table class="cv-table portaria__package-list">
+                        <thead>
+                            <tr>
+                                <th>Encomenda</th>
+                                <th>Unidade</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="js-encomendas">
+                            <!-- Dados via JS -->
+                        </tbody>
+                    </table>
+                    <p id="encomendasLoadingMsg" style="display:none;">Carregando...</p>
+                    <p id="encomendasNoDataMsg" style="display:none;">Nenhuma encomenda pendente.</p>
+                </section>
+            </div>
         </div>
-    </div>
     </main>
     <script type="module" src="../js/nav.js"></script>
     <script type="module" src="../js/userMenu.js"></script>
     <script type="module" src="../js/portaria.js"></script>
 </body>
+
 </html>

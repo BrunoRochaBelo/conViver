@@ -8,12 +8,13 @@ export function buildNavigation() {
     const currentPage = window.location.pathname.split('/').pop().replace('.html', '') || 'index';
 
     const items = [
-        { key: 'index', label: 'Dashboard', href: 'index.html' }, // Alterado dashboard.html para index.html e key para index
+        { key: 'dashboard', label: 'Dashboard', href: 'dashboard.html' },
         { key: 'financeiro', label: 'Financeiro', href: 'financeiro.html' },
         { key: 'reservas', label: 'Reservas', href: 'reservas.html' },
         { key: 'portaria', label: 'Portaria', href: 'portaria.html' },
         { key: 'comunicacao', label: 'Comunicação', href: 'comunicacao.html' },
-        { key: 'ocorrencias', label: 'Ocorrências', href: 'ocorrencias.html' },
+        // { key: 'ocorrencias', label: 'Ocorrências', href: 'ocorrencias.html' }, // Removido
+        { key: 'biblioteca', label: 'Biblioteca', href: 'biblioteca.html' },
     ];
 
     const container = document.createElement('div');
@@ -28,7 +29,7 @@ export function buildNavigation() {
         a.href = `${hrefPrefix}${item.href}`;
         a.textContent = item.label;
         a.className = 'cv-nav__link';
-        if (currentPage === item.key) { // Simplificado: currentPage será 'index' para a página inicial
+        if (currentPage === item.key || (currentPage === 'index' && item.key === 'dashboard')) {
             a.classList.add('cv-nav__link--active');
         }
         li.appendChild(a);

@@ -15,6 +15,9 @@ export function logout() {
     window.location.href = `${prefix}login.html`;
 }
 
+// Retorna os papéis (roles) do usuário armazenados em localStorage.
+// Espera que a aplicação salve um objeto JSON em `userInfo` com uma
+// propriedade `roles` contendo um array de strings.
 export function getUserRoles() {
     try {
         const info = JSON.parse(localStorage.getItem('userInfo'));
@@ -22,7 +25,7 @@ export function getUserRoles() {
             return info.roles;
         }
     } catch {
-        // ignore
+        // Ignora erros de parsing
     }
     return [];
 }

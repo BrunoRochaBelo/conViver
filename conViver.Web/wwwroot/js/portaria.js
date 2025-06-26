@@ -2,38 +2,110 @@ import apiClient from './apiClient.js';
 import { requireAuth } from './auth.js';
 import { showGlobalFeedback } from './main.js';
 
-function setupTabs() {
-    const tabButtons = document.querySelectorAll('.cv-tab-button');
-    const tabContents = document.querySelectorAll('.cv-tab-content');
+// --- Configuração das Abas Principais ---
+function setupMainTabs() {
+    const mainTabButtons = document.querySelectorAll('main > .cv-tabs .cv-tab-button');
+    const mainTabContents = document.querySelectorAll('main > .cv-tab-content');
 
-    tabButtons.forEach(button => {
+    mainTabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            tabButtons.forEach(btn => btn.classList.remove('active'));
+            mainTabButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
-            tabContents.forEach(content => content.classList.remove('active'));
-            const targetTab = document.getElementById(button.dataset.tab);
-            if (targetTab) {
-                targetTab.classList.add('active');
-            }
-            // Optionally, load data for the activated tab if it's not already loaded
-            if (button.dataset.tab === 'visitantes-atuais') {
-                carregarVisitantesAtuais();
-            } else if (button.dataset.tab === 'historico-visitantes') {
-                // Load history only if tab is activated and not already populated (simple check)
-                const historicoTbody = document.querySelector('.js-historico-visitantes-lista');
-                if (historicoTbody && !historicoTbody.hasChildNodes()) {
-                    carregarHistoricoVisitantes();
+            mainTabContents.forEach(content => {
+                content.classList.remove('active');
+                content.style.display = 'none';
+            });
+
+            const targetContentId = 'content-' + button.id.split('-').slice(1).join('-');
+            const targetContent = document.getElementById(targetContentId);
+            if (targetContent) {
+                targetContent.classList.add('active');
+                targetContent.style.display = 'block';
+
+                // Carregar dados específicos da aba principal se necessário
+                if (button.id === 'tab-controle-visitantes') {
+                    // A inicialização das sub-abas e o carregamento de dados
+                    // de visitantes serão feitos por setupVisitantesSubTabs
+                    if (!button.dataset.initialized) {
+                        setupVisitantesSubTabs();
+                        // A primeira sub-aba ativa (Visitantes Atuais) já carrega os dados.
+                        button.dataset.initialized = 'true';
+                    }
+                } else if (button.id === 'tab-gestao-encomendas') {
+                    if (!button.dataset.initialized) {
+                        carregarEncomendas();
+                        setupFormNovaEncomenda(); // Renomeado de setupEncomendas para clareza
+                        setupListaEncomendasListener(); // Listener para botões de retirar
+                        button.dataset.initialized = 'true';
+                    }
                 }
-            } else if (button.dataset.tab === 'registrar-visitante') {
-                const formRegistrarVisitante = document.getElementById('formRegistrarVisitante');
-                const registrarVisitanteMsg = document.getElementById('registrarVisitanteMsg');
-                formRegistrarVisitante?.reset();
-                if(registrarVisitanteMsg) registrarVisitanteMsg.style.display = 'none';
             }
         });
     });
+
+    // Ativar a primeira aba principal por padrão e carregar seu conteúdo.
+    if (mainTabButtons.length > 0) {
+        mainTabButtons[0].click();
+    }
 }
+
+// Wrapper to initialize tabs depending on page structure
+function setupTabs() {
+    const hasMainTabs = document.querySelectorAll('main > .cv-tabs .cv-tab-button').length > 0;
+    if (hasMainTabs) {
+        setupMainTabs();
+    } else {
+        setupVisitantesSubTabs();
+    }
+}
+
+// --- Configuração das Sub-Abas de Controle de Visitantes ---
+function setupVisitantesSubTabs() {
+    const subTabButtons = document.querySelectorAll('#content-controle-visitantes .cv-tabs .cv-tab-button');
+    const subTabContents = document.querySelectorAll('#content-controle-visitantes .cv-subtab-content');
+
+    subTabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            subTabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            subTabContents.forEach(content => {
+                content.classList.remove('active');
+                // content.style.display = 'none'; // A visibilidade é controlada pela classe active no CSS se necessário
+            });
+
+            const targetSubTabId = button.dataset.subtab; // Usando data-subtab como ID
+            const targetSubTabContent = document.getElementById(targetSubTabId);
+            if (targetSubTabContent) {
+                targetSubTabContent.classList.add('active');
+                // targetSubTabContent.style.display = 'block';
+            }
+
+            // Carregar dados da sub-aba
+            if (targetSubTabId === 'visitantes-atuais') {
+                carregarVisitantesAtuais();
+            } else if (targetSubTabId === 'historico-visitantes') {
+                const historicoTbody = document.querySelector('.js-historico-visitantes-lista');
+                if (historicoTbody && (!historicoTbody.hasChildNodes() || button.dataset.refresh === 'true')) {
+                    carregarHistoricoVisitantes();
+                    button.dataset.refresh = 'false'; // Reset refresh flag
+                }
+            } else if (targetSubTabId === 'registrar-visitante') {
+                const formRegistrarVisitante = document.getElementById('formRegistrarVisitante');
+                const registrarVisitanteMsg = document.getElementById('registrarVisitanteMsg');
+                formRegistrarVisitante?.reset();
+                if (registrarVisitanteMsg) registrarVisitanteMsg.style.display = 'none';
+            }
+        });
+    });
+
+    // Ativar a primeira sub-aba de visitantes por padrão
+    if (subTabButtons.length > 0) {
+        subTabButtons[0].click();
+    }
+}
+
 
 async function carregarVisitantesAtuais(unidadeFilter = '') {
     const tbody = document.querySelector('.js-visitantes-atuais-lista');
