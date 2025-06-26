@@ -18,10 +18,11 @@ _Solução SaaS tudo-em-um para gestão condominial: financeiro, portaria, reser
 7. [Scripts & Automação](#scripts--automação)
 8. [Testes](#testes)
 9. [CI/CD](#cicd)
-10. [Roadmap](#roadmap)
-11. [Contribuindo](#contribuindo)
-12. [Licença](#licença)
-13. [Contato](#contato)
+10. [Documentação Complementar](#documentação-complementar)
+11. [Roadmap](#roadmap)
+12. [Contribuindo](#contribuindo)
+13. [Licença](#licença)
+14. [Contato](#contato)
 
 ---
 
@@ -39,6 +40,9 @@ Principais módulos:
 | **Prestadores & OS** | Cadastro de Prestadores, Ordens de Serviço, Avaliações de Prestadores |
 | **Documentos** | Biblioteca de documentos com upload e download |
 | **Gamificação** | Pontos, níveis, metas (Planejado/Futuro) |
+
+*Serviços auxiliares como o `DashboardService` e o `NotificationService` usam dados
+mockados ou apenas registram logs, servindo de base para futuras integrações.*
 
 ---
 
@@ -86,7 +90,7 @@ conViver/
 
 > Com Docker (`docker compose up -d`) você já sobe **PostgreSQL, Redis e API** num tapa.
 > Para desenvolvimento rápido, a API suporta **SQLite** (arquivo `conviver.db`).
-> Rode `dotnet ef database update --project conViver.Infrastructure` antes de `dotnet run` para criar o banco e popular usuários de exemplo (`admin@conviver.local` / `admin123` e `teste@conviver.local` / `123456`).
+> Rode `dotnet ef database update --project conViver.Infrastructure` antes de `dotnet run` para criar o banco. O `DataSeeder` roda na primeira execução e insere um condomínio, unidade e usuários de exemplo (`admin@conviver.local` / `admin123` e `teste@conviver.local` / `123456`).
 
 ### 1. Clone & restaure pacotes
 ```bash
@@ -156,6 +160,13 @@ Integration: `conViver.Tests/API` (exemplos).
 GitHub Actions `ci.yml` – build + testes + sonar (se configurado).
 `cd.yml` – docker build, push registry, deploy Azure (se configurado).
 Infra (Exemplo): Azure App Service (API), Azure Storage (front), Azure AD B2C (auth).
+
+## Documentação Complementar
+- **API_REFERENCE.md** – referência de todos os endpoints.
+- **DATABASE_SCHEMA.md** – visão detalhada das tabelas e relacionamentos.
+- **ARCHITECTURE.md** – explicação da arquitetura em camadas.
+- **DEPLOY_GUIDE.md** – passo a passo para publicar no Azure.
+- **TEST_GUIDE.md** – convenções e dicas de testes.
 
 ## Roadmap
 
