@@ -69,14 +69,22 @@
         </div>
 
         <div class="cv-tab-content" id="content-mural">
-            <!-- O título foi removido. O feed ocupa o espaço. -->
             <section class="communication__mural js-avisos">
+                <!-- Skeleton items for Mural -->
+                <div class="feed-skeleton-container" style="display: none;">
+                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                </div>
                 <!-- Feed items (including prioritized ones) will be loaded here by JS (infinite scroll) -->
             </section>
-            <!-- O FAB .js-fab-mural foi movido para o final do body para ser global -->
         </div>
 
         <div class="cv-tab-content" id="content-enquetes" style="display:none;">
+            <!-- Skeleton items for Enquetes (even if it's just a message, good for consistency) -->
+            <div class="feed-skeleton-container" style="display: none;">
+                <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+            </div>
             <p class="cv-info-message" style="padding: 20px; text-align: center;">
                 As enquetes são exibidas no Mural principal.
                 <span class="js-sindico-only-message" style="display:none;">Use o botão (+) para criar uma nova enquete.</span>
@@ -84,6 +92,10 @@
         </div>
 
         <div class="cv-tab-content" id="content-solicitacoes" style="display:none;">
+            <!-- Skeleton items for Solicitacoes -->
+            <div class="feed-skeleton-container" style="display: none;">
+                <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+            </div>
             <p class="cv-info-message" style="padding: 20px; text-align: center;">
                 As solicitações (chamados, ocorrências, etc.) são exibidas no Mural principal.
                 Use o botão (+) para criar uma nova solicitação.

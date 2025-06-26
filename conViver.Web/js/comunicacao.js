@@ -6,31 +6,78 @@ import { showGlobalFeedback } from "./main.js";
 let currentFeedPage = 1;
 let isLoadingFeedItems = false;
 let noMoreFeedItems = false;
-const feedContainerSelector = ".js-avisos";
+const feedContainerSelector = ".js-avisos"; // This is specific to the Mural tab's feed section
 const feedScrollSentinelId = "notice-scroll-sentinel";
 let fetchedFeedItems = [];
-const skeletonCount = 3;
+// const skeletonCount = 3; // Will be determined by HTML or specific tab logic
 
-function showFeedSkeleton() {
-  const container = document.querySelector(feedContainerSelector);
-  if (!container) return;
-  hideFeedSkeleton();
-  const sentinel = document.getElementById(feedScrollSentinelId);
-  for (let i = 0; i < skeletonCount; i++) {
-    const card = document.createElement("div");
-    card.className = "cv-card feed-skeleton-item";
-    card.innerHTML =
-      '<div class="skeleton-title"></div>' +
-      '<div class="skeleton-line"></div>' +
-      '<div class="skeleton-line short"></div>';
-    if (sentinel) container.insertBefore(card, sentinel);
-    else container.appendChild(card);
+function showFeedSkeleton(tabContentId = "content-mural") {
+  const tabContentElement = document.getElementById(tabContentId);
+  if (!tabContentElement) return;
+
+  // Hide existing content and messages within this specific tab
+  const infoMessage = tabContentElement.querySelector(".cv-info-message");
+  if (infoMessage) infoMessage.style.display = "none";
+
+  const noItemsMessage = tabContentElement.querySelector(".cv-no-items-message");
+  if (noItemsMessage) noItemsMessage.style.display = "none";
+
+  const errorMessage = tabContentElement.querySelector(".cv-error-message");
+  if (errorMessage) errorMessage.style.display = "none";
+
+  if (tabContentId === "content-mural") {
+    const muralFeedContainer = tabContentElement.querySelector(feedContainerSelector);
+    if (muralFeedContainer) {
+        // Clear out actual feed items, but not the skeleton container itself
+        muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)").forEach(el => el.remove());
+    }
+  }
+
+  const skeletonContainer = tabContentElement.querySelector(".feed-skeleton-container");
+  if (skeletonContainer) {
+    skeletonContainer.style.display = "block";
   }
 }
 
-function hideFeedSkeleton() {
-  document.querySelectorAll(".feed-skeleton-item").forEach((el) => el.remove());
+function hideFeedSkeleton(tabContentId = "content-mural") {
+  const tabContentElement = document.getElementById(tabContentId);
+  if (!tabContentElement) return;
+
+  const skeletonContainer = tabContentElement.querySelector(".feed-skeleton-container");
+  if (skeletonContainer) {
+    skeletonContainer.style.display = "none";
+  }
+  // Restore info message if no actual content is loaded for certain tabs
+  if (tabContentId === "content-enquetes" || tabContentId === "content-solicitacoes") {
+    const infoMessage = tabContentElement.querySelector(".cv-info-message");
+    // Check if feed items were loaded into mural (which these tabs might trigger)
+    // For now, we assume the message should reappear if skeleton is hidden and no other specific content for these tabs.
+    // This might need refinement based on whether these tabs get their own direct content later.
+    const muralFeedHasItems = document.querySelector(`${feedContainerSelector} .feed-item`);
+    if (infoMessage && !muralFeedHasItems && tabContentId !== getActiveTabContentId()) {
+        // If the current active tab is mural, don't reshow messages for other tabs.
+        // This logic is tricky because these tabs rely on the mural.
+        // Simplification: If hiding skeleton for these specific tabs, ensure their default message is visible
+        // if they are the active tab AND no items are in the mural (as they point to it).
+    } else if (infoMessage) {
+        // Default state for these tabs is to show their info message.
+        // The skeleton should hide it, and data loading (which is for mural) won't explicitly show it.
+        // So, if we hide skeleton, and this tab is active, show its message.
+        if(getActiveTabContentId() === tabContentId) {
+            infoMessage.style.display = "block";
+        }
+    }
+  }
 }
+
+function getActiveTabContentId() {
+    const activeButton = document.querySelector(".cv-tab-button.active");
+    if (activeButton) {
+        return "content-" + activeButton.id.split("-")[1];
+    }
+    return "content-mural"; // Default
+}
+
 
 // Modals
 let criarAvisoModal, formCriarAviso, avisoIdField;
@@ -144,7 +191,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 function setupTabs() {
   const tabButtons = document.querySelectorAll(".cv-tab-button");
   const tabContents = document.querySelectorAll(".cv-tab-content");
-  const muralContent = document.getElementById("content-mural");
   const globalCategoryFilter = document.getElementById("category-filter-modal"); // Filter is now in modal
 
   const userRoles = getUserRoles();
@@ -157,48 +203,81 @@ function setupTabs() {
 
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
+      const targetTabContentId = "content-" + button.id.split("-")[1];
+
+      // Hide all tab contents and skeletons first
       tabContents.forEach((content) => {
-        if (content.id !== "content-mural") {
-          content.style.display = "none";
-        }
+        content.style.display = "none";
+        hideFeedSkeleton(content.id); // Hide skeleton for inactive tabs
       });
+
+      // Show the target tab's content area
+      const activeTabContent = document.getElementById(targetTabContentId);
+      if (activeTabContent) {
+        activeTabContent.style.display = "block";
+      }
+
+      // Show skeleton for the now active tab before loading data
+      showFeedSkeleton(targetTabContentId);
+
+
       tabButtons.forEach((btn) => btn.classList.remove("active"));
       button.classList.add("active");
 
-      if (muralContent) muralContent.style.display = "block";
-
       let categoryToSetInGlobalFilter = "";
-      if (button.id === "tab-enquetes") {
+      let loadFeed = true;
+
+      if (button.id === "tab-mural") {
+        // No specific category for mural, it shows all or respects current filter
+        // categoryToSetInGlobalFilter will remain "" or current filter value
+      } else if (button.id === "tab-enquetes") {
         categoryToSetInGlobalFilter = "enquete";
+        // The content is primarily on the mural, so we show skeleton on mural
+        showFeedSkeleton("content-mural");
         if (!button.dataset.initialized) {
-          setupEnquetesTab();
+          setupEnquetesTab(); // This function currently just logs.
           button.dataset.initialized = "true";
         }
       } else if (button.id === "tab-solicitacoes") {
         categoryToSetInGlobalFilter = "solicitacoes";
+        // The content is primarily on the mural, so we show skeleton on mural
+        showFeedSkeleton("content-mural");
         if (!button.dataset.initialized) {
-          setupSolicitacoesTab();
+          setupSolicitacoesTab(); // This function currently just logs.
           button.dataset.initialized = "true";
         }
       }
 
-      if (globalCategoryFilter)
+      if (globalCategoryFilter && categoryToSetInGlobalFilter) {
         globalCategoryFilter.value = categoryToSetInGlobalFilter;
+      } else if (button.id === "tab-mural" && globalCategoryFilter) {
+        // If switching to Mural, and filter was set by Enquetes/Solicitacoes, clear it
+        // Or, decide to keep the filter. For now, let's clear it for a fresh mural view.
+        // globalCategoryFilter.value = ""; // Optional: clear filter when going to mural explicitly
+      }
 
-      // Reset period filter when changing tabs? Optional. For now, no.
-      // document.getElementById('period-filter-modal').value = '';
 
-      loadInitialFeedItems();
+      // All tabs currently use loadInitialFeedItems which loads into #content-mural's .js-avisos
+      // So, the skeleton for #content-mural should be shown.
+      // If the active tab is not mural, its own skeleton (simpler one) was shown above.
+      // And its message will be restored by hideFeedSkeleton if no items in mural.
+      if (loadFeed) {
+        loadInitialFeedItems(); // This function will handle its own skeleton for content-mural's feed
+      }
+
       updateUserSpecificUI(button.id);
     });
   });
 
-  const activeTab = document.querySelector(".cv-tab-button.active");
-  if (activeTab) {
-    activeTab.click();
+  // Set initial active tab and load its content
+  const initialActiveTabButton = document.querySelector(".cv-tab-button.active") || document.querySelector(".cv-tab-button");
+  if (initialActiveTabButton) {
+    initialActiveTabButton.click();
   } else {
-    const firstTab = document.querySelector(".cv-tab-button");
-    if (firstTab) firstTab.click();
+    // Fallback if no tab buttons found, ensure mural skeleton is managed if needed
+    showFeedSkeleton("content-mural"); // Show skeleton for default view
+    loadInitialFeedItems(); // Load default items
+    updateUserSpecificUI("tab-mural");
   }
 }
 
@@ -232,7 +311,15 @@ function setupFilterModalAndButton() {
   }
   if (applyFiltersModalButton) {
     applyFiltersModalButton.addEventListener("click", () => {
-      showGlobalFeedback("Aplicando filtros ao feed...", "info");
+      // Determine active tab to show skeleton correctly.
+      // Since filters apply to the mural, mural's skeleton is key.
+      const activeTabContentId = getActiveTabContentId();
+      showFeedSkeleton("content-mural"); // Always show skeleton on mural for filter changes
+      if (activeTabContentId !== "content-mural") {
+          // If a different tab is active (e.g., Enquetes), show its specific skeleton too.
+          showFeedSkeleton(activeTabContentId);
+      }
+      // showGlobalFeedback("Aplicando filtros ao feed...", "info"); // Skeleton provides visual feedback
       loadInitialFeedItems(); // Reloads feed using values from modal's filters
       if (modalFiltros) modalFiltros.style.display = "none"; // Close modal after applying
     });
@@ -665,7 +752,7 @@ async function loadInitialFeedItems() {
   currentFeedPage = 1;
   noMoreFeedItems = false;
   isLoadingFeedItems = false;
-  const container = document.querySelector(feedContainerSelector);
+  const container = document.querySelector(feedContainerSelector); // This is #content-mural .js-avisos
   if (!container) return;
 
   const existingSentinel = document.getElementById(feedScrollSentinelId);
@@ -673,20 +760,26 @@ async function loadInitialFeedItems() {
   if (!sentinel) {
     sentinel = document.createElement("div");
     sentinel.id = feedScrollSentinelId;
-    sentinel.style.height = "10px";
+    sentinel.style.height = "10px"; // Small, non-visual element
+    // Ensure sentinel is always the last child of its direct parent for correct observation
+    const feedContentArea = document.querySelector(feedContainerSelector);
+    if (feedContentArea) {
+        feedContentArea.appendChild(sentinel);
+    }
   }
-  if (container.lastChild !== sentinel) {
-    container.appendChild(sentinel);
-  }
+  // Ensure sentinel is visible for observer to trigger, but it's non-visual itself.
   sentinel.style.display = "block";
 
-  showFeedSkeleton();
+  // Show skeleton specifically for the mural's feed area
+  showFeedSkeleton("content-mural");
 
   await fetchAndDisplayFeedItems(currentFeedPage, false);
 }
+
 function setupFeedObserver() {
   const sentinel = document.getElementById(feedScrollSentinelId);
   if (!sentinel) return;
+
   const observer = new IntersectionObserver(
     async (entries) => {
       if (
@@ -695,6 +788,7 @@ function setupFeedObserver() {
         !noMoreFeedItems
       ) {
         currentFeedPage++;
+        // showFeedSkeleton("content-mural"); // Show skeleton for loading more items as well
         await fetchAndDisplayFeedItems(currentFeedPage, true);
       }
     },
@@ -706,61 +800,61 @@ function setupFeedObserver() {
 async function fetchAndDisplayFeedItems(page, append = false) {
   if (isLoadingFeedItems) return;
   isLoadingFeedItems = true;
-  const container = document.querySelector(feedContainerSelector);
-  if (!container) {
+
+  // Always target the main feed container in the Mural tab
+  const muralFeedContainer = document.querySelector("#content-mural " + feedContainerSelector);
+  if (!muralFeedContainer) {
     isLoadingFeedItems = false;
+    hideFeedSkeleton("content-mural"); // Hide mural skeleton if its container is missing
+    const activeTabId = getActiveTabContentId();
+    if (activeTabId !== "content-mural") hideFeedSkeleton(activeTabId);
     return;
   }
 
   const sentinelElement = document.getElementById(feedScrollSentinelId);
-  const loadingMessageClass = "cv-loading-message";
-  let loadingP = container.querySelector(`.${loadingMessageClass}`);
+  const loadingMessageClass = "cv-loading-message"; // This was for text loading, less needed with skeleton
+  let loadingP = muralFeedContainer.querySelector(`.${loadingMessageClass}`);
+  if(loadingP) loadingP.style.display = 'none'; // Hide old text loading message
 
   if (!append) {
-    const CategoriaFilterValue =
-      document.getElementById("category-filter-modal")?.value?.toLowerCase() ||
-      ""; // From modal
-    document
-      .querySelectorAll(`${feedContainerSelector} > .feed-item:not(.prio-0)`)
+    // This is a fresh load (not infinite scroll)
+    showFeedSkeleton("content-mural"); // Ensure mural skeleton is visible
+    const activeTabId = getActiveTabContentId();
+    if (activeTabId !== "content-mural") {
+        // If another tab (like Enquetes) triggered this, show its skeleton too
+        showFeedSkeleton(activeTabId);
+    }
+
+    // Clear previous items (non-pinned) from the DOM and from fetchedFeedItems array
+    muralFeedContainer
+      .querySelectorAll(`.feed-item:not(.prio-0):not(.feed-skeleton-item)`)
       .forEach((el) => el.remove());
 
+    const CategoriaFilterValue =
+      document.getElementById("category-filter-modal")?.value?.toLowerCase() || "";
     fetchedFeedItems = fetchedFeedItems.filter((fi) => {
       return (
-        fi.prioridadeOrdenacao === 0 &&
+        fi.prioridadeOrdenacao === 0 && // Keep pinned items
         (CategoriaFilterValue === "" ||
           fi.categoria?.toLowerCase() === CategoriaFilterValue ||
           fi.itemType?.toLowerCase() === CategoriaFilterValue)
       );
     });
 
-    const noItemsMsg = container.querySelector(".cv-no-items-message");
+    // Remove old "no items" or "error" messages from muralFeedContainer
+    const noItemsMsg = muralFeedContainer.querySelector(".cv-no-items-message");
     if (noItemsMsg) noItemsMsg.remove();
-    const errorMsg = container.querySelector(".cv-error-message");
+    const errorMsg = muralFeedContainer.querySelector(".cv-error-message");
     if (errorMsg) errorMsg.remove();
 
-    if (!loadingP) {
-      loadingP = document.createElement("p");
-      loadingP.className = loadingMessageClass;
-      if (sentinelElement) container.insertBefore(loadingP, sentinelElement);
-      else container.appendChild(loadingP);
-    }
-    loadingP.innerHTML = '<span class="spinner spinner-small"></span> Carregando feed...';
-    loadingP.style.display = "block";
   } else {
-    if (
-      sentinelElement &&
-      (!loadingP || loadingP.parentElement !== container)
-    ) {
-      loadingP = document.createElement("p");
-      loadingP.className = loadingMessageClass;
-      container.insertBefore(loadingP, sentinelElement);
-    }
-    if (loadingP) {
-      loadingP.innerHTML = '<span class="spinner spinner-small"></span> Carregando mais itens...';
-      loadingP.style.display = "block";
-    }
+    // This is for infinite scroll, show a smaller loading indicator if desired, or rely on skeleton
+    // For now, the main skeleton is shown by loadInitialFeedItems.
+    // If we want a specific "loading more" visual, it would go here.
+    // e.g., a small spinner near the sentinel.
+    // For simplicity, we'll let the existing skeleton cover this or just load.
   }
-  if (sentinelElement) sentinelElement.style.display = "block";
+  if (sentinelElement) sentinelElement.style.display = "block"; // Keep sentinel active
 
   // Read filters from the modal
   const categoriaFilter =
@@ -790,25 +884,35 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     });
 
     const items = response || [];
+    const activeTabContentId = getActiveTabContentId();
 
-    if (loadingP) loadingP.style.display = "none";
-    hideFeedSkeleton();
+    hideFeedSkeleton("content-mural"); // Hide mural skeleton first
+    if (activeTabContentId !== "content-mural") {
+        hideFeedSkeleton(activeTabContentId); // Hide other active tab's skeleton
+    }
+
 
     if (items.length > 0) {
       items.forEach((item) => {
+        // Check if item (non-pinned) already exists from a previous fetch or is pinned
         if (
           fetchedFeedItems.some(
             (fi) => fi.id === item.id && fi.itemType === item.itemType
           )
         ) {
-          if (item.prioridadeOrdenacao === 0) return;
+          // If it's a pinned item (prio 0), it might be in fetchedFeedItems from initial load
+          // but we still need to ensure it's rendered if not already.
+          // If it's not prio 0 and already in fetchedFeedItems, skip re-rendering.
+          if (item.prioridadeOrdenacao !== 0) return;
         }
 
         const itemElement = renderFeedItem(item);
+        // Always append to the muralFeedContainer before the sentinel
         if (sentinelElement)
-          container.insertBefore(itemElement, sentinelElement);
-        else container.appendChild(itemElement);
+            muralFeedContainer.insertBefore(itemElement, sentinelElement);
+        else muralFeedContainer.appendChild(itemElement);
 
+        // Add to fetchedFeedItems if it's genuinely new
         if (
           !fetchedFeedItems.some(
             (fi) => fi.id === item.id && fi.itemType === item.itemType
@@ -818,72 +922,86 @@ async function fetchAndDisplayFeedItems(page, append = false) {
         }
       });
 
+      // Sort all items in the DOM (including newly added and pinned ones)
       const allRenderedItems = Array.from(
-        container.querySelectorAll(".feed-item")
+        muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)")
       );
       allRenderedItems.sort((a, b) => {
-        const itemA = fetchedFeedItems.find(
+        const itemAData = fetchedFeedItems.find(
           (fi) =>
             fi.id === a.dataset.itemId && fi.itemType === a.dataset.itemType
-        ) || { prioridadeOrdenacao: 1, dataHoraPrincipal: 0 };
-        const itemB = fetchedFeedItems.find(
+        ) || { prioridadeOrdenacao: 1, dataHoraPrincipal: 0 }; // Fallback for items not in fetchedFeedItems (should not happen)
+        const itemBData = fetchedFeedItems.find(
           (fi) =>
             fi.id === b.dataset.itemId && fi.itemType === b.dataset.itemType
         ) || { prioridadeOrdenacao: 1, dataHoraPrincipal: 0 };
 
-        if (itemA.prioridadeOrdenacao !== itemB.prioridadeOrdenacao) {
-          return itemA.prioridadeOrdenacao - itemB.prioridadeOrdenacao;
+        if (itemAData.prioridadeOrdenacao !== itemBData.prioridadeOrdenacao) {
+          return itemAData.prioridadeOrdenacao - itemBData.prioridadeOrdenacao;
         }
         return (
-          new Date(itemB.dataHoraPrincipal) - new Date(itemA.dataHoraPrincipal)
+          new Date(itemBData.dataHoraPrincipal) - new Date(itemAData.dataHoraPrincipal)
         );
       });
       allRenderedItems.forEach((el) =>
-        container.insertBefore(el, sentinelElement)
+        muralFeedContainer.insertBefore(el, sentinelElement) // Re-insert in sorted order
       );
-    } else {
-      if (page === 1 && !append) {
-        const currentVisibleItems = container.querySelectorAll(".feed-item");
-        if (currentVisibleItems.length === 0) {
-          const noItemsMsgCheck = container.querySelector(
-            ".cv-no-items-message"
-          );
-          if (noItemsMsgCheck) noItemsMsgCheck.remove();
+    } else { // No items returned from API
+      if (page === 1 && !append) { // First page and not appending
+        const currentVisibleItems = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)");
+        if (currentVisibleItems.length === 0) { // No items at all (including pinned)
+          const noItemsMsgCheck = muralFeedContainer.querySelector(".cv-no-items-message");
+          if (noItemsMsgCheck) noItemsMsgCheck.remove(); // Remove old message if any
+
           const noItemsP = document.createElement("p");
           noItemsP.className = "cv-no-items-message";
-          noItemsP.textContent =
-            "Nenhum item encontrado para os filtros atuais.";
+          noItemsP.textContent = "Nenhum item encontrado para os filtros atuais.";
           if (sentinelElement)
-            container.insertBefore(noItemsP, sentinelElement);
-          else container.appendChild(noItemsP);
+            muralFeedContainer.insertBefore(noItemsP, sentinelElement);
+          else muralFeedContainer.appendChild(noItemsP);
         }
       }
       noMoreFeedItems = true;
-      if (sentinelElement) sentinelElement.style.display = "none";
+      if (sentinelElement) sentinelElement.style.display = "none"; // No more items, hide sentinel
     }
-    setupFeedItemActionButtons();
+    setupFeedItemActionButtons(); // Re-attach event listeners if items were added/changed
+
   } catch (error) {
     console.error("Erro ao buscar feed:", error);
-    if (loadingP) loadingP.style.display = "none";
-    hideFeedSkeleton();
+    const activeTabContentIdOnError = getActiveTabContentId();
+    hideFeedSkeleton("content-mural");
+    if (activeTabContentIdOnError !== "content-mural") {
+        hideFeedSkeleton(activeTabContentIdOnError);
+    }
 
-    const currentVisibleItemsOnError = container.querySelectorAll(".feed-item");
+    const currentVisibleItemsOnError = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)");
     if (currentVisibleItemsOnError.length === 0) {
-      const errorMsgCheck = container.querySelector(".cv-error-message");
+      const errorMsgCheck = muralFeedContainer.querySelector(".cv-error-message");
       if (errorMsgCheck) errorMsgCheck.remove();
       const errorP = document.createElement("p");
       errorP.className = "cv-error-message";
-      errorP.textContent =
-        "Erro ao carregar o feed. Tente novamente mais tarde.";
-      if (sentinelElement) container.insertBefore(errorP, sentinelElement);
-      else container.appendChild(errorP);
+      errorP.textContent = "Erro ao carregar o feed. Tente novamente mais tarde.";
+      if (sentinelElement) muralFeedContainer.insertBefore(errorP, sentinelElement);
+      else muralFeedContainer.appendChild(errorP);
     } else if (append) {
-      showGlobalFeedback("Erro ao carregar mais itens.", "error");
+      showGlobalFeedback("Erro ao carregar mais itens.", "error"); // Keep this for infinite scroll errors
     }
-    if (sentinelElement) sentinelElement.style.display = "none";
+    if (sentinelElement) sentinelElement.style.display = "none"; // Stop trying to load more on error
   } finally {
     isLoadingFeedItems = false;
-    hideFeedSkeleton();
+    // Skeletons should be hidden by now, but as a safeguard:
+    const finalActiveTab = getActiveTabContentId();
+    hideFeedSkeleton("content-mural");
+    if(finalActiveTab !== "content-mural") hideFeedSkeleton(finalActiveTab);
+
+    // Restore info messages for Enquetes/Solicitações if they are active and mural is empty
+    if ((finalActiveTab === "content-enquetes" || finalActiveTab === "content-solicitacoes")) {
+        const muralItems = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)");
+        const infoMsg = document.querySelector(`#${finalActiveTab} .cv-info-message`);
+        if (muralItems.length === 0 && infoMsg) {
+            infoMsg.style.display = "block";
+        }
+    }
   }
 }
 
