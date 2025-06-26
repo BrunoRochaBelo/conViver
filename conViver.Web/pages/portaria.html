@@ -25,13 +25,7 @@
     </div>
     <nav id="mainNav"></nav>
     <main class="cv-container">
-        <div class="cv-tabs">
-            <div class="cv-tabs-buttons">
-                <button class="cv-tab-button active" id="tab-controle-visitantes">Controle de Visitantes</button>
-                <button class="cv-tab-button" id="tab-gestao-encomendas">Gestão de Encomendas</button>
-                <!-- <button class="cv-tab-button" id="tab-monitoramento-portaria" disabled>Monitoramento (Futuro)</button> -->
-            </div>
-        </div>
+
 
         <div class="cv-tab-content active" id="content-controle-visitantes">
             <section class="portaria__visitantes">
@@ -40,6 +34,7 @@
                     <button class="cv-tab-button active" data-subtab="visitantes-atuais">Visitantes Atuais</button>
                     <button class="cv-tab-button" data-subtab="registrar-visitante">Registrar Novo Visitante</button>
                     <button class="cv-tab-button" data-subtab="historico-visitantes">Histórico de Visitantes</button>
+                    <button class="cv-tab-button" data-subtab="gestao-encomendas">Gestão de Encomendas</button>
                 </div>
 
                 <div id="visitantes-atuais" class="cv-subtab-content active">
@@ -140,9 +135,7 @@
                     <p id="historicoNoDataMsg" style="display:none;">Nenhum registro encontrado para os filtros aplicados.</p>
                 </div>
             </section>
-        </div>
-
-        <div class="cv-tab-content" id="content-gestao-encomendas" style="display:none;">
+        <div id="gestao-encomendas" class="cv-subtab-content" style="display:none;">
             <section class="portaria__encomendas">
                 <!-- O h2 foi removido daqui -->
                 <!-- Adicionar sub-abas para Encomendas aqui, se necessário no futuro -->
@@ -179,6 +172,7 @@
                 <p id="encomendasNoDataMsg" style="display:none;">Nenhuma encomenda pendente.</p>
             </section>
         </div>
+    </div>
     </main>
     <script type="module" src="../js/nav.js"></script>
     <script type="module" src="../js/userMenu.js"></script>
