@@ -9,6 +9,28 @@ let noMoreFeedItems = false;
 const feedContainerSelector = ".js-avisos";
 const feedScrollSentinelId = "notice-scroll-sentinel";
 let fetchedFeedItems = [];
+const skeletonCount = 3;
+
+function showFeedSkeleton() {
+  const container = document.querySelector(feedContainerSelector);
+  if (!container) return;
+  hideFeedSkeleton();
+  const sentinel = document.getElementById(feedScrollSentinelId);
+  for (let i = 0; i < skeletonCount; i++) {
+    const card = document.createElement("div");
+    card.className = "cv-card feed-skeleton-item";
+    card.innerHTML =
+      '<div class="skeleton-title"></div>' +
+      '<div class="skeleton-line"></div>' +
+      '<div class="skeleton-line short"></div>';
+    if (sentinel) container.insertBefore(card, sentinel);
+    else container.appendChild(card);
+  }
+}
+
+function hideFeedSkeleton() {
+  document.querySelectorAll(".feed-skeleton-item").forEach((el) => el.remove());
+}
 
 // Modals
 let criarAvisoModal, formCriarAviso, avisoIdField;
@@ -658,6 +680,8 @@ async function loadInitialFeedItems() {
   }
   sentinel.style.display = "block";
 
+  showFeedSkeleton();
+
   await fetchAndDisplayFeedItems(currentFeedPage, false);
 }
 function setupFeedObserver() {
@@ -720,7 +744,7 @@ async function fetchAndDisplayFeedItems(page, append = false) {
       if (sentinelElement) container.insertBefore(loadingP, sentinelElement);
       else container.appendChild(loadingP);
     }
-    loadingP.textContent = "Carregando feed...";
+    loadingP.innerHTML = '<span class="spinner spinner-small"></span> Carregando feed...';
     loadingP.style.display = "block";
   } else {
     if (
@@ -732,7 +756,7 @@ async function fetchAndDisplayFeedItems(page, append = false) {
       container.insertBefore(loadingP, sentinelElement);
     }
     if (loadingP) {
-      loadingP.textContent = "Carregando mais itens...";
+      loadingP.innerHTML = '<span class="spinner spinner-small"></span> Carregando mais itens...';
       loadingP.style.display = "block";
     }
   }
@@ -768,6 +792,7 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     const items = response || [];
 
     if (loadingP) loadingP.style.display = "none";
+    hideFeedSkeleton();
 
     if (items.length > 0) {
       items.forEach((item) => {
@@ -840,6 +865,7 @@ async function fetchAndDisplayFeedItems(page, append = false) {
   } catch (error) {
     console.error("Erro ao buscar feed:", error);
     if (loadingP) loadingP.style.display = "none";
+    hideFeedSkeleton();
 
     const currentVisibleItemsOnError = container.querySelectorAll(".feed-item");
     if (currentVisibleItemsOnError.length === 0) {
@@ -857,6 +883,7 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     if (sentinelElement) sentinelElement.style.display = "none";
   } finally {
     isLoadingFeedItems = false;
+    hideFeedSkeleton();
   }
 }
 
@@ -1066,7 +1093,7 @@ async function handleEnqueteClick(itemId, targetElementOrCard) {
   if (!modalEnqueteDetalhe || !apiClient) return;
 
   modalEnqueteDetalheOpcoesContainer.innerHTML =
-    '<p class="cv-loading-message">Carregando detalhes da enquete...</p>';
+    '<p class="cv-loading-message"><span class="spinner spinner-small"></span> Carregando detalhes da enquete...</p>';
   modalEnqueteDetalheStatus.innerHTML = "";
   modalEnqueteSubmitVotoButton.style.display = "none";
   modalEnqueteDetalhe.style.display = "flex";
@@ -1210,7 +1237,7 @@ async function handleChamadoClick(
   if (!modalChamadoDetalhe || !apiClient) return;
 
   modalChamadoDetalheConteudo.innerHTML =
-    '<p class="cv-loading-message">Carregando detalhes...</p>';
+    '<p class="cv-loading-message"><span class="spinner spinner-small"></span> Carregando detalhes...</p>';
   modalChamadoDetalheInteracoes.innerHTML = "";
 
   const sindicoUpdateSection = document.getElementById(
