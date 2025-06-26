@@ -683,57 +683,31 @@ async function carregarReservasListView(page, append = false) {
   loadingMsg.style.display = "block";
   if (sentinel) sentinel.style.display = "block";
 
-  try {
-    const params = {
-      pageNumber: page,
-      pageSize: 10,
-      espacoComumId: filtroEspacoLista.value || null,
-      status: filtroStatusLista.value || null,
-    };
-    if (filtroPeriodoLista.value) {
-      const [year, month] = filtroPeriodoLista.value.split("-").map(Number);
-      params.periodoInicio = new Date(
-        Date.UTC(year, month - 1, 1)
-      ).toISOString();
-      const last = new Date(Date.UTC(year, month, 0));
-      params.periodoFim = new Date(
-        Date.UTC(
-          last.getFullYear(),
-          last.getMonth(),
-          last.getDate(),
-          23,
-          59,
-          59,
-          999
-        )
-      ).toISOString();
-    }
-
-      pageNumber: page,
-      pageSize: 10, // Ou o tamanho de página desejado
-      espacoComumId: filtroEspacoLista.value || null,
-      status: filtroStatusLista.value || null,
-    };
-    if (filtroPeriodoLista.value) {
-      const [year, month] = filtroPeriodoLista.value.split("-").map(Number);
-      // Primeiro dia do mês UTC
-      params.periodoInicio = new Date(
-        Date.UTC(year, month - 1, 1, 0, 0, 0, 0)
-      ).toISOString();
-      // Último dia do mês UTC (com horário final)
-      const ultimoDiaDoMes = new Date(Date.UTC(year, month, 0)); // Pega o último dia do mês anterior (month)
-      params.periodoFim = new Date(
-        Date.UTC(
-          ultimoDiaDoMes.getUTCFullYear(),
-          ultimoDiaDoMes.getUTCMonth(),
-          ultimoDiaDoMes.getUTCDate(),
-          23,
-          59,
-          59,
-          999
-        )
-      ).toISOString();
-    }
+    try {
+      const params = {
+        pageNumber: page,
+        pageSize: 10,
+        espacoComumId: filtroEspacoLista.value || null,
+        status: filtroStatusLista.value || null,
+      };
+      if (filtroPeriodoLista.value) {
+        const [year, month] = filtroPeriodoLista.value.split("-").map(Number);
+        params.periodoInicio = new Date(
+          Date.UTC(year, month - 1, 1)
+        ).toISOString();
+        const last = new Date(Date.UTC(year, month, 0));
+        params.periodoFim = new Date(
+          Date.UTC(
+            last.getFullYear(),
+            last.getMonth(),
+            last.getDate(),
+            23,
+            59,
+            59,
+            999
+          )
+        ).toISOString();
+      }
 
     // Chamada real à API (substitui o mock)
     const responseData = await apiClient.get("/api/v1/app/reservas/lista", params);
