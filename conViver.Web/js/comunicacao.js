@@ -1,6 +1,7 @@
 import apiClient from "./apiClient.js";
-import { requireAuth } from "./auth.js";
+import { requireAuth, getUserInfo } from "./auth.js"; // Adicionado getUserInfo
 import { showGlobalFeedback } from "./main.js";
+import { initFabMenu } from "./fabMenu.js"; // Importar initFabMenu
 
 // --- Global state & constants ---
 let currentFeedPage = 1;
@@ -182,9 +183,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadInitialFeedItems();
   setupFeedObserver();
   setupFeedContainerClickListener();
-  updateUserSpecificUI(); // Setup FABs
-  setupFilterModalAndButton(); // Setup filter modal and its trigger
-  setupModalEventListeners(); // Setup generic close/submit for other modals
+  // updateUserSpecificUI(); // Não vai mais controlar FABs diretamente, mas sim as ações do menu FAB.
+  setupFilterModalAndButton();
+  setupModalEventListeners();
+  initializeCommunicationPageFAB(); // Nova função para inicializar o FAB
 });
 
 // --- Tab System ---
@@ -272,7 +274,7 @@ function setupTabs() {
         loadInitialFeedItems(); // This function will handle its own skeleton for content-mural's feed
       }
 
-      updateUserSpecificUI(button.id);
+      // updateUserSpecificUI(button.id); // Não controla mais FABs visíveis, mas pode influenciar ações do menu
     });
   });
 
@@ -284,7 +286,7 @@ function setupTabs() {
     // Fallback if no tab buttons found, ensure mural skeleton is managed if needed
     showFeedSkeleton("content-mural"); // Show skeleton for default view
     loadInitialFeedItems(); // Load default items
-    updateUserSpecificUI("tab-mural");
+    // updateUserSpecificUI("tab-mural"); // Ações do FAB são definidas uma vez
   }
 }
 
@@ -704,53 +706,49 @@ function getUserRoles() {
   return ["Condomino"];
 }
 
-function updateUserSpecificUI(activeTabId = "tab-mural") {
-  const userRoles = getUserRoles();
-  const isSindico =
-    userRoles.includes("Sindico") || userRoles.includes("Administrador");
+function initializeCommunicationPageFAB() {
+  const user = getUserInfo();
+  const userRoles = user?.roles || ["Condomino"];
+  const isSindico = userRoles.includes("Sindico") || userRoles.includes("Administrador");
 
-  const fabMural = document.querySelector(".js-fab-mural");
-  const fabEnquetes = document.querySelector(".js-fab-enquetes");
-  const fabSolicitacoes = document.querySelector(".js-fab-chamados");
+  const actions = [];
 
-  if (fabMural) fabMural.style.display = "none";
-  if (fabEnquetes) fabEnquetes.style.display = "none";
-  if (fabSolicitacoes) fabSolicitacoes.style.display = "none";
-
-  if (fabMural && !fabMural.dataset.listenerAttached) {
-    fabMural.addEventListener("click", openCriarAvisoModal);
-    fabMural.dataset.listenerAttached = "true";
-  }
-  if (fabEnquetes && !fabEnquetes.dataset.listenerAttached) {
-    fabEnquetes.addEventListener("click", openCreateEnqueteModal);
-    fabEnquetes.dataset.listenerAttached = "true";
-  }
-  if (fabSolicitacoes && !fabSolicitacoes.dataset.listenerAttached) {
-    fabSolicitacoes.addEventListener("click", openCreateChamadoModal);
-    fabSolicitacoes.dataset.listenerAttached = "true";
+  if (isSindico) {
+    actions.push({
+      label: "Novo Aviso",
+      onClick: openCriarAvisoModal,
+    });
+    actions.push({
+      label: "Nova Enquete",
+      onClick: openCreateEnqueteModal,
+    });
   }
 
-  if (activeTabId === "tab-mural") {
-    if (isSindico) {
-      if (fabMural) fabMural.style.display = "block";
-    } else {
-      if (fabSolicitacoes) fabSolicitacoes.style.display = "block";
-    }
-  } else if (activeTabId === "tab-enquetes") {
-    if (isSindico) {
-      if (fabEnquetes) fabEnquetes.style.display = "block";
-    }
-  } else if (activeTabId === "tab-solicitacoes" || activeTabId === "tab-ocorrencias") {
-    if (fabSolicitacoes) fabSolicitacoes.style.display = "block";
+  actions.push({
+    label: "Novo Chamado", // Ou "Nova Ocorrência/Solicitação"
+    onClick: openCreateChamadoModal,
+  });
+
+  // Remove qualquer FAB antigo se houver (precaução)
+  const oldFabMenu = document.querySelector('.fab-menu');
+  if (oldFabMenu) {
+    oldFabMenu.remove();
   }
 
-  const sindicoOnlyMessages = document.querySelectorAll(
-    ".js-sindico-only-message"
-  );
-  sindicoOnlyMessages.forEach((msg) => {
+  if (actions.length > 0) {
+    initFabMenu(actions);
+  }
+
+  // Atualizar mensagens de "somente síndico" que ainda possam existir
+  document.querySelectorAll(".js-sindico-only-message").forEach((msg) => {
     msg.style.display = isSindico ? "inline" : "none";
   });
 }
+
+
+// A função updateUserSpecificUI não é mais necessária para controlar FABs visíveis.
+// A lógica de permissão está agora em initializeCommunicationPageFAB.
+// function updateUserSpecificUI(activeTabId = "tab-mural") { ... }
 
 // This function is now replaced by setupFilterModalAndButton
 // function setupFilterButtonListener() { ... }
