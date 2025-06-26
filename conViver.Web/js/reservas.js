@@ -125,7 +125,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Modal de filtros gerais
   if (openFilterReservasButton && filtrosModal) {
+        console.log("Filter modal button and modal element found. Attaching listener."); // Log
     openFilterReservasButton.addEventListener("click", () => {
+            console.log("Filter icon button clicked."); // Log
       // Determine active tab to show correct filters
       const agendaTabActive = tabAgendaBtn.classList.contains("active");
       const minhasReservasTabActive = tabMinhasBtn.classList.contains("active");
@@ -151,7 +153,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else {
         if (filtrosMinhasReservasContent) filtrosMinhasReservasContent.style.display = "none";
       }
+      console.log(`Attempting to show modal. Current display: ${filtrosModal.style.display}`); // Log
       filtrosModal.style.display = "flex";
+      console.log(`Modal display set to: ${filtrosModal.style.display}`); // Log
     });
 
     filtrosModal
@@ -451,21 +455,37 @@ function setupTabs() {
   const tabContents = document.querySelectorAll(".cv-tab-content");
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
+      console.log(`Tab clicked: ${button.id}`); // Log: Tab button ID
       tabButtons.forEach((btn) => btn.classList.remove("active"));
       button.classList.add("active");
 
-      tabContents.forEach((c) => (c.style.display = "none"));
-      const target = document.getElementById(
-        "content-" + button.id.replace("tab-", "")
-      );
-      if (target) target.style.display = "block";
+      tabContents.forEach((c) => {
+        // console.log(`Hiding content: ${c.id}`); // Verbose
+        c.style.display = "none";
+      });
+      const targetContentId = "content-" + button.id.replace("tab-", "");
+      console.log(`Target content ID: ${targetContentId}`); // Log: Target content ID
+      const target = document.getElementById(targetContentId);
+      if (target) {
+        target.style.display = "block";
+        console.log(`Displayed content: ${target.id}`); // Log: Displayed content
+      } else {
+        console.error(`Target content pane with ID ${targetContentId} not found.`);
+      }
 
       // Specific logic for tab activation
       if (button.id === "tab-minhas-reservas") {
+        console.log("Handling 'tab-minhas-reservas' activation."); // Log
         const container = document.getElementById(minhasReservasItemsContainerId);
+        if (!container) {
+            console.error(`Container for minhas reservas list (#${minhasReservasItemsContainerId}) not found.`);
+            return;
+        }
+        console.log(`'Minhas Reservas' container found. LoadedOnce: ${container.dataset.loadedOnce}, InnerHTML empty: ${container.innerHTML.trim() === ""}, Has loading msg: ${!!container.querySelector(".cv-loading-message")}`); // Log
         // Load only if not loaded once or if it's empty (e.g. after filters changed by on-page filters)
         // The `container.querySelector(".cv-loading-message")` checks if it's in its initial loading state.
         if (!container.dataset.loadedOnce || container.innerHTML.trim() === "" || container.querySelector(".cv-loading-message")) {
+            console.log("Condition to load 'Minhas Reservas' met. Calling carregarMinhasReservas."); // Log
             currentPageMinhasReservas = 1;
             noMoreItemsMinhasReservas = false;
             carregarMinhasReservas(1, false); // Initial load for this tab
