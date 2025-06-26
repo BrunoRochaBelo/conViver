@@ -1,7 +1,6 @@
 import apiClient from './apiClient.js';
 import { requireAuth } from './auth.js';
 import { showGlobalFeedback } from './main.js';
-import { initFabMenu } from './fabMenu.js';
 
 // --- Configuração das Abas Principais ---
 function setupMainTabs() {
@@ -105,16 +104,6 @@ function setupVisitantesSubTabs() {
     if (subTabButtons.length > 0) {
         subTabButtons[0].click();
     }
-}
-
-function openRegistrarVisitanteSection() {
-    const btn = document.querySelector('[data-subtab="registrar-visitante"]');
-    btn?.click();
-}
-
-function openGestaoEncomendasSection() {
-    const btn = document.querySelector('[data-subtab="gestao-encomendas"]');
-    btn?.click();
 }
 
 
@@ -365,7 +354,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     adicionarListenersSaida();
     await carregarEncomendas();
     setupEncomendas();
-    setupFabMenu();
 
     // Note: Filter listeners for "Visitantes Atuais" are still placeholders
     const btnFilterAtuais = document.getElementById('btnFiltrarVisitantesAtuais');
@@ -460,12 +448,4 @@ function setupEncomendas() {
             }
         });
     }
-}
-
-function setupFabMenu() {
-    const actions = [
-        { label: 'Visitante', onClick: openRegistrarVisitanteSection },
-        { label: 'Encomenda', onClick: openGestaoEncomendasSection }
-    ];
-    initFabMenu(actions, { title: 'Nova' });
 }

@@ -1,7 +1,5 @@
-export function initFabMenu(actions = [], options = {}) {
+export function initFabMenu(actions = []) {
     if (!actions || actions.length === 0) return;
-
-    const { title } = options;
 
     const container = document.createElement('div');
     container.className = 'fab-menu';
@@ -14,12 +12,6 @@ export function initFabMenu(actions = [], options = {}) {
 
     const menu = document.createElement('div');
     menu.className = 'fab-menu-options';
-    if (title) {
-        const titleEl = document.createElement('h3');
-        titleEl.className = 'fab-menu-title';
-        titleEl.textContent = title;
-        menu.appendChild(titleEl);
-    }
     actions.forEach(act => {
         const btn = document.createElement('button');
         btn.className = 'cv-button';
@@ -47,5 +39,4 @@ export function initFabMenu(actions = [], options = {}) {
     });
 
     document.body.appendChild(container);
-    return container;
 }

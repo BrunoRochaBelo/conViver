@@ -1,6 +1,5 @@
 import { showGlobalFeedback } from "./main.js";
 import { requireAuth, getUserInfo, getRoles } from "./auth.js";
-import { initFabMenu } from "./fabMenu.js";
 import apiClient from "./apiClient.js";
 import FullCalendar from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -131,7 +130,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Inicializa tudo
   await initReservasPage();
-  setupFabMenu();
 });
 
 async function initReservasPage() {
@@ -185,15 +183,8 @@ async function initReservasPage() {
     "form-gerenciar-espaco-comum"
   );
 
-  function openGerenciarEspacoModal() {
-    document.getElementById("modal-gerenciar-espaco-title").textContent =
-      "Adicionar Novo Espaço Comum";
-    formGerenciarEspaco.reset();
-    modalGerenciarEspaco.style.display = "flex";
-  }
-
   // Abre modal de nova reserva
-  function openNovaReservaModal() {
+  fabNovaReserva?.addEventListener("click", () => {
     document.getElementById("modal-nova-reserva-title").textContent =
       "Solicitar Nova Reserva";
     formNovaReserva.reset();
@@ -206,16 +197,14 @@ async function initReservasPage() {
     document.getElementById("modal-reserva-termos").disabled = false;
     modalNovaReserva.style.display = "flex";
 
+    // Pré-seleciona o espaço
     let esp = "";
     if (calendarioViewContainer.style.display !== "none")
       esp = selectEspacoComumCalendario.value;
     else esp = filtroEspacoLista.value;
     modalSelectEspaco.value = esp;
     exibirInfoEspacoSelecionadoModal(esp);
-  }
-
-  fabNovaReserva?.addEventListener("click", openNovaReservaModal);
-  btnAdicionarEspaco?.addEventListener("click", openGerenciarEspacoModal);
+  });
 
   closeModalNovaReservaButton?.addEventListener(
     "click",
@@ -1123,13 +1112,4 @@ function limparFiltrosUnificados() {
   filtroPeriodoModal.value = "";
   // Após limpar, reaplica para mostrar tudo (ou o default)
   aplicarFiltrosUnificados();
-}
-
-function setupFabMenu() {
-  const roles = getRoles();
-  const actions = [{ label: "Reserva", onClick: openNovaReservaModal }];
-  if (roles.includes("Sindico") || roles.includes("Administrador")) {
-    actions.push({ label: "Espaço", onClick: openGerenciarEspacoModal });
-  }
-  initFabMenu(actions, { title: "Nova" });
 }
