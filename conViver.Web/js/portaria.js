@@ -1,6 +1,7 @@
 import apiClient from './apiClient.js';
 import { requireAuth } from './auth.js';
 import { showGlobalFeedback } from './main.js';
+import { initFabMenu, setFabMenuActions } from './fabMenu.js';
 
 // --- Configuração das Abas Principais ---
 function setupMainTabs() {
@@ -346,6 +347,25 @@ if(btnLimparFiltroHistorico) {
     });
 }
 
+function openRegistrarVisitante() {
+    const btn = document.querySelector('#content-controle-visitantes .cv-tab-button[data-subtab="registrar-visitante"]');
+    btn?.click();
+}
+
+function openRegistrarEncomenda() {
+    const btn = document.querySelector('#content-controle-visitantes .cv-tab-button[data-subtab="gestao-encomendas"]');
+    btn?.click();
+    document.getElementById('formNovaEncomenda')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+function updateFabActions() {
+    const actions = [
+        { label: 'Visitante', onClick: openRegistrarVisitante },
+        { label: 'Encomenda', onClick: openRegistrarEncomenda }
+    ];
+    setFabMenuActions(actions);
+}
+
 // --- DOMContentLoaded ---
 document.addEventListener('DOMContentLoaded', async () => {
     requireAuth();
@@ -354,6 +374,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     adicionarListenersSaida();
     await carregarEncomendas();
     setupEncomendas();
+    initFabMenu();
+    updateFabActions();
 
     // Note: Filter listeners for "Visitantes Atuais" are still placeholders
     const btnFilterAtuais = document.getElementById('btnFiltrarVisitantesAtuais');
