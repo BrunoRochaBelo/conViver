@@ -17,6 +17,10 @@ const listViewSentinelId = 'list-view-sentinel';
 // DOM Elements - Views
 let calendarioViewContainer, listViewContainer;
 let btnViewCalendario, btnViewLista;
+let tabAgendaBtn, tabMinhasBtn;
+let contentAgenda, contentMinhas;
+let openFilterReservasButton, filtrosModal, aplicarFiltrosModalButton;
+let filtroMinhasEspaco, filtroMinhasStatus, filtroMinhasPeriodo, btnAplicarFiltrosMinhas;
 
 // DOM Elements - List View Filters
 let filtroEspacoLista, filtroStatusLista, filtroPeriodoLista, btnAplicarFiltrosLista;
@@ -39,6 +43,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     listViewContainer = document.getElementById('list-view-container');
     btnViewCalendario = document.getElementById('btn-view-calendario');
     btnViewLista = document.getElementById('btn-view-lista');
+    tabAgendaBtn = document.getElementById('tab-agenda');
+    tabMinhasBtn = document.getElementById('tab-minhas-reservas');
+    contentAgenda = document.getElementById('content-agenda');
+    contentMinhas = document.getElementById('content-minhas-reservas');
+    openFilterReservasButton = document.getElementById('open-filter-reservas-button');
+    filtrosModal = document.getElementById('modal-filtros-reservas');
+    aplicarFiltrosModalButton = document.getElementById('aplicar-filtros-modal-reservas');
+    filtroMinhasEspaco = document.getElementById('filtro-minhas-espaco');
+    filtroMinhasStatus = document.getElementById('filtro-minhas-status');
+    filtroMinhasPeriodo = document.getElementById('filtro-minhas-periodo');
+    btnAplicarFiltrosMinhas = document.getElementById('btn-aplicar-filtros-minhas');
 
     // Filtros da Lista
     filtroEspacoLista = document.getElementById('filtro-espaco-lista');
@@ -50,6 +65,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnViewCalendario.addEventListener('click', () => toggleReservasView('calendario'));
         btnViewLista.addEventListener('click', () => toggleReservasView('lista'));
     }
+    if(tabAgendaBtn && tabMinhasBtn && contentAgenda && contentMinhas) {
+        tabAgendaBtn.addEventListener('click', () => switchTab('agenda'));
+        tabMinhasBtn.addEventListener('click', () => switchTab('minhas'));
+    }
     if(btnAplicarFiltrosLista) {
         btnAplicarFiltrosLista.addEventListener('click', () => {
             currentPageListView = 1;
@@ -57,6 +76,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             const listItemsContainer = document.getElementById(listViewItemsContainerId);
             if(listItemsContainer) listItemsContainer.dataset.loadedOnce = "false";
             carregarReservasListView(currentPageListView, false);
+        });
+    }
+
+    if(openFilterReservasButton && filtrosModal) {
+        openFilterReservasButton.addEventListener('click', () => { filtrosModal.style.display = 'flex'; });
+        filtrosModal.querySelectorAll('.js-modal-filtros-reservas-close').forEach(btn => btn.addEventListener('click', () => { filtrosModal.style.display = 'none'; }));
+        window.addEventListener('click', (event) => { if(event.target === filtrosModal) filtrosModal.style.display = 'none'; });
+    }
+    if(aplicarFiltrosModalButton && filtrosModal) {
+        aplicarFiltrosModalButton.addEventListener('click', () => {
+            const val = document.getElementById('filtro-espaco-modal-reservas').value;
+            if(document.getElementById('select-espaco-comum-calendario')) document.getElementById('select-espaco-comum-calendario').value = val;
+            if(document.getElementById('filtro-espaco-lista')) document.getElementById('filtro-espaco-lista').value = val;
+            filtrosModal.style.display = 'none';
+            if(calendarioViewContainer && calendarioViewContainer.style.display !== 'none' && calendarioReservas) calendarioReservas.refetchEvents();
+            if(listViewContainer && listViewContainer.style.display !== 'none') {
+                currentPageListView = 1;
+                noMoreItemsListView = false;
+                const listItemsContainer = document.getElementById(listViewItemsContainerId);
+                if(listItemsContainer) listItemsContainer.dataset.loadedOnce = "false";
+                carregarReservasListView(currentPageListView, false);
+            }
+        });
+    }
+
+    if(btnAplicarFiltrosMinhas) {
+        btnAplicarFiltrosMinhas.addEventListener('click', () => {
+            carregarMinhasReservas();
         });
     }
 
@@ -217,6 +264,7 @@ async function initReservasPage() {
     setupListViewObserver();
     await carregarMinhasReservas();
 
+    switchTab('agenda');
     toggleReservasView('calendario');
 }
 
@@ -225,7 +273,9 @@ async function carregarEspacosComuns() {
     const selects = [
         document.getElementById('select-espaco-comum-calendario'),
         document.getElementById('modal-reserva-espaco'),
-        document.getElementById('filtro-espaco-lista')
+        document.getElementById('filtro-espaco-lista'),
+        document.getElementById('filtro-minhas-espaco'),
+        document.getElementById('filtro-espaco-modal-reservas')
     ];
     selects.forEach(sel => { if(sel) sel.innerHTML = '<option value="">Carregando...</option>';});
     try {
@@ -234,7 +284,7 @@ async function carregarEspacosComuns() {
         selects.forEach(sel => {
             if (!sel) return;
             const currentValue = sel.value;
-            if(sel.id === 'select-espaco-comum-calendario' || sel.id === 'filtro-espaco-lista'){
+            if(sel.id === 'select-espaco-comum-calendario' || sel.id === 'filtro-espaco-lista' || sel.id === 'filtro-minhas-espaco' || sel.id === 'filtro-espaco-modal-reservas'){
                  sel.innerHTML = '<option value="">Todos os Espaços</option>';
             } else {
                  sel.innerHTML = '<option value="">Selecione um espaço</option>';
@@ -285,6 +335,22 @@ function toggleReservasView(viewToShow) {
             noMoreItemsListView = false;
             carregarReservasListView(currentPageListView, false);
         }
+    }
+}
+
+function switchTab(tab) {
+    if(!tabAgendaBtn || !tabMinhasBtn || !contentAgenda || !contentMinhas) return;
+    if(tab === 'agenda') {
+        contentAgenda.style.display = 'block';
+        contentMinhas.style.display = 'none';
+        tabAgendaBtn.classList.add('active');
+        tabMinhasBtn.classList.remove('active');
+    } else {
+        contentAgenda.style.display = 'none';
+        contentMinhas.style.display = 'block';
+        tabMinhasBtn.classList.add('active');
+        tabAgendaBtn.classList.remove('active');
+        carregarMinhasReservas();
     }
 }
 
@@ -816,7 +882,16 @@ async function carregarMinhasReservas() {
     if (!listElement) return;
     listElement.innerHTML = '<p class="cv-loading-message">Carregando suas reservas...</p>';
     try {
-        const minhasReservas = await apiClient.get('/api/v1/app/reservas/minhas');
+        const params = {};
+        if(filtroMinhasEspaco && filtroMinhasEspaco.value) params.espacoComumId = filtroMinhasEspaco.value;
+        if(filtroMinhasStatus && filtroMinhasStatus.value) params.status = filtroMinhasStatus.value;
+        if(filtroMinhasPeriodo && filtroMinhasPeriodo.value) {
+            const [y,m] = filtroMinhasPeriodo.value.split('-');
+            params.periodoInicio = new Date(Date.UTC(parseInt(y), parseInt(m)-1,1)).toISOString();
+            const fim = new Date(Date.UTC(parseInt(y), parseInt(m),0));
+            params.periodoFim = new Date(Date.UTC(fim.getFullYear(), fim.getMonth(), fim.getDate(),23,59,59,999)).toISOString();
+        }
+        const minhasReservas = await apiClient.get('/api/v1/app/reservas/minhas', params);
         if (minhasReservas && minhasReservas.length > 0) {
             listElement.innerHTML = '';
             minhasReservas.forEach(reserva => {
