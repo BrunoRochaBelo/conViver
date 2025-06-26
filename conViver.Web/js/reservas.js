@@ -374,14 +374,86 @@ function switchTab(tab) {
     contentMinhas.style.display = "none";
     tabAgendaBtn.classList.add("active");
     tabMinhasBtn.classList.remove("active");
-  } else {
+    // Se a aba de agenda for ativada, pode ser útil recarregar o calendário
+    // ou a lista, dependendo do que estiver visível dentro dela.
+    if (calendarioViewContainer?.style.display === "block") {
+        calendarioReservas?.refetchEvents();
+    } else if (listViewContainer?.style.display === "block") {
+        // Resetar e carregar a lista se necessário
+        // currentPageListView = 1;
+        // noMoreItemsListView = false;
+        // const c = document.getElementById(listViewItemsContainerId);
+        // if (c) c.dataset.loadedOnce = "false";
+        // carregarReservasListView(1, false);
+    }
+  } else { // Aba "Minhas Reservas"
     contentAgenda.style.display = "none";
     contentMinhas.style.display = "block";
     tabMinhasBtn.classList.add("active");
     tabAgendaBtn.classList.remove("active");
-    carregarMinhasReservas();
+    carregarMinhasReservas(); // Carrega as reservas do usuário
   }
 }
+
+async function carregarMinhasReservas() {
+  const container = document.getElementById("minhas-reservas-list");
+  if (!container) {
+    console.error("Container para 'Minhas Reservas' não encontrado.");
+    return;
+  }
+
+  container.innerHTML = '<p class="cv-loading-message">Carregando suas reservas...</p>';
+
+  try {
+    const params = {
+      // Não precisa de paginação aqui, a menos que a lista seja muito grande.
+      // Se precisar de paginação, adicionar pageNumber e pageSize.
+      espacoComumId: filtroMinhasEspaco.value || null,
+      status: filtroMinhasStatus.value || null,
+    };
+
+    if (filtroMinhasPeriodo.value) {
+      const [year, month] = filtroMinhasPeriodo.value.split("-").map(Number);
+      params.periodoInicio = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0)).toISOString();
+      const ultimoDiaDoMes = new Date(Date.UTC(year, month, 0));
+      params.periodoFim = new Date(
+        Date.UTC(
+          ultimoDiaDoMes.getUTCFullYear(),
+          ultimoDiaDoMes.getUTCMonth(),
+          ultimoDiaDoMes.getUTCDate(),
+          23,
+          59,
+          59,
+          999
+        )
+      ).toISOString();
+    }
+
+    // Assumindo endpoint /api/v1/app/reservas/minhas-reservas
+    // Este endpoint deve retornar apenas as reservas do usuário logado.
+    // O backend usará o token JWT para identificar o usuário.
+    const responseData = await apiClient.get("/api/v1/app/reservas/minhas-reservas", params);
+    const items = responseData.items || responseData; // Adaptar conforme a resposta da API
+
+    if (items && items.length > 0) {
+      container.innerHTML = ""; // Limpa a mensagem de "carregando"
+      items.forEach((reserva) => {
+        // Certifique-se de que 'pertenceAoUsuarioLogado' seja verdadeiro ou ajustado pela API
+        const card = renderCardReservaListView({ ...reserva, pertenceAoUsuarioLogado: true });
+        container.appendChild(card);
+      });
+    } else {
+      container.innerHTML =
+        '<p class="cv-info-message" style="text-align:center;">Nenhuma reserva encontrada com os filtros aplicados.</p>';
+    }
+  } catch (err) {
+    console.error("Erro ao carregar 'Minhas Reservas':", err);
+    container.innerHTML =
+      '<p class="cv-error-message" style="text-align:center;">Erro ao carregar suas reservas. Tente novamente mais tarde.</p>';
+    showGlobalFeedback("Erro ao carregar suas reservas.", "error");
+  }
+}
+
 
 async function carregarReservasListView(page, append = false) {
   if (isLoadingListView || (noMoreItemsListView && append)) return;
@@ -437,83 +509,89 @@ async function carregarReservasListView(page, append = false) {
       ).toISOString();
     }
 
-    // MOCK
-    await new Promise((r) => setTimeout(r, 700));
-    const mockItems = [];
-    const totalPages = 2;
-    if (page <= totalPages) {
-      for (let i = 0; i < 10; i++) {
-        const statusRand = ["Confirmada", "Pendente", "CanceladaPeloUsuario"][
-          Math.floor(Math.random() * 3)
-        ];
-        const esp = espacosComunsList.length
-          ? espacosComunsList[
-              Math.floor(Math.random() * espacosComunsList.length)
-            ]
-          : { id: `esp-mock-${i}`, nome: `Espaço Mock ${i + 1}` };
-        let itemDate = new Date();
-        if (params.periodoInicio && params.periodoFim) {
-          const s = new Date(params.periodoInicio),
-            e = new Date(params.periodoFim);
-          itemDate = new Date(
-            s.getTime() + Math.random() * (e.getTime() - s.getTime())
-          );
-        } else {
-          itemDate.setDate(itemDate.getDate() + (i - 5 + (page - 1) * 10));
-        }
-        mockItems.push({
-          id: `mock-${page}-${i}`,
-          nomeEspacoComum: esp.nome,
-          inicio: itemDate.toISOString(),
-          fim: new Date(itemDate.getTime() + 2 * 60 * 60 * 1000).toISOString(),
-          status: params.status || statusRand,
-          nomeUnidade: `Unid. ${100 + i}`,
-          nomeUsuarioSolicitante: `Morador ${page}-${i}`,
-          observacoes:
-            statusRand === "Confirmada" ? "Evento de teste mockado" : null,
-          pertenceAoUsuarioLogado: Math.random() > 0.5,
-          espacoComumId: params.espacoComumId || esp.id,
-          unidadeId: `unid-mock-${100 + i}`,
-          usuarioId: `user-mock-${page}-${i}`,
-          condominioId: `condo-mock-1`,
-          dataSolicitacao: new Date(
-            itemDate.getTime() - 24 * 60 * 60 * 1000
-          ).toISOString(),
-          taxaCobrada:
-            Math.random() > 0.5 ? (Math.random() * 50).toFixed(2) : null,
-          tituloReserva: `Reserva ${esp.nome} - Unid. ${100 + i}`,
-        });
-      }
+      pageNumber: page,
+      pageSize: 10, // Ou o tamanho de página desejado
+      espacoComumId: filtroEspacoLista.value || null,
+      status: filtroStatusLista.value || null,
+    };
+    if (filtroPeriodoLista.value) {
+      const [year, month] = filtroPeriodoLista.value.split("-").map(Number);
+      // Primeiro dia do mês UTC
+      params.periodoInicio = new Date(
+        Date.UTC(year, month - 1, 1, 0, 0, 0, 0)
+      ).toISOString();
+      // Último dia do mês UTC (com horário final)
+      const ultimoDiaDoMes = new Date(Date.UTC(year, month, 0)); // Pega o último dia do mês anterior (month)
+      params.periodoFim = new Date(
+        Date.UTC(
+          ultimoDiaDoMes.getUTCFullYear(),
+          ultimoDiaDoMes.getUTCMonth(),
+          ultimoDiaDoMes.getUTCDate(),
+          23,
+          59,
+          59,
+          999
+        )
+      ).toISOString();
     }
+
+    // Chamada real à API (substitui o mock)
+    const responseData = await apiClient.get("/api/v1/app/reservas/lista", params);
+    // Assumindo que a API retorna um objeto com 'items' e 'hasNextPage' ou similar
+    // ou um array diretamente e verificamos o tamanho para 'noMoreItemsListView'
+    // Para este exemplo, vou assumir que retorna um array de itens.
+    // Se a API retornar estrutura de paginação (ex: { items: [], totalCount: X, page: Y, pageSize: Z }),
+    // a lógica de noMoreItemsListView precisaria ser ajustada.
+
+    const items = responseData.items || responseData; // Adaptar conforme a resposta da API
+
     loadingMsg.style.display = "none";
 
-    if (mockItems.length) {
+    if (items.length > 0) {
       if (!append) container.dataset.loadedOnce = "true";
-      mockItems.forEach((r) =>
-        container.appendChild(renderCardReservaListView(r))
+      items.forEach((reserva) =>
+        container.appendChild(renderCardReservaListView(reserva))
       );
-      currentPageListView = page;
-      if (page >= totalPages) {
+      currentPageListView = page; // Atualiza a página atual
+      if (items.length < params.pageSize || (responseData.hasNextPage === false)) { // Verifica se há menos itens que o esperado ou se a API indica que não há mais
         noMoreItemsListView = true;
         if (sentinel) sentinel.style.display = "none";
-        const fim = document.createElement("p");
-        fim.className = "cv-info-message fim-lista";
-        fim.textContent = "Fim das reservas.";
-        fim.style.textAlign = "center";
-        container.appendChild(fim);
+        if (container.querySelector(".fim-lista") === null) { // Evita duplicar mensagem
+            const fim = document.createElement("p");
+            fim.className = "cv-info-message fim-lista";
+            fim.textContent = "Fim das reservas.";
+            fim.style.textAlign = "center";
+            container.appendChild(fim);
+        }
       }
-    } else if (!append) {
+    } else if (!append) { // Nenhuma reserva encontrada na primeira busca com os filtros
       container.innerHTML =
-        '<p class="cv-info-message" style="text-align:center;">Nenhuma reserva encontrada.</p>';
+        '<p class="cv-info-message" style="text-align:center;">Nenhuma reserva encontrada para os filtros aplicados.</p>';
       noMoreItemsListView = true;
       if (sentinel) sentinel.style.display = "none";
+    } else { // Nenhuma reserva encontrada em uma página subsequente (append = true)
+        noMoreItemsListView = true;
+        if (sentinel) sentinel.style.display = "none";
+         if (container.querySelector(".fim-lista") === null && page > 1) {
+            const fim = document.createElement("p");
+            fim.className = "cv-info-message fim-lista";
+            fim.textContent = "Fim das reservas.";
+            fim.style.textAlign = "center";
+            container.appendChild(fim);
+        }
     }
   } catch (err) {
-    console.error("Erro ao carregar lista:", err);
-    if (!append)
+    console.error("Erro ao carregar lista de reservas:", err);
+    loadingMsg.style.display = "none";
+    if (!append) {
       container.innerHTML =
-        '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas. Tente novamente.</p>';
-    else showGlobalFeedback("Erro ao carregar mais reservas.", "error");
+        '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas. Tente novamente mais tarde.</p>';
+    } else {
+      showGlobalFeedback("Erro ao carregar mais reservas.", "error");
+    }
+    // Considerar parar o observer em caso de erro para não ficar tentando carregar.
+    noMoreItemsListView = true; // Para evitar novas tentativas automáticas
+    if (sentinel) sentinel.style.display = "none";
   } finally {
     isLoadingListView = false;
   }
