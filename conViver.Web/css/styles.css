@@ -850,6 +850,15 @@ main {
     /* border-top: none; */ /* Optional */
 }
 
+/* --- Nested Tabs (Sub-Abas) --- */
+.cv-subtab-content {
+    display: none;
+}
+
+.cv-subtab-content.active {
+    display: block;
+}
+
 
 /* Styles for new elements in Mural Digital */
 .sticky-notices-container {

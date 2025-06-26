@@ -50,6 +50,16 @@ function setupMainTabs() {
     }
 }
 
+// Wrapper to initialize tabs depending on page structure
+function setupTabs() {
+    const hasMainTabs = document.querySelectorAll('main > .cv-tabs .cv-tab-button').length > 0;
+    if (hasMainTabs) {
+        setupMainTabs();
+    } else {
+        setupVisitantesSubTabs();
+    }
+}
+
 // --- Configuração das Sub-Abas de Controle de Visitantes ---
 function setupVisitantesSubTabs() {
     const subTabButtons = document.querySelectorAll('#content-controle-visitantes .cv-tabs .cv-tab-button');
