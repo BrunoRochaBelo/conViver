@@ -1,6 +1,7 @@
 import apiClient from './apiClient.js';
 import { requireAuth, getUserRoles } from './auth.js'; // Supondo que getUserRoles exista ou será criado
 import { showGlobalFeedback } from './main.js';
+import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     requireAuth();
@@ -44,7 +45,9 @@ function initializeBibliotecaPage() {
 async function loadDocumentos() {
     const listContainer = document.querySelector('.js-document-list');
     if (!listContainer) return;
+    const skeleton = document.getElementById('biblioteca-skeleton');
 
+    if (skeleton) showFeedSkeleton(skeleton);
     listContainer.innerHTML = '<p class="cv-loading-message">Carregando documentos...</p>';
 
     const searchTerm = document.getElementById('docSearchInput')?.value || '';
@@ -82,10 +85,10 @@ async function loadDocumentos() {
         console.error('Erro ao carregar documentos:', error);
         listContainer.innerHTML = '<p class="cv-error-message">Erro ao carregar documentos. Tente novamente mais tarde.</p>';
         showGlobalFeedback('Erro ao carregar documentos.', 'error');
+    } finally {
+        if (skeleton) hideFeedSkeleton(skeleton);
     }
 }
-
-function renderDocumentos(documentos, container) {
     container.innerHTML = ''; // Limpa a lista
     const userRoles = getUserRoles();
     const isSindico = userRoles.includes('Sindico') || userRoles.includes('Administrador');

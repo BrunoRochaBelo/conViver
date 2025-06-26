@@ -2,6 +2,7 @@ import apiClient from './apiClient.js';
 import { requireAuth, getRoles } from './auth.js';
 import { showGlobalFeedback } from './main.js';
 import { initFabMenu } from './fabMenu.js';
+import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
 // --- Configuração das Abas Principais ---
 function setupMainTabs() {
@@ -117,6 +118,7 @@ async function carregarVisitantesAtuais(unidadeFilter = '') {
     const tbody = document.querySelector('.js-visitantes-atuais-lista');
     const loadingMsg = document.getElementById('visitantesAtuaisLoadingMsg');
     const noDataMsg = document.getElementById('visitantesAtuaisNoDataMsg');
+    const skeleton = document.getElementById('visitantes-skeleton');
 
     if (!tbody || !loadingMsg || !noDataMsg) {
         console.error('Elementos da tabela de visitantes atuais não encontrados.');
@@ -126,6 +128,7 @@ async function carregarVisitantesAtuais(unidadeFilter = '') {
 
     tbody.innerHTML = '';
     loadingMsg.style.display = 'block';
+    if (skeleton) showFeedSkeleton(skeleton);
     noDataMsg.style.display = 'none';
     // Do not show global feedback for loading here, it's too noisy for tab switches / auto-refresh
     // showGlobalFeedback('Carregando visitantes atuais...', 'info');
@@ -166,6 +169,8 @@ async function carregarVisitantesAtuais(unidadeFilter = '') {
         loadingMsg.style.display = 'none';
         tbody.innerHTML = '<tr><td colspan="7" class="error-message">Falha ao carregar visitantes atuais.</td></tr>';
         showGlobalFeedback('Erro ao carregar visitantes atuais: ' + (err.message || 'Erro desconhecido'), 'error');
+    } finally {
+        if (skeleton) hideFeedSkeleton(skeleton);
     }
 }
 
@@ -283,8 +288,11 @@ async function carregarHistoricoVisitantes(filters = {}) {
         return;
     }
 
+    const skeleton = document.getElementById('historico-skeleton');
+
     historicoTbody.innerHTML = '';
     historicoLoadingMsg.style.display = 'block';
+    if (skeleton) showFeedSkeleton(skeleton);
     historicoNoDataMsg.style.display = 'none';
     showGlobalFeedback('Carregando histórico de visitantes...', 'info');
 
@@ -324,6 +332,8 @@ async function carregarHistoricoVisitantes(filters = {}) {
         historicoLoadingMsg.style.display = 'none';
         historicoTbody.innerHTML = '<tr><td colspan="8" class="error-message">Falha ao carregar histórico.</td></tr>';
         showGlobalFeedback('Erro ao carregar histórico: ' + (err.message || 'Erro desconhecido'), 'error');
+    } finally {
+        if (skeleton) hideFeedSkeleton(skeleton);
     }
 }
 
@@ -392,6 +402,7 @@ async function carregarEncomendas() {
     const tbody = document.querySelector('.js-encomendas');
     const loadingMsg = document.getElementById('encomendasLoadingMsg');
     const noDataMsg = document.getElementById('encomendasNoDataMsg');
+    const skeleton = document.getElementById('encomendas-skeleton');
     if (!tbody || !loadingMsg || !noDataMsg) {
         console.error('Elementos de encomendas não encontrados.');
         return;
@@ -399,6 +410,7 @@ async function carregarEncomendas() {
     tbody.innerHTML = '';
     loadingMsg.style.display = 'block';
     noDataMsg.style.display = 'none';
+    if (skeleton) showFeedSkeleton(skeleton);
 
     try {
         const encomendas = await apiClient.get('/syndic/encomendas?status=recebida');
@@ -419,6 +431,8 @@ async function carregarEncomendas() {
     } catch(err) {
         console.error('Erro ao listar encomendas', err);
         tbody.innerHTML = '<tr><td colspan="4" class="error-message">Falha ao carregar encomendas.</td></tr>';
+    } finally {
+        if (skeleton) hideFeedSkeleton(skeleton);
     }
 }
 
