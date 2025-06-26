@@ -1,6 +1,7 @@
 import apiClient from './apiClient.js';
-import { requireAuth } from './auth.js';
+import { requireAuth, getRoles } from './auth.js';
 import { showGlobalFeedback } from './main.js';
+import { initFabMenu } from './fabMenu.js';
 
 // --- Configuração das Abas Principais ---
 function setupMainTabs() {
@@ -104,6 +105,11 @@ function setupVisitantesSubTabs() {
     if (subTabButtons.length > 0) {
         subTabButtons[0].click();
     }
+}
+
+function openSubTab(id) {
+    const btn = document.querySelector(`#content-controle-visitantes .cv-tab-button[data-subtab="${id}"]`);
+    btn?.click();
 }
 
 
@@ -368,6 +374,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             showGlobalFeedback('Funcionalidade de filtro por unidade (atuais) a ser implementada/conectada com API.', 'info');
         });
     }
+
+    const roles = getRoles();
+    const isSindico = roles.includes('Sindico') || roles.includes('Administrador');
+    const actions = [
+        { label: 'Registrar Visitante', onClick: () => openSubTab('registrar-visitante') }
+    ];
+    if (isSindico) {
+        actions.push({ label: 'Registrar Encomenda', onClick: () => openSubTab('gestao-encomendas') });
+    }
+    initFabMenu(actions);
 });
 
 
