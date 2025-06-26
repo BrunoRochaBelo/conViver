@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <title>conViver - Comunicação</title>
@@ -8,14 +9,17 @@
     <style>
         .cv-tabs {
             display: flex;
-            justify-content: space-between; /* Alinha botões de aba à esquerda e filtro à direita */
+            justify-content: space-between;
+            /* Alinha botões de aba à esquerda e filtro à direita */
             align-items: center;
             margin-bottom: 20px;
             border-bottom: 2px solid var(--current-border-subtle, #eee);
         }
+
         .cv-tabs-buttons {
             display: flex;
         }
+
         .icon-button {
             background: none;
             border: none;
@@ -23,11 +27,13 @@
             cursor: pointer;
             color: var(--current-text-secondary);
         }
+
         .icon-button:hover {
             color: var(--current-primary-blue);
         }
     </style>
 </head>
+
 <body>
     <header class="cv-header">
         <div class="cv-container cv-header__container">
@@ -69,7 +75,7 @@
         </div>
 
         <div class="cv-tab-content" id="content-enquetes" style="display:none;">
-             <p class="cv-info-message" style="padding: 20px; text-align: center;">
+            <p class="cv-info-message" style="padding: 20px; text-align: center;">
                 As enquetes são exibidas no Mural principal.
                 <span class="js-sindico-only-message" style="display:none;">Use o botão (+) para criar uma nova enquete.</span>
             </p>
@@ -150,7 +156,7 @@
                         <option value="assembleias">🧑‍⚖️ Assembleias</option>
                         <option value="urgente">🚨 Urgente</option>
                     </select>
-                     <small>Segure Ctrl/Cmd para selecionar múltiplas.</small>
+                    <small>Segure Ctrl/Cmd para selecionar múltiplas.</small>
                 </div>
                 <div class="cv-form-actions">
                     <button type="submit" class="cv-button primary">Salvar Aviso</button>
@@ -298,4 +304,5 @@
     <script type="module" src="../js/userMenu.js"></script>
     <script type="module" src="../js/comunicacao.js"></script>
 </body>
+
 </html>
