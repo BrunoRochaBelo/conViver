@@ -248,7 +248,9 @@
                 </div>
                 <div id="minhas-reservas-list" class="minhas-reservas-list">
                     <p class="cv-loading-message">Carregando suas reservas...</p>
+                    <!-- Items will be appended here -->
                 </div>
+                <div id="minhas-reservas-sentinel" style="height: 10px;"></div> <!-- Sentinel for infinite scroll -->
             </section>
         </div>
 
@@ -282,16 +284,48 @@
             <span class="cv-modal-close js-modal-filtros-reservas-close">&times;</span>
             <h2>Filtros de Reservas</h2>
             <div class="cv-form">
-                <div class="cv-form-group">
-                    <label for="filtro-espaco-modal-reservas">Espaço:</label>
-                    <select id="filtro-espaco-modal-reservas" class="cv-input">
-                        <option value="">Todos</option>
-                        <option value="salao">Salão de Festas</option>
-                        <option value="churrasqueira">Churrasqueira</option>
-                        <option value="quadra">Quadra</option>
-                        <option value="coworking">Coworking</option>
-                    </select>
+                <!-- Filtros para Agenda e Disponibilidade -->
+                <div class="cv-form-group-wrapper" id="filtros-modal-agenda">
+                    <div class="cv-form-group">
+                        <label for="filtro-espaco-modal-agenda">Espaço:</label>
+                        <select id="filtro-espaco-modal-agenda" class="cv-input">
+                            <option value="">Todos os Espaços</option>
+                            <!-- Populado por JS -->
+                        </select>
+                    </div>
+                    <div class="cv-form-group">
+                        <label for="filtro-data-modal-agenda">Mês/Ano:</label>
+                        <input type="month" id="filtro-data-modal-agenda" class="cv-input">
+                    </div>
                 </div>
+
+                   <!-- Filtros para Minhas Reservas -->
+                <div class="cv-form-group-wrapper" id="filtros-modal-minhas-reservas" style="display:none;">
+                        <div class="cv-form-group">
+                            <label for="filtro-data-modal-minhas">Período (Mês/Ano):</label>
+                            <input type="month" id="filtro-data-modal-minhas" class="cv-input">
+                        </div>
+                        <div class="cv-form-group">
+                            <label for="filtro-espaco-modal-minhas">Espaço Comum:</label>
+                            <select id="filtro-espaco-modal-minhas" class="cv-input">
+                                <option value="">Todos os Espaços</option>
+                                <!-- Populado por JS -->
+                            </select>
+                        </div>
+                        <div class="cv-form-group">
+                            <label for="filtro-status-modal-minhas">Situação:</label>
+                            <select id="filtro-status-modal-minhas" class="cv-input">
+                                <option value="">Todas</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Confirmada">Confirmada</option>
+                                <option value="Recusada">Recusada</option>
+                                <option value="CanceladaPeloUsuario">Cancelada pelo Usuário</option>
+                                <option value="CanceladaPeloSindico">Cancelada pelo Síndico</option>
+                                <!-- Mantendo opções completas, o backend/frontend pode simplificar a exibição se necessário -->
+                            </select>
+                        </div>
+                </div>
+
                 <div class="cv-form-actions">
                     <button id="aplicar-filtros-modal-reservas" class="cv-button cv-button--primary">Aplicar Filtros</button>
                     <button type="button" class="cv-button js-modal-filtros-reservas-close">Cancelar</button>
