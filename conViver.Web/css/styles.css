@@ -965,6 +965,11 @@ html[data-theme="dark"] .fab-menu-options {
 .fab-menu-options .cv-button {
     width: 160px;
 }
+.fab-menu-title {
+    margin: 0 0 var(--cv-spacing-xs, 4px) 0;
+    font-size: var(--cv-font-size-md, 14px);
+    font-weight: 600;
+}
 
 
 /* Helper class for loading messages if not already present */

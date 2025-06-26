@@ -1,6 +1,7 @@
 import apiClient from "./apiClient.js";
 import { requireAuth } from "./auth.js";
 import { showGlobalFeedback } from "./main.js";
+import { initFabMenu } from "./fabMenu.js";
 
 // --- Global state & constants ---
 let currentFeedPage = 1;
@@ -182,7 +183,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadInitialFeedItems();
   setupFeedObserver();
   setupFeedContainerClickListener();
-  updateUserSpecificUI(); // Setup FABs
+  updateUserSpecificUI();
+  setupFabMenu();
   setupFilterModalAndButton(); // Setup filter modal and its trigger
   setupModalEventListeners(); // Setup generic close/submit for other modals
 });
@@ -709,47 +711,23 @@ function updateUserSpecificUI(activeTabId = "tab-mural") {
   const isSindico =
     userRoles.includes("Sindico") || userRoles.includes("Administrador");
 
-  const fabMural = document.querySelector(".js-fab-mural");
-  const fabEnquetes = document.querySelector(".js-fab-enquetes");
-  const fabSolicitacoes = document.querySelector(".js-fab-chamados");
-
-  if (fabMural) fabMural.style.display = "none";
-  if (fabEnquetes) fabEnquetes.style.display = "none";
-  if (fabSolicitacoes) fabSolicitacoes.style.display = "none";
-
-  if (fabMural && !fabMural.dataset.listenerAttached) {
-    fabMural.addEventListener("click", openCriarAvisoModal);
-    fabMural.dataset.listenerAttached = "true";
-  }
-  if (fabEnquetes && !fabEnquetes.dataset.listenerAttached) {
-    fabEnquetes.addEventListener("click", openCreateEnqueteModal);
-    fabEnquetes.dataset.listenerAttached = "true";
-  }
-  if (fabSolicitacoes && !fabSolicitacoes.dataset.listenerAttached) {
-    fabSolicitacoes.addEventListener("click", openCreateChamadoModal);
-    fabSolicitacoes.dataset.listenerAttached = "true";
-  }
-
-  if (activeTabId === "tab-mural") {
-    if (isSindico) {
-      if (fabMural) fabMural.style.display = "block";
-    } else {
-      if (fabSolicitacoes) fabSolicitacoes.style.display = "block";
-    }
-  } else if (activeTabId === "tab-enquetes") {
-    if (isSindico) {
-      if (fabEnquetes) fabEnquetes.style.display = "block";
-    }
-  } else if (activeTabId === "tab-solicitacoes" || activeTabId === "tab-ocorrencias") {
-    if (fabSolicitacoes) fabSolicitacoes.style.display = "block";
-  }
-
   const sindicoOnlyMessages = document.querySelectorAll(
     ".js-sindico-only-message"
   );
   sindicoOnlyMessages.forEach((msg) => {
     msg.style.display = isSindico ? "inline" : "none";
   });
+}
+
+function setupFabMenu() {
+  const roles = getUserRoles();
+  const actions = [];
+  if (roles.includes("Sindico") || roles.includes("Administrador")) {
+    actions.push({ label: "Enquete", onClick: openCreateEnqueteModal });
+  }
+  actions.push({ label: "Solicitação", onClick: openCreateChamadoModal });
+  actions.push({ label: "Ocorrência", href: "ocorrencias.html" });
+  initFabMenu(actions, { title: "Nova" });
 }
 
 // This function is now replaced by setupFilterModalAndButton
