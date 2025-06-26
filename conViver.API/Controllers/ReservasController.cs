@@ -140,6 +140,7 @@ public class ReservasController : ControllerBase
     /// Cancela uma reserva (solicitada pelo próprio usuário ou síndico). (App)
     /// </summary>
     [HttpDelete("app/reservas/{id:guid}")]
+    [HttpPost("app/reservas/{id:guid}/cancelar")]
     [Authorize(Roles = "Sindico,Condomino,Inquilino")]
     public async Task<IActionResult> CancelarReserva(Guid id)
     {
@@ -177,11 +178,11 @@ public class ReservasController : ControllerBase
     }
 
     /// <summary>
-    /// (App) Lista as reservas do usuário logado.
+    /// (App) Lista reservas em formato paginado.
     /// </summary>
-    [HttpGet("app/reservas/minhas")]
+    [HttpGet("app/reservas/lista")]
     [Authorize(Roles = "Sindico,Condomino,Inquilino")]
-    public async Task<ActionResult<IEnumerable<ReservaDto>>> ListarMinhasReservas()
+    public async Task<ActionResult<PaginatedResultDto<ReservaDto>>> ListarReservasPaginadas([FromQuery] ReservaFilterDto filters)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -192,7 +193,38 @@ public class ReservasController : ControllerBase
             return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
         }
 
-        var reservas = await _reservaService.ListarMinhasReservasAsync(condominioId, usuarioId);
+        bool isSindico = User.IsInRole("Sindico");
+        var result = await _reservaService.ListarReservasListViewAsync(condominioId, usuarioId, filters, isSindico);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// (App) Lista as reservas do usuário logado.
+    /// </summary>
+    [HttpGet("app/reservas/minhas"), HttpGet("app/reservas/minhas-reservas")]
+    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    public async Task<ActionResult<IEnumerable<ReservaDto>>> ListarMinhasReservas([
+        FromQuery] Guid? espacoComumId,
+        [FromQuery] string? status,
+        [FromQuery] DateTime? periodoInicio,
+        [FromQuery] DateTime? periodoFim)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
+            string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid usuarioId))
+        {
+            return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
+        }
+
+        var reservas = await _reservaService.ListarMinhasReservasAsync(
+            condominioId,
+            usuarioId,
+            espacoComumId,
+            status,
+            periodoInicio,
+            periodoFim);
         return Ok(reservas);
     }
 

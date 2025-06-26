@@ -578,13 +578,33 @@ public class ReservaService
     public async Task<List<ReservaDto>> ListarMinhasReservasAsync(
         Guid condominioId,
         Guid usuarioId,
+        Guid? espacoComumId = null,
+        string? status = null,
+        DateTime? periodoInicio = null,
+        DateTime? periodoFim = null,
         CancellationToken ct = default)
     {
-        var reservas = await _reservaRepository.Query()
-            .Where(r => r.CondominioId == condominioId && r.UsuarioId == usuarioId)
+        var query = _reservaRepository.Query()
+            .Where(r => r.CondominioId == condominioId && r.UsuarioId == usuarioId);
+
+        if (espacoComumId.HasValue)
+            query = query.Where(r => r.EspacoComumId == espacoComumId.Value);
+
+        if (!string.IsNullOrEmpty(status) && Enum.TryParse<ReservaStatus>(status, true, out var st))
+            query = query.Where(r => r.Status == st);
+
+        if (periodoInicio.HasValue)
+            query = query.Where(r => r.Fim >= periodoInicio.Value);
+        if (periodoFim.HasValue)
+        {
+            var fimDia = periodoFim.Value.Date.AddDays(1).AddTicks(-1);
+            query = query.Where(r => r.Inicio <= fimDia);
+        }
+
+        var reservas = await query
             .Include(r => r.EspacoComum)
             .Include(r => r.Unidade)
-            .Include(r => r.Solicitante) // Adicionado para ter acesso ao nome do solicitante
+            .Include(r => r.Solicitante)
             .OrderByDescending(r => r.Inicio)
             .ToListAsync(ct);
 
