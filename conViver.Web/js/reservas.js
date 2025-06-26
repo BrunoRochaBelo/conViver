@@ -1,11 +1,15 @@
 import { showGlobalFeedback } from "./main.js";
 import { requireAuth, getUserInfo, getRoles } from "./auth.js";
 import apiClient from "./apiClient.js";
-import FullCalendar from "@fullcalendar/core";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import listPlugin from "@fullcalendar/list";
-import ptBrLocale from "@fullcalendar/core/locales/pt-br";
+// FullCalendar is loaded globally via CDN in reservas.html. Here we pull the
+// needed constructors/plugins from the global object to avoid module
+// resolution issues when running without a bundler.
+const {
+  Calendar: FullCalendarCalendar,
+  dayGridPlugin,
+  timeGridPlugin,
+  listPlugin,
+} = window.FullCalendar || {};
 
 let espacosComunsList = [];
 let calendarioReservas = null;
@@ -1068,8 +1072,13 @@ function initializeFullCalendar() {
     console.error("Elemento #calendario-reservas não encontrado.");
     return;
   }
-  calendarioReservas = new FullCalendar.Calendar(el, {
-    locale: ptBrLocale,
+  if (!FullCalendarCalendar) {
+    console.error("FullCalendar library not loaded.");
+    return;
+  }
+
+  calendarioReservas = new FullCalendarCalendar(el, {
+    locale: "pt-br",
     plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
     initialView: "dayGridMonth",
     headerToolbar: {
