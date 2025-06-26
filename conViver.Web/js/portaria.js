@@ -1,6 +1,7 @@
 import apiClient from './apiClient.js';
 import { requireAuth } from './auth.js';
 import { showGlobalFeedback } from './main.js';
+import { initFabMenu } from './fabMenu.js'; // Importar initFabMenu
 
 // --- Configuração das Abas Principais ---
 function setupMainTabs() {
@@ -353,7 +354,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await carregarVisitantesAtuais();
     adicionarListenersSaida();
     await carregarEncomendas();
-    setupEncomendas();
+    setupEncomendas(); // Renomeado para setupFormNovaEncomenda e setupListaEncomendasListener implicitamente
+    initializePortariaPageFAB(); // Adiciona o FAB
 
     // Note: Filter listeners for "Visitantes Atuais" are still placeholders
     const btnFilterAtuais = document.getElementById('btnFiltrarVisitantesAtuais');
@@ -447,5 +449,54 @@ function setupEncomendas() {
                 }
             }
         });
+    }
+}
+
+function initializePortariaPageFAB() {
+    const actions = [
+        {
+            label: "Registrar Visitante",
+            onClick: () => {
+                // Ativar a aba principal correta, se houver mais de uma no futuro
+                // Por agora, asumimos que a aba de "Controle de Visitantes" é a relevante ou única.
+                const controleVisitantesTabButton = document.querySelector('.cv-tab-button[data-subtab="registrar-visitante"]');
+                if (controleVisitantesTabButton) {
+                    controleVisitantesTabButton.click(); // Ativa a sub-aba
+                    // Focar no primeiro campo do formulário
+                    const nomeInput = document.getElementById('visNome');
+                    if (nomeInput) {
+                        nomeInput.focus();
+                    }
+                } else {
+                    showGlobalFeedback('Erro: Aba de registro de visitante não encontrada.', 'error');
+                }
+            }
+        },
+        {
+            label: "Registrar Encomenda",
+            onClick: () => {
+                const gestaoEncomendasTabButton = document.querySelector('.cv-tab-button[data-subtab="gestao-encomendas"]');
+                if (gestaoEncomendasTabButton) {
+                    gestaoEncomendasTabButton.click(); // Ativa a sub-aba
+                     // Focar no primeiro campo do formulário de nova encomenda
+                    const unidadeInput = document.getElementById('encUnidadeId');
+                    if (unidadeInput) {
+                        unidadeInput.focus();
+                    }
+                } else {
+                     showGlobalFeedback('Erro: Aba de gestão de encomendas não encontrada.', 'error');
+                }
+            }
+        }
+    ];
+
+    // Remove qualquer FAB antigo se houver (precaução)
+    const oldFabMenu = document.querySelector('.fab-menu');
+    if (oldFabMenu) {
+        oldFabMenu.remove();
+    }
+
+    if (actions.length > 0) {
+        initFabMenu(actions);
     }
 }

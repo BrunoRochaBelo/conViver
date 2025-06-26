@@ -1,6 +1,7 @@
 import { showGlobalFeedback } from "./main.js";
 import { requireAuth, getUserInfo, getRoles } from "./auth.js";
 import apiClient from "./apiClient.js";
+import { initFabMenu } from "./fabMenu.js"; // Importar initFabMenu
 // FullCalendar is loaded globally via CDN in reservas.html. Here we pull the
 // needed constructors/plugins from the global object to avoid module
 // resolution issues when running without a bundler.
@@ -252,9 +253,57 @@ document.addEventListener("DOMContentLoaded", async () => {
   await initReservasPage();
 });
 
+function openNovaReservaModal() {
+  const modalNovaReserva = document.getElementById("modal-nova-reserva");
+  const formNovaReserva = document.getElementById("form-nova-reserva");
+  const selectEspacoComumCalendario = document.getElementById("select-espaco-comum-calendario");
+  const filtroEspacoLista = document.getElementById("filtro-espaco-lista"); // Para view de lista
+  const modalSelectEspaco = document.getElementById("modal-reserva-espaco");
+  const calendarioViewContainer = document.getElementById("calendario-view-container");
+
+
+  if (!modalNovaReserva || !formNovaReserva || !modalSelectEspaco) {
+    showGlobalFeedback("Erro ao tentar abrir modal de nova reserva: elementos não encontrados.", "error");
+    return;
+  }
+
+  document.getElementById("modal-nova-reserva-title").textContent = "Solicitar Nova Reserva";
+  formNovaReserva.reset();
+  document.getElementById("modal-reserva-id").value = "";
+  document.getElementById("modal-reserva-unidade-sindico-group").style.display = "none";
+  document.getElementById("btn-submit-nova-reserva").textContent = "Solicitar Reserva";
+  document.getElementById("modal-reserva-termos").disabled = false;
+  modalNovaReserva.style.display = "flex";
+
+  // Pré-seleciona o espaço com base na view atual
+  let espacoPreSelecionado = "";
+  if (calendarioViewContainer && calendarioViewContainer.style.display !== "none" && selectEspacoComumCalendario) {
+    espacoPreSelecionado = selectEspacoComumCalendario.value;
+  } else if (filtroEspacoLista) {
+    espacoPreSelecionado = filtroEspacoLista.value;
+  }
+
+  modalSelectEspaco.value = espacoPreSelecionado;
+  exibirInfoEspacoSelecionadoModal(espacoPreSelecionado);
+
+  // Se uma data foi clicada no calendário, pré-preenche
+  const dataInput = document.getElementById("modal-reserva-data");
+  if (dataInput.dataset.clickedDate) {
+    dataInput.value = dataInput.dataset.clickedDate;
+    const horaInput = document.getElementById("modal-reserva-inicio");
+    if (horaInput.dataset.clickedTime) {
+        horaInput.value = horaInput.dataset.clickedTime;
+    }
+    // Limpar após usar para não interferir em aberturas futuras pelo FAB
+    delete dataInput.dataset.clickedDate;
+    if (horaInput) delete horaInput.dataset.clickedTime;
+  }
+}
+
+
 async function initReservasPage() {
   // Elementos de nova reserva
-  const fabNovaReserva = document.getElementById("fab-nova-reserva");
+  // const fabNovaReserva = document.getElementById("fab-nova-reserva"); // Removido
   const modalNovaReserva = document.getElementById("modal-nova-reserva");
   const closeModalNovaReservaButton = modalNovaReserva?.querySelector(
     ".js-modal-nova-reserva-close"
@@ -303,28 +352,8 @@ async function initReservasPage() {
     "form-gerenciar-espaco-comum"
   );
 
-  // Abre modal de nova reserva
-  fabNovaReserva?.addEventListener("click", () => {
-    document.getElementById("modal-nova-reserva-title").textContent =
-      "Solicitar Nova Reserva";
-    formNovaReserva.reset();
-    document.getElementById("modal-reserva-id").value = "";
-    document.getElementById(
-      "modal-reserva-unidade-sindico-group"
-    ).style.display = "none";
-    document.getElementById("btn-submit-nova-reserva").textContent =
-      "Solicitar Reserva";
-    document.getElementById("modal-reserva-termos").disabled = false;
-    modalNovaReserva.style.display = "flex";
-
-    // Pré-seleciona o espaço
-    let esp = "";
-    if (calendarioViewContainer.style.display !== "none")
-      esp = selectEspacoComumCalendario.value;
-    else esp = filtroEspacoLista.value;
-    modalSelectEspaco.value = esp;
-    exibirInfoEspacoSelecionadoModal(esp);
-  });
+  // Abre modal de nova reserva - agora via FAB Menu
+  // fabNovaReserva?.addEventListener("click", openNovaReservaModal); // Lógica movida para openNovaReservaModal e chamada pelo FAB
 
   closeModalNovaReservaButton?.addEventListener(
     "click",
@@ -391,6 +420,26 @@ async function initReservasPage() {
 
   // Define view inicial (within Agenda tab)
   toggleReservasView("calendario");
+  initializeReservasPageFAB(); // Adiciona o FAB
+}
+
+function initializeReservasPageFAB() {
+  const actions = [
+    {
+      label: "Nova Reserva",
+      onClick: openNovaReservaModal,
+    }
+  ];
+
+  // Remove qualquer FAB antigo se houver (precaução)
+  const oldFabMenu = document.querySelector('.fab-menu');
+  if (oldFabMenu) {
+      oldFabMenu.remove();
+  }
+
+  if (actions.length > 0) {
+      initFabMenu(actions);
+  }
 }
 
 async function carregarEspacosComuns() {
@@ -1134,41 +1183,15 @@ function initializeFullCalendar() {
     dateClick: (info) => {
       dataSelecionadaAgenda = info.dateStr.split("T")[0];
       carregarReservasDia(dataSelecionadaAgenda);
-      const m = document.getElementById("modal-nova-reserva");
-      document.getElementById("modal-nova-reserva-title").textContent =
-        "Solicitar Nova Reserva";
-      document.getElementById("btn-submit-nova-reserva").textContent =
-        "Solicitar Reserva";
-      document.getElementById("form-nova-reserva").reset();
-      document.getElementById("modal-reserva-id").value = "";
-      document.getElementById(
-        "modal-reserva-unidade-sindico-group"
-      ).style.display = "none";
-      document.getElementById("modal-reserva-termos").disabled = false;
-      document.getElementById("modal-reserva-data").value =
-        info.dateStr.split("T")[0];
-      document.getElementById("modal-reserva-inicio").value =
-        info.dateStr.includes("T")
-          ? info.dateStr.split("T")[1].substring(0, 5)
-          : "";
-      const sel = document.getElementById(
-        "select-espaco-comum-calendario"
-      ).value;
-      const msel = document.getElementById("modal-reserva-espaco");
-      if (sel) {
-        msel.value = sel;
-        exibirInfoEspacoSelecionadoModal(sel);
-      } else {
-        msel.value = "";
-        document.getElementById("modal-info-espaco-reserva").style.display =
-          "none";
-        const tx = document.getElementById("modal-reserva-taxa-info");
-        if (tx) {
-          tx.textContent = "";
-          tx.style.display = "none";
-        }
-      }
-      m.style.display = "flex";
+
+      // Armazenar a data e hora clicadas para uso pelo modal de nova reserva
+      const dataInput = document.getElementById("modal-reserva-data");
+      if(dataInput) dataInput.dataset.clickedDate = info.dateStr.split("T")[0];
+
+      const horaInput = document.getElementById("modal-reserva-inicio");
+      if(horaInput) horaInput.dataset.clickedTime = info.dateStr.includes("T") ? info.dateStr.split("T")[1].substring(0, 5) : "";
+
+      openNovaReservaModal(); // Abre o modal de nova reserva, que usará os data attributes
     },
     eventClick: (clickInfo) => {
       abrirModalDetalhesComDados(clickInfo.event.extendedProps);
