@@ -973,12 +973,9 @@ html[data-theme="dark"] .fab-menu-options {
 .fab-menu-options .cv-button:last-child {
     margin-bottom: 0;
 }
-.fab-menu--open .fab-menu-options {
-    display: flex;
-}
-.fab-menu-options .cv-button {
-    width: 160px;
-}
+/* .fab-menu--open .fab-menu-options { display: flex; } está definido acima e é suficiente */
+/* Removida regra duplicada/conflitante abaixo: */
+/* .fab-menu-options .cv-button { width: 160px; } */
 
 
 /* Helper class for loading messages if not already present */
