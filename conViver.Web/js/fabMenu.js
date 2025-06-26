@@ -1,9 +1,5 @@
 export function initFabMenu(actions = []) {
-    console.log("[fabMenu.js] initFabMenu chamado com actions:", actions); // Log para diagnóstico
-    if (!actions || actions.length === 0) {
-        console.warn("[fabMenu.js] Nenhuma ação fornecida, FAB não será criado.");
-        return;
-    }
+    if (!actions || actions.length === 0) return;
 
     const container = document.createElement('div');
     container.className = 'fab-menu';
@@ -42,7 +38,5 @@ export function initFabMenu(actions = []) {
         }
     });
 
-    console.log("[fabMenu.js] FAB Container pronto para ser adicionado ao body:", container); // Log para diagnóstico
     document.body.appendChild(container);
-    console.log("[fabMenu.js] FAB Container adicionado ao body."); // Log para diagnóstico
 }
