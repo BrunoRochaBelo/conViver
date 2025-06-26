@@ -18,14 +18,39 @@ export function logout() {
 // Retorna os papéis (roles) do usuário armazenados em localStorage.
 // Espera que a aplicação salve um objeto JSON em `userInfo` com uma
 // propriedade `roles` contendo um array de strings.
-export function getUserRoles() {
+export function getUserInfo() {
+    const token = getToken();
+    if (!token) return null;
+
     try {
-        const info = JSON.parse(localStorage.getItem('userInfo'));
-        if (info && Array.isArray(info.roles)) {
-            return info.roles;
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        let roles = [];
+        if (payload.role) {
+            roles = Array.isArray(payload.role) ? payload.role : [payload.role];
+        } else if (payload.roles) {
+            roles = Array.isArray(payload.roles) ? payload.roles : [payload.roles];
         }
-    } catch {
-        // Ignora erros de parsing
+
+        return {
+            id: payload.sub || payload.nameid || null,
+            email: payload.email || null,
+            name: payload.given_name || payload.name || null,
+            roles,
+            condominioId: payload.condoId || payload.condominioId || null,
+        };
+    } catch (err) {
+        console.error('Failed to parse user token', err);
+        return null;
     }
-    return [];
 }
+
+export function getRoles() {
+    const info = getUserInfo();
+    return info ? info.roles : [];
+}
+
+export function getUserRoles() {
+    return getRoles();
+}
+
+export const getCurrentUser = getUserInfo;
