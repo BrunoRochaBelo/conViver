@@ -777,6 +777,11 @@ main {
     height: 40px;
     animation: spin 1s linear infinite;
 }
+.spinner.spinner-small {
+    width: 20px;
+    height: 20px;
+    border-width: 2px;
+}
 
 @keyframes spin {
     0% { transform: rotate(0deg); }
