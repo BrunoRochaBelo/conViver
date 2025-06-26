@@ -15,6 +15,8 @@ let espacosComunsList = [];
 let calendarioReservas = null;
 let currentUserId = null;
 let currentUserRoles = [];
+let agendaDiaListContainer, agendaDiaLoading, agendaDiaSkeleton;
+let dataSelecionadaAgenda = new Date().toISOString().split("T")[0];
 
 // List View (Agenda Tab)
 let currentPageListView = 1;
@@ -97,6 +99,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   filtroStatusLista = document.getElementById("filtro-status-lista");
   filtroPeriodoLista = document.getElementById("filtro-periodo-lista");
   btnAplicarFiltrosLista = document.getElementById("btn-aplicar-filtros-lista");
+
+  agendaDiaListContainer = document.getElementById("agenda-dia-reservas-items");
+  agendaDiaLoading = document.getElementById("agenda-dia-loading");
+  agendaDiaSkeleton = document.querySelector("#agenda-dia-list .feed-skeleton-container");
 
   // Modal Filter elements for Agenda
   filtroEspacoModalAgenda = document.getElementById("filtro-espaco-modal-agenda");
@@ -1126,6 +1132,8 @@ function initializeFullCalendar() {
       }
     },
     dateClick: (info) => {
+      dataSelecionadaAgenda = info.dateStr.split("T")[0];
+      carregarReservasDia(dataSelecionadaAgenda);
       const m = document.getElementById("modal-nova-reserva");
       document.getElementById("modal-nova-reserva-title").textContent =
         "Solicitar Nova Reserva";
@@ -1168,4 +1176,35 @@ function initializeFullCalendar() {
   });
 
   calendarioReservas.render();
+  carregarReservasDia(dataSelecionadaAgenda);
 }
+
+async function carregarReservasDia(dataStr) {
+  if (!agendaDiaListContainer) return;
+  agendaDiaListContainer.innerHTML = "";
+  if (agendaDiaSkeleton) agendaDiaSkeleton.style.display = "block";
+  if (agendaDiaLoading) agendaDiaLoading.style.display = "block";
+  try {
+    const params = {
+      pageNumber: 1,
+      pageSize: 50,
+      espacoComumId: document.getElementById("select-espaco-comum-calendario").value || null,
+      periodoInicio: new Date(`${dataStr}T00:00:00`).toISOString(),
+      periodoFim: new Date(`${dataStr}T23:59:59`).toISOString(),
+    };
+    const resp = await apiClient.get("/api/v1/app/reservas/lista", params);
+    const items = resp.items || resp;
+    if (items.length > 0) {
+      items.forEach((r) => agendaDiaListContainer.appendChild(renderCardReservaListView(r)));
+    } else {
+      agendaDiaListContainer.innerHTML = '<p class="cv-info-message" style="text-align:center;">Nenhuma reserva para o dia selecionado.</p>';
+    }
+  } catch (err) {
+    console.error("Erro ao carregar reservas do dia:", err);
+    agendaDiaListContainer.innerHTML = '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas.</p>';
+  } finally {
+    if (agendaDiaSkeleton) agendaDiaSkeleton.style.display = "none";
+    if (agendaDiaLoading) agendaDiaLoading.style.display = "none";
+  }
+}
+

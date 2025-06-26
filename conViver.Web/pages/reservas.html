@@ -150,7 +150,7 @@
             <div id="calendario-view-container">
                 <section class="reservas-section cv-card">
                     <h2 class="cv-section__title">Agenda e Disponibilidade</h2>
-                    <div class="reservas-filtros-container">
+                    <div class="reservas-filtros-container" style="display:none;">
                         <div class="cv-form-group">
                             <label for="select-espaco-comum-calendario">Filtrar por Espaço Comum:</label>
                             <select id="select-espaco-comum-calendario" class="cv-input">
@@ -177,6 +177,14 @@
                         </div>
                     </div>
                     <div id="calendario-reservas"></div>
+                    <section id="agenda-dia-list" class="js-agenda-dia-list" style="margin-top:var(--cv-spacing-lg);">
+                        <div class="feed-skeleton-container" style="display:none;">
+                            <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                            <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                        </div>
+                        <div id="agenda-dia-reservas-items"></div>
+                        <p id="agenda-dia-loading" class="cv-loading-message" style="display:none;">Carregando reservas...</p>
+                    </section>
                     <div id="info-espaco-selecionado-calendario" class="cv-card cv-alert cv-alert--info" style="margin-top:var(--cv-spacing-md); display:none; font-size:0.9em;">
                     </div>
                 </section>
@@ -185,7 +193,7 @@
             <div id="list-view-container" style="display:none;">
                 <section class="reservas-section cv-card">
                     <h2 class="cv-section__title">Lista de Reservas</h2>
-                    <div class="reservas-filtros-container">
+                    <div class="reservas-filtros-container" style="display:none;">
                         <div class="cv-form-group">
                             <label for="filtro-espaco-lista">Espaço Comum:</label>
                             <select id="filtro-espaco-lista" class="cv-input">
@@ -210,10 +218,14 @@
                         </div>
                         <button id="btn-aplicar-filtros-lista" class="cv-button cv-button--primary">Filtrar Lista</button>
                     </div>
-                    <div id="list-view-reservas-items" style="margin-top: var(--cv-spacing-lg);">
-                        <!-- Cards de reserva serão inseridos aqui por JS -->
+                    <section style="margin-top: var(--cv-spacing-lg);">
+                        <div class="feed-skeleton-container" style="display:none;">
+                            <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                            <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                        </div>
+                        <div id="list-view-reservas-items"></div>
                         <p class="cv-loading-message">Carregando lista de reservas...</p>
-                    </div>
+                    </section>
                     <div id="list-view-sentinel" style="height: 10px;"></div>
                 </section>
             </div>
@@ -223,7 +235,7 @@
         <div class="cv-tab-content" id="content-minhas-reservas" style="display:none;">
             <section class="reservas-section cv-card">
                 <h2 class="cv-section__title">Minhas Reservas</h2>
-                <div class="reservas-filtros-container">
+                <div class="reservas-filtros-container" style="display:none;">
                     <div class="cv-form-group">
                         <label for="filtro-minhas-espaco">Espaço Comum:</label>
                         <select id="filtro-minhas-espaco" class="cv-input">
@@ -246,10 +258,14 @@
                     </div>
                     <button id="btn-aplicar-filtros-minhas" class="cv-button cv-button--primary">Filtrar</button>
                 </div>
-                <div id="minhas-reservas-list" class="minhas-reservas-list">
+                <section class="minhas-reservas-section">
+                    <div class="feed-skeleton-container" style="display:none;">
+                        <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                        <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                    </div>
+                    <div id="minhas-reservas-list"></div>
                     <p class="cv-loading-message">Carregando suas reservas...</p>
-                    <!-- Items will be appended here -->
-                </div>
+                </section>
                 <div id="minhas-reservas-sentinel" style="height: 10px;"></div> <!-- Sentinel for infinite scroll -->
             </section>
         </div>
