@@ -53,7 +53,8 @@ public class UsuarioService : IUsuarioService
         var usuario = await _usuarioRepository.GetByIdAsync(id, ct);
         if (usuario == null) return null;
 
-        return new UsuarioResponse {
+        return new UsuarioResponse
+        {
             Id = usuario.Id,
             Nome = usuario.Nome, // Added mapping
             Email = usuario.Email,

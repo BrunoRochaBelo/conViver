@@ -73,7 +73,7 @@ public class OrdensServicoController : ControllerBase
     [Authorize(Roles = "Sindico")]
     public async Task<ActionResult<OrdemServicoDto>> CreateOSSindico([FromBody] OrdemServicoInputSindicoDto inputDto)
     {
-        if(!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var condominioIdClaim = User.FindFirstValue("condominioId");
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -99,7 +99,7 @@ public class OrdensServicoController : ControllerBase
     [Authorize(Roles = "Sindico")]
     public async Task<ActionResult<OrdemServicoDto>> UpdateOSStatusSindico(Guid id, [FromBody] OrdemServicoStatusUpdateDto updateDto)
     {
-        if(!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var condominioIdClaim = User.FindFirstValue("condominioId");
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -116,7 +116,7 @@ public class OrdensServicoController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { error="INVALID_OPERATION", message = ex.Message });
+            return BadRequest(new { error = "INVALID_OPERATION", message = ex.Message });
         }
     }
 
@@ -131,7 +131,7 @@ public class OrdensServicoController : ControllerBase
     [Authorize(Roles = "Condomino,Inquilino,Sindico")] // Sindico também pode usar esta rota se quiser
     public async Task<ActionResult<OrdemServicoDto>> CreateOSUsuario([FromBody] OrdemServicoInputUserDto inputDto)
     {
-        if(!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var condominioIdClaim = User.FindFirstValue("condominioId");
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -226,10 +226,10 @@ public class OrdensServicoController : ControllerBase
     [Authorize(Roles = "Prestador")]
     public async Task<ActionResult<OrdemServicoDto>> UpdateOSProgressoPrestador(Guid id, [FromBody] OrdemServicoProgressoUpdateDto updateDto)
     {
-        if(!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var prestadorUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-         if (string.IsNullOrEmpty(prestadorUserIdClaim) || !Guid.TryParse(prestadorUserIdClaim, out Guid prestadorUserId))
+        if (string.IsNullOrEmpty(prestadorUserIdClaim) || !Guid.TryParse(prestadorUserIdClaim, out Guid prestadorUserId))
         {
             return Unauthorized("UserId do Prestador não encontrado ou inválido no token.");
         }
@@ -243,7 +243,7 @@ public class OrdensServicoController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { error="INVALID_OPERATION", message = ex.Message });
+            return BadRequest(new { error = "INVALID_OPERATION", message = ex.Message });
         }
     }
 }

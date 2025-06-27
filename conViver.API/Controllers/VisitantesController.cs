@@ -221,7 +221,7 @@ public class VisitantesController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-             return BadRequest(new { message = ex.Message });
+            return BadRequest(new { message = ex.Message });
         }
     }
 

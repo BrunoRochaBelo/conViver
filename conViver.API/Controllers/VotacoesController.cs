@@ -271,11 +271,11 @@ public class VotacoesController : ControllerBase
             }
 
             // Simulação de dados da ata para o PDF (o serviço faria isso)
-                AtaVotacaoDto ataDto = new AtaVotacaoDto
-                {
-                    VotacaoId = votacaoDetalhe.Id,
-                    TituloVotacao = votacaoDetalhe.Titulo,
-                    Pergunta = votacaoDetalhe.Descricao ?? string.Empty, // Supondo que Descricao é a pergunta
+            AtaVotacaoDto ataDto = new AtaVotacaoDto
+            {
+                VotacaoId = votacaoDetalhe.Id,
+                TituloVotacao = votacaoDetalhe.Titulo,
+                Pergunta = votacaoDetalhe.Descricao ?? string.Empty, // Supondo que Descricao é a pergunta
                 DataCriacao = votacaoDetalhe.DataInicio,
                 DataEncerramento = votacaoDetalhe.DataFim,
                 TotalVotos = votacaoDetalhe.Opcoes.Sum(o => o.QuantidadeVotos),

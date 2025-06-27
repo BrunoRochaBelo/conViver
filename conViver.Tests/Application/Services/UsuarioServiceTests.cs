@@ -140,7 +140,7 @@ namespace conViver.Tests.Application.Services
 
             // Assert
             _mockUsuarioRepository.Verify(r => r.UpdateAsync(It.IsAny<Usuario>(), default), Times.Once);
-             Assert.NotNull(capturedUsuario);
+            Assert.NotNull(capturedUsuario);
             Assert.NotNull(capturedUsuario.PasswordResetToken);
             Assert.True(capturedUsuario.PasswordResetTokenExpiry.HasValue);
             Assert.True(capturedUsuario.PasswordResetTokenExpiry.Value > DateTime.UtcNow.AddMinutes(-5)); // Check it's recent & future

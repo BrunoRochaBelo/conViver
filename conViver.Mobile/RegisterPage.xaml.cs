@@ -114,9 +114,12 @@ public partial class RegisterPage : ContentPage
 
             // For simulation purposes:
             // Simulate a 409 conflict sometimes
-            if (EmailEntry.Text.ToLower().Contains("exists@example.com")) {
-                 await _feedbackService.ShowErrorAsync("Este e-mail já está cadastrado. Tente fazer login ou use um e-mail diferente.");
-            } else {
+            if (EmailEntry.Text.ToLower().Contains("exists@example.com"))
+            {
+                await _feedbackService.ShowErrorAsync("Este e-mail já está cadastrado. Tente fazer login ou use um e-mail diferente.");
+            }
+            else
+            {
                 await _feedbackService.ShowSuccessAsync("Registro bem-sucedido! Você já pode fazer login.");
                 await Shell.Current.GoToAsync($"//{nameof(LoginPage)}");
             }
@@ -135,7 +138,7 @@ public partial class RegisterPage : ContentPage
             var currentPage = Shell.Current?.CurrentPage;
             if (currentPage == this) // Check if we are still on this page
             {
-                 SubmitButton.IsEnabled = true;
+                SubmitButton.IsEnabled = true;
             }
         }
     }

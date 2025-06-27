@@ -11,12 +11,12 @@ public partial class LoginPage : ContentPage
 {
     private readonly IFeedbackService _feedbackService;
 
-	public LoginPage(IFeedbackService feedbackService) // Updated constructor
-	{
-		InitializeComponent();
+    public LoginPage(IFeedbackService feedbackService) // Updated constructor
+    {
+        InitializeComponent();
         _feedbackService = feedbackService;
         LoginButton.Clicked += OnLoginButtonClicked; // Attach handler
-	}
+    }
 
     private async void OnLoginButtonClicked(object sender, EventArgs e)
     {
@@ -57,8 +57,8 @@ public partial class LoginPage : ContentPage
                     }
                     else
                     {
-                         Debug.WriteLine("Shell.Current is null, cannot navigate.");
-                         await _feedbackService.ShowErrorAsync("Não foi possível navegar após o login.");
+                        Debug.WriteLine("Shell.Current is null, cannot navigate.");
+                        await _feedbackService.ShowErrorAsync("Não foi possível navegar após o login.");
                     }
                     break;
                 case 2: // Invalid credentials error

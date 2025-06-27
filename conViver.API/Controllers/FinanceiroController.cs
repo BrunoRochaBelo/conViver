@@ -201,7 +201,7 @@ public class FinanceiroController : ControllerBase
         }
         catch (Exception)
         {
-             // Log exception
+            // Log exception
             return StatusCode(500, "Erro ao cancelar a cobrança.");
         }
     }
@@ -324,7 +324,7 @@ public class FinanceiroController : ControllerBase
     public async Task<IActionResult> DeleteDespesa(Guid id)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
-         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier); // Para auditoria
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier); // Para auditoria
 
         if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId) ||
             string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid usuarioId))
