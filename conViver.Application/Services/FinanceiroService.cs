@@ -578,6 +578,90 @@ namespace conViver.Application.Services
             };
         }
 
+        public async Task<IEnumerable<OrcamentoAnualDto>> RegistrarOrcamentoAsync(
+            Guid condominioId,
+            int ano,
+            IEnumerable<OrcamentoCategoriaInputDto> categorias,
+            CancellationToken cancellationToken = default)
+        {
+            var entidades = new List<OrcamentoAnual>();
+            foreach (var cat in categorias)
+            {
+                var ent = new OrcamentoAnual
+                {
+                    Id = Guid.NewGuid(),
+                    CondominioId = condominioId,
+                    Ano = ano,
+                    Categoria = cat.Categoria,
+                    ValorPrevisto = cat.ValorPrevisto
+                };
+                await _orcamentoRepository.AddAsync(ent, cancellationToken);
+                entidades.Add(ent);
+            }
+
+            await _orcamentoRepository.SaveChangesAsync(cancellationToken);
+
+            return entidades.Select(e => new OrcamentoAnualDto
+            {
+                Id = e.Id,
+                Ano = e.Ano,
+                Categoria = e.Categoria,
+                ValorPrevisto = e.ValorPrevisto
+            });
+        }
+
+        public async Task<IEnumerable<OrcamentoAnualDto>> ObterOrcamentoAsync(
+            Guid condominioId,
+            int ano,
+            CancellationToken cancellationToken = default)
+        {
+            var itens = await _orcamentoRepository.Query()
+                .Where(o => o.CondominioId == condominioId && o.Ano == ano)
+                .ToListAsync(cancellationToken);
+
+            return itens.Select(e => new OrcamentoAnualDto
+            {
+                Id = e.Id,
+                Ano = e.Ano,
+                Categoria = e.Categoria,
+                ValorPrevisto = e.ValorPrevisto
+            });
+        }
+
+        public async Task<IEnumerable<OrcamentoComparativoDto>> CompararExecucaoOrcamentoAsync(
+            Guid condominioId,
+            int ano,
+            CancellationToken cancellationToken = default)
+        {
+            var orcamento = await _orcamentoRepository.Query()
+                .Where(o => o.CondominioId == condominioId && o.Ano == ano)
+                .ToListAsync(cancellationToken);
+
+            var gastos = await (from l in _lancamentoRepository.Query()
+                                join u in _unidadeRepository.Query() on l.UnidadeId equals u.Id
+                                where u.CondominioId == condominioId
+                                      && l.Data.Year == ano
+                                      && l.Tipo == "debito"
+                                group l by l.Descricao into g
+                                select new
+                                {
+                                    Categoria = g.Key!,
+                                    Valor = g.Sum(x => x.Valor)
+                                })
+                               .ToListAsync(cancellationToken);
+
+            return orcamento.Select(item =>
+            {
+                var exec = gastos.FirstOrDefault(g => g.Categoria == item.Categoria);
+                return new OrcamentoComparativoDto
+                {
+                    Categoria = item.Categoria,
+                    ValorPrevisto = item.ValorPrevisto,
+                    ValorExecutado = exec?.Valor ?? 0m
+                };
+            });
+        }
+
         private static DespesaDto MapDespesaToDto(Despesa d) => new DespesaDto
         {
             Id = d.Id,

@@ -34,6 +34,23 @@ public interface IFinanceiroService
     // Balancetes
     Task<BalanceteDto?> GerarBalanceteAsync(Guid condominioId, DateTime inicio, DateTime fim);
 
+    // Orçamento anual
+    Task<IEnumerable<OrcamentoAnualDto>> RegistrarOrcamentoAsync(
+        Guid condominioId,
+        int ano,
+        IEnumerable<OrcamentoCategoriaInputDto> categorias,
+        CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<OrcamentoAnualDto>> ObterOrcamentoAsync(
+        Guid condominioId,
+        int ano,
+        CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<OrcamentoComparativoDto>> CompararExecucaoOrcamentoAsync(
+        Guid condominioId,
+        int ano,
+        CancellationToken cancellationToken = default);
+
     // Operação genérica de registro de pagamento (mantida para compatibilidade)
     Task RegistrarPagamentoAsync(Boleto boleto, decimal valor, CancellationToken cancellationToken = default);
 }
