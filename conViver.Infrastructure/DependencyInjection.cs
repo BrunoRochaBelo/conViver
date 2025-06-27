@@ -6,6 +6,7 @@ using conViver.Infrastructure.Data.Contexts;
 using conViver.Infrastructure.Data.Repositories;
 using conViver.Infrastructure.Notifications;
 using conViver.Infrastructure.Payments;
+using conViver.Application.Services;
 using conViver.Infrastructure.Services; // Added for LocalStorageService
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -38,7 +39,7 @@ public static class DependencyInjection
         services.AddSingleton<RedisCacheService>();
 
         services.AddScoped<INotificacaoService, NotificationService>();
-        services.AddScoped<IFinanceiroService, PaymentGatewayService>();
+        services.AddScoped<IFinanceiroService, FinanceiroService>();
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IRepository<Condominio>, CondominioRepository>();

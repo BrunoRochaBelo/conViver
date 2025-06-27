@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using conViver.Core.Entities;
-using conViver.Application.Services; // Corrected namespace
+using conViver.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using conViver.Core.DTOs; // Added for DTOs
 using System.Collections.Generic; // Added for IEnumerable
@@ -16,9 +16,9 @@ namespace conViver.API.Controllers;
 [Authorize(Roles = "Sindico")]
 public class FinanceiroController : ControllerBase
 {
-    private readonly FinanceiroService _financeiro;
+    private readonly IFinanceiroService _financeiro;
 
-    public FinanceiroController(FinanceiroService financeiro)
+    public FinanceiroController(IFinanceiroService financeiro)
     {
         _financeiro = financeiro;
     }
