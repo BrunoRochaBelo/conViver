@@ -56,6 +56,14 @@ let filtroEspacoModalAgenda, filtroDataModalAgenda;
 // Modal filter elements for Minhas Reservas Tab
 let filtroDataModalMinhas, filtroEspacoModalMinhas, filtroStatusModalMinhas;
 
+// Admin Espaços Comuns
+let adminEspacosSection,
+  adminEspacosGrid,
+  btnAdicionarEspaco,
+  modalGerenciarEspaco,
+  closeModalGerenciarEspaco,
+  formGerenciarEspaco;
+
 export async function initialize() {
   // Autenticação e info do usuário
   requireAuth();
@@ -312,17 +320,23 @@ async function initReservasPage() {
   );
 
   // Admin Espaços Comuns
-  const adminEspacosSection = document.getElementById("admin-espacos-section");
-  const btnAdicionarEspaco = document.getElementById("btn-adicionar-espaco");
-  const modalGerenciarEspaco = document.getElementById(
-    "modal-gerenciar-espaco-comum"
-  );
-  const closeModalGerenciarEspaco = modalGerenciarEspaco?.querySelector(
+  adminEspacosSection = document.getElementById("admin-espacos-section");
+  adminEspacosGrid = document.getElementById("admin-espacos-grid");
+  btnAdicionarEspaco = document.getElementById("btn-adicionar-espaco");
+  modalGerenciarEspaco = document.getElementById("modal-gerenciar-espaco-comum");
+  closeModalGerenciarEspaco = modalGerenciarEspaco?.querySelector(
     ".js-modal-gerenciar-espaco-close"
   );
-  const formGerenciarEspaco = document.getElementById(
-    "form-gerenciar-espaco-comum"
-  );
+  formGerenciarEspaco = document.getElementById("form-gerenciar-espaco-comum");
+
+  if (adminEspacosSection) {
+    if (
+      currentUserRoles.includes("Sindico") ||
+      currentUserRoles.includes("Administrador")
+    ) {
+      adminEspacosSection.style.display = "block";
+    }
+  }
 
   // Abre modal de nova reserva
   fabNovaReserva?.addEventListener("click", () => {
@@ -451,6 +465,9 @@ async function carregarEspacosComuns() {
         sel.value = currentValue;
       }
     });
+    if (adminEspacosSection && adminEspacosSection.style.display !== "none") {
+      renderAdminEspacos();
+    }
   } catch (err) {
     console.error("Erro ao carregar espaços comuns:", err);
     showGlobalFeedback("Falha ao carregar espaços comuns.", "error");
@@ -862,6 +879,41 @@ function renderCardReservaListView(reserva) {
       }
     });
 
+  return card;
+}
+
+function renderAdminEspacos() {
+  if (!adminEspacosGrid) return;
+  adminEspacosGrid.innerHTML = "";
+  espacosComunsList.forEach((e) => {
+    adminEspacosGrid.appendChild(createEspacoCard(e));
+  });
+}
+
+function createEspacoCard(espaco) {
+  const card = document.createElement("div");
+  card.className = "cv-card espaco-card";
+  card.dataset.espacoId = espaco.id;
+  const taxa =
+    espaco.taxaReserva && espaco.taxaReserva > 0
+      ? `R$ ${parseFloat(espaco.taxaReserva).toFixed(2)}`
+      : "Isento";
+  const horario =
+    espaco.horarioFuncionamentoInicio || espaco.horarioFuncionamentoFim
+      ? `${espaco.horarioFuncionamentoInicio || ""}${
+          espaco.horarioFuncionamentoFim ? " - " + espaco.horarioFuncionamentoFim : ""
+        }`
+      : "-";
+  card.innerHTML = `
+    <h4>${espaco.nome}</h4>
+    <p><strong>Capacidade:</strong> ${espaco.capacidade || "-"}</p>
+    <p><strong>Taxa:</strong> ${taxa}</p>
+    <p><strong>Horário:</strong> ${horario}</p>
+    <div class="espaco-card-actions">
+      <button class="cv-button js-edit-espaco" data-id="${espaco.id}">Editar</button>
+      <button class="cv-button cv-button--danger js-delete-espaco" data-id="${espaco.id}">Excluir</button>
+    </div>
+  `;
   return card;
 }
 
