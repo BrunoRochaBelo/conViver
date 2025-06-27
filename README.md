@@ -214,6 +214,8 @@ O cliente web (`conViver.Web`) utiliza um sistema de feedback visual global para
 ### Estrutura de Páginas & Navegação
 As páginas HTML da aplicação web ficam em `conViver.Web/pages`. Crie novos arquivos nesse diretório para adicionar funcionalidades.
 
+O arquivo `layout.html` centraliza cabeçalho, menu e scripts comuns. Ele serve de contêiner para as páginas carregadas dinamicamente e **deve** estar presente em `wwwroot`.
+
 O menu é montado dinamicamente pelo script `js/nav.js`. Para incluir uma nova página no menu:
 1. Edite `conViver.Web/js/nav.js` e adicione um item no array `items` com a chave, rótulo e caminho da página.
 2. Certifique-se de que a página importe o script `../js/nav.js` (ou `js/nav.js` quando estiver na raiz).
@@ -221,7 +223,7 @@ O menu é montado dinamicamente pelo script `js/nav.js`. Para incluir uma nova p
 Mantenha os links relativos usando a pasta `pages/` como base. Assim o componente consegue calcular corretamente o prefixo e evita links quebrados.
 Se criar rotas novas, lembre-se de atualizar `scripts/check-html-routes.ps1` para que o script de verificação reconheça o caminho.
 
-Para refletir suas alterações em `wwwroot`, execute `./scripts/sync_wwwroot.sh`. Ele sincroniza as páginas, estilos e scripts a partir de `conViver.Web` para a pasta `wwwroot` antes de rodar a aplicação.
+Para refletir suas alterações em `wwwroot`, execute `./scripts/sync_wwwroot.sh` (ou `dotnet build`). O processo copia `layout.html` e demais arquivos HTML, CSS e JS para `wwwroot`. Rode o script antes de servir o front-end em desenvolvimento; durante o build ele é executado automaticamente.
 O projeto não armazena mais arquivos de fonte locais. A folha de estilos importa as fontes "Open Sans" direto do Google Fonts.
 
 ### Feedback Visual (Mobile)
