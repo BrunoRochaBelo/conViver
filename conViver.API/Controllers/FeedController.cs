@@ -28,7 +28,9 @@ namespace conViver.API.Controllers
             [FromQuery] int pageSize = 10,
             [FromQuery] string? categoria = null,
             [FromQuery] DateTime? periodoInicio = null,
-            [FromQuery] DateTime? periodoFim = null)
+            [FromQuery] DateTime? periodoFim = null,
+            [FromQuery] string? status = null,
+            [FromQuery] bool? minhas = null)
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var condominioIdClaim = User.FindFirstValue("condominioId");
@@ -46,7 +48,7 @@ namespace conViver.API.Controllers
 
             try
             {
-                var feedItems = await _feedService.GetFeedAsync(condominioId, userId, pageNumber, pageSize, categoria, periodoInicio, periodoFim, HttpContext.RequestAborted);
+                var feedItems = await _feedService.GetFeedAsync(condominioId, userId, pageNumber, pageSize, categoria, periodoInicio, periodoFim, status, minhas, HttpContext.RequestAborted);
 
                 // If feedItems is null or empty, returning Ok with an empty list is standard.
                 // The frontend can then decide how to display "no items found".

@@ -64,7 +64,8 @@ public class VotacaoService
                 Titulo = v.Titulo,
                 DataInicio = v.DataInicio,
                 DataFim = v.DataFim,
-                Status = v.Status
+                Status = v.Status,
+                CriadoPor = v.CriadoPor
             })
             .ToListAsync(ct);
     }

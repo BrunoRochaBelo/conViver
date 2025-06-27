@@ -790,9 +790,11 @@ main {
     margin-bottom: 20px;
     border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
 }
-.cv-tabs > #open-filter-reservas-button,
-.cv-tabs > #open-filter-modal-button {
+.cv-tabs > #open-sort-button {
     margin-left: auto;
+}
+.cv-tabs > #open-filter-modal-button {
+    margin-left: 10px;
 }
 
 .cv-tab-button {

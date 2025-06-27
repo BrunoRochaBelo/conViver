@@ -5,6 +5,11 @@
                 <button class="cv-tab-button" id="tab-solicitacoes">Solicitações</button>
                 <button class="cv-tab-button" id="tab-ocorrencias">Ocorrências</button>
             </div>
+            <button id="open-sort-button" class="cv-button icon-button" title="Ordenar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
             <button id="open-filter-modal-button" class="cv-button icon-button" title="Filtros">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -30,7 +35,7 @@
                 <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
             </div>
             <p class="cv-info-message" style="padding: 20px; text-align: center;">
-                As enquetes são exibidas no Mural principal.
+                Nenhuma enquete encontrada para os filtros atuais.
                 <span class="js-sindico-only-message" style="display:none;">Use o botão (+) para criar uma nova enquete.</span>
             </p>
         </div>
@@ -85,9 +90,79 @@
                     <label for="period-filter-modal">Período (Mês/Ano):</label>
                     <input type="month" id="period-filter-modal" name="period-filter-modal" class="cv-input">
                 </div>
+                <div class="cv-form-group" data-filter-context="enquetes" style="display:none;">
+                    <label for="enquete-author-filter">Autor:</label>
+                    <select id="enquete-author-filter" class="cv-input">
+                        <option value="todas">Todas</option>
+                        <option value="minhas">Minhas</option>
+                    </select>
+                </div>
+                <div class="cv-form-group" data-filter-context="enquetes" style="display:none;">
+                    <label for="enquete-status-filter">Situação:</label>
+                    <select id="enquete-status-filter" class="cv-input">
+                        <option value="">Todas</option>
+                        <option value="Aberta">Em Aberto</option>
+                        <option value="Concluida">Concluídas</option>
+                        <option value="Cancelada">Canceladas</option>
+                    </select>
+                </div>
+                <div class="cv-form-group" data-filter-context="solicitacoes" style="display:none;">
+                    <label for="solicitacao-author-filter">Autor:</label>
+                    <select id="solicitacao-author-filter" class="cv-input">
+                        <option value="todas">Todas</option>
+                        <option value="minhas">Minhas</option>
+                    </select>
+                </div>
+                <div class="cv-form-group" data-filter-context="solicitacoes" style="display:none;">
+                    <label for="solicitacao-status-filter">Situação:</label>
+                    <select id="solicitacao-status-filter" class="cv-input">
+                        <option value="">Todas</option>
+                        <option value="Aberto">Em Aberto</option>
+                        <option value="EmAndamento">Em Andamento</option>
+                        <option value="Concluido">Concluídas</option>
+                        <option value="Cancelado">Canceladas</option>
+                    </select>
+                </div>
+                <div class="cv-form-group" data-filter-context="ocorrencias" style="display:none;">
+                    <label for="ocorrencia-author-filter">Autor:</label>
+                    <select id="ocorrencia-author-filter" class="cv-input">
+                        <option value="todas">Todas</option>
+                        <option value="minhas">Minhas</option>
+                    </select>
+                </div>
+                <div class="cv-form-group" data-filter-context="ocorrencias" style="display:none;">
+                    <label for="ocorrencia-status-filter">Situação:</label>
+                    <select id="ocorrencia-status-filter" class="cv-input">
+                        <option value="">Todas</option>
+                        <option value="ABERTA">Em Aberto</option>
+                        <option value="EM_ATENDIMENTO">Em Atendimento</option>
+                        <option value="RESOLVIDA">Resolvidas</option>
+                        <option value="CANCELADA">Canceladas</option>
+                    </select>
+                </div>
                 <div class="cv-form-actions">
                     <button id="apply-filters-button-modal" class="cv-button primary">Aplicar Filtros</button>
                     <button type="button" class="cv-button js-modal-filtros-close">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-sort" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close js-modal-sort-close">&times;</span>
+            <h2>Ordenação</h2>
+            <div class="cv-form">
+                <div class="cv-form-group">
+                    <label for="sort-order-select">Ordenar por:</label>
+                    <select id="sort-order-select" class="cv-input">
+                        <option value="desc">Mais recentes</option>
+                        <option value="asc">Mais antigos</option>
+                    </select>
+                </div>
+                <div class="cv-form-actions">
+                    <button id="apply-sort-button" class="cv-button primary">Aplicar</button>
+                    <button type="button" class="cv-button js-modal-sort-close">Cancelar</button>
                 </div>
             </div>
         </div>

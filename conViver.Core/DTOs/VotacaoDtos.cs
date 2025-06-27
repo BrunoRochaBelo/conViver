@@ -56,6 +56,7 @@ public class VotacaoResumoDto
     public DateTime DataInicio { get; set; }
     public DateTime? DataFim { get; set; }
     public string Status { get; set; } = string.Empty; // Aberta, Encerrada, Apurada
+    public Guid CriadoPor { get; set; }
 }
 
 public class VotoInputDto

@@ -72,6 +72,8 @@ namespace conViver.Application.Services
             string? categoriaFiltro,
             DateTime? periodoInicio,
             DateTime? periodoFim,
+            string? statusFiltro,
+            bool? minhas,
             CancellationToken ct = default)
         {
             var allFeedItems = new List<FeedItemDto>();
@@ -104,6 +106,16 @@ namespace conViver.Application.Services
                 filteredItems = filteredItems.Where(item => item.DataHoraPrincipal <= periodoFim.Value);
             }
 
+            if (!string.IsNullOrEmpty(statusFiltro))
+            {
+                filteredItems = filteredItems.Where(item => string.Equals(item.Status, statusFiltro, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (minhas.HasValue && minhas.Value)
+            {
+                filteredItems = filteredItems.Where(item => item.CriadoPor == usuarioId);
+            }
+
             // Implement sorting
             var sortedItems = filteredItems
                 .OrderBy(item => item.PrioridadeOrdenacao) // Top-fixed items first
@@ -130,6 +142,7 @@ namespace conViver.Application.Services
                 {
                     ItemType = "Aviso",
                     Id = aviso.Id,
+                    CriadoPor = aviso.PublicadoPor ?? Guid.Empty,
                     Titulo = aviso.Titulo,
                     Resumo = TruncateString(aviso.Corpo, 100) ?? "Consulte para mais detalhes.", // Simple truncation
                     DataHoraPrincipal = aviso.PublicadoEm,
@@ -157,6 +170,7 @@ namespace conViver.Application.Services
                 {
                     ItemType = "Enquete",
                     Id = enquete.Id,
+                    CriadoPor = enquete.CriadoPor,
                     Titulo = enquete.Titulo,
                     Resumo = $"Enquete aberta. Término em: {enquete.DataFim?.ToString("dd/MM/yyyy HH:mm") ?? "Não definido"}",
                     DataHoraPrincipal = enquete.DataInicio, // Or DataFim for sorting by end time? For now, DataInicio
@@ -186,7 +200,8 @@ namespace conViver.Application.Services
                     Titulo = v.Titulo,
                     DataInicio = v.DataInicio,
                     DataFim = v.DataFim,
-                    Status = v.Status
+                    Status = v.Status,
+                    CriadoPor = v.CriadoPor
                     // Descricao = v.Descricao // Add if needed for Resumo
                 })
                 .ToListAsync(ct);
@@ -197,6 +212,7 @@ namespace conViver.Application.Services
                 {
                     ItemType = "Enquete",
                     Id = enquete.Id,
+                    CriadoPor = enquete.CriadoPor,
                     Titulo = enquete.Titulo,
                     Resumo = $"Enquete encerrada em: {enquete.DataFim?.ToString("dd/MM/yyyy HH:mm") ?? "Data não disponível"}",
                     DataHoraPrincipal = enquete.DataFim ?? enquete.DataInicio, // Use DataFim for closed ones
@@ -225,6 +241,7 @@ namespace conViver.Application.Services
                 {
                     ItemType = "Chamado",
                     Id = chamado.Id,
+                    CriadoPor = chamado.UsuarioId,
                     Titulo = chamado.Titulo,
                     Resumo = TruncateString(chamado.Descricao, 100) ?? "Consulte para mais detalhes.",
                     DataHoraPrincipal = chamado.DataAbertura,
@@ -253,6 +270,7 @@ namespace conViver.Application.Services
                 {
                     ItemType = "Ocorrencia",
                     Id = ocorrencia.Id,
+                    CriadoPor = ocorrencia.UsuarioId,
                     Titulo = ocorrencia.Titulo,
                     Resumo = TruncateString(ocorrencia.Descricao, 100) ?? "Consulte para mais detalhes.",
                     DataHoraPrincipal = ocorrencia.DataAbertura,
@@ -303,6 +321,7 @@ namespace conViver.Application.Services
                 {
                     ItemType = "Encomenda",
                     Id = encomenda.Id,
+                    CriadoPor = encomenda.RecebidoPor ?? Guid.Empty,
                     Titulo = $"Encomenda: {encomenda.Remetente ?? "Origem desconhecida"}",
                     Resumo = encomenda.Descricao ?? $"Código: {encomenda.CodigoRastreio ?? "N/A"}. Observações: {encomenda.Observacoes ?? "Nenhuma"}",
                     DataHoraPrincipal = encomenda.RecebidoEm,
@@ -376,6 +395,7 @@ namespace conViver.Application.Services
                 {
                     ItemType = "BoletoLembrete",
                     Id = cobranca.Id, // Original Boleto ID
+                    CriadoPor = Guid.Empty,
                     Titulo = titulo,
                     Resumo = resumo,
                     DataHoraPrincipal = cobranca.DataVencimento,
@@ -407,6 +427,7 @@ namespace conViver.Application.Services
                 {
                     ItemType = "Documento",
                     Id = doc.Id,
+                    CriadoPor = doc.UsuarioUploadId,
                     Titulo = doc.TituloDescritivo,
                     Resumo = $"Novo documento '{doc.NomeArquivoOriginal}' na categoria '{doc.Categoria}'.",
                     DataHoraPrincipal = doc.DataUpload,
@@ -456,6 +477,7 @@ namespace conViver.Application.Services
                 {
                     ItemType = "Reserva",
                     Id = reserva.Id,
+                    CriadoPor = reserva.UsuarioId,
                     Titulo = $"Reserva Confirmada: {reserva.EspacoComum?.Nome}",
                     Resumo = $"Sua reserva para {reserva.EspacoComum?.Nome} está confirmada para {reserva.Inicio:dd/MM/yyyy HH:mm} até {reserva.Fim:HH:mm}.",
                     DataHoraPrincipal = reserva.Inicio,

@@ -6,6 +6,7 @@ namespace conViver.Core.DTOs
     {
         public string ItemType { get; set; } = string.Empty; // e.g., "Aviso", "Enquete", "Chamado", "Ocorrencia", "Documento", "Encomenda", "BoletoLembrete", "Reserva"
         public Guid Id { get; set; } // Original ID of the item
+        public Guid CriadoPor { get; set; } // Autor ou criador do item
         public string Titulo { get; set; } = string.Empty;
         public string Resumo { get; set; } = string.Empty; // A short description or snippet
         public DateTime DataHoraPrincipal { get; set; } // The main date/time for sorting, e.g., DataPublicacao, DataAbertura, DataVencimento
