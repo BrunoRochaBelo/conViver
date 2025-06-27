@@ -9,32 +9,32 @@ public static class DataSeeder
 {
     public static void Seed(ConViverDbContext db)
     {
-        if (!db.Usuarios.Any())
+        // Ensure there is at least one Condomínio and Unidade to associate users
+        var condominio = db.Condominios.FirstOrDefault();
+        if (condominio == null)
         {
-            // Create a sample Condominio if none exists
-            var condominio = db.Condominios.FirstOrDefault();
-            if (condominio == null)
+            condominio = new Condominio
             {
-                condominio = new Condominio
+                Id = Guid.NewGuid(),
+                Nome = "Condomínio Teste",
+                Endereco = new conViver.Core.ValueObjects.Endereco
                 {
-                    Id = Guid.NewGuid(),
-                    Nome = "Condomínio Teste",
-                    Endereco = new conViver.Core.ValueObjects.Endereco
-                    {
-                        Logradouro = "Rua de Teste",
-                        Numero = "123",
-                        Bairro = "Centro",
-                        Cidade = "Testlândia",
-                        Uf = "TS",
-                        Cep = "00000-000"
-                    }
-                };
-                db.Condominios.Add(condominio);
-                db.SaveChanges();
-            }
+                    Logradouro = "Rua de Teste",
+                    Numero = "123",
+                    Bairro = "Centro",
+                    Cidade = "Testlândia",
+                    Uf = "TS",
+                    Cep = "00000-000"
+                }
+            };
+            db.Condominios.Add(condominio);
+            db.SaveChanges();
+        }
 
-            // Create a sample Unidade linked to the Condominio
-            var unidade = new Unidade
+        var unidade = db.Unidades.FirstOrDefault(u => u.CondominioId == condominio.Id);
+        if (unidade == null)
+        {
+            unidade = new Unidade
             {
                 Id = Guid.NewGuid(),
                 CondominioId = condominio.Id,
@@ -44,8 +44,11 @@ public static class DataSeeder
             };
             db.Unidades.Add(unidade);
             db.SaveChanges();
+        }
 
-            // Now create one user for each available perfil
+        // Check each default user by email and create if missing
+        if (!db.Usuarios.Any(u => u.Email == "admin@conviver.local"))
+        {
             var adminUser = new Usuario
             {
                 Id = Guid.NewGuid(),
@@ -57,7 +60,10 @@ public static class DataSeeder
                 CondominioId = condominio.Id
             };
             db.Usuarios.Add(adminUser);
+        }
 
+        if (!db.Usuarios.Any(u => u.Email == "sindico@conviver.local"))
+        {
             var sindicoUser = new Usuario
             {
                 Id = Guid.NewGuid(),
@@ -69,8 +75,10 @@ public static class DataSeeder
                 CondominioId = condominio.Id
             };
             db.Usuarios.Add(sindicoUser);
+        }
 
-            // Existing regular test user as Morador
+        if (!db.Usuarios.Any(u => u.Email == "teste@conviver.local"))
+        {
             var testUser = new Usuario
             {
                 Id = Guid.NewGuid(),
@@ -82,7 +90,10 @@ public static class DataSeeder
                 CondominioId = condominio.Id
             };
             db.Usuarios.Add(testUser);
+        }
 
+        if (!db.Usuarios.Any(u => u.Email == "porteiro@conviver.local"))
+        {
             var porteiroUser = new Usuario
             {
                 Id = Guid.NewGuid(),
@@ -94,7 +105,10 @@ public static class DataSeeder
                 CondominioId = condominio.Id
             };
             db.Usuarios.Add(porteiroUser);
+        }
 
+        if (db.ChangeTracker.HasChanges())
+        {
             db.SaveChanges();
         }
     }
