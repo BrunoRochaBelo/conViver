@@ -17,6 +17,7 @@ namespace conViver.Application.Services // Changed namespace to match convention
         private readonly IRepository<Pagamento> _pagamentoRepository;
         private readonly IRepository<Acordo> _acordoRepository;
         private readonly IRepository<ParcelaAcordo> _parcelaRepository;
+        private readonly IRepository<Despesa> _despesaRepository;
         // private readonly IFinanceiroGateway _financeiroGateway; // Example if you have a specific gateway interface
 
         // Constructor updated to reflect repository usage
@@ -25,7 +26,8 @@ namespace conViver.Application.Services // Changed namespace to match convention
             IRepository<Unidade> unidadeRepository,
             IRepository<Pagamento> pagamentoRepository,
             IRepository<Acordo> acordoRepository,
-            IRepository<ParcelaAcordo> parcelaRepository
+            IRepository<ParcelaAcordo> parcelaRepository,
+            IRepository<Despesa> despesaRepository
             /*, IFinanceiroGateway financeiroGateway */)
         {
             _boletoRepository = boletoRepository;
@@ -33,6 +35,7 @@ namespace conViver.Application.Services // Changed namespace to match convention
             _pagamentoRepository = pagamentoRepository;
             _acordoRepository = acordoRepository;
             _parcelaRepository = parcelaRepository;
+            _despesaRepository = despesaRepository;
             // _financeiroGateway = financeiroGateway;
         }
 
@@ -492,11 +495,12 @@ namespace conViver.Application.Services // Changed namespace to match convention
         }
 
         // --- Métodos simplificados para compatibilidade com os controllers ---
-        public Task<DespesaDto> CriarDespesaAsync(Guid condominioId, Guid usuarioId, DespesaInputDto input)
+        public async Task<DespesaDto> CriarDespesaAsync(Guid condominioId, Guid usuarioId, DespesaInputDto input)
         {
-            return Task.FromResult(new DespesaDto
+            var despesa = new Despesa
             {
                 Id = Guid.NewGuid(),
+                CondominioId = condominioId,
                 Descricao = input.Descricao,
                 Valor = input.Valor,
                 DataCompetencia = input.DataCompetencia,
@@ -506,32 +510,126 @@ namespace conViver.Application.Services // Changed namespace to match convention
                 DataRegistro = DateTime.UtcNow,
                 Status = "Pendente",
                 UsuarioRegistroId = usuarioId
-            });
+            };
+
+            await _despesaRepository.AddAsync(despesa);
+            await _despesaRepository.SaveChangesAsync();
+
+            return MapDespesaToDto(despesa);
         }
 
-        public Task<IEnumerable<DespesaDto>> ListarDespesasAsync(Guid condominioId, string? categoria, string? mesCompetencia)
+        public async Task<IEnumerable<DespesaDto>> ListarDespesasAsync(Guid condominioId, string? categoria, string? mesCompetencia)
         {
-            return Task.FromResult<IEnumerable<DespesaDto>>(Array.Empty<DespesaDto>());
+            var query = _despesaRepository.Query().Where(d => d.CondominioId == condominioId);
+
+            if (!string.IsNullOrWhiteSpace(categoria))
+                query = query.Where(d => d.Categoria != null && d.Categoria.ToLower() == categoria.ToLower());
+
+            if (!string.IsNullOrWhiteSpace(mesCompetencia) && DateTime.TryParse($"{mesCompetencia}-01", out var comp))
+            {
+                var start = new DateTime(comp.Year, comp.Month, 1);
+                var end = start.AddMonths(1).AddDays(-1);
+                query = query.Where(d => d.DataCompetencia >= start && d.DataCompetencia <= end);
+            }
+
+            return await query
+                .OrderByDescending(d => d.DataCompetencia)
+                .Select(d => MapDespesaToDto(d))
+                .ToListAsync();
         }
 
-        public Task<DespesaDto?> ObterDespesaPorIdAsync(Guid id, Guid condominioId)
+        public async Task<DespesaDto?> ObterDespesaPorIdAsync(Guid id, Guid condominioId)
         {
-            return Task.FromResult<DespesaDto?>(null);
+            var despesa = await _despesaRepository.Query()
+                .FirstOrDefaultAsync(d => d.Id == id && d.CondominioId == condominioId);
+
+            return despesa == null ? null : MapDespesaToDto(despesa);
         }
 
-        public Task<DespesaDto?> AtualizarDespesaAsync(Guid id, Guid condominioId, Guid usuarioId, DespesaInputDto input)
+        public async Task<DespesaDto?> AtualizarDespesaAsync(Guid id, Guid condominioId, Guid usuarioId, DespesaInputDto input)
         {
-            return Task.FromResult<DespesaDto?>(null);
+            var despesa = await _despesaRepository.Query()
+                .FirstOrDefaultAsync(d => d.Id == id && d.CondominioId == condominioId);
+            if (despesa == null) return null;
+
+            despesa.Descricao = input.Descricao;
+            despesa.Valor = input.Valor;
+            despesa.DataCompetencia = input.DataCompetencia;
+            despesa.DataVencimento = input.DataVencimento;
+            despesa.Categoria = input.Categoria;
+            despesa.Observacoes = input.Observacoes;
+            despesa.UsuarioRegistroId = usuarioId;
+
+            await _despesaRepository.UpdateAsync(despesa);
+            await _despesaRepository.SaveChangesAsync();
+
+            return MapDespesaToDto(despesa);
         }
 
-        public Task<bool> RemoverDespesaAsync(Guid id, Guid condominioId, Guid usuarioId)
+        public async Task<bool> RemoverDespesaAsync(Guid id, Guid condominioId, Guid usuarioId)
         {
-            return Task.FromResult(false);
+            var despesa = await _despesaRepository.Query()
+                .FirstOrDefaultAsync(d => d.Id == id && d.CondominioId == condominioId);
+            if (despesa == null) return false;
+
+            await _despesaRepository.DeleteAsync(despesa);
+            await _despesaRepository.SaveChangesAsync();
+            return true;
         }
 
-        public Task<BalanceteDto?> GerarBalanceteAsync(Guid condominioId, DateTime inicio, DateTime fim)
+        public async Task<BalanceteDto?> GerarBalanceteAsync(Guid condominioId, DateTime inicio, DateTime fim)
         {
-            return Task.FromResult<BalanceteDto?>(null);
+            var despesas = await _despesaRepository.Query()
+                .Where(d => d.CondominioId == condominioId && d.DataCompetencia >= inicio && d.DataCompetencia <= fim)
+                .ToListAsync();
+
+            var boletos = await (from b in _boletoRepository.Query()
+                                 join u in _unidadeRepository.Query() on b.UnidadeId equals u.Id
+                                 where u.CondominioId == condominioId && b.DataVencimento >= inicio && b.DataVencimento <= fim
+                                 select new BalanceteItemDto
+                                 {
+                                     Categoria = "Cobranca",
+                                     Descricao = $"Boleto {b.Id.ToString().Substring(0,8)}",
+                                     Valor = b.Valor,
+                                     Data = b.DataVencimento
+                                 }).ToListAsync();
+
+            var despesaItems = despesas.Select(d => new BalanceteItemDto
+            {
+                Categoria = d.Categoria ?? "Geral",
+                Descricao = d.Descricao,
+                Valor = d.Valor,
+                Data = d.DataCompetencia
+            }).ToList();
+
+            var totalReceitas = boletos.Sum(r => r.Valor);
+            var totalDespesas = despesaItems.Sum(d => d.Valor);
+
+            return new BalanceteDto
+            {
+                PeriodoInicio = inicio,
+                PeriodoFim = fim,
+                SaldoAnterior = 0m,
+                Receitas = boletos,
+                Despesas = despesaItems,
+                TotalReceitas = totalReceitas,
+                TotalDespesas = totalDespesas,
+                SaldoAtual = totalReceitas - totalDespesas
+            };
         }
+
+        private static DespesaDto MapDespesaToDto(Despesa d) => new DespesaDto
+        {
+            Id = d.Id,
+            Descricao = d.Descricao,
+            Valor = d.Valor,
+            DataCompetencia = d.DataCompetencia,
+            DataVencimento = d.DataVencimento,
+            Categoria = d.Categoria,
+            Observacoes = d.Observacoes,
+            DataRegistro = d.DataRegistro,
+            Status = d.Status,
+            UsuarioRegistroId = d.UsuarioRegistroId
+        };
     }
 }

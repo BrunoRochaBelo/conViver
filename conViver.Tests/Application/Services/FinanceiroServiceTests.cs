@@ -8,6 +8,7 @@ using conViver.Core.Enums;
 using conViver.Application.Services;
 using System;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Linq.Expressions; // Required for It.IsAny<Expression<Func<Boleto, bool>>>() if needed later
 using System.Collections.Generic; // Required for List<T>
 using System.Linq; // Required for Linq operations like .Any()
@@ -18,13 +19,27 @@ namespace conViver.Tests.Application.Services
     {
         private readonly Mock<IRepository<Boleto>> _mockBoletoRepository;
         private readonly Mock<IRepository<Unidade>> _mockUnidadeRepository;
+        private readonly Mock<IRepository<Pagamento>> _mockPagamentoRepository;
+        private readonly Mock<IRepository<Acordo>> _mockAcordoRepository;
+        private readonly Mock<IRepository<ParcelaAcordo>> _mockParcelaRepository;
+        private readonly Mock<IRepository<Despesa>> _mockDespesaRepository;
         private readonly FinanceiroService _financeiroService;
 
         public FinanceiroServiceTests()
         {
             _mockBoletoRepository = new Mock<IRepository<Boleto>>();
             _mockUnidadeRepository = new Mock<IRepository<Unidade>>();
-            _financeiroService = new FinanceiroService(_mockBoletoRepository.Object, _mockUnidadeRepository.Object);
+            _mockPagamentoRepository = new Mock<IRepository<Pagamento>>();
+            _mockAcordoRepository = new Mock<IRepository<Acordo>>();
+            _mockParcelaRepository = new Mock<IRepository<ParcelaAcordo>>();
+            _mockDespesaRepository = new Mock<IRepository<Despesa>>();
+            _financeiroService = new FinanceiroService(
+                _mockBoletoRepository.Object,
+                _mockUnidadeRepository.Object,
+                _mockPagamentoRepository.Object,
+                _mockAcordoRepository.Object,
+                _mockParcelaRepository.Object,
+                _mockDespesaRepository.Object);
         }
 
         [Fact]
@@ -537,6 +552,47 @@ namespace conViver.Tests.Application.Services
             Assert.Equal("Boleto pago não pode ser cancelado.", result.Mensagem); // Message from Boleto.Cancelar()
             _mockBoletoRepository.Verify(r => r.UpdateAsync(It.IsAny<Boleto>(), default), Times.Never);
             _mockBoletoRepository.Verify(r => r.SaveChangesAsync(default), Times.Never);
+        }
+
+        [Fact]
+        public async Task CriarDespesaAsync_DeveAdicionarDespesaERetornarDto()
+        {
+            var input = new DespesaInputDto
+            {
+                Descricao = "Material de limpeza",
+                Valor = 50,
+                DataCompetencia = DateTime.UtcNow,
+                DataVencimento = DateTime.UtcNow.AddDays(5),
+                Categoria = "Limpeza"
+            };
+
+            Despesa? capturada = null;
+            _mockDespesaRepository
+                .Setup(r => r.AddAsync(It.IsAny<Despesa>(), default))
+                .Callback<Despesa, CancellationToken>((d, ct) => capturada = d)
+                .Returns(Task.CompletedTask);
+            _mockDespesaRepository.Setup(r => r.SaveChangesAsync(default)).ReturnsAsync(1);
+
+            var dto = await _financeiroService.CriarDespesaAsync(Guid.NewGuid(), Guid.NewGuid(), input);
+
+            Assert.NotNull(capturada);
+            Assert.Equal(input.Descricao, capturada!.Descricao);
+            Assert.Equal(input.Valor, capturada.Valor);
+            Assert.Equal(dto.Id, capturada.Id);
+            _mockDespesaRepository.Verify(r => r.AddAsync(It.IsAny<Despesa>(), default), Times.Once);
+            _mockDespesaRepository.Verify(r => r.SaveChangesAsync(default), Times.Once);
+        }
+
+        [Fact]
+        public async Task RemoverDespesaAsync_Inexistente_DeveRetornarFalse()
+        {
+            _mockDespesaRepository
+                .Setup(r => r.Query())
+                .Returns(new List<Despesa>().AsQueryable());
+
+            var ok = await _financeiroService.RemoverDespesaAsync(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+
+            Assert.False(ok);
         }
 
 

@@ -21,6 +21,7 @@ public class ConViverDbContext : DbContext
     public DbSet<OrdemServico> OrdensServico => Set<OrdemServico>();
     public DbSet<PrestadorServico> Prestadores => Set<PrestadorServico>();
     public DbSet<LancamentoFinanceiro> Lancamentos => Set<LancamentoFinanceiro>();
+    public DbSet<Despesa> Despesas => Set<Despesa>();
     public DbSet<Documento> Documentos => Set<Documento>();
     public DbSet<Votacao> Votacoes => Set<Votacao>();
     public DbSet<OpcaoVotacao> OpcoesVotacao => Set<OpcaoVotacao>();
@@ -185,6 +186,17 @@ public class ConViverDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Relationship with Ocorrencia already defined in Ocorrencia entity configuration
+        });
+
+        modelBuilder.Entity<Despesa>(entity =>
+        {
+            entity.HasKey(d => d.Id);
+            entity.Property(d => d.CondominioId).IsRequired();
+            entity.Property(d => d.Descricao).IsRequired();
+            entity.Property(d => d.Valor).IsRequired();
+            entity.Property(d => d.DataCompetencia).IsRequired();
+            entity.Property(d => d.DataRegistro).IsRequired();
+            entity.Property(d => d.Status).IsRequired();
         });
     }
 }
