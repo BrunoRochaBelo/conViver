@@ -1623,13 +1623,40 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     box-sizing: border-box;
 }
 
-/* === Portaria Cards === */
+/* Reservas - Espaços Comuns */
+/* Portaria Cards */
+
 .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: var(--cv-spacing-md);
 }
 
+/* --- Espaços Comuns --- */
+.espaco-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.espaco-card h4 {
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-sm);
+}
+
+.espaco-card p {
+    margin: 0 0 var(--cv-spacing-xs);
+}
+
+.espaco-card .espaco-card-actions {
+    margin-top: auto;
+    display: flex;
+    gap: var(--cv-spacing-sm);
+    justify-content: flex-end;
+    padding-top: var(--cv-spacing-sm);
+    border-top: 1px solid var(--current-border-subtle);
+}
+
+/* --- Visitantes & Encomendas --- */
 .visitante-card,
 .encomenda-card {
     background-color: var(--current-bg-white);
@@ -1660,3 +1687,4 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     display: flex;
     gap: var(--cv-spacing-xs);
 }
+
