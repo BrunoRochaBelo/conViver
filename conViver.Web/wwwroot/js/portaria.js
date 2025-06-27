@@ -4,6 +4,15 @@ import { showGlobalFeedback } from './main.js';
 import { initFabMenu } from './fabMenu.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
+// --- Badge de Status ---
+function getStatusBadgeHtml(status) {
+    const s = status ? status.toLowerCase() : "";
+    let type = "success";
+    if (s.includes("pendente") || s.includes("aguardando")) type = "warning";
+    else if (s.includes("cancel") || s.includes("recus") || s.includes("vencid") || s.includes("extraviad") || s.includes("devolvid")) type = "danger";
+    return `<span class="status-badge status-badge--${type}"><span class="status-icon icon-${type}"></span>${status}</span>`;
+}
+
 // --- Configuração das Abas Principais ---
 function setupMainTabs() {
     const mainTabButtons = document.querySelectorAll('main > .cv-tabs .cv-tab-button');
@@ -25,44 +34,30 @@ function setupMainTabs() {
                 targetContent.classList.add('active');
                 targetContent.style.display = 'block';
 
-                // Carregar dados específicos da aba principal se necessário
-                if (button.id === 'tab-controle-visitantes') {
-                    // A inicialização das sub-abas e o carregamento de dados
-                    // de visitantes serão feitos por setupVisitantesSubTabs
-                    if (!button.dataset.initialized) {
-                        setupVisitantesSubTabs();
-                        // A primeira sub-aba ativa (Visitantes Atuais) já carrega os dados.
-                        button.dataset.initialized = 'true';
-                    }
-                } else if (button.id === 'tab-gestao-encomendas') {
-                    if (!button.dataset.initialized) {
-                        carregarEncomendas();
-                        setupFormNovaEncomenda(); // Renomeado de setupEncomendas para clareza
-                        setupListaEncomendasListener(); // Listener para botões de retirar
-                        button.dataset.initialized = 'true';
-                    }
+                if (button.id === 'tab-controle-visitantes' && !button.dataset.initialized) {
+                    setupVisitantesSubTabs();
+                    button.dataset.initialized = 'true';
+                } else if (button.id === 'tab-gestao-encomendas' && !button.dataset.initialized) {
+                    carregarEncomendas();
+                    setupEncomendas();
+                    button.dataset.initialized = 'true';
                 }
             }
         });
     });
 
-    // Ativar a primeira aba principal por padrão e carregar seu conteúdo.
     if (mainTabButtons.length > 0) {
         mainTabButtons[0].click();
     }
 }
 
-// Wrapper to initialize tabs depending on page structure
 function setupTabs() {
     const hasMainTabs = document.querySelectorAll('main > .cv-tabs .cv-tab-button').length > 0;
-    if (hasMainTabs) {
-        setupMainTabs();
-    } else {
-        setupVisitantesSubTabs();
-    }
+    if (hasMainTabs) setupMainTabs();
+    else setupVisitantesSubTabs();
 }
 
-// --- Configuração das Sub-Abas de Controle de Visitantes ---
+// --- Sub-Abas de Visitantes ---
 function setupVisitantesSubTabs() {
     const subTabButtons = document.querySelectorAll('#content-controle-visitantes .cv-tabs .cv-tab-button');
     const subTabContents = document.querySelectorAll('#content-controle-visitantes .cv-subtab-content');
@@ -72,78 +67,59 @@ function setupVisitantesSubTabs() {
             subTabButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
-            subTabContents.forEach(content => {
-                content.classList.remove('active');
-                // content.style.display = 'none'; // A visibilidade é controlada pela classe active no CSS se necessário
-            });
+            subTabContents.forEach(content => content.classList.remove('active'));
 
-            const targetSubTabId = button.dataset.subtab; // Usando data-subtab como ID
-            const targetSubTabContent = document.getElementById(targetSubTabId);
-            if (targetSubTabContent) {
-                targetSubTabContent.classList.add('active');
-                // targetSubTabContent.style.display = 'block';
-            }
+            const targetSubTabId = button.dataset.subtab;
+            const targetContent = document.getElementById(targetSubTabId);
+            if (targetContent) targetContent.classList.add('active');
 
-            // Carregar dados da sub-aba
             if (targetSubTabId === 'visitantes-atuais') {
                 carregarVisitantesAtuais();
             } else if (targetSubTabId === 'historico-visitantes') {
-                const historicoTbody = document.querySelector('.js-historico-visitantes-lista');
-                if (historicoTbody && (!historicoTbody.hasChildNodes() || button.dataset.refresh === 'true')) {
+                const histList = document.querySelector('.js-historico-visitantes-lista');
+                if (histList && (!histList.hasChildNodes() || button.dataset.refresh === 'true')) {
                     carregarHistoricoVisitantes();
-                    button.dataset.refresh = 'false'; // Reset refresh flag
+                    button.dataset.refresh = 'false';
                 }
             } else if (targetSubTabId === 'registrar-visitante') {
-                const formRegistrarVisitante = document.getElementById('formRegistrarVisitante');
-                const registrarVisitanteMsg = document.getElementById('registrarVisitanteMsg');
-                formRegistrarVisitante?.reset();
-                if (registrarVisitanteMsg) registrarVisitanteMsg.style.display = 'none';
+                const form = document.getElementById('formRegistrarVisitante');
+                const msg = document.getElementById('registrarVisitanteMsg');
+                form?.reset();
+                if (msg) msg.style.display = 'none';
             }
         });
     });
 
-    // Ativar a primeira sub-aba de visitantes por padrão
-    if (subTabButtons.length > 0) {
-        subTabButtons[0].click();
-    }
+    if (subTabButtons.length > 0) subTabButtons[0].click();
 }
 
 function openSubTab(id) {
-    const btn = document.querySelector(`#content-controle-visitantes .cv-tab-button[data-subtab="${id}"]`);
-    btn?.click();
+    document.querySelector(`#content-controle-visitantes .cv-tab-button[data-subtab="${id}"]`)?.click();
 }
 
-
-async function carregarVisitantesAtuais(unidadeFilter = '') {
+// --- Visitantes Atuais ---
+async function carregarVisitantesAtuais() {
     const container = document.querySelector('.js-visitantes-atuais-lista');
     const loadingMsg = document.getElementById('visitantesAtuaisLoadingMsg');
     const noDataMsg = document.getElementById('visitantesAtuaisNoDataMsg');
     const skeleton = document.getElementById('visitantes-skeleton');
 
     if (!container || !loadingMsg || !noDataMsg) {
-        console.error('Elementos da tabela de visitantes atuais não encontrados.');
+        console.error('UI visitantes atuais incompleta.');
         showGlobalFeedback('Erro interno: UI de visitantes atuais incompleta.', 'error');
         return;
     }
 
     container.innerHTML = '';
     loadingMsg.style.display = 'block';
-    if (skeleton) showFeedSkeleton(skeleton);
     noDataMsg.style.display = 'none';
-    // Do not show global feedback for loading here, it's too noisy for tab switches / auto-refresh
-    // showGlobalFeedback('Carregando visitantes atuais...', 'info');
+    if (skeleton) showFeedSkeleton(skeleton);
 
     try {
-        let url = '/api/v1/visitantes/atuais';
-        // Filtering by unidadeFilter (string for unit name) is deferred as API expects Guid.
-        // if (unidadeFilter) {
-        //     url += `?unidadeNome=${encodeURIComponent(unidadeFilter)}`; // Example if API supported name filter
-        // }
-
-        const visitas = await apiClient.get(url);
-
+        const visitas = await apiClient.get('/api/v1/visitantes/atuais');
         loadingMsg.style.display = 'none';
-        if (visitas && visitas.length > 0) {
+
+        if (visitas && visitas.length) {
             visitas.forEach(v => {
                 const card = document.createElement('div');
                 card.className = 'visitante-card cv-card';
@@ -151,7 +127,7 @@ async function carregarVisitantesAtuais(unidadeFilter = '') {
                 card.innerHTML = `
                     <h4>${v.nome}</h4>
                     <p>${v.documento || ''}</p>
-                    <p>${v.unidadeId ? v.unidadeId.slice(0, 8) + '...' : 'N/A'} - ${v.motivoVisita || ''}</p>
+                    <p>${v.unidadeId ? v.unidadeId.slice(0,8) + '...' : 'N/A'} - ${v.motivoVisita || ''}</p>
                     <p>Chegada: ${new Date(v.dataChegada).toLocaleString()}</p>
                     <p>Saída Prevista: ${v.horarioSaidaPrevisto ? new Date(v.horarioSaidaPrevisto).toLocaleString() : ''}</p>
                     <div class="visitante-card__acoes">
@@ -163,12 +139,11 @@ async function carregarVisitantesAtuais(unidadeFilter = '') {
         } else {
             noDataMsg.style.display = 'block';
         }
-        // showGlobalFeedback('Visitantes atuais carregados!', 'success', 2000);
     } catch (err) {
         console.error('Erro ao listar visitantes atuais:', err);
         loadingMsg.style.display = 'none';
         container.innerHTML = '<div class="error-message">Falha ao carregar visitantes atuais.</div>';
-        showGlobalFeedback('Erro ao carregar visitantes atuais: ' + (err.message || 'Erro desconhecido'), 'error');
+        showGlobalFeedback('Erro ao carregar visitantes atuais: ' + (err.message || ''), 'error');
     } finally {
         if (skeleton) hideFeedSkeleton(skeleton);
     }
@@ -178,17 +153,17 @@ function adicionarListenersSaida() {
     const container = document.querySelector('.js-visitantes-atuais-lista');
     if (!container) return;
 
-    container.addEventListener('click', async (event) => {
+    container.addEventListener('click', async event => {
         if (event.target.classList.contains('btn-registrar-saida')) {
-            const visitanteId = event.target.dataset.id;
-            if (confirm(`Deseja realmente registrar a saída do visitante?`)) {
+            const id = event.target.dataset.id;
+            if (confirm('Deseja realmente registrar a saída do visitante?')) {
                 try {
-                    await apiClient.post(`/api/v1/visitantes/${visitanteId}/registrar-saida`, {});
-                    carregarVisitantesAtuais(); // Refresh the list
+                    await apiClient.post(`/api/v1/visitantes/${id}/registrar-saida`, {});
+                    carregarVisitantesAtuais();
                 } catch (err) {
                     console.error('Erro ao registrar saída:', err);
-                    const errorMsg = err.response?.data?.message || err.responseJSON?.message || err.message || 'Verifique o console.';
-                    showGlobalFeedback('Erro ao registrar saída: ' + errorMsg, 'error');
+                    const msg = err.response?.data?.message || err.message || '';
+                    showGlobalFeedback('Erro ao registrar saída: ' + msg, 'error');
                 }
             }
         }
@@ -201,72 +176,60 @@ const registrarVisitanteMsg = document.getElementById('registrarVisitanteMsg');
 const btnValidarQRCode = document.getElementById('btnValidarQRCode');
 
 if (formRegistrarVisitante && registrarVisitanteMsg) {
-    formRegistrarVisitante.addEventListener('submit', async (event) => {
+    formRegistrarVisitante.addEventListener('submit', async event => {
         event.preventDefault();
-        const formData = new FormData(formRegistrarVisitante);
-        const data = Object.fromEntries(formData.entries());
-
+        const data = Object.fromEntries(new FormData(formRegistrarVisitante).entries());
         data.documento = data.documento || null;
         data.motivoVisita = data.motivoVisita || null;
-        data.horarioSaidaPrevisto = data.horarioSaidaPrevisto ? new Date(data.horarioSaidaPrevisto).toISOString() : null;
+        data.horarioSaidaPrevisto = data.horarioSaidaPrevisto
+            ? new Date(data.horarioSaidaPrevisto).toISOString()
+            : null;
         data.observacoes = data.observacoes || null;
-
-        delete data.qrCodeEntrada; // Not part of manual registration DTO
+        delete data.qrCodeEntrada;
 
         registrarVisitanteMsg.style.display = 'block';
         registrarVisitanteMsg.className = 'feedback-message info';
         registrarVisitanteMsg.textContent = 'Registrando entrada...';
 
         try {
-            const response = await apiClient.post('/api/v1/visitantes/registrar-entrada', data);
+            const resp = await apiClient.post('/api/v1/visitantes/registrar-entrada', data);
             registrarVisitanteMsg.className = 'feedback-message success';
-            registrarVisitanteMsg.textContent = 'Entrada registrada com sucesso! ID: ' + response.id;
+            registrarVisitanteMsg.textContent = 'Entrada registrada! ID: ' + resp.id;
             formRegistrarVisitante.reset();
-
             if (document.getElementById('visitantes-atuais').classList.contains('active')) {
                 carregarVisitantesAtuais();
             }
         } catch (err) {
             console.error('Erro ao registrar entrada:', err);
-            const errorMsg = err.response?.data?.message || err.response?.data || err.message || 'Erro desconhecido';
+            const msg = err.response?.data?.message || err.message || '';
             registrarVisitanteMsg.className = 'feedback-message error';
-            registrarVisitanteMsg.textContent = 'Falha ao registrar entrada: ' + errorMsg;
-            showGlobalFeedback('Falha ao registrar entrada: ' + errorMsg, 'error');
+            registrarVisitanteMsg.textContent = 'Falha ao registrar entrada: ' + msg;
+            showGlobalFeedback('Falha ao registrar entrada: ' + msg, 'error');
         }
     });
 }
 
 if (btnValidarQRCode && registrarVisitanteMsg && formRegistrarVisitante) {
     btnValidarQRCode.addEventListener('click', async () => {
-        const qrCodeValue = document.getElementById('visQRCodeEntrada').value;
-        if (!qrCodeValue) {
-            // Campo obrigatório
-            return;
-        }
+        const qr = document.getElementById('visQRCodeEntrada').value;
+        if (!qr) return;
 
         registrarVisitanteMsg.style.display = 'block';
         registrarVisitanteMsg.className = 'feedback-message info';
         registrarVisitanteMsg.textContent = 'Validando QR Code...';
 
-
         try {
-            const response = await apiClient.post('/api/v1/visitantes/validar-qr-code', { qrCodeValue });
+            const resp = await apiClient.post('/api/v1/visitantes/validar-qr-code', { qrCodeValue: qr });
             registrarVisitanteMsg.className = 'feedback-message success';
-            registrarVisitanteMsg.textContent = `Entrada por QR Code validada para: ${response.nome}. Status: ${response.status}`;
-
+            registrarVisitanteMsg.textContent = `QR validado para: ${resp.nome}.`;
             formRegistrarVisitante.reset();
-
-            // Switch to "Visitantes Atuais" tab and refresh
-            const visitantesAtuaisTabButton = document.querySelector('.cv-tab-button[data-tab="visitantes-atuais"]');
-            visitantesAtuaisTabButton?.click();
-            // carregarVisitantesAtuais will be called by the tab click handler if not already active or by specific logic there
-
+            openSubTab('visitantes-atuais');
         } catch (err) {
             console.error('Erro ao validar QR Code:', err);
-            const errorMsg = err.response?.data?.message || err.response?.data || err.message || 'QR Code inválido ou expirado.';
+            const msg = err.response?.data?.message || err.message || '';
             registrarVisitanteMsg.className = 'feedback-message error';
-            registrarVisitanteMsg.textContent = 'Falha ao validar QR Code: ' + errorMsg;
-            showGlobalFeedback('Falha ao validar QR Code: ' + errorMsg, 'error');
+            registrarVisitanteMsg.textContent = 'Falha ao validar QR Code: ' + msg;
+            showGlobalFeedback('Falha ao validar QR Code: ' + msg, 'error');
         }
     });
 }
@@ -275,46 +238,37 @@ if (btnValidarQRCode && registrarVisitanteMsg && formRegistrarVisitante) {
 const historicoContainer = document.querySelector('.js-historico-visitantes-lista');
 const historicoLoadingMsg = document.getElementById('historicoLoadingMsg');
 const historicoNoDataMsg = document.getElementById('historicoNoDataMsg');
-const btnFiltrarHistorico = document.getElementById('btnFiltrarHistorico');
-const btnLimparFiltroHistorico = document.getElementById('btnLimparFiltroHistorico');
 
 async function carregarHistoricoVisitantes(filters = {}) {
     if (!historicoContainer || !historicoLoadingMsg || !historicoNoDataMsg) {
-        console.error('Elementos da tabela de histórico de visitantes não encontrados.');
+        console.error('UI histórico de visitantes incompleta.');
         return;
     }
-
     const skeleton = document.getElementById('historico-skeleton');
 
     historicoContainer.innerHTML = '';
     historicoLoadingMsg.style.display = 'block';
-    if (skeleton) showFeedSkeleton(skeleton);
     historicoNoDataMsg.style.display = 'none';
-
+    if (skeleton) showFeedSkeleton(skeleton);
 
     try {
         const params = new URLSearchParams();
-        if (filters.unidadeId) params.append('unidadeId', filters.unidadeId);
-        if (filters.inicio) params.append('inicio', filters.inicio);
-        if (filters.fim) params.append('fim', filters.fim);
-        if (filters.nomeVisitante) params.append('nomeVisitante', filters.nomeVisitante);
-
-        const url = `/api/v1/visitantes/historico?${params.toString()}`;
-        const visitas = await apiClient.get(url);
+        Object.entries(filters).forEach(([k, v]) => v && params.append(k, v));
+        const visitas = await apiClient.get(`/api/v1/visitantes/historico?${params.toString()}`);
 
         historicoLoadingMsg.style.display = 'none';
-        if (visitas && visitas.length > 0) {
+        if (visitas && visitas.length) {
             visitas.forEach(v => {
                 const card = document.createElement('div');
                 card.className = 'visitante-card cv-card';
                 card.dataset.id = v.id;
                 card.innerHTML = `
                     <h4>${v.nome}</h4>
-                    <p>${v.unidadeId ? v.unidadeId.slice(0, 8) + '...' : 'N/A'} - ${v.motivoVisita || ''}</p>
+                    <p>${v.unidadeId ? v.unidadeId.slice(0,8) + '...' : 'N/A'} - ${v.motivoVisita || ''}</p>
                     <p>${v.documento || ''}</p>
                     <p>Chegada: ${new Date(v.dataChegada).toLocaleString()}</p>
                     <p>Saída: ${v.dataSaida ? new Date(v.dataSaida).toLocaleString() : 'Presente'}</p>
-                    <p>Status: ${v.status}</p>
+                    ${getStatusBadgeHtml(v.status)}
                     <p>${v.observacoes || ''}</p>
                 `;
                 historicoContainer.appendChild(card);
@@ -322,43 +276,34 @@ async function carregarHistoricoVisitantes(filters = {}) {
         } else {
             historicoNoDataMsg.style.display = 'block';
         }
-
     } catch (err) {
         console.error('Erro ao listar histórico de visitantes:', err);
         historicoLoadingMsg.style.display = 'none';
         historicoContainer.innerHTML = '<div class="error-message">Falha ao carregar histórico.</div>';
-        showGlobalFeedback('Erro ao carregar histórico: ' + (err.message || 'Erro desconhecido'), 'error');
+        showGlobalFeedback('Erro ao carregar histórico: ' + (err.message || ''), 'error');
     } finally {
         if (skeleton) hideFeedSkeleton(skeleton);
     }
 }
 
-if (btnFiltrarHistorico) {
-    btnFiltrarHistorico.addEventListener('click', () => {
-        const filters = {
-            unidadeId: document.getElementById('filterHistUnidadeId').value,
-            inicio: document.getElementById('filterHistDataInicio').value,
-            fim: document.getElementById('filterHistDataFim').value,
-            nomeVisitante: document.getElementById('filterHistNome').value
-        };
-        Object.keys(filters).forEach(key => {
-            if (!filters[key]) delete filters[key];
-        });
-        carregarHistoricoVisitantes(filters);
-    });
-}
+document.getElementById('btnFiltrarHistorico')?.addEventListener('click', () => {
+    const filters = {
+        unidadeId: document.getElementById('filterHistUnidadeId').value,
+        inicio: document.getElementById('filterHistDataInicio').value,
+        fim: document.getElementById('filterHistDataFim').value,
+        nomeVisitante: document.getElementById('filterHistNome').value
+    };
+    Object.keys(filters).forEach(k => !filters[k] && delete filters[k]);
+    carregarHistoricoVisitantes(filters);
+});
 
-if(btnLimparFiltroHistorico) {
-    btnLimparFiltroHistorico.addEventListener('click', () => {
-        document.getElementById('filterHistUnidadeId').value = '';
-        document.getElementById('filterHistDataInicio').value = '';
-        document.getElementById('filterHistDataFim').value = '';
-        document.getElementById('filterHistNome').value = '';
-        carregarHistoricoVisitantes();
-    });
-}
+document.getElementById('btnLimparFiltroHistorico')?.addEventListener('click', () => {
+    ['filterHistUnidadeId','filterHistDataInicio','filterHistDataFim','filterHistNome']
+        .forEach(id => document.getElementById(id).value = '');
+    carregarHistoricoVisitantes();
+});
 
-// --- DOMContentLoaded ---
+// --- Inicialização ---
 export async function initialize() {
     requireAuth();
     setupTabs();
@@ -367,48 +312,28 @@ export async function initialize() {
     await carregarEncomendas();
     setupEncomendas();
 
-    // Note: Filter listeners for "Visitantes Atuais" are still placeholders
-    const btnFilterAtuais = document.getElementById('btnFiltrarVisitantesAtuais');
-    if (btnFilterAtuais) {
-        btnFilterAtuais.addEventListener('click', () => {
-
-        });
-    }
-    const btnClearFilterAtuais = document.getElementById('btnLimparFiltroVisitantesAtuais');
-    if (btnClearFilterAtuais) {
-        btnClearFilterAtuais.addEventListener('click', () => {
-
-        });
-    }
-
     const roles = getRoles();
     const isSindico = roles.includes('Sindico') || roles.includes('Administrador');
-    const actions = [
-        { label: 'Registrar Visitante', onClick: () => openSubTab('registrar-visitante') }
-    ];
-    if (isSindico) {
-        actions.push({ label: 'Registrar Encomenda', onClick: () => openSubTab('gestao-encomendas') });
-    }
+    const actions = [{ label: 'Registrar Visitante', onClick: () => openSubTab('registrar-visitante') }];
+    if (isSindico) actions.push({ label: 'Registrar Encomenda', onClick: () => openSubTab('gestao-encomendas') });
     initFabMenu(actions);
 }
 
-if (document.readyState !== 'loading') {
-    initialize();
-} else {
-    document.addEventListener('DOMContentLoaded', initialize);
-}
+if (document.readyState !== 'loading') initialize();
+else document.addEventListener('DOMContentLoaded', initialize);
 
-
-// Original carregarEncomendas (can be moved to an 'encomendas.js' or kept if tabs eventually integrate it)
+// --- Encomendas ---
 async function carregarEncomendas() {
     const container = document.querySelector('.js-encomendas');
     const loadingMsg = document.getElementById('encomendasLoadingMsg');
     const noDataMsg = document.getElementById('encomendasNoDataMsg');
     const skeleton = document.getElementById('encomendas-skeleton');
+
     if (!container || !loadingMsg || !noDataMsg) {
-        console.error('Elementos de encomendas não encontrados.');
+        console.error('UI de encomendas incompleta.');
         return;
     }
+
     container.innerHTML = '';
     loadingMsg.style.display = 'block';
     noDataMsg.style.display = 'none';
@@ -416,20 +341,22 @@ async function carregarEncomendas() {
 
     try {
         const encomendas = await apiClient.get('/syndic/encomendas?status=recebida');
-
         loadingMsg.style.display = 'none';
-        container.innerHTML = '';
-        if (encomendas && encomendas.length > 0) {
+
+        if (encomendas && encomendas.length) {
             encomendas.forEach(e => {
                 const card = document.createElement('div');
                 card.className = 'encomenda-card cv-card';
                 card.dataset.id = e.id;
                 const status = e.status || (e.retiradoEm ? 'Retirada' : 'Aguardando');
-                const btn = e.retiradoEm ? '' : `<button class="cv-button cv-button--small btn-retirar" data-id="${e.id}">Confirmar Retirada</button>`;
+                const btn = e.retiradoEm
+                    ? ''
+                    : `<button class="cv-button cv-button--small btn-retirar" data-id="${e.id}">Confirmar Retirada</button>`;
+
                 card.innerHTML = `
                     <h4>${e.descricao || ''}</h4>
                     <p>Unidade: ${e.unidadeId.slice(0,8)}...</p>
-                    <p>Status: ${status}</p>
+                    ${getStatusBadgeHtml(status)}
                     <div class="encomenda-card__acoes">${btn}</div>
                 `;
                 container.appendChild(card);
@@ -437,8 +364,8 @@ async function carregarEncomendas() {
         } else {
             noDataMsg.style.display = 'block';
         }
-    } catch(err) {
-        console.error('Erro ao listar encomendas', err);
+    } catch (err) {
+        console.error('Erro ao listar encomendas:', err);
         container.innerHTML = '<div class="error-message">Falha ao carregar encomendas.</div>';
     } finally {
         if (skeleton) hideFeedSkeleton(skeleton);
@@ -449,42 +376,43 @@ function setupEncomendas() {
     const form = document.getElementById('formNovaEncomenda');
     const msg = document.getElementById('novaEncomendaMsg');
     const container = document.querySelector('.js-encomendas');
-    if (form && msg) {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const data = {
-                unidadeId: form.unidadeId.value,
-                descricao: form.descricao.value
-            };
-            msg.style.display = 'block';
-            msg.className = 'feedback-message info';
-            msg.textContent = 'Registrando...';
-            try {
-                await apiClient.post('/syndic/encomendas', data);
-                msg.className = 'feedback-message success';
-                msg.textContent = 'Encomenda registrada!';
-                form.reset();
-                await carregarEncomendas();
-            } catch(err) {
-                msg.className = 'feedback-message error';
-                msg.textContent = 'Erro ao registrar.';
-            }
-        });
-    }
 
-    if (container) {
-        container.addEventListener('click', async (ev) => {
-            if (ev.target.classList.contains('btn-retirar')) {
-                const id = ev.target.dataset.id;
-                if (confirm('Confirmar retirada da encomenda?')) {
-                    try {
-                        await apiClient.post(`/syndic/encomendas/${id}/retirar`, {});
-                        await carregarEncomendas();
-                    } catch(err) {
-                        showGlobalFeedback('Erro ao registrar retirada', 'error');
-                    }
+    form?.addEventListener('submit', async e => {
+        e.preventDefault();
+        const data = {
+            unidadeId: form.unidadeId.value,
+            descricao: form.descricao.value
+        };
+        msg.style.display = 'block';
+        msg.className = 'feedback-message info';
+        msg.textContent = 'Registrando...';
+
+        try {
+            await apiClient.post('/syndic/encomendas', data);
+            msg.className = 'feedback-message success';
+            msg.textContent = 'Encomenda registrada!';
+            form.reset();
+            await carregarEncomendas();
+        } catch (err) {
+            console.error('Erro ao registrar encomenda:', err);
+            msg.className = 'feedback-message error';
+            msg.textContent = 'Erro ao registrar.';
+            showGlobalFeedback('Erro ao registrar encomenda.', 'error');
+        }
+    });
+
+    container?.addEventListener('click', async ev => {
+        if (ev.target.classList.contains('btn-retirar')) {
+            const id = ev.target.dataset.id;
+            if (confirm('Confirmar retirada da encomenda?')) {
+                try {
+                    await apiClient.post(`/syndic/encomendas/${id}/retirar`, {});
+                    await carregarEncomendas();
+                } catch (err) {
+                    console.error('Erro ao registrar retirada:', err);
+                    showGlobalFeedback('Erro ao registrar retirada', 'error');
                 }
             }
-        });
-    }
+        }
+    });
 }

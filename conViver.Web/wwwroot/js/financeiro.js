@@ -1,9 +1,18 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth } from './auth.js';
-import { formatCurrency, formatDate, showGlobalFeedback } from './main.js'; // Updated import
+import { formatCurrency, formatDate, showGlobalFeedback } from './main.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
+function getStatusBadgeHtml(status) {
+    const s = status ? status.toLowerCase() : "";
+    let type = "success";
+    if (s.includes("pendente") || s.includes("aguardando")) type = "warning";
+    else if (s.includes("cancel") || s.includes("recus") || s.includes("vencid") || s.includes("extraviad") || s.includes("devolvid")) type = "danger";
+    return `<span class="status-badge status-badge--${type}"><span class="status-icon icon-${type}"></span>${status}</span>`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+
     requireAuth();
 
     // DOM Elements
@@ -180,7 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
     if (btnNovaCobranca) {
         btnNovaCobranca.addEventListener('click', () => {
             openModal('Emitir Nova Cobrança', novaCobrancaFormHtml);
@@ -224,14 +232,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (tbodyCobrancas) {
         tbodyCobrancas.addEventListener('click', async (event) => {
-            const target = event.target.closest('button'); // Ensure we get the button if icon inside is clicked
+            const target = event.target.closest('button');
             if (!target) return;
 
             const cobrancaId = target.dataset.id;
             if (!cobrancaId) return;
 
             if (target.classList.contains('js-btn-detalhes-cobranca')) {
-                openModal(`Detalhes da Cobrança ${cobrancaId.substring(0,8)}...`, `<p>Detalhes completos da cobrança ${cobrancaId} serão exibidos aqui... (Funcionalidade a ser implementada)</p>`);
+                openModal(
+                    `Detalhes da Cobrança ${cobrancaId.substring(0,8)}...`,
+                    `<p>Detalhes completos da cobrança ${cobrancaId} serão exibidos aqui... (Funcionalidade a ser implementada)</p>`
+                );
             } else if (target.classList.contains('js-btn-segunda-via')) {
                 target.disabled = true;
                 try {
@@ -251,7 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!confirm('Tem certeza que deseja cancelar esta cobrança?')) return;
                 target.disabled = true;
                 try {
-                    // Assuming PUT request for cancel, adjust if it's POST or DELETE
                     const resultado = await apiClient.put(`/financeiro/cobrancas/${cobrancaId}/cancelar`, {});
                     if (resultado && resultado.sucesso) {
                         fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
@@ -292,14 +302,12 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'cv-card cobranca-card';
 
             const statusKey = cobranca.statusCobranca || '';
-            const statusClass = `status-tag--${statusKey.toLowerCase().replace(/\s+/g, '-')}`;
-
             const cancellableStatuses = ["Pendente", "Gerado", "Registrado", "Enviado", "Atrasado"];
 
             card.innerHTML = `
                 <div class="cobranca-card__header">
                     <h3>🏠 ${cobranca.unidadeId ? cobranca.unidadeId : 'N/A'}</h3>
-                    <span class="status-tag ${statusClass}">${statusKey}</span>
+                    ${getStatusBadgeHtml(statusKey)}
                 </div>
                 <p>👤 ${cobranca.nomeSacado || 'N/A'}</p>
                 <p>💵 ${formatCurrency(cobranca.valor)}</p>
@@ -307,10 +315,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="cobranca-card__actions">
                     <button class="cv-button cv-button--small cv-button--info js-btn-detalhes-cobranca" data-id="${cobranca.id}" title="Detalhes">Detalhes</button>
                     <button class="cv-button cv-button--small js-btn-segunda-via" data-id="${cobranca.id}" title="2ª Via">2ª Via</button>
-                    ${cancellableStatuses.includes(cobranca.statusCobranca) ? `<button class="cv-button cv-button--small cv-button--danger js-btn-cancelar-cobranca" data-id="${cobranca.id}" title="Cancelar">Cancelar</button>` : ''}
+                    ${cancellableStatuses.includes(statusKey) ? `<button class="cv-button cv-button--small cv-button--danger js-btn-cancelar-cobranca" data-id="${cobranca.id}" title="Cancelar">Cancelar</button>` : ''}
                 </div>
             `;
-
             tbodyCobrancas.appendChild(card);
         });
     }
@@ -494,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Inicialização ---
-    if (tbodyCobrancas && filtroStatusEl) { // Ensure elements exist before proceeding
+    if (tbodyCobrancas && filtroStatusEl) {
         fetchAndRenderCobrancas();
         fetchAndRenderDashboard();
 
