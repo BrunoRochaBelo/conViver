@@ -21,6 +21,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>conViver.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\conViver.Core\conViver.Core.csproj" />
     <ProjectReference Include="..\conViver.Application\conViver.Application.csproj" />
     <ProjectReference Include="..\conViver.Infrastructure\conViver.Infrastructure.csproj" />

@@ -422,6 +422,42 @@ public class FinanceiroController : ControllerBase
         return CreatedAtAction(nameof(GetCobranca), new { id = dto.BoletoId }, result);
     }
 
+    [HttpPost("orcamentos/{ano}")]
+    public async Task<ActionResult<IEnumerable<OrcamentoAnualDto>>> RegistrarOrcamento(int ano, [FromBody] List<OrcamentoCategoriaInputDto> categorias)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+        var resultado = await _financeiro.RegistrarOrcamentoAsync(condominioId, ano, categorias);
+        return Ok(resultado);
+    }
+
+    [HttpGet("orcamentos/{ano}")]
+    public async Task<ActionResult<IEnumerable<OrcamentoAnualDto>>> ObterOrcamento(int ano)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+        var itens = await _financeiro.ObterOrcamentoAsync(condominioId, ano);
+        return Ok(itens);
+    }
+
+    [HttpGet("orcamentos/{ano}/comparativo")]
+    public async Task<ActionResult<IEnumerable<OrcamentoComparativoDto>>> CompararOrcamento(int ano)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+        var itens = await _financeiro.CompararExecucaoOrcamentoAsync(condominioId, ano);
+        return Ok(itens);
+    }
+
     /// <summary>
     /// (Administradora) Solicita um estorno de pagamento. (API Ref 5.3)
     /// </summary>
