@@ -60,7 +60,7 @@ public class PrestadoresController : ControllerBase
     /// <response code="200">Retorna a lista de prestadores.</response>
     /// <response code="401">Usuário não autorizado ou claim de condomínio não encontrada.</response>
     [HttpGet("app/prestadores")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<IEnumerable<PrestadorDto>>> ListarPrestadores([FromQuery] string? especialidade)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
@@ -90,7 +90,7 @@ public class PrestadoresController : ControllerBase
     /// <response code="401">Usuário não autorizado ou claim de condomínio não encontrada.</response>
     /// <response code="404">Prestador de serviço não encontrado ou inativo.</response>
     [HttpGet("app/prestadores/{id:guid}")] // Rota pode ser "app" ou "syndic" dependendo da política de acesso geral
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<PrestadorDto>> ObterPrestadorPorId(Guid id)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
@@ -174,7 +174,7 @@ public class PrestadoresController : ControllerBase
     /// <response code="401">Usuário não autorizado ou claims não encontradas.</response>
     /// <response code="404">Prestador não encontrado ou inativo.</response>
     [HttpPost("app/prestadores/{id:guid}/avaliar")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")] // Permitir que síndico também avalie se desejado
+    [Authorize(Roles = "Sindico,Morador")] // Permitir que síndico também avalie se desejado
     public async Task<ActionResult<AvaliacaoPrestadorDto>> AvaliarPrestador(Guid id, [FromBody] AvaliacaoPrestadorInputDto avaliacaoInput)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");

@@ -128,7 +128,7 @@ public class OrdensServicoController : ControllerBase
     /// <param name="inputDto">Dados da Ordem de Serviço.</param>
     /// <returns>A Ordem de Serviço criada.</returns>
     [HttpPost("app/os")]
-    [Authorize(Roles = "Condomino,Inquilino,Sindico")] // Sindico também pode usar esta rota se quiser
+    [Authorize(Roles = "Morador,Sindico")] // Sindico também pode usar esta rota se quiser
     public async Task<ActionResult<OrdemServicoDto>> CreateOSUsuario([FromBody] OrdemServicoInputUserDto inputDto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -153,7 +153,7 @@ public class OrdensServicoController : ControllerBase
     /// <param name="status">Filtra por status (opcional).</param>
     /// <returns>Lista de Ordens de Serviço do usuário.</returns>
     [HttpGet("app/os")]
-    [Authorize(Roles = "Condomino,Inquilino,Sindico")]
+    [Authorize(Roles = "Morador,Sindico")]
     public async Task<ActionResult<IEnumerable<OrdemServicoDto>>> ListarOSPorUsuario([FromQuery] string? status)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
@@ -174,7 +174,7 @@ public class OrdensServicoController : ControllerBase
     /// <param name="id">ID da Ordem de Serviço.</param>
     /// <returns>Detalhes da Ordem de Serviço.</returns>
     [HttpGet("app/os/{id:guid}")]
-    [Authorize(Roles = "Condomino,Inquilino,Sindico")]
+    [Authorize(Roles = "Morador,Sindico")]
     public async Task<ActionResult<OrdemServicoDto>> GetOSPorIdUsuario(Guid id)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");

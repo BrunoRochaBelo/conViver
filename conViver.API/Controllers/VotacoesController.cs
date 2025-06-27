@@ -68,7 +68,7 @@ public class VotacoesController : ControllerBase
     /// <response code="200">Retorna a lista de votações.</response>
     /// <response code="401">Usuário não autorizado ou CondominioId não encontrado.</response>
     [HttpGet("app/votacoes")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")] // Ajustar roles conforme necessário
+    [Authorize(Roles = "Sindico,Morador")] // Ajustar roles conforme necessário
     public async Task<ActionResult<IEnumerable<VotacaoResumoDto>>> ListarVotacoesAbertas()
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
@@ -90,7 +90,7 @@ public class VotacoesController : ControllerBase
     /// <response code="401">Usuário não autorizado ou claims não encontradas.</response>
     /// <response code="404">Votação não encontrada.</response>
     [HttpGet("app/votacoes/{id:guid}")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")] // Ajustar roles
+    [Authorize(Roles = "Sindico,Morador")] // Ajustar roles
     public async Task<ActionResult<VotacaoDetalheDto>> ObterVotacaoPorId(Guid id)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -124,7 +124,7 @@ public class VotacoesController : ControllerBase
     /// <response code="404">Votação não encontrada.</response>
     /// <response code="409">Usuário já votou nesta votação.</response>
     [HttpPost("app/votacoes/{id:guid}/votar")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")] // Ajustar roles
+    [Authorize(Roles = "Sindico,Morador")] // Ajustar roles
     public async Task<IActionResult> RegistrarVoto(Guid id, [FromBody] VotoInputDto votoInput)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
