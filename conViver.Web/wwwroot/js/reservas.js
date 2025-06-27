@@ -507,8 +507,15 @@ function toggleReservasView(view) {
 }
 
 function setupTabs() {
-  const tabButtons = document.querySelectorAll(".cv-tab-button");
-  const tabContents = document.querySelectorAll(".cv-tab-content");
+  const tabsContainer = document.getElementById("reservas-tabs");
+  if (!tabsContainer) {
+    console.warn("Elemento de abas de reservas não encontrado.");
+    return;
+  }
+  const tabButtons = tabsContainer.querySelectorAll(".cv-tab-button");
+  const tabContents = tabsContainer.parentElement.querySelectorAll(
+    ".cv-tab-content"
+  );
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
       console.log(`Tab clicked: ${button.id}`); // Log: Tab button ID
@@ -564,7 +571,7 @@ function setupTabs() {
   });
 
   const initialActive =
-    document.querySelector(".cv-tab-button.active") || tabButtons[0];
+    tabsContainer.querySelector(".cv-tab-button.active") || tabButtons[0];
   if (initialActive) initialActive.click(); // This will trigger the specific logic above for the initially active tab.
 }
 
