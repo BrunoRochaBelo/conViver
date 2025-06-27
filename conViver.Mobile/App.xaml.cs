@@ -2,10 +2,10 @@ namespace conViver.Mobile;
 
 public partial class App : MauiApp
 {
-	public App()
-	{
-		InitializeComponent();
+    public App()
+    {
+        InitializeComponent();
 
-		MainPage = new AppShell();
-	}
+        MainPage = new AppShell();
+    }
 }

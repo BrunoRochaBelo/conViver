@@ -221,12 +221,14 @@ namespace conViver.Application.Services
 
             var valorTotalLote = request.DescricoesPadrao?.Sum(d => d.Valor) ?? 0m;
             if (valorTotalLote == 0)
-                return new ResultadoOperacaoDto {
+                return new ResultadoOperacaoDto
+                {
                     Sucesso = true,
                     Mensagem = "Nenhuma descrição de padrão de cobrança fornecida ou valor total é zero. Nenhum boleto foi gerado."
                 };
 
-            var novosBoletos = unidades.Select(u => new Boleto {
+            var novosBoletos = unidades.Select(u => new Boleto
+            {
                 Id = Guid.NewGuid(),
                 UnidadeId = u.Id,
                 Valor = valorTotalLote,
@@ -280,10 +282,12 @@ namespace conViver.Application.Services
             var boleto = await _boletoRepository.GetByIdAsync(id);
             if (boleto == null) return null;
             var dummy = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"Boleto {id}"));
-            return new BoletoPdfDto {
+            return new BoletoPdfDto
+            {
                 PdfBase64 = dummy,
                 BrCode = $"BR-CODE-{id:N}",
-                Metadados = new Dictionary<string, object> {
+                Metadados = new Dictionary<string, object>
+                {
                     ["valor"] = boleto.Valor,
                     ["status"] = boleto.Status.ToString()
                 }
@@ -306,7 +310,8 @@ namespace conViver.Application.Services
             boleto.RegistrarPagamento(valor, dataPagamento);
             await _boletoRepository.UpdateAsync(boleto);
 
-            var pagamento = new Pagamento {
+            var pagamento = new Pagamento
+            {
                 Id = Guid.NewGuid(),
                 BoletoId = boletoId,
                 Origem = "manual",
@@ -319,12 +324,14 @@ namespace conViver.Application.Services
             await _pagamentoRepository.SaveChangesAsync();
 
             var unidade = await _unidadeRepository.GetByIdAsync(boleto.UnidadeId);
-            if (unidade != null) {
+            if (unidade != null)
+            {
                 var msg = $"Cobrança paga - Unidade {unidade.Identificacao} pagou {valor:C} em {dataPagamento:dd/MM}.";
                 await _notificacaoService.SendAsync($"condo:{unidade.CondominioId}", msg);
             }
 
-            return new PagamentoDto {
+            return new PagamentoDto
+            {
                 PagamentoId = pagamento.Id,
                 Status = pagamento.Status.ToString()
             };
@@ -339,7 +346,8 @@ namespace conViver.Application.Services
             boleto.RegistrarPagamento(dto.ValorPago, dto.DataPagamento);
             await _boletoRepository.UpdateAsync(boleto);
 
-            var pagamento = new Pagamento {
+            var pagamento = new Pagamento
+            {
                 Id = Guid.NewGuid(),
                 BoletoId = boleto.Id,
                 Origem = "webhook",
@@ -353,7 +361,8 @@ namespace conViver.Application.Services
             await _pagamentoRepository.SaveChangesAsync();
 
             var unidade = await _unidadeRepository.GetByIdAsync(boleto.UnidadeId);
-            if (unidade != null) {
+            if (unidade != null)
+            {
                 var msg = $"Cobrança paga - Unidade {unidade.Identificacao} pagou {dto.ValorPago:C} em {dto.DataPagamento:dd/MM}.";
                 await _notificacaoService.SendAsync($"condo:{unidade.CondominioId}", msg);
             }
@@ -376,7 +385,8 @@ namespace conViver.Application.Services
         public async Task<InstallmentPlanDto> CriarAcordoAsync(Guid unidadeId, decimal entrada, short parcelas)
         {
             var valorParcela = 100m;
-            var acordo = new Acordo {
+            var acordo = new Acordo
+            {
                 Id = Guid.NewGuid(),
                 UnidadeId = unidadeId,
                 ValorTotal = entrada + valorParcela * parcelas,
@@ -386,8 +396,10 @@ namespace conViver.Application.Services
             await _acordoRepository.AddAsync(acordo);
 
             var listaParcelas = new List<ParcelaAcordo>();
-            for (short i = 1; i <= parcelas; i++) {
-                var p = new ParcelaAcordo {
+            for (short i = 1; i <= parcelas; i++)
+            {
+                var p = new ParcelaAcordo
+                {
                     Id = Guid.NewGuid(),
                     AcordoId = acordo.Id,
                     Numero = i,
@@ -402,11 +414,13 @@ namespace conViver.Application.Services
             await _acordoRepository.SaveChangesAsync();
             await _parcelaRepository.SaveChangesAsync();
 
-            return new InstallmentPlanDto {
+            return new InstallmentPlanDto
+            {
                 Id = acordo.Id,
                 ValorTotal = acordo.ValorTotal,
                 Entrada = acordo.Entrada,
-                Parcelas = listaParcelas.Select(x => new InstallmentDto {
+                Parcelas = listaParcelas.Select(x => new InstallmentDto
+                {
                     Numero = x.Numero,
                     Valor = x.Valor,
                     Vencimento = x.Vencimento,
@@ -425,11 +439,13 @@ namespace conViver.Application.Services
                 .OrderBy(p => p.Numero)
                 .ToListAsync();
 
-            return new InstallmentPlanDto {
+            return new InstallmentPlanDto
+            {
                 Id = acordo.Id,
                 ValorTotal = acordo.ValorTotal,
                 Entrada = acordo.Entrada,
-                Parcelas = parcelas.Select(p => new InstallmentDto {
+                Parcelas = parcelas.Select(p => new InstallmentDto
+                {
                     Numero = p.Numero,
                     Valor = p.Valor,
                     Vencimento = p.Vencimento,
@@ -468,7 +484,8 @@ namespace conViver.Application.Services
 
         public async Task<DespesaDto> CriarDespesaAsync(Guid condominioId, Guid usuarioId, DespesaInputDto input)
         {
-            var d = new Despesa {
+            var d = new Despesa
+            {
                 Id = Guid.NewGuid(),
                 CondominioId = condominioId,
                 Descricao = input.Descricao,
@@ -528,7 +545,8 @@ namespace conViver.Application.Services
                                   where u.CondominioId == condominioId
                                         && b.DataVencimento >= inicio
                                         && b.DataVencimento <= fim
-                                  select new BalanceteItemDto {
+                                  select new BalanceteItemDto
+                                  {
                                       Categoria = "Cobrança",
                                       Descricao = $"Boleto {b.Id:D8}",
                                       Valor = b.Valor,
@@ -536,7 +554,8 @@ namespace conViver.Application.Services
                                   })
                                  .ToListAsync();
 
-            var despesasItems = despesas.Select(d => new BalanceteItemDto {
+            var despesasItems = despesas.Select(d => new BalanceteItemDto
+            {
                 Categoria = d.Categoria ?? "Geral",
                 Descricao = d.Descricao,
                 Valor = d.Valor,
@@ -546,7 +565,8 @@ namespace conViver.Application.Services
             var totalReceitas = receitas.Sum(r => r.Valor);
             var totalDespesas = despesasItems.Sum(d => d.Valor);
 
-            return new BalanceteDto {
+            return new BalanceteDto
+            {
                 PeriodoInicio = inicio,
                 PeriodoFim = fim,
                 SaldoAnterior = 0m,
@@ -558,7 +578,8 @@ namespace conViver.Application.Services
             };
         }
 
-        private static DespesaDto MapDespesaToDto(Despesa d) => new DespesaDto {
+        private static DespesaDto MapDespesaToDto(Despesa d) => new DespesaDto
+        {
             Id = d.Id,
             Descricao = d.Descricao,
             Valor = d.Valor,

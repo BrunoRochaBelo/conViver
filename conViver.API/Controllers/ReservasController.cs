@@ -159,7 +159,7 @@ public class ReservasController : ControllerBase
             var sucesso = await _reservaService.CancelarAsync(id, condominioId, usuarioId, isSindico);
             if (!sucesso) // Serviço agora lança exceção em caso de não encontrar, então essa checagem pode ser redundante.
             {
-                return NotFound(new { error="CANCEL_FAILED", message = "Reserva não encontrada ou não pôde ser cancelada."});
+                return NotFound(new { error = "CANCEL_FAILED", message = "Reserva não encontrada ou não pôde ser cancelada." });
             }
             return NoContent();
         }
@@ -260,11 +260,11 @@ public class ReservasController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-             return BadRequest(new { error="INVALID_ARGUMENT", message = ex.Message });
+            return BadRequest(new { error = "INVALID_ARGUMENT", message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { error="INVALID_OPERATION", message = ex.Message });
+            return BadRequest(new { error = "INVALID_OPERATION", message = ex.Message });
         }
     }
 
@@ -381,11 +381,11 @@ public class ReservasController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-             return BadRequest(new { error="INVALID_INPUT", message = ex.Message });
+            return BadRequest(new { error = "INVALID_INPUT", message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(new { error="CREATION_FAILED", message = ex.Message });
+            return Conflict(new { error = "CREATION_FAILED", message = ex.Message });
         }
     }
 
@@ -419,13 +419,13 @@ public class ReservasController : ControllerBase
         {
             return NotFound(new { error = "NOT_FOUND", message = ex.Message });
         }
-         catch (ArgumentException ex)
+        catch (ArgumentException ex)
         {
-             return BadRequest(new { error="INVALID_INPUT", message = ex.Message });
+            return BadRequest(new { error = "INVALID_INPUT", message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(new { error="UPDATE_FAILED", message = ex.Message });
+            return Conflict(new { error = "UPDATE_FAILED", message = ex.Message });
         }
     }
 
@@ -453,13 +453,13 @@ public class ReservasController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(new { error="DELETE_RULE_VIOLATION", message = ex.Message });
+            return Conflict(new { error = "DELETE_RULE_VIOLATION", message = ex.Message });
         }
         catch (Exception ex)
         {
             // Log ex
             Console.Error.WriteLine(ex);
-            return StatusCode(500, new { error="INTERNAL_ERROR", message = "Erro ao excluir espaço comum."});
+            return StatusCode(500, new { error = "INTERNAL_ERROR", message = "Erro ao excluir espaço comum." });
         }
     }
 }

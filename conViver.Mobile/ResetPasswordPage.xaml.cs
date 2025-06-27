@@ -127,7 +127,7 @@ public partial class ResetPasswordPage : ContentPage
             // Keep button disabled on success as we navigate away
             if (SubmitButton.IsEnabled) // Only re-enable if it was not a success navigation
             {
-                 SubmitButton.IsEnabled = true;
+                SubmitButton.IsEnabled = true;
             }
         }
     }

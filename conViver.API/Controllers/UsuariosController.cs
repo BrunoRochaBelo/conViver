@@ -190,7 +190,8 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
         var newAccessTokenString = _jwt.GenerateToken(mockUserId, mockPerfil.ToString(), mockCondominioId);
         var newRefreshTokenString = "new_dummyRefreshToken_" + Guid.NewGuid().ToString();
         var newAccessTokenExpiration = DateTime.UtcNow.AddHours(1);
-        var userDto = new UserDto { // This UserDto is from a different context (AuthResponseDto) and might be okay if defined locally or within AuthDtos
+        var userDto = new UserDto
+        { // This UserDto is from a different context (AuthResponseDto) and might be okay if defined locally or within AuthDtos
             Id = mockUserId,
             Nome = "Usuário Refrescado",
             Email = mockUserEmail,
@@ -284,7 +285,8 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
 
         // Simulação
         await Task.CompletedTask;
-        var membroDto = new MembroUnidadeDto {
+        var membroDto = new MembroUnidadeDto
+        {
             MembroId = Guid.NewGuid(),
             UsuarioId = Guid.NewGuid(),
             NomeUsuario = "Nome Simulado do Usuário Vinculado",
@@ -297,7 +299,7 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
 
         if (membroDto == null) // Simular falha no serviço
         {
-            return NotFound(new {message = "Unidade não encontrada ou usuário não pôde ser vinculado."});
+            return NotFound(new { message = "Unidade não encontrada ou usuário não pôde ser vinculado." });
         }
         // Idealmente, um endpoint para GET /syndic/units/{unidadeId}/members/{memberId} ou GET /syndic/members/{memberId}
         return CreatedAtAction(nameof(VincularUsuarioUnidade), new { unidadeId = unidadeId, memberId = membroDto.MembroId }, membroDto); // Ajustar nome da action se houver GetMemberById
@@ -332,7 +334,8 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
 
         // Simulação
         await Task.CompletedTask;
-        var membroAtualizadoDto = new MembroUnidadeDto {
+        var membroAtualizadoDto = new MembroUnidadeDto
+        {
             MembroId = memberId,
             UsuarioId = Guid.NewGuid(),
             NomeUsuario = "Nome Simulado Atualizado",
@@ -343,7 +346,7 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
             Ativo = request.Ativo
         };
 
-        if (membroAtualizadoDto == null) return NotFound(new { message = "Membro não encontrado ou não pôde ser atualizado."});
+        if (membroAtualizadoDto == null) return NotFound(new { message = "Membro não encontrado ou não pôde ser atualizado." });
 
         return Ok(membroAtualizadoDto);
     }
@@ -373,7 +376,7 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
         // Simulação
         await Task.CompletedTask;
         bool sucessoSimulado = true; // Simular sucesso
-        if (!sucessoSimulado) return NotFound(new { message = "Membro não encontrado ou não pôde ser desvinculado."});
+        if (!sucessoSimulado) return NotFound(new { message = "Membro não encontrado ou não pôde ser desvinculado." });
 
         return NoContent();
     }

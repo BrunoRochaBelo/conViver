@@ -29,7 +29,8 @@ public class NotificationService : INotificacaoService
     public Task NotificarChegadaVisitanteAsync(Guid unidadeId, string nomeVisitante, string? motivoVisita)
     {
         string mensagem = $"[NOTIFICACAO] Unidade {unidadeId}: Visitante '{nomeVisitante}' chegou.";
-        if (!string.IsNullOrEmpty(motivoVisita)) {
+        if (!string.IsNullOrEmpty(motivoVisita))
+        {
             mensagem += $" Motivo: {motivoVisita}.";
         }
         _logger.LogInformation(mensagem);
@@ -39,10 +40,12 @@ public class NotificationService : INotificacaoService
     public Task NotificarVisitantePreAutorizadoAsync(Guid unidadeId, string nomeVisitante, string? qrCodeValue, DateTime? validadeQRCode)
     {
         string mensagem = $"[NOTIFICACAO] Unidade {unidadeId}: Visitante '{nomeVisitante}' foi pré-autorizado.";
-        if (!string.IsNullOrEmpty(qrCodeValue)) {
+        if (!string.IsNullOrEmpty(qrCodeValue))
+        {
             mensagem += $" QR Code: {qrCodeValue}.";
         }
-        if (validadeQRCode.HasValue) {
+        if (validadeQRCode.HasValue)
+        {
             mensagem += $" Válido até: {validadeQRCode.Value.ToString("g")}."; // "g" for general short date/time
         }
         _logger.LogInformation(mensagem);
@@ -52,7 +55,8 @@ public class NotificationService : INotificacaoService
     public Task NotificarFalhaQRCodeAsync(Guid? unidadeId, string qrCodeValue, string motivoFalha)
     {
         string mensagem = $"[NOTIFICACAO] Falha na validação do QR Code '{qrCodeValue}'. Motivo: {motivoFalha}.";
-        if (unidadeId.HasValue) {
+        if (unidadeId.HasValue)
+        {
             mensagem += $" Associado à tentativa de visita à unidade {unidadeId.Value}.";
         }
         _logger.LogWarning(mensagem); // Use Warning for failures
@@ -66,4 +70,4 @@ public class NotificationService : INotificacaoService
         return Task.CompletedTask;
     }
 
-    }
+}

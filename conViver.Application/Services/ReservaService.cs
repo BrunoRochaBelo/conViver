@@ -175,7 +175,7 @@ public class ReservaService
         {
             var inicioDay = dto.Inicio.TimeOfDay;
             var fimDay = dto.Fim.TimeOfDay;
-             if (fimDay == TimeSpan.Zero) fimDay = TimeSpan.FromHours(24); // Trata fim à meia-noite como fim do dia
+            if (fimDay == TimeSpan.Zero) fimDay = TimeSpan.FromHours(24); // Trata fim à meia-noite como fim do dia
 
             if (inicioDay < iniFunc || fimDay > fimFunc || inicioDay >= fimFunc)
                 throw new InvalidOperationException(
@@ -298,15 +298,15 @@ public class ReservaService
 
         if (reserva == null) return null;
         // Síndico pode ver qualquer reserva, usuário normal só as suas ou se o espaço permitir visualização pública de detalhes
-        if (!isSindico && reserva.UsuarioId != usuarioId && !(reserva.EspacoComum?.PermiteVisualizacaoPublicaDetalhes ?? false) )
+        if (!isSindico && reserva.UsuarioId != usuarioId && !(reserva.EspacoComum?.PermiteVisualizacaoPublicaDetalhes ?? false))
         {
-             // Se não é do usuário e não permite visualização pública, mas é o solicitante, ainda pode ver.
-             // A lógica de 'pertenceAoUsuarioLogado' na AgendaDto já cobre isso.
-             // Para GetById, se não for síndico e não for o dono, só retorna se o espaço permitir.
-             // Se for o dono, sempre retorna.
-             // Esta lógica de permissão pode ser refinada. Por ora, se não for síndico e não for dele, retorna null.
-             // A flag `PermiteVisualizacaoPublicaDetalhes` é mais para o que é exibido no calendário para OUTROS usuários.
-             if(reserva.UsuarioId != usuarioId) return null;
+            // Se não é do usuário e não permite visualização pública, mas é o solicitante, ainda pode ver.
+            // A lógica de 'pertenceAoUsuarioLogado' na AgendaDto já cobre isso.
+            // Para GetById, se não for síndico e não for o dono, só retorna se o espaço permitir.
+            // Se for o dono, sempre retorna.
+            // Esta lógica de permissão pode ser refinada. Por ora, se não for síndico e não for dele, retorna null.
+            // A flag `PermiteVisualizacaoPublicaDetalhes` é mais para o que é exibido no calendário para OUTROS usuários.
+            if (reserva.UsuarioId != usuarioId) return null;
         }
 
 
@@ -496,12 +496,12 @@ public class ReservaService
 
         return new PaginatedResultDto<ReservaDto>(dtos, total, filters.PageNumber, filters.PageSize);
     }
-     public async Task<PaginatedResultDto<ReservaDto>> ListarReservasListViewAsync(
-        Guid condominioId,
-        Guid usuarioId, // Para filtrar "minhas reservas" ou permitir visualização mais ampla para síndico
-        ReservaFilterDto filters, // Reutiliza o DTO de filtro
-        bool isSindico,
-        CancellationToken ct = default)
+    public async Task<PaginatedResultDto<ReservaDto>> ListarReservasListViewAsync(
+       Guid condominioId,
+       Guid usuarioId, // Para filtrar "minhas reservas" ou permitir visualização mais ampla para síndico
+       ReservaFilterDto filters, // Reutiliza o DTO de filtro
+       bool isSindico,
+       CancellationToken ct = default)
     {
         var query = _reservaRepository.Query()
             .Where(r => r.CondominioId == condominioId);
@@ -641,11 +641,11 @@ public class ReservaService
     }
 
 
-     public async Task<PaginatedResultDto<ReservaMuralDto>> ListarReservasParaMuralAsync(
-        Guid condominioId,
-        int pageNumber,
-        int pageSize,
-        CancellationToken ct = default)
+    public async Task<PaginatedResultDto<ReservaMuralDto>> ListarReservasParaMuralAsync(
+       Guid condominioId,
+       int pageNumber,
+       int pageSize,
+       CancellationToken ct = default)
     {
         var dataReferencia = DateTime.UtcNow.AddHours(-24); // Considera reservas que terminaram nas últimas 24h ou futuras
 
