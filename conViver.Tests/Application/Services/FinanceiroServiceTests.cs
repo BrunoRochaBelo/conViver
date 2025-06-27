@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Linq.Expressions; // Required for It.IsAny<Expression<Func<Boleto, bool>>>() if needed later
 using System.Collections.Generic; // Required for List<T>
 using System.Linq; // Required for Linq operations like .Any()
+using System.Threading;
 
 namespace conViver.Tests.Application.Services
 {
@@ -18,13 +19,32 @@ namespace conViver.Tests.Application.Services
     {
         private readonly Mock<IRepository<Boleto>> _mockBoletoRepository;
         private readonly Mock<IRepository<Unidade>> _mockUnidadeRepository;
+        private readonly Mock<IRepository<Pagamento>> _mockPagamentoRepository;
+        private readonly Mock<IRepository<Acordo>> _mockAcordoRepository;
+        private readonly Mock<IRepository<ParcelaAcordo>> _mockParcelaRepository;
+        private readonly Mock<IRepository<OrcamentoAnual>> _mockOrcamentoRepository;
+        private readonly Mock<IRepository<LancamentoFinanceiro>> _mockLancamentoRepository;
         private readonly FinanceiroService _financeiroService;
 
         public FinanceiroServiceTests()
         {
             _mockBoletoRepository = new Mock<IRepository<Boleto>>();
             _mockUnidadeRepository = new Mock<IRepository<Unidade>>();
-            _financeiroService = new FinanceiroService(_mockBoletoRepository.Object, _mockUnidadeRepository.Object);
+            _mockPagamentoRepository = new Mock<IRepository<Pagamento>>();
+            _mockAcordoRepository = new Mock<IRepository<Acordo>>();
+            _mockParcelaRepository = new Mock<IRepository<ParcelaAcordo>>();
+            _mockOrcamentoRepository = new Mock<IRepository<OrcamentoAnual>>();
+            _mockLancamentoRepository = new Mock<IRepository<LancamentoFinanceiro>>();
+
+            _financeiroService = new FinanceiroService(
+                _mockBoletoRepository.Object,
+                _mockUnidadeRepository.Object,
+                _mockPagamentoRepository.Object,
+                _mockAcordoRepository.Object,
+                _mockParcelaRepository.Object,
+                _mockOrcamentoRepository.Object,
+                _mockLancamentoRepository.Object
+            );
         }
 
         [Fact]
@@ -537,6 +557,60 @@ namespace conViver.Tests.Application.Services
             Assert.Equal("Boleto pago não pode ser cancelado.", result.Mensagem); // Message from Boleto.Cancelar()
             _mockBoletoRepository.Verify(r => r.UpdateAsync(It.IsAny<Boleto>(), default), Times.Never);
             _mockBoletoRepository.Verify(r => r.SaveChangesAsync(default), Times.Never);
+        }
+
+        [Fact]
+        public async Task RegistrarOrcamentoAsync_ShouldAddItemsAndReturnDtos()
+        {
+            var condominioId = Guid.NewGuid();
+            var categorias = new List<OrcamentoCategoriaInputDto>
+            {
+                new() { Categoria = "Manutencao", ValorPrevisto = 1000m },
+                new() { Categoria = "Limpeza", ValorPrevisto = 500m }
+            };
+
+            var added = new List<OrcamentoAnual>();
+            _mockOrcamentoRepository.Setup(r => r.AddAsync(It.IsAny<OrcamentoAnual>(), default))
+                .Callback<OrcamentoAnual, CancellationToken>((o, ct) => added.Add(o))
+                .Returns(Task.CompletedTask);
+            _mockOrcamentoRepository.Setup(r => r.SaveChangesAsync(default)).ReturnsAsync(1);
+
+            var result = (await _financeiroService.RegistrarOrcamentoAsync(condominioId, 2025, categorias)).ToList();
+
+            Assert.Equal(2, added.Count);
+            Assert.Equal(2, result.Count);
+            Assert.Contains(result, r => r.Categoria == "Manutencao" && r.ValorPrevisto == 1000m);
+        }
+
+        [Fact]
+        public async Task CompararExecucaoOrcamentoAsync_ShouldReturnExecutedTotals()
+        {
+            var condominioId = Guid.NewGuid();
+            var ano = 2025;
+
+            var orcamentos = new List<OrcamentoAnual>
+            {
+                new() { Id = Guid.NewGuid(), CondominioId = condominioId, Ano = ano, Categoria = "Manutencao", ValorPrevisto = 1000m },
+                new() { Id = Guid.NewGuid(), CondominioId = condominioId, Ano = ano, Categoria = "Limpeza", ValorPrevisto = 500m }
+            };
+            _mockOrcamentoRepository.Setup(r => r.Query()).Returns(orcamentos.AsQueryable());
+
+            var unidade = new Unidade { Id = Guid.NewGuid(), CondominioId = condominioId, Identificacao = "101" };
+            _mockUnidadeRepository.Setup(r => r.Query()).Returns(new List<Unidade> { unidade }.AsQueryable());
+
+            var lancamentos = new List<LancamentoFinanceiro>
+            {
+                new() { Id = Guid.NewGuid(), UnidadeId = unidade.Id, Tipo = "debito", Valor = 600m, Data = new DateTime(ano,1,10), Descricao = "Manutencao" },
+                new() { Id = Guid.NewGuid(), UnidadeId = unidade.Id, Tipo = "debito", Valor = 200m, Data = new DateTime(ano,2,5), Descricao = "Limpeza" }
+            };
+            _mockLancamentoRepository.Setup(r => r.Query()).Returns(lancamentos.AsQueryable());
+
+            var resultado = (await _financeiroService.CompararExecucaoOrcamentoAsync(condominioId, ano)).ToList();
+
+            Assert.Equal(2, resultado.Count);
+            var manutencao = resultado.First(r => r.Categoria == "Manutencao");
+            Assert.Equal(1000m, manutencao.ValorPrevisto);
+            Assert.Equal(600m, manutencao.ValorExecutado);
         }
 
 

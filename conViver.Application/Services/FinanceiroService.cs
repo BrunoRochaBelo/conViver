@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace conViver.Application.Services // Changed namespace to match convention
 {
@@ -17,6 +18,8 @@ namespace conViver.Application.Services // Changed namespace to match convention
         private readonly IRepository<Pagamento> _pagamentoRepository;
         private readonly IRepository<Acordo> _acordoRepository;
         private readonly IRepository<ParcelaAcordo> _parcelaRepository;
+        private readonly IRepository<OrcamentoAnual> _orcamentoRepository;
+        private readonly IRepository<LancamentoFinanceiro> _lancamentoRepository;
         // private readonly IFinanceiroGateway _financeiroGateway; // Example if you have a specific gateway interface
 
         // Constructor updated to reflect repository usage
@@ -25,7 +28,9 @@ namespace conViver.Application.Services // Changed namespace to match convention
             IRepository<Unidade> unidadeRepository,
             IRepository<Pagamento> pagamentoRepository,
             IRepository<Acordo> acordoRepository,
-            IRepository<ParcelaAcordo> parcelaRepository
+            IRepository<ParcelaAcordo> parcelaRepository,
+            IRepository<OrcamentoAnual> orcamentoRepository,
+            IRepository<LancamentoFinanceiro> lancamentoRepository
             /*, IFinanceiroGateway financeiroGateway */)
         {
             _boletoRepository = boletoRepository;
@@ -33,6 +38,8 @@ namespace conViver.Application.Services // Changed namespace to match convention
             _pagamentoRepository = pagamentoRepository;
             _acordoRepository = acordoRepository;
             _parcelaRepository = parcelaRepository;
+            _orcamentoRepository = orcamentoRepository;
+            _lancamentoRepository = lancamentoRepository;
             // _financeiroGateway = financeiroGateway;
         }
 
@@ -489,6 +496,73 @@ namespace conViver.Application.Services // Changed namespace to match convention
                     Pago = p.Pago
                 }).ToList()
             };
+        }
+
+        public async Task<IEnumerable<OrcamentoAnualDto>> RegistrarOrcamentoAsync(Guid condominioId, int ano, IEnumerable<OrcamentoCategoriaInputDto> categorias, CancellationToken cancellationToken = default)
+        {
+            var entidades = new List<OrcamentoAnual>();
+            foreach (var cat in categorias)
+            {
+                var ent = new OrcamentoAnual
+                {
+                    Id = Guid.NewGuid(),
+                    CondominioId = condominioId,
+                    Ano = ano,
+                    Categoria = cat.Categoria,
+                    ValorPrevisto = cat.ValorPrevisto
+                };
+                await _orcamentoRepository.AddAsync(ent, cancellationToken);
+                entidades.Add(ent);
+            }
+            await _orcamentoRepository.SaveChangesAsync(cancellationToken);
+            return entidades.Select(e => new OrcamentoAnualDto
+            {
+                Id = e.Id,
+                Ano = e.Ano,
+                Categoria = e.Categoria,
+                ValorPrevisto = e.ValorPrevisto
+            });
+        }
+
+        public async Task<IEnumerable<OrcamentoAnualDto>> ObterOrcamentoAsync(Guid condominioId, int ano, CancellationToken cancellationToken = default)
+        {
+            var itens = await _orcamentoRepository.Query()
+                .Where(o => o.CondominioId == condominioId && o.Ano == ano)
+                .ToListAsync(cancellationToken);
+            return itens.Select(e => new OrcamentoAnualDto
+            {
+                Id = e.Id,
+                Ano = e.Ano,
+                Categoria = e.Categoria,
+                ValorPrevisto = e.ValorPrevisto
+            });
+        }
+
+        public async Task<IEnumerable<OrcamentoComparativoDto>> CompararExecucaoOrcamentoAsync(Guid condominioId, int ano, CancellationToken cancellationToken = default)
+        {
+            var orcamento = await _orcamentoRepository.Query()
+                .Where(o => o.CondominioId == condominioId && o.Ano == ano)
+                .ToListAsync(cancellationToken);
+
+            var gastos = await (from l in _lancamentoRepository.Query()
+                                join u in _unidadeRepository.Query() on l.UnidadeId equals u.Id
+                                where u.CondominioId == condominioId && l.Data.Year == ano && l.Tipo == "debito"
+                                group l by l.Descricao into g
+                                select new { Categoria = g.Key!, Valor = g.Sum(x => x.Valor) })
+                                .ToListAsync(cancellationToken);
+
+            var resultado = new List<OrcamentoComparativoDto>();
+            foreach (var item in orcamento)
+            {
+                var exec = gastos.FirstOrDefault(g => g.Categoria == item.Categoria);
+                resultado.Add(new OrcamentoComparativoDto
+                {
+                    Categoria = item.Categoria,
+                    ValorPrevisto = item.ValorPrevisto,
+                    ValorExecutado = exec?.Valor ?? 0m
+                });
+            }
+            return resultado;
         }
 
         // --- Métodos simplificados para compatibilidade com os controllers ---

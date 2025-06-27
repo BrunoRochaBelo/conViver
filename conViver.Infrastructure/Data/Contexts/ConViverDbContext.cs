@@ -22,6 +22,7 @@ public class ConViverDbContext : DbContext
     public DbSet<PrestadorServico> Prestadores => Set<PrestadorServico>();
     public DbSet<LancamentoFinanceiro> Lancamentos => Set<LancamentoFinanceiro>();
     public DbSet<Documento> Documentos => Set<Documento>();
+    public DbSet<OrcamentoAnual> OrcamentosAnuais => Set<OrcamentoAnual>();
     public DbSet<Votacao> Votacoes => Set<Votacao>();
     public DbSet<OpcaoVotacao> OpcoesVotacao => Set<OpcaoVotacao>();
     public DbSet<VotoRegistrado> VotosRegistrados => Set<VotoRegistrado>();
