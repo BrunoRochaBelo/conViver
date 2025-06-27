@@ -32,43 +32,57 @@ namespace conViver.Application.Services // Changed namespace to match convention
             _unidadeRepository = unidadeRepository;
             _pagamentoRepository = pagamentoRepository;
             _acordoRepository = acordoRepository;
-            _parcelaRepository = parcelaRepository;
-            // _financeiroGateway = financeiroGateway;
+        _parcelaRepository = parcelaRepository;
+        // _financeiroGateway = financeiroGateway;
         }
 
         public async Task<DashboardFinanceiroCobrancasDto> GetDashboardCobrancasAsync(Guid condominioId)
         {
-            // This is a simplified dashboard implementation.
-            // TODO: Implement proper filtering by condominioId for all queries and more accurate calculations.
-            // For example, 'todosBoletos' should be filtered by condominioId.
-            // InadimplenciaPercentual and TotalPixMes are currently placeholders.
+            // Filtra boletos do condomínio via Unidade
+            var boletos = await (from b in _boletoRepository.Query()
+                                join u in _unidadeRepository.Query() on b.UnidadeId equals u.Id
+                                where u.CondominioId == condominioId
+                                select b).ToListAsync();
 
-            Console.WriteLine($"Gerando dashboard de cobranças para Condomínio ID: {condominioId} (implementação simplificada)");
+            var hoje = DateTime.UtcNow;
 
-            // Example: Calculate based on existing boletos (needs condominioId filter)
-             var todosBoletosNoCondominio = await _boletoRepository.Query()
-                                // .Where(b => b.Unidade.CondominioId == condominioId) // This requires Boleto to have a direct navigation to Unidade or a join
-                                .ToListAsync(); // Placeholder: Should be filtered by condominioId
-
-            // The following lines demonstrate conceptual calculations but lack condominioId filtering for now.
-            // This would require joining Boleto with Unidade to filter by condominioId,
-            // similar to ListarCobrancasAsync, if Boleto itself doesn't store CondominioId.
-            // As a simplification for this step, we'll use all boletos and acknowledge this limitation.
-
-            var pendentes = todosBoletosNoCondominio.Count(b =>
+            var pendentes = boletos.Count(b =>
                 b.Status == BoletoStatus.Gerado ||
                 b.Status == BoletoStatus.Registrado ||
+                b.Status == BoletoStatus.Enviado ||
                 b.Status == BoletoStatus.Vencido);
-            var pagosNoMes = todosBoletosNoCondominio.Count(b => b.Status == BoletoStatus.Pago && b.DataPagamento.HasValue && b.DataPagamento.Value.Month == DateTime.UtcNow.Month && b.DataPagamento.Value.Year == DateTime.UtcNow.Year);
 
-            // InadimplenciaPercentual and TotalPixMes would require more complex logic and data.
+            var boletosMes = boletos.Where(b =>
+                b.DataVencimento.Year == hoje.Year &&
+                b.DataVencimento.Month == hoje.Month &&
+                b.Status != BoletoStatus.Cancelado).ToList();
+
+            var valorPrevisto = boletosMes.Sum(b => b.Valor);
+
+            var pagamentosMes = await (from p in _pagamentoRepository.Query()
+                                      join b in _boletoRepository.Query() on p.BoletoId equals b.Id
+                                      join u in _unidadeRepository.Query() on b.UnidadeId equals u.Id
+                                      where u.CondominioId == condominioId &&
+                                            p.DataPgto.Year == hoje.Year &&
+                                            p.DataPgto.Month == hoje.Month
+                                      select new { p.ValorPago, p.Origem }).ToListAsync();
+
+            var valorPago = pagamentosMes.Sum(p => p.ValorPago);
+            var totalPixMes = pagamentosMes
+                .Where(p => p.Origem.Equals("pix", StringComparison.OrdinalIgnoreCase))
+                .Sum(p => p.ValorPago);
+
+            var valorAberto = valorPrevisto - valorPago;
+            var inadimplencia = valorPrevisto == 0 ? 0m : Math.Round((valorAberto / valorPrevisto) * 100m, 1);
+
             return new DashboardFinanceiroCobrancasDto
             {
-                InadimplenciaPercentual = 10.5m, // Mocked: Needs real calculation
-                TotalPixMes = (decimal)new Random().Next(500, 2000), // Mocked: Needs real calculation based on Pix transactions
-                TotalBoletosPendentes = pendentes // Partially dynamic, but lacks condominioId filter
+                InadimplenciaPercentual = inadimplencia,
+                TotalPixMes = totalPixMes,
+                TotalBoletosPendentes = pendentes
             };
         }
+
 
         public async Task<IEnumerable<CobrancaDto>> ListarCobrancasAsync(Guid condominioId, string? status)
         {

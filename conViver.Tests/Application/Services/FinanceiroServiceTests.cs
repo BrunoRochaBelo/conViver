@@ -5,6 +5,7 @@ using conViver.Core.Interfaces;
 using conViver.Core.Entities;
 using conViver.Core.DTOs;
 using conViver.Core.Enums;
+using conViver.Core.Entities; // For Pagamento, Acordo, ParcelaAcordo
 using conViver.Application.Services;
 using System;
 using System.Threading.Tasks;
@@ -18,13 +19,24 @@ namespace conViver.Tests.Application.Services
     {
         private readonly Mock<IRepository<Boleto>> _mockBoletoRepository;
         private readonly Mock<IRepository<Unidade>> _mockUnidadeRepository;
+        private readonly Mock<IRepository<Pagamento>> _mockPagamentoRepository;
+        private readonly Mock<IRepository<Acordo>> _mockAcordoRepository;
+        private readonly Mock<IRepository<ParcelaAcordo>> _mockParcelaRepository;
         private readonly FinanceiroService _financeiroService;
 
         public FinanceiroServiceTests()
         {
             _mockBoletoRepository = new Mock<IRepository<Boleto>>();
             _mockUnidadeRepository = new Mock<IRepository<Unidade>>();
-            _financeiroService = new FinanceiroService(_mockBoletoRepository.Object, _mockUnidadeRepository.Object);
+            _mockPagamentoRepository = new Mock<IRepository<Pagamento>>();
+            _mockAcordoRepository = new Mock<IRepository<Acordo>>();
+            _mockParcelaRepository = new Mock<IRepository<ParcelaAcordo>>();
+            _financeiroService = new FinanceiroService(
+                _mockBoletoRepository.Object,
+                _mockUnidadeRepository.Object,
+                _mockPagamentoRepository.Object,
+                _mockAcordoRepository.Object,
+                _mockParcelaRepository.Object);
         }
 
         [Fact]
@@ -537,6 +549,68 @@ namespace conViver.Tests.Application.Services
             Assert.Equal("Boleto pago não pode ser cancelado.", result.Mensagem); // Message from Boleto.Cancelar()
             _mockBoletoRepository.Verify(r => r.UpdateAsync(It.IsAny<Boleto>(), default), Times.Never);
             _mockBoletoRepository.Verify(r => r.SaveChangesAsync(default), Times.Never);
+        }
+
+        [Fact]
+        public async Task GetDashboardCobrancasAsync_NoData_ShouldReturnZeros()
+        {
+            // Arrange
+            var condominioId = Guid.NewGuid();
+            _mockBoletoRepository.Setup(r => r.Query()).Returns(new List<Boleto>().AsQueryable());
+            _mockUnidadeRepository.Setup(r => r.Query()).Returns(new List<Unidade>().AsQueryable());
+            _mockPagamentoRepository.Setup(r => r.Query()).Returns(new List<Pagamento>().AsQueryable());
+
+            // Act
+            var result = await _financeiroService.GetDashboardCobrancasAsync(condominioId);
+
+            // Assert
+            Assert.Equal(0m, result.InadimplenciaPercentual);
+            Assert.Equal(0m, result.TotalPixMes);
+            Assert.Equal(0, result.TotalBoletosPendentes);
+        }
+
+        [Fact]
+        public async Task GetDashboardCobrancasAsync_WithData_ShouldCalculateMetrics()
+        {
+            // Arrange
+            var condominioId = Guid.NewGuid();
+            var outroCondominioId = Guid.NewGuid();
+
+            var unidades = new List<Unidade>
+            {
+                new Unidade { Id = Guid.NewGuid(), CondominioId = condominioId },
+                new Unidade { Id = Guid.NewGuid(), CondominioId = condominioId },
+                new Unidade { Id = Guid.NewGuid(), CondominioId = outroCondominioId }
+            };
+
+            var hoje = DateTime.UtcNow;
+            var boletos = new List<Boleto>
+            {
+                new Boleto { Id = Guid.NewGuid(), UnidadeId = unidades[0].Id, Valor = 100m, DataVencimento = new DateTime(hoje.Year, hoje.Month, 10) },
+                new Boleto { Id = Guid.NewGuid(), UnidadeId = unidades[0].Id, Valor = 200m, DataVencimento = new DateTime(hoje.Year, hoje.Month, 15) },
+                new Boleto { Id = Guid.NewGuid(), UnidadeId = unidades[1].Id, Valor = 300m, DataVencimento = new DateTime(hoje.Year, hoje.Month, 20), },
+                new Boleto { Id = Guid.NewGuid(), UnidadeId = unidades[2].Id, Valor = 400m, DataVencimento = new DateTime(hoje.Year, hoje.Month, 10) }
+            };
+
+            typeof(Boleto).GetProperty("Status")!.SetValue(boletos[0], BoletoStatus.Pago);
+            typeof(Boleto).GetProperty("Status")!.SetValue(boletos[2], BoletoStatus.Vencido);
+
+            var pagamentos = new List<Pagamento>
+            {
+                new Pagamento { Id = Guid.NewGuid(), BoletoId = boletos[0].Id, Origem = "pix", ValorPago = 100m, DataPgto = hoje }
+            };
+
+            _mockBoletoRepository.Setup(r => r.Query()).Returns(boletos.AsQueryable());
+            _mockUnidadeRepository.Setup(r => r.Query()).Returns(unidades.AsQueryable());
+            _mockPagamentoRepository.Setup(r => r.Query()).Returns(pagamentos.AsQueryable());
+
+            // Act
+            var result = await _financeiroService.GetDashboardCobrancasAsync(condominioId);
+
+            // Assert
+            Assert.Equal(83.3m, result.InadimplenciaPercentual); // (500/600)*100 rounded to 1 decimal
+            Assert.Equal(100m, result.TotalPixMes);
+            Assert.Equal(2, result.TotalBoletosPendentes); // boleto[1] Gerado, boleto[2] Vencido
         }
 
 
