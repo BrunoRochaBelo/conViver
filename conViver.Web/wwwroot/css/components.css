@@ -92,6 +92,13 @@
     margin-bottom: var(--cv-spacing-md);
 }
 
+/* Generic grid layout for card collections */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--cv-spacing-md);
+}
+
 .cv-input {
     font-family: var(--cv-font-family-sans-serif);
     padding: var(--cv-spacing-sm) var(--cv-spacing-md);

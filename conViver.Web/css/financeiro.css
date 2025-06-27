@@ -1,0 +1,36 @@
+/* Styles specific to the Financeiro page card layout */
+
+.cobranca-card, .despesa-card {
+    background-color: var(--current-bg-white);
+    border-radius: var(--cv-border-radius-md);
+    box-shadow: var(--current-shadow-sm);
+    padding: var(--cv-spacing-md);
+    margin-bottom: var(--cv-spacing-md);
+}
+
+.cobranca-card__header, .despesa-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cv-spacing-sm);
+}
+
+.cobranca-card__actions, .despesa-card__actions {
+    margin-top: var(--cv-spacing-sm);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cv-spacing-xs);
+}
+
+.status-tag {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    color: #fff;
+}
+
+.status-tag--pago { background-color: var(--current-semantic-success); }
+.status-tag--pendente { background-color: var(--current-semantic-warning); }
+.status-tag--atrasado { background-color: var(--current-semantic-danger); }
+.status-tag--cancelado { background-color: var(--current-semantic-danger); }
+

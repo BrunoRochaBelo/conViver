@@ -21,22 +21,7 @@
                         <button id="btnFiltrarVisitantesAtuais" class="cv-button cv-button--small">Filtrar</button>
                         <button id="btnLimparFiltroVisitantesAtuais" class="cv-button cv-button--small">Limpar</button>
                     </div>
-                    <table class="cv-table" id="tabelaVisitantesAtuais">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Unidade</th>
-                                <th>Documento</th>
-                                <th>Motivo</th>
-                                <th>Chegada</th>
-                                <th>Saída Prevista</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody class="js-visitantes-atuais-lista">
-                            <!-- Dados carregados via JS -->
-                        </tbody>
-                    </table>
+                    <div class="card-grid js-visitantes-atuais-lista"></div>
                     <p id="visitantesAtuaisLoadingMsg" style="display:none;">Carregando...</p>
                     <p id="visitantesAtuaisNoDataMsg" style="display:none;">Nenhum visitante encontrado.</p>
                 </div>
@@ -95,23 +80,7 @@
                         <button id="btnFiltrarHistorico" class="cv-button cv-button--small">Filtrar Histórico</button>
                         <button id="btnLimparFiltroHistorico" class="cv-button cv-button--small">Limpar Filtros</button>
                     </div>
-                    <table class="cv-table" id="tabelaHistoricoVisitantes">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Unidade</th>
-                                <th>Documento</th>
-                                <th>Motivo</th>
-                                <th>Chegada</th>
-                                <th>Saída</th>
-                                <th>Status</th>
-                                <th>Observações</th>
-                            </tr>
-                        </thead>
-                        <tbody class="js-historico-visitantes-lista">
-                            <!-- Dados carregados via JS -->
-                        </tbody>
-                    </table>
+                    <div class="card-grid js-historico-visitantes-lista"></div>
                     <p id="historicoLoadingMsg" style="display:none;">Carregando histórico...</p>
                     <p id="historicoNoDataMsg" style="display:none;">Nenhum registro encontrado para os filtros aplicados.</p>
                 </div>
@@ -140,19 +109,7 @@
                 </form>
                 <p id="novaEncomendaMsg" class="feedback-message" style="display:none;"></p>
                 <h3>Encomendas Pendentes</h3>
-                <table class="cv-table portaria__package-list">
-                    <thead>
-                        <tr>
-                            <th>Encomenda</th>
-                            <th>Unidade</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody class="js-encomendas">
-                        <!-- Dados via JS -->
-                    </tbody>
-                </table>
+                <div class="card-grid js-encomendas"></div>
                 <p id="encomendasLoadingMsg" style="display:none;">Carregando...</p>
                 <p id="encomendasNoDataMsg" style="display:none;">Nenhuma encomenda pendente.</p>
             </section>

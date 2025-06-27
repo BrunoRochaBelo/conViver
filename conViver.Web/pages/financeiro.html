@@ -5,6 +5,7 @@
     <title>conViver - Gestão Financeira</title>
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/financeiro.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -80,23 +81,7 @@
                 <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
                 <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
             </div>
-            <div class="table-responsive">
-                <table class="cv-table fin-cobrancas__table">
-                    <thead>
-                        <tr>
-                            <th>Unidade</th>
-                            <th>Sacado</th>
-                            <th>Valor</th>
-                            <th>Vencimento</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody class="js-lista-cobrancas">
-                        <tr><td colspan="6">Carregando cobranças...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+            <div class="card-grid js-lista-cobrancas"></div>
         </section>
 
         <!-- Modal (inicialmente oculto) -->
@@ -115,12 +100,7 @@
         <div class="cv-tab-content" id="content-despesas" style="display:none;">
             <h2>Despesas</h2>
             <canvas id="graficoDespesas" height="320"></canvas>
-            <table class="cv-table fin-despesas__table">
-                <thead>
-                    <tr><th>Categoria</th><th>Valor</th><th>Vencimento</th></tr>
-                </thead>
-                <tbody class="js-lista-despesas"></tbody>
-            </table>
+            <div class="card-grid js-lista-despesas"></div>
         </div>
 
         <div class="cv-tab-content" id="content-relatorios" style="display:none;">
