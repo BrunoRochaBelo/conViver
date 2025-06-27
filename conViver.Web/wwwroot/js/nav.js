@@ -22,7 +22,14 @@ export function buildNavigation() {
             key: 'financeiro',
             label: 'Financeiro',
             href: 'financeiro.html',
-            icon: `<svg class="cv-nav__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`
+            icon: `<svg class="cv-nav__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+            subItems: [
+                { key: 'cobrancas', label: 'Cobranças', href: 'financeiro.html' },
+                { key: 'despesas', label: 'Despesas', href: 'financeiro.html#despesas' },
+                { key: 'relatorios', label: 'Relatórios', href: 'financeiro.html#relatorios' },
+                { key: 'orcamento', label: 'Orçamento', href: 'financeiro.html#orcamento' },
+                { key: 'tendencias', label: 'Tendências', href: 'financeiro.html#tendencias' }
+            ]
         },
         {
             key: 'reservas',
@@ -72,9 +79,24 @@ export function buildNavigation() {
         a.className = 'cv-nav__link';
         if (currentPage === item.key || (currentPage === 'index' && item.key === 'dashboard')) {
             a.classList.add('cv-nav__link--active');
+            a.setAttribute('aria-current', 'page');
         }
         li.appendChild(a);
         ul.appendChild(li);
+
+        if (item.subItems && (currentPage === item.key || item.subItems.some(si => si.key === currentPage))) {
+            const subNav = document.createElement('div');
+            subNav.className = 'cv-tabs fin-subtabs';
+            item.subItems.forEach(si => {
+                const subA = document.createElement('a');
+                subA.href = `${hrefPrefix}${si.href}`;
+                subA.className = 'cv-tab-button';
+                subA.textContent = si.label;
+                if (currentPage === si.key) subA.classList.add('active');
+                subNav.appendChild(subA);
+            });
+            navContainer.appendChild(subNav);
+        }
     });
 
     container.appendChild(ul);
