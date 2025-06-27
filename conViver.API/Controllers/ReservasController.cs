@@ -26,7 +26,7 @@ public class ReservasController : ControllerBase
     /// Obtém a agenda de reservas para um determinado mês/ano. (App)
     /// </summary>
     [HttpGet("app/reservas/agenda")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<IEnumerable<AgendaReservaDto>>> GetAgenda(
         [FromQuery, Required] string mesAno,
         [FromQuery] Guid? espacoComumId,
@@ -61,7 +61,7 @@ public class ReservasController : ControllerBase
     /// Lista todos os espaços comuns disponíveis para reserva no condomínio. (App)
     /// </summary>
     [HttpGet("app/reservas/espacos-comuns")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<IEnumerable<EspacoComumDto>>> ListarEspacosComuns()
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
@@ -79,7 +79,7 @@ public class ReservasController : ControllerBase
     /// Obtém detalhes de uma reserva específica. (App)
     /// </summary>
     [HttpGet("app/reservas/{id:guid}")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<ReservaDto>> GetReservaPorId(Guid id)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
@@ -101,7 +101,7 @@ public class ReservasController : ControllerBase
     /// Cria uma nova solicitação de reserva para uma área comum. (App)
     /// </summary>
     [HttpPost("app/reservas")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<ReservaDto>> SolicitarReserva([FromBody] ReservaInputDto inputDto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -141,7 +141,7 @@ public class ReservasController : ControllerBase
     /// </summary>
     [HttpDelete("app/reservas/{id:guid}")]
     [HttpPost("app/reservas/{id:guid}/cancelar")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<IActionResult> CancelarReserva(Guid id)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
@@ -181,7 +181,7 @@ public class ReservasController : ControllerBase
     /// (App) Lista reservas em formato paginado.
     /// </summary>
     [HttpGet("app/reservas/lista")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<PaginatedResultDto<ReservaDto>>> ListarReservasPaginadas([FromQuery] ReservaFilterDto filters)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
@@ -202,7 +202,7 @@ public class ReservasController : ControllerBase
     /// (App) Lista as reservas do usuário logado.
     /// </summary>
     [HttpGet("app/reservas/minhas"), HttpGet("app/reservas/minhas-reservas")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<IEnumerable<ReservaDto>>> ListarMinhasReservas([
         FromQuery] Guid? espacoComumId,
         [FromQuery] string? status,

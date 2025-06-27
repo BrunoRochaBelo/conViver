@@ -30,7 +30,7 @@ public class ChamadosController : ControllerBase
     /// <response code="400">Se os dados do chamado forem inválidos.</response>
     /// <response code="401">Usuário não autorizado ou claims não encontradas.</response>
     [HttpPost("app/chamados")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<ChamadoDto>> AbrirChamado([FromBody] ChamadoInputDto chamadoInput)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -56,7 +56,7 @@ public class ChamadosController : ControllerBase
     /// <response code="200">Retorna a lista de chamados.</response>
     /// <response code="401">Usuário não autorizado ou claims não encontradas.</response>
     [HttpGet("app/chamados")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<IEnumerable<ChamadoDto>>> ListarMeusChamados([FromQuery] string? status)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -104,7 +104,7 @@ public class ChamadosController : ControllerBase
     /// <response code="403">Usuário não tem permissão para ver este chamado.</response>
     /// <response code="404">Chamado não encontrado.</response>
     [HttpGet("app/chamados/{id:guid}")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<ChamadoDto>> ObterChamadoPorIdApp(Guid id)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -221,7 +221,7 @@ public class ChamadosController : ControllerBase
     /// <response code="403">Usuário não tem permissão para avaliar este chamado (não é o criador).</response>
     /// <response code="404">Chamado não encontrado.</response>
     [HttpPost("app/chamados/{id:guid}/avaliar")]
-    [Authorize(Roles = "Condomino,Inquilino")] // Síndico não usa este endpoint para avaliar
+    [Authorize(Roles = "Morador")] // Síndico não usa este endpoint para avaliar
     public async Task<ActionResult<ChamadoDto>> AvaliarChamado(Guid id, [FromBody] ChamadoAvaliacaoDto avaliacaoDto)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);

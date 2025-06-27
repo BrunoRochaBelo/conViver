@@ -94,7 +94,7 @@ public class DocumentosController : ControllerBase
     /// <response code="200">Retorna a lista de documentos.</response>
     /// <response code="401">Usuário não autorizado ou claim de condomínio não encontrada.</response>
     [HttpGet("app/docs")] // Rota conforme API_REFERENCE.md (GET /api/v1/app/docs)
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<IEnumerable<DocumentoDto>>> ListarDocumentos([FromQuery] string? categoria)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
@@ -116,7 +116,7 @@ public class DocumentosController : ControllerBase
     /// <response code="401">Usuário não autorizado.</response>
     /// <response code="404">Documento não encontrado.</response>
     [HttpGet("app/docs/{id:guid}")]
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")]
+    [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<DocumentoDto>> ObterDocumentoPorId(Guid id)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
@@ -148,7 +148,7 @@ public class DocumentosController : ControllerBase
     /// <response code="401">Usuário não autorizado (se a rota for protegida).</response>
     /// <response code="404">Documento não encontrado ou arquivo físico ausente.</response>
     [HttpGet("download/{id:guid}")] // A rota base do controller é /api/v1/docs
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")] // Proteger o endpoint de download
+    [Authorize(Roles = "Sindico,Morador")] // Proteger o endpoint de download
     public async Task<IActionResult> DownloadDocumento(Guid id)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");

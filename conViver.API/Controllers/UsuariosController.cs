@@ -113,7 +113,7 @@ public class UsuariosController : ControllerBase // Renomear para AuthController
 
         // Simulação de dados para o token (o JwtService deveria lidar com isso de forma mais robusta)
         // O JwtService.GenerateToken idealmente retornaria claims adicionais, mas o serviço atual aceita apenas o condominioId opcional
-        var accessTokenString = _jwt.GenerateToken(usuario.Id, usuario.Perfil.ToString(), null);
+        var accessTokenString = _jwt.GenerateToken(usuario.Id, usuario.Perfil.ToString(), usuario.CondominioId);
 
         // Placeholder para Refresh Token e Expiration - JwtService deveria fornecer isso
         var refreshTokenString = "dummyRefreshToken_jwtService_needs_to_implement_this_" + Guid.NewGuid().ToString();

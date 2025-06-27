@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="FluentAssertions" Version="8.3.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -19,7 +20,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.7" /> <!-- Added Mvc.Testing -->
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.7" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.7" />
   </ItemGroup>
@@ -32,10 +33,11 @@
     <Compile Remove="API/AuthControllerTests.cs" />
     <Compile Remove="Application/Services/FinanceiroServiceTests.cs" />
     <Compile Remove="Application/Services/UsuarioServiceTests.cs" />
+    <Compile Remove="UnitTest1.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\conViver.API\conViver.API.csproj" /> <!-- Added API project reference -->
+    <ProjectReference Include="..\conViver.API\conViver.API.csproj" />
     <ProjectReference Include="..\conViver.Core\conViver.Core.csproj" />
     <ProjectReference Include="..\conViver.Application\conViver.Application.csproj" />
     <ProjectReference Include="..\conViver.Infrastructure\conViver.Infrastructure.csproj" />

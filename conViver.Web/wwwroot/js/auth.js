@@ -36,7 +36,7 @@ export function getUserInfo() {
             email: payload.email || null,
             name: payload.given_name || payload.name || null,
             roles,
-            condominioId: payload.condoId || payload.condominioId || null,
+            condominioId: payload.condominioId || null,
         };
     } catch (err) {
         console.error('Failed to parse user token', err);

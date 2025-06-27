@@ -56,7 +56,7 @@ public class VisitantesController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Roles = "Sindico,Administrador,Porteiro,Condomino")]
+    [Authorize(Roles = "Sindico,Administrador,Porteiro,Morador")]
     public async Task<ActionResult<VisitanteDto>> ObterVisitantePorId(Guid id, CancellationToken ct)
     {
         var visitante = await _visitanteService.ObterVisitantePorIdAsync(id, ct);
@@ -154,7 +154,7 @@ public class VisitantesController : ControllerBase
     }
 
     [HttpGet("atuais")]
-    [Authorize(Roles = "Sindico,Administrador,Porteiro,Condomino")]
+    [Authorize(Roles = "Sindico,Administrador,Porteiro,Morador")]
     public async Task<ActionResult<IEnumerable<VisitanteDto>>> ListarVisitantesAtuais([FromQuery] Guid? unidadeId, CancellationToken ct)
     {
         Guid? idParaFiltrar = unidadeId;
@@ -190,7 +190,7 @@ public class VisitantesController : ControllerBase
     }
 
     [HttpPost("pre-autorizar")]
-    [Authorize(Roles = "Condomino,Administrador,Sindico")] // Sindico added as they might pre-authorize too
+    [Authorize(Roles = "Morador,Administrador,Sindico")] // Sindico added as they might pre-authorize too
     public async Task<ActionResult<VisitanteDto>> PreAutorizarVisita([FromBody] PreAutorizacaoVisitanteDto preAuthDto, CancellationToken ct)
     {
         var authenticatedUserId = GetAuthenticatedUserId();
