@@ -508,68 +508,76 @@ function toggleReservasView(view) {
 
 function setupTabs() {
   const tabsContainer = document.getElementById("reservas-tabs");
+  if (!tabsContainer) {
+    console.warn("Elemento de abas de reservas não encontrado.");
+    return;
+  }
+
   const tabButtons = tabsContainer.querySelectorAll(".cv-tab-button");
   const tabContents = tabsContainer.parentElement.querySelectorAll(
     ".cv-tab-content"
   );
+
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      console.log(`Tab clicked: ${button.id}`); // Log: Tab button ID
+      console.log(`Tab clicked: ${button.id}`);
       tabButtons.forEach((btn) => btn.classList.remove("active"));
       button.classList.add("active");
 
       tabContents.forEach((c) => {
-        // console.log(`Hiding content: ${c.id}`); // Verbose
         c.style.display = "none";
       });
+
       const targetContentId = "content-" + button.id.replace("tab-", "");
-      console.log(`Target content ID: ${targetContentId}`); // Log: Target content ID
+      console.log(`Target content ID: ${targetContentId}`);
       const target = document.getElementById(targetContentId);
       if (target) {
         target.style.display = "block";
-        console.log(`Displayed content: ${target.id}`); // Log: Displayed content
+        console.log(`Displayed content: ${target.id}`);
       } else {
         console.error(`Target content pane with ID ${targetContentId} not found.`);
       }
 
-      // Specific logic for tab activation
       if (button.id === "tab-minhas-reservas") {
-        console.log("Handling 'tab-minhas-reservas' activation."); // Log
+        console.log("Handling 'tab-minhas-reservas' activation.");
         const container = document.getElementById(minhasReservasItemsContainerId);
         if (!container) {
-            console.error(`Container for minhas reservas list (#${minhasReservasItemsContainerId}) not found.`);
-            return;
+          console.error(`Container for minhas reservas (#${minhasReservasItemsContainerId}) not found.`);
+          return;
         }
-        console.log(`'Minhas Reservas' container found. LoadedOnce: ${container.dataset.loadedOnce}, InnerHTML empty: ${container.innerHTML.trim() === ""}, Has loading msg: ${!!container.querySelector(".cv-loading-message")}`); // Log
-        // Load only if not loaded once or if it's empty (e.g. after filters changed by on-page filters)
-        // The `container.querySelector(".cv-loading-message")` checks if it's in its initial loading state.
-        if (!container.dataset.loadedOnce || container.innerHTML.trim() === "" || container.querySelector(".cv-loading-message")) {
-            console.log("Condition to load 'Minhas Reservas' met. Calling carregarMinhasReservas."); // Log
-            currentPageMinhasReservas = 1;
-            noMoreItemsMinhasReservas = false;
-            carregarMinhasReservas(1, false); // Initial load for this tab
+        console.log(`'Minhas Reservas' container found. LoadedOnce: ${container.dataset.loadedOnce}, empty: ${!container.innerHTML.trim()}`);
+        if (
+          !container.dataset.loadedOnce ||
+          !container.innerHTML.trim() ||
+          container.querySelector(".cv-loading-message")
+        ) {
+          console.log("Loading 'Minhas Reservas' now.");
+          currentPageMinhasReservas = 1;
+          noMoreItemsMinhasReservas = false;
+          carregarMinhasReservas(1, false);
         }
-      } else if (button.id === "tab-agenda") {
-        // Refresh current view within agenda tab if needed
+      }
+      else if (button.id === "tab-agenda") {
         if (calendarioViewContainer && calendarioViewContainer.style.display !== 'none') {
-            calendarioReservas?.refetchEvents();
+          calendarioReservas?.refetchEvents();
         } else if (listViewContainer && listViewContainer.style.display !== 'none') {
-            // List view in agenda tab: only reload if it was never loaded or is empty
-            const listContainer = document.getElementById(listViewItemsContainerId);
-            if (!listContainer.dataset.loadedOnce || listContainer.innerHTML.trim() === "") {
-                currentPageListView = 1;
-                noMoreItemsListView = false;
-                carregarReservasListView(1, false);
-            }
+          const listContainer = document.getElementById(listViewItemsContainerId);
+          if (!listContainer.dataset.loadedOnce || !listContainer.innerHTML.trim()) {
+            currentPageListView = 1;
+            noMoreItemsListView = false;
+            carregarReservasListView(1, false);
+          }
         }
       }
     });
   });
 
+  // trigger initial tab
   const initialActive =
     tabsContainer.querySelector(".cv-tab-button.active") || tabButtons[0];
-  if (initialActive) initialActive.click(); // This will trigger the specific logic above for the initially active tab.
+  if (initialActive) initialActive.click();
 }
+
 
 // The switchTab function is redundant as its logic is incorporated into setupTabs.
 // function switchTab(tab) { ... }
