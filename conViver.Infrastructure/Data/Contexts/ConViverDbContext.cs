@@ -84,8 +84,8 @@ namespace conViver.Infrastructure.Data.Contexts
             modelBuilder.Entity<Chamado>()
                 .Property(c => c.Fotos)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, null),
-                    v => JsonSerializer.Deserialize<List<string>>(v, null) ?? new List<string>());
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>());
 
             // Prestador ↔ Avaliações
             modelBuilder.Entity<PrestadorServico>()
