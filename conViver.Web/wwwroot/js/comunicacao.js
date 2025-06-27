@@ -757,6 +757,12 @@ function setupFabMenu() {
   }
   actions.push({ label: "Novo Chamado", onClick: openCreateChamadoModal });
 
+  const canCreateOcorrencia =
+    roles.includes("Morador") || roles.includes("Sindico") || roles.includes("Administrador");
+  if (canCreateOcorrencia) {
+    actions.push({ label: "Criar Ocorrência", onClick: openCreateOcorrenciaModal });
+  }
+
   initFabMenu(actions);
 }
 
@@ -1845,4 +1851,8 @@ function openCreateChamadoModal() {
     document.getElementById("chamado-descricao-modal").disabled = false;
     criarChamadoModal.style.display = "flex";
   }
+}
+
+function openCreateOcorrenciaModal() {
+  console.warn("openCreateOcorrenciaModal not implemented yet.");
 }
