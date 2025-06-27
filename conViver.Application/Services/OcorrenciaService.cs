@@ -321,6 +321,7 @@ namespace conViver.Application.Services
         {
             Id = o.Id,
             Titulo = o.Titulo,
+            UsuarioId = o.UsuarioId,
             Categoria = o.Categoria.ToString(),
             Status = o.Status.ToString(),
             Prioridade = o.Prioridade.ToString(),
