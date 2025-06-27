@@ -602,6 +602,63 @@ Endpoints para gerenciamento de despesas do condomínio.
 *   `401 Unauthorized`.
 *   `404 Not Found`: Não foi possível gerar o balancete.
 
+### 4.5. Orçamentos Anuais - Síndico
+
+#### 4.5.1. **POST** `/financeiro/orcamentos/{ano}`
+
+**Descrição**: (Síndico) Registra categorias e valores previstos para o orçamento anual do condomínio.
+**Path**: `/api/v1/financeiro/orcamentos/{ano:int}`
+**Acesso**: `Sindico`
+**Request Body** (`IEnumerable<OrcamentoCategoriaInputDto>`)
+```json
+[
+  { "categoria": "Manutencao", "valorPrevisto": 1000.00 },
+  { "categoria": "Limpeza", "valorPrevisto": 500.00 }
+]
+```
+**Response 200** (`IEnumerable<OrcamentoAnualDto>`)
+```json
+[
+  { "id": "uuid", "ano": 2025, "categoria": "Manutencao", "valorPrevisto": 1000.00 },
+  { "id": "uuid", "ano": 2025, "categoria": "Limpeza", "valorPrevisto": 500.00 }
+]
+```
+**Erros Comuns**:
+*   `400 Bad Request`: Dados inválidos.
+*   `401 Unauthorized`.
+
+#### 4.5.2. **GET** `/financeiro/orcamentos/{ano}`
+
+**Descrição**: (Síndico) Lista as categorias do orçamento anual registrado.
+**Path**: `/api/v1/financeiro/orcamentos/{ano:int}`
+**Acesso**: `Sindico`
+**Response 200** (`IEnumerable<OrcamentoAnualDto>`)
+```json
+[
+  { "id": "uuid", "ano": 2025, "categoria": "Manutencao", "valorPrevisto": 1000.00 },
+  { "id": "uuid", "ano": 2025, "categoria": "Limpeza", "valorPrevisto": 500.00 }
+]
+```
+**Erros Comuns**:
+*   `401 Unauthorized`.
+*   `404 Not Found`: Não há orçamento registrado para o ano.
+
+#### 4.5.3. **GET** `/financeiro/orcamentos/{ano}/comparativo`
+
+**Descrição**: (Síndico) Retorna o total executado versus o previsto para cada categoria.
+**Path**: `/api/v1/financeiro/orcamentos/{ano:int}/comparativo`
+**Acesso**: `Sindico`
+**Response 200** (`IEnumerable<OrcamentoComparativoDto>`)
+```json
+[
+  { "categoria": "Manutencao", "valorPrevisto": 1000.00, "valorExecutado": 600.00 },
+  { "categoria": "Limpeza", "valorPrevisto": 500.00, "valorExecutado": 200.00 }
+]
+```
+**Erros Comuns**:
+*   `401 Unauthorized`.
+*   `404 Not Found`: Dados de execução não encontrados para o ano.
+
 ---
 ## 5. Pagamentos & Acordos
 
