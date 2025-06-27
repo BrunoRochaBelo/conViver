@@ -388,6 +388,7 @@ html[data-theme="dark"] .cv-nav {
     width: 20px;
     height: 20px;
     display: inline-block;
+    vertical-align: middle;
 }
 .cv-nav__label {
     line-height: 1;

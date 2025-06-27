@@ -786,8 +786,13 @@ main {
 /* Tab System Styles */
 .cv-tabs {
     display: flex;
+    align-items: center;
     margin-bottom: 20px;
     border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
+}
+.cv-tabs > #open-filter-reservas-button,
+.cv-tabs > #open-filter-modal-button {
+    margin-left: auto;
 }
 
 .cv-tab-button {
