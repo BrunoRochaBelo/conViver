@@ -781,6 +781,11 @@ async function handleDeleteAviso(itemId) {
   }
 }
 
+// Returns the raw roles saved in localStorage by the authentication flow.
+// Residents may appear as "Condomino" or "Inquilino" but the Ocorrências
+// endpoints expect the more generic role "Morador". Permission checks that
+// rely on that role should treat "Condomino" and "Inquilino" as synonyms of
+// "Morador".
 function getUserRoles() {
   const user = JSON.parse(localStorage.getItem("userInfo"));
   if (user && user.roles) return user.roles;
@@ -796,11 +801,20 @@ function setupFabMenu() {
     actions.push({ label: "Novo Aviso", onClick: openCriarAvisoModal });
     actions.push({ label: "Nova Enquete", onClick: openCreateEnqueteModal });
   }
-  actions.push({ label: "Novo Chamado", onClick: openCreateChamadoModal });
-  actions.push({ label: "Nova Ocorrência", onClick: openCreateOcorrenciaModal });
+
+  // Todos podem abrir um chamado (solicitação)
+  actions.push({ label: "Criar Solicitação", onClick: openCreateChamadoModal });
+
+  // Moradores, síndicos e administradores podem registrar ocorrências
+  const canCreateOcorrencia =
+    roles.includes("Morador") || isSindico;
+  if (canCreateOcorrencia) {
+    actions.push({ label: "Criar Ocorrência", onClick: openCreateOcorrenciaModal });
+  }
 
   initFabMenu(actions);
 }
+
 
 // This function was replaced by setupFilterModalAndButton
 // function setupFilterButtonListener() { ... }
@@ -1880,8 +1894,8 @@ function openCreateChamadoModal() {
   ) {
     formCriarChamado.reset();
     chamadoIdFieldModal.value = "";
-    modalChamadoTitle.textContent = "Novo Chamado";
-    formChamadoSubmitButtonModal.textContent = "Abrir Chamado";
+    modalChamadoTitle.textContent = "Nova Solicitação";
+    formChamadoSubmitButtonModal.textContent = "Abrir Solicitação";
     chamadoStatusModalFormGroup.style.display = "none";
     chamadoCategoriaModalFormGroup.style.display = "block";
     document.getElementById("chamado-descricao-modal").disabled = false;
@@ -1897,10 +1911,12 @@ function openCreateOcorrenciaModal() {
     ocorrenciaDescricaoInput
   ) {
     formCriarOcorrencia.reset();
-    if (ocorrenciaAnexosPreviewContainer)
+    if (ocorrenciaAnexosPreviewContainer) {
       ocorrenciaAnexosPreviewContainer.innerHTML = "";
-    if (ocorrenciaPrioridadeSelect)
+    }
+    if (ocorrenciaPrioridadeSelect) {
       ocorrenciaPrioridadeSelect.value = "NORMAL";
+    }
     criarOcorrenciaModal.style.display = "flex";
   }
 }
@@ -1927,7 +1943,7 @@ async function handleCreateOcorrencia() {
   formData.append("categoria", categoria);
   formData.append("prioridade", prioridade);
   if (ocorrenciaAnexosInput && ocorrenciaAnexosInput.files) {
-    Array.from(ocorrenciaAnexosInput.files).forEach((f) =>
+    Array.from(ocorrenciaAnexosInput.files).forEach(f =>
       formData.append("anexos", f)
     );
   }
@@ -1939,10 +1955,13 @@ async function handleCreateOcorrencia() {
       "Ocorrência criada com sucesso! Ela aparecerá no feed.",
       "success"
     );
-    if (criarOcorrenciaModal) criarOcorrenciaModal.style.display = "none";
+    if (criarOcorrenciaModal) {
+      criarOcorrenciaModal.style.display = "none";
+    }
     formCriarOcorrencia.reset();
-    if (ocorrenciaAnexosPreviewContainer)
+    if (ocorrenciaAnexosPreviewContainer) {
       ocorrenciaAnexosPreviewContainer.innerHTML = "";
+    }
     await loadInitialFeedItems();
   } catch (error) {
     console.error("Erro ao criar ocorrência:", error);
@@ -1958,7 +1977,9 @@ async function handleCreateOcorrencia() {
 async function postWithFiles(path, formData) {
   const token = localStorage.getItem("cv_token");
   const headers = {};
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
   const response = await fetch(
     (window.APP_CONFIG?.API_BASE_URL || "") + path,
     {
@@ -1977,3 +1998,4 @@ async function postWithFiles(path, formData) {
     ? await response.json()
     : null;
 }
+

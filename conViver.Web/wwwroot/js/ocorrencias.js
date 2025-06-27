@@ -175,6 +175,12 @@ async function initOcorrenciasPage() {
          tabTodasOcorrencias.style.display = 'none';
     }
 
+    const normalizedRoles = normalizeRoles(currentUser.roles || []);
+    const canCreate = ['Morador','Sindico','Administrador'].some(r => normalizedRoles.includes(r));
+    if (!canCreate && btnNovaOcorrencia) {
+        btnNovaOcorrencia.style.display = 'none';
+    }
+
 
     await loadCategorias();
     await loadOcorrencias(currentPage, currentFilter);
@@ -361,6 +367,10 @@ function handleTabClick(event) {
 }
 
 function openNovaOcorrenciaModal() {
+    if (!canCreateOcorrencia()) {
+        showGlobalFeedback('Apenas moradores, s\u00edndicos ou administradores podem abrir ocorr\u00eancias.', 'error');
+        return;
+    }
     formNovaOcorrencia.reset();
     anexosPreviewContainer.innerHTML = '';
     displayFormErrors(formNovaOcorrenciaErrorsEl, []); // Clear previous errors
@@ -756,6 +766,16 @@ function canUserAddAttachment(ocorrencia) {
     return ocorrencia.usuario?.id === currentUser.id ||
            currentUser.roles.includes('Sindico') ||
            currentUser.roles.includes('Administrador');
+}
+
+function normalizeRoles(roles) {
+    return roles.map(r => (r === 'Condomino' || r === 'Inquilino') ? 'Morador' : r);
+}
+
+function canCreateOcorrencia() {
+    if (!currentUser || !Array.isArray(currentUser.roles)) return false;
+    const normalized = normalizeRoles(currentUser.roles);
+    return normalized.includes('Morador') || normalized.includes('Sindico') || normalized.includes('Administrador');
 }
 
 

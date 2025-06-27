@@ -228,7 +228,7 @@
     <div id="modal-chamado-detalhe" class="cv-modal" style="display:none;">
         <div class="cv-modal-content">
             <span class="cv-modal-close js-modal-chamado-detalhe-close">&times;</span>
-            <h2 id="modal-chamado-detalhe-titulo">Detalhes do Chamado</h2>
+            <h2 id="modal-chamado-detalhe-titulo">Detalhes da Solicitação</h2>
             <div id="modal-chamado-detalhe-conteudo" class="chamado-detalhe-view">
             </div>
             <div id="modal-chamado-detalhe-interacoes" class="chamado-interactions-view" style="margin-top:15px;">
@@ -298,7 +298,7 @@
     <div id="modal-criar-chamado" class="cv-modal" style="display:none;">
         <div class="cv-modal-content">
             <span class="cv-modal-close js-modal-criar-chamado-close">&times;</span>
-            <h2 id="modal-chamado-title">Novo Chamado</h2>
+            <h2 id="modal-chamado-title">Nova Solicitação</h2>
             <form id="form-criar-chamado" class="cv-form">
                 <input type="hidden" id="chamado-id" name="id">
                 <div class="cv-form-group">
@@ -332,8 +332,50 @@
                     </select>
                 </div>
                 <div class="cv-form-actions">
-                    <button type="submit" id="form-chamado-submit-button" class="cv-button primary">Abrir Chamado</button>
+                    <button type="submit" id="form-chamado-submit-button" class="cv-button primary">Abrir Solicitação</button>
                     <button type="button" class="cv-button js-modal-criar-chamado-close">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Cadastro de Nova Ocorrência -->
+    <div id="com-modalNovaOcorrencia" class="cv-modal" style="display:none;">
+        <div class="cv-modal__content">
+            <span class="cv-modal__close-button" id="com-closeNovaOcorrenciaModal">&times;</span>
+            <h2>Nova Ocorrência</h2>
+            <form id="com-formNovaOcorrencia" class="cv-form">
+                <div class="cv-form__group">
+                    <label for="com-ocorrenciaTitulo" class="cv-form__label">Título (obrigatório):</label>
+                    <input type="text" id="com-ocorrenciaTitulo" name="titulo" class="cv-form__input" required maxlength="100">
+                </div>
+                <div class="cv-form__group">
+                    <label for="com-ocorrenciaDescricao" class="cv-form__label">Descrição (obrigatório):</label>
+                    <textarea id="com-ocorrenciaDescricao" name="descricao" class="cv-form__textarea" rows="5" required maxlength="1000"></textarea>
+                </div>
+                <div class="cv-form__group">
+                    <label for="com-ocorrenciaCategoria" class="cv-form__label">Categoria (obrigatório):</label>
+                    <select id="com-ocorrenciaCategoria" name="categoria" class="cv-form__select" required>
+                        <option value="">Selecione...</option>
+                        <!-- Options serão populadas pelo JS -->
+                    </select>
+                </div>
+                <div class="cv-form__group">
+                    <label for="com-ocorrenciaPrioridade" class="cv-form__label">Prioridade:</label>
+                    <select id="com-ocorrenciaPrioridade" name="prioridade" class="cv-form__select">
+                        <option value="NORMAL">Normal</option>
+                        <option value="URGENTE">Urgente</option>
+                    </select>
+                </div>
+                <div class="cv-form__group">
+                    <label for="com-ocorrenciaAnexos" class="cv-form__label">Anexos (opcional, máx 10MB por arquivo):</label>
+                    <input type="file" id="com-ocorrenciaAnexos" name="anexos" class="cv-form__input-file" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.aac,.mp3,.wav">
+                    <div id="com-anexosPreviewContainer" class="anexos-preview"></div>
+                </div>
+                <div id="com-formNovaOcorrenciaErrors" class="cv-form__errors" style="display:none;"></div>
+                <div class="cv-form__actions">
+                    <button type="submit" class="cv-button cv-button--primary">Enviar Ocorrência</button>
+                    <button type="button" id="com-cancelNovaOcorrencia" class="cv-button cv-button--secondary">Cancelar</button>
                 </div>
             </form>
         </div>
