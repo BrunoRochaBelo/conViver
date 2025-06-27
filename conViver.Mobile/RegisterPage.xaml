@@ -9,7 +9,7 @@
             HorizontalOptions="Center"
             Padding="24"
             Spacing="16"
-            WidthRequest="{OnPlatform Android=300, iOS=300, WinUI=400, MacCatalyst=400}">
+            MaxWidthRequest="400">
 
             <Label
                 Text="Criar Nova Conta"
