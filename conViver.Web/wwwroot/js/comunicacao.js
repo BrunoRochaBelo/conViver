@@ -104,6 +104,14 @@ let modalFiltros; // Novo modal de filtros
 // Modal specific form groups
 let chamadoStatusModalFormGroup;
 let chamadoCategoriaModalFormGroup;
+let criarOcorrenciaModal,
+  formCriarOcorrencia,
+  ocorrenciaTituloInput,
+  ocorrenciaDescricaoInput,
+  ocorrenciaCategoriaSelect,
+  ocorrenciaPrioridadeSelect,
+  ocorrenciaAnexosInput,
+  ocorrenciaAnexosPreviewContainer;
 
 export async function initialize() {
   requireAuth();
@@ -171,6 +179,17 @@ export async function initialize() {
   );
   chamadoCategoriaModalFormGroup = document.querySelector(
     "#modal-criar-chamado .js-chamado-categoria-form-group"
+  );
+
+  criarOcorrenciaModal = document.getElementById("modalNovaOcorrencia");
+  formCriarOcorrencia = document.getElementById("formNovaOcorrencia");
+  ocorrenciaTituloInput = document.getElementById("ocorrenciaTitulo");
+  ocorrenciaDescricaoInput = document.getElementById("ocorrenciaDescricao");
+  ocorrenciaCategoriaSelect = document.getElementById("ocorrenciaCategoria");
+  ocorrenciaPrioridadeSelect = document.getElementById("ocorrenciaPrioridade");
+  ocorrenciaAnexosInput = document.getElementById("ocorrenciaAnexos");
+  ocorrenciaAnexosPreviewContainer = document.getElementById(
+    "anexosPreviewContainer"
   );
 
   setupTabs();
@@ -631,7 +650,29 @@ function setupModalEventListeners() {
           await handleCreateChamado(chamadoData);
         }
         if (criarChamadoModal) criarChamadoModal.style.display = "none";
-        formCriarChamado.reset();
+      formCriarChamado.reset();
+      });
+    }
+  }
+
+  // Listeners for Criar Ocorrencia Modal
+  if (criarOcorrenciaModal) {
+    document
+      .querySelectorAll(".js-modal-criar-ocorrencia-close")
+      .forEach((btn) =>
+        btn.addEventListener(
+          "click",
+          () => (criarOcorrenciaModal.style.display = "none")
+        )
+      );
+    window.addEventListener("click", (event) => {
+      if (event.target === criarOcorrenciaModal)
+        criarOcorrenciaModal.style.display = "none";
+    });
+    if (formCriarOcorrencia) {
+      formCriarOcorrencia.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await handleCreateOcorrencia();
       });
     }
   }
@@ -760,16 +801,20 @@ function setupFabMenu() {
     actions.push({ label: "Novo Aviso", onClick: openCriarAvisoModal });
     actions.push({ label: "Nova Enquete", onClick: openCreateEnqueteModal });
   }
+
+  // Todos podem abrir um chamado (solicitação)
   actions.push({ label: "Criar Solicitação", onClick: openCreateChamadoModal });
 
+  // Moradores, síndicos e administradores podem registrar ocorrências
   const canCreateOcorrencia =
-    roles.includes("Morador") || roles.includes("Sindico") || roles.includes("Administrador");
+    roles.includes("Morador") || isSindico;
   if (canCreateOcorrencia) {
     actions.push({ label: "Criar Ocorrência", onClick: openCreateOcorrenciaModal });
   }
 
   initFabMenu(actions);
 }
+
 
 // This function was replaced by setupFilterModalAndButton
 // function setupFilterButtonListener() { ... }
@@ -1859,5 +1904,98 @@ function openCreateChamadoModal() {
 }
 
 function openCreateOcorrenciaModal() {
-  console.warn("openCreateOcorrenciaModal not implemented yet.");
+  if (
+    criarOcorrenciaModal &&
+    formCriarOcorrencia &&
+    ocorrenciaTituloInput &&
+    ocorrenciaDescricaoInput
+  ) {
+    formCriarOcorrencia.reset();
+    if (ocorrenciaAnexosPreviewContainer) {
+      ocorrenciaAnexosPreviewContainer.innerHTML = "";
+    }
+    if (ocorrenciaPrioridadeSelect) {
+      ocorrenciaPrioridadeSelect.value = "NORMAL";
+    }
+    criarOcorrenciaModal.style.display = "flex";
+  }
 }
+
+async function handleCreateOcorrencia() {
+  if (!formCriarOcorrencia) return;
+
+  const titulo = ocorrenciaTituloInput.value.trim();
+  const descricao = ocorrenciaDescricaoInput.value.trim();
+  const categoria = ocorrenciaCategoriaSelect.value;
+  const prioridade = ocorrenciaPrioridadeSelect.value || "NORMAL";
+
+  if (!titulo || !descricao || !categoria) {
+    showGlobalFeedback(
+      "Preencha título, descrição e categoria da ocorrência.",
+      "warning"
+    );
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("titulo", titulo);
+  formData.append("descricao", descricao);
+  formData.append("categoria", categoria);
+  formData.append("prioridade", prioridade);
+  if (ocorrenciaAnexosInput && ocorrenciaAnexosInput.files) {
+    Array.from(ocorrenciaAnexosInput.files).forEach(f =>
+      formData.append("anexos", f)
+    );
+  }
+
+  try {
+    showGlobalFeedback("Enviando ocorrência...", "info");
+    await postWithFiles("/api/ocorrencias", formData);
+    showGlobalFeedback(
+      "Ocorrência criada com sucesso! Ela aparecerá no feed.",
+      "success"
+    );
+    if (criarOcorrenciaModal) {
+      criarOcorrenciaModal.style.display = "none";
+    }
+    formCriarOcorrencia.reset();
+    if (ocorrenciaAnexosPreviewContainer) {
+      ocorrenciaAnexosPreviewContainer.innerHTML = "";
+    }
+    await loadInitialFeedItems();
+  } catch (error) {
+    console.error("Erro ao criar ocorrência:", error);
+    if (!error.handledByApiClient) {
+      showGlobalFeedback(
+        error.message || "Falha ao criar a ocorrência.",
+        "error"
+      );
+    }
+  }
+}
+
+async function postWithFiles(path, formData) {
+  const token = localStorage.getItem("cv_token");
+  const headers = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  const response = await fetch(
+    (window.APP_CONFIG?.API_BASE_URL || "") + path,
+    {
+      method: "POST",
+      body: formData,
+      headers,
+    }
+  );
+  if (!response.ok) {
+    const data = await response
+      .json()
+      .catch(() => ({ message: `Falha ${response.status}` }));
+    throw new Error(data.message);
+  }
+  return response.headers.get("content-type")?.includes("application/json")
+    ? await response.json()
+    : null;
+}
+
