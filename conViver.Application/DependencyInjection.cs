@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddTransient<VotacaoService>();
         services.AddTransient<VisitanteService>();
         services.AddTransient<EncomendaService>();
+        services.AddTransient<ContaBancariaService>();
         services.AddTransient<DashboardService>(); // Add DashboardService registration
         services.AddTransient<IOcorrenciaService, OcorrenciaService>(); // Added OcorrenciaService
 

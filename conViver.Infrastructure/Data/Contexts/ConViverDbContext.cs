@@ -34,6 +34,9 @@ public class ConViverDbContext : DbContext
     public DbSet<OcorrenciaComentario> OcorrenciaComentarios { get; set; }
     public DbSet<OcorrenciaStatusHistorico> OcorrenciaStatusHistoricos { get; set; }
 
+    public DbSet<ContaBancaria> ContasBancarias => Set<ContaBancaria>();
+    public DbSet<ExtratoBancario> ExtratosBancarios => Set<ExtratoBancario>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -185,6 +188,27 @@ public class ConViverDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Relationship with Ocorrencia already defined in Ocorrencia entity configuration
+        });
+
+        modelBuilder.Entity<ContaBancaria>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Banco).IsRequired();
+            entity.Property(c => c.Agencia).IsRequired();
+            entity.Property(c => c.Conta).IsRequired();
+        });
+
+        modelBuilder.Entity<ExtratoBancario>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Tipo).IsRequired();
+            entity.Property(e => e.Valor).IsRequired();
+            entity.Property(e => e.Data).IsRequired();
+
+            entity.HasOne(e => e.ContaBancaria)
+                .WithMany(c => c.Lancamentos)
+                .HasForeignKey(e => e.ContaBancariaId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
