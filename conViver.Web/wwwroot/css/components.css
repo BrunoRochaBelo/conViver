@@ -269,6 +269,11 @@
     background-color: var(--current-color-info-bg);
     border-color: var(--current-semantic-info);
 }
+
+/* Utility class to hide alerts when needed */
+.cv-alert--hidden {
+    display: none;
+}
 /* === End Alert Component Styles === */
 
 @keyframes animatetop {
