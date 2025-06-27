@@ -24,7 +24,7 @@ public class JwtService
 
         if (condominioId.HasValue)
         {
-            claims.Add(new Claim("condoId", condominioId.Value.ToString()));
+            claims.Add(new Claim("condominioId", condominioId.Value.ToString()));
         }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.JwtSecret));
