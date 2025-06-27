@@ -17,6 +17,7 @@ namespace conViver.Application.Services // Changed namespace to match convention
         private readonly IRepository<Pagamento> _pagamentoRepository;
         private readonly IRepository<Acordo> _acordoRepository;
         private readonly IRepository<ParcelaAcordo> _parcelaRepository;
+        private readonly INotificacaoService _notificacaoService;
         // private readonly IFinanceiroGateway _financeiroGateway; // Example if you have a specific gateway interface
 
         // Constructor updated to reflect repository usage
@@ -25,7 +26,8 @@ namespace conViver.Application.Services // Changed namespace to match convention
             IRepository<Unidade> unidadeRepository,
             IRepository<Pagamento> pagamentoRepository,
             IRepository<Acordo> acordoRepository,
-            IRepository<ParcelaAcordo> parcelaRepository
+            IRepository<ParcelaAcordo> parcelaRepository,
+            INotificacaoService notificacaoService
             /*, IFinanceiroGateway financeiroGateway */)
         {
             _boletoRepository = boletoRepository;
@@ -33,6 +35,7 @@ namespace conViver.Application.Services // Changed namespace to match convention
             _pagamentoRepository = pagamentoRepository;
             _acordoRepository = acordoRepository;
             _parcelaRepository = parcelaRepository;
+            _notificacaoService = notificacaoService;
             // _financeiroGateway = financeiroGateway;
         }
 
@@ -179,6 +182,13 @@ namespace conViver.Application.Services // Changed namespace to match convention
             await _boletoRepository.AddAsync(boleto);
             await _boletoRepository.SaveChangesAsync();
 
+            var unidade = await _unidadeRepository.GetByIdAsync(boleto.UnidadeId);
+            if (unidade != null)
+            {
+                var msg = $"Nova cobrança gerada para Unidade {unidade.Identificacao} no valor de {boleto.Valor:C} com vencimento {boleto.DataVencimento:dd/MM}.";
+                await _notificacaoService.SendAsync($"condo:{unidade.CondominioId}", msg);
+            }
+
             return new CobrancaDto // Map to CobrancaDto for the response
             {
                 Id = boleto.Id,
@@ -266,6 +276,8 @@ namespace conViver.Application.Services // Changed namespace to match convention
                     await _boletoRepository.AddAsync(boleto);
                 }
                 await _boletoRepository.SaveChangesAsync();
+                var msg = $"{novosBoletos.Count} boletos gerados para {request.Mes:D2}/{request.Ano}.";
+                await _notificacaoService.SendAsync($"condo:{condominioId}", msg);
                 Console.WriteLine($"{novosBoletos.Count} boletos gerados e salvos com sucesso.");
                 return new ResultadoOperacaoDto { Sucesso = true, Mensagem = $"{novosBoletos.Count} boletos gerados com sucesso." };
             }
@@ -388,6 +400,13 @@ namespace conViver.Application.Services // Changed namespace to match convention
             await _boletoRepository.SaveChangesAsync();
             await _pagamentoRepository.SaveChangesAsync();
 
+            var unidade = await _unidadeRepository.GetByIdAsync(boleto.UnidadeId);
+            if (unidade != null)
+            {
+                var msg = $"Cobrança paga - Unidade {unidade.Identificacao} pagou {valor:C} em {dataPagamento:dd/MM}.";
+                await _notificacaoService.SendAsync($"condo:{unidade.CondominioId}", msg);
+            }
+
             return new PagamentoDto { PagamentoId = pagamento.Id, Status = pagamento.Status.ToString() };
         }
 
@@ -410,6 +429,13 @@ namespace conViver.Application.Services // Changed namespace to match convention
             await _pagamentoRepository.AddAsync(pagamento);
             await _boletoRepository.SaveChangesAsync();
             await _pagamentoRepository.SaveChangesAsync();
+
+            var unidadeWebhook = await _unidadeRepository.GetByIdAsync(boleto.UnidadeId);
+            if (unidadeWebhook != null)
+            {
+                var msg = $"Cobrança paga - Unidade {unidadeWebhook.Identificacao} pagou {dto.ValorPago:C} em {dto.DataPagamento:dd/MM}.";
+                await _notificacaoService.SendAsync($"condo:{unidadeWebhook.CondominioId}", msg);
+            }
             return true;
         }
 
@@ -489,6 +515,34 @@ namespace conViver.Application.Services // Changed namespace to match convention
                     Pago = p.Pago
                 }).ToList()
             };
+        }
+
+        public async Task<int> MarcarBoletosVencidosAsync()
+        {
+            var hoje = DateTime.UtcNow.Date;
+            var pendentes = await _boletoRepository.Query()
+                .Where(b => (b.Status == BoletoStatus.Gerado || b.Status == BoletoStatus.Registrado || b.Status == BoletoStatus.Enviado)
+                             && b.DataVencimento.Date < hoje)
+                .ToListAsync();
+
+            foreach (var boleto in pendentes)
+            {
+                boleto.MarcarVencido(hoje);
+                await _boletoRepository.UpdateAsync(boleto);
+                var unidade = await _unidadeRepository.GetByIdAsync(boleto.UnidadeId);
+                if (unidade != null)
+                {
+                    var msg = $"Cobrança vencida - Unidade {unidade.Identificacao} no valor de {boleto.Valor:C}.";
+                    await _notificacaoService.SendAsync($"condo:{unidade.CondominioId}", msg);
+                }
+            }
+
+            if (pendentes.Any())
+            {
+                await _boletoRepository.SaveChangesAsync();
+            }
+
+            return pendentes.Count;
         }
 
         // --- Métodos simplificados para compatibilidade com os controllers ---

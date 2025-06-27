@@ -18,13 +18,27 @@ namespace conViver.Tests.Application.Services
     {
         private readonly Mock<IRepository<Boleto>> _mockBoletoRepository;
         private readonly Mock<IRepository<Unidade>> _mockUnidadeRepository;
+        private readonly Mock<IRepository<Pagamento>> _mockPagamentoRepository;
+        private readonly Mock<IRepository<Acordo>> _mockAcordoRepository;
+        private readonly Mock<IRepository<ParcelaAcordo>> _mockParcelaRepository;
+        private readonly Mock<INotificacaoService> _mockNotificacaoService;
         private readonly FinanceiroService _financeiroService;
 
         public FinanceiroServiceTests()
         {
             _mockBoletoRepository = new Mock<IRepository<Boleto>>();
             _mockUnidadeRepository = new Mock<IRepository<Unidade>>();
-            _financeiroService = new FinanceiroService(_mockBoletoRepository.Object, _mockUnidadeRepository.Object);
+            _mockPagamentoRepository = new Mock<IRepository<Pagamento>>();
+            _mockAcordoRepository = new Mock<IRepository<Acordo>>();
+            _mockParcelaRepository = new Mock<IRepository<ParcelaAcordo>>();
+            _mockNotificacaoService = new Mock<INotificacaoService>();
+            _financeiroService = new FinanceiroService(
+                _mockBoletoRepository.Object,
+                _mockUnidadeRepository.Object,
+                _mockPagamentoRepository.Object,
+                _mockAcordoRepository.Object,
+                _mockParcelaRepository.Object,
+                _mockNotificacaoService.Object);
         }
 
         [Fact]
@@ -39,6 +53,10 @@ namespace conViver.Tests.Application.Services
                 DataVencimento = DateTime.UtcNow.AddDays(10),
                 Descricao = "Taxa Condominial"
             };
+
+            _mockUnidadeRepository
+                .Setup(r => r.GetByIdAsync(novaCobrancaDto.UnidadeId, default))
+                .ReturnsAsync(new Unidade { Id = novaCobrancaDto.UnidadeId, CondominioId = condominioId, Identificacao = "101" });
 
             Boleto? capturedBoleto = null; // To capture the boleto passed to AddAsync
 
@@ -57,6 +75,7 @@ namespace conViver.Tests.Application.Services
             // Assert
             _mockBoletoRepository.Verify(r => r.AddAsync(It.IsAny<Boleto>(), default), Times.Once);
             _mockBoletoRepository.Verify(r => r.SaveChangesAsync(default), Times.Once);
+            _mockNotificacaoService.Verify(n => n.SendAsync(It.IsAny<string>(), It.IsAny<string>(), default), Times.Once);
 
             Assert.NotNull(capturedBoleto);
             Assert.Equal(novaCobrancaDto.UnidadeId, capturedBoleto.UnidadeId);
@@ -537,6 +556,43 @@ namespace conViver.Tests.Application.Services
             Assert.Equal("Boleto pago não pode ser cancelado.", result.Mensagem); // Message from Boleto.Cancelar()
             _mockBoletoRepository.Verify(r => r.UpdateAsync(It.IsAny<Boleto>(), default), Times.Never);
             _mockBoletoRepository.Verify(r => r.SaveChangesAsync(default), Times.Never);
+        }
+
+        [Fact]
+        public async Task RegistrarPagamentoManualAsync_ShouldNotify()
+        {
+            var boletoId = Guid.NewGuid();
+            var boleto = new Boleto { Id = boletoId, UnidadeId = Guid.NewGuid(), Valor = 123m };
+            var unidade = new Unidade { Id = boleto.UnidadeId, CondominioId = Guid.NewGuid(), Identificacao = "202" };
+
+            _mockBoletoRepository.Setup(r => r.GetByIdAsync(boletoId, default)).ReturnsAsync(boleto);
+            _mockUnidadeRepository.Setup(r => r.GetByIdAsync(boleto.UnidadeId, default)).ReturnsAsync(unidade);
+            _mockBoletoRepository.Setup(r => r.UpdateAsync(boleto, default)).Returns(Task.CompletedTask);
+            _mockBoletoRepository.Setup(r => r.SaveChangesAsync(default)).ReturnsAsync(1);
+            _mockPagamentoRepository.Setup(r => r.AddAsync(It.IsAny<Pagamento>(), default)).Returns(Task.CompletedTask);
+            _mockPagamentoRepository.Setup(r => r.SaveChangesAsync(default)).ReturnsAsync(1);
+
+            await _financeiroService.RegistrarPagamentoManualAsync(boletoId, 123m, DateTime.UtcNow);
+
+            _mockNotificacaoService.Verify(n => n.SendAsync(It.IsAny<string>(), It.IsAny<string>(), default), Times.Once);
+        }
+
+        [Fact]
+        public async Task MarcarBoletosVencidosAsync_ShouldUpdateStatusAndNotify()
+        {
+            var unidade = new Unidade { Id = Guid.NewGuid(), CondominioId = Guid.NewGuid(), Identificacao = "303" };
+            var boleto = new Boleto { Id = Guid.NewGuid(), UnidadeId = unidade.Id, Valor = 50m, DataVencimento = DateTime.UtcNow.AddDays(-1) };
+
+            _mockBoletoRepository.Setup(r => r.Query()).Returns(new List<Boleto> { boleto }.AsQueryable());
+            _mockBoletoRepository.Setup(r => r.UpdateAsync(boleto, default)).Returns(Task.CompletedTask);
+            _mockUnidadeRepository.Setup(r => r.GetByIdAsync(unidade.Id, default)).ReturnsAsync(unidade);
+            _mockBoletoRepository.Setup(r => r.SaveChangesAsync(default)).ReturnsAsync(1);
+
+            var count = await _financeiroService.MarcarBoletosVencidosAsync();
+
+            Assert.Equal(1, count);
+            _mockNotificacaoService.Verify(n => n.SendAsync(It.IsAny<string>(), It.IsAny<string>(), default), Times.Once);
+            Assert.Equal(BoletoStatus.Vencido, boleto.Status);
         }
 
 
