@@ -8,6 +8,7 @@ using conViver.Core.Enums;
 using conViver.Application.Services;
 using System;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Linq.Expressions; // Required for It.IsAny<Expression<Func<Boleto, bool>>>() if needed later
 using System.Collections.Generic; // Required for List<T>
 using System.Linq; // Required for Linq operations like .Any()
@@ -18,13 +19,24 @@ namespace conViver.Tests.Application.Services
     {
         private readonly Mock<IRepository<Boleto>> _mockBoletoRepository;
         private readonly Mock<IRepository<Unidade>> _mockUnidadeRepository;
+        private readonly Mock<IRepository<Pagamento>> _mockPagamentoRepository;
+        private readonly Mock<IRepository<Acordo>> _mockAcordoRepository;
+        private readonly Mock<IRepository<ParcelaAcordo>> _mockParcelaRepository;
         private readonly FinanceiroService _financeiroService;
 
         public FinanceiroServiceTests()
         {
             _mockBoletoRepository = new Mock<IRepository<Boleto>>();
             _mockUnidadeRepository = new Mock<IRepository<Unidade>>();
-            _financeiroService = new FinanceiroService(_mockBoletoRepository.Object, _mockUnidadeRepository.Object);
+            _mockPagamentoRepository = new Mock<IRepository<Pagamento>>();
+            _mockAcordoRepository = new Mock<IRepository<Acordo>>();
+            _mockParcelaRepository = new Mock<IRepository<ParcelaAcordo>>();
+            _financeiroService = new FinanceiroService(
+                _mockBoletoRepository.Object,
+                _mockUnidadeRepository.Object,
+                _mockPagamentoRepository.Object,
+                _mockAcordoRepository.Object,
+                _mockParcelaRepository.Object);
         }
 
         [Fact]
@@ -537,6 +549,142 @@ namespace conViver.Tests.Application.Services
             Assert.Equal("Boleto pago não pode ser cancelado.", result.Mensagem); // Message from Boleto.Cancelar()
             _mockBoletoRepository.Verify(r => r.UpdateAsync(It.IsAny<Boleto>(), default), Times.Never);
             _mockBoletoRepository.Verify(r => r.SaveChangesAsync(default), Times.Never);
+        }
+
+
+        [Fact]
+        public async Task CriarDespesaAsync_ShouldReturnDespesaComStatusPendente()
+        {
+            var condominioId = Guid.NewGuid();
+            var usuarioId = Guid.NewGuid();
+            var input = new DespesaInputDto
+            {
+                Descricao = "Limpeza",
+                Valor = 50m,
+                DataCompetencia = DateTime.UtcNow.Date,
+                DataVencimento = DateTime.UtcNow.Date.AddDays(5),
+                Categoria = "Servicos",
+                Observacoes = "Teste"
+            };
+
+            var result = await _financeiroService.CriarDespesaAsync(condominioId, usuarioId, input);
+
+            Assert.NotNull(result);
+            Assert.Equal(input.Descricao, result.Descricao);
+            Assert.Equal(input.Valor, result.Valor);
+            Assert.Equal(input.DataCompetencia, result.DataCompetencia);
+            Assert.Equal(input.DataVencimento, result.DataVencimento);
+            Assert.Equal(input.Categoria, result.Categoria);
+            Assert.Equal(input.Observacoes, result.Observacoes);
+            Assert.Equal(usuarioId, result.UsuarioRegistroId);
+            Assert.Equal("Pendente", result.Status);
+            Assert.NotEqual(Guid.Empty, result.Id);
+        }
+
+        [Fact]
+        public async Task ListarDespesasAsync_ShouldReturnListaVazia()
+        {
+            var result = await _financeiroService.ListarDespesasAsync(Guid.NewGuid(), null, null);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GerarBalanceteAsync_ShouldRetornarNull()
+        {
+            var result = await _financeiroService.GerarBalanceteAsync(Guid.NewGuid(), DateTime.UtcNow.AddMonths(-1), DateTime.UtcNow);
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task CriarAcordoAsync_DevePersistirEAtribuirParcelas()
+        {
+            var unidadeId = Guid.NewGuid();
+            decimal entrada = 100m;
+            short parcelas = 2;
+
+            Acordo? acordoCapturado = null;
+            var parcelasCapturadas = new List<ParcelaAcordo>();
+
+            _mockAcordoRepository
+                .Setup(r => r.AddAsync(It.IsAny<Acordo>(), default))
+                .Callback<Acordo, CancellationToken>((a, ct) => acordoCapturado = a)
+                .Returns(Task.CompletedTask);
+
+            _mockParcelaRepository
+                .Setup(r => r.AddAsync(It.IsAny<ParcelaAcordo>(), default))
+                .Callback<ParcelaAcordo, CancellationToken>((p, ct) => parcelasCapturadas.Add(p))
+                .Returns(Task.CompletedTask);
+
+            _mockAcordoRepository.Setup(r => r.SaveChangesAsync(default)).ReturnsAsync(1);
+            _mockParcelaRepository.Setup(r => r.SaveChangesAsync(default)).ReturnsAsync(1);
+
+            var dto = await _financeiroService.CriarAcordoAsync(unidadeId, entrada, parcelas);
+
+            _mockAcordoRepository.Verify(r => r.AddAsync(It.IsAny<Acordo>(), default), Times.Once);
+            _mockParcelaRepository.Verify(r => r.AddAsync(It.IsAny<ParcelaAcordo>(), default), Times.Exactly(parcelas));
+            _mockAcordoRepository.Verify(r => r.SaveChangesAsync(default), Times.Once);
+            _mockParcelaRepository.Verify(r => r.SaveChangesAsync(default), Times.Once);
+
+            Assert.NotNull(acordoCapturado);
+            Assert.Equal(unidadeId, acordoCapturado!.UnidadeId);
+            Assert.Equal(entrada + 100m * parcelas, acordoCapturado.ValorTotal);
+            Assert.Equal(parcelas, acordoCapturado.Parcelas);
+
+            Assert.Equal(parcelas, parcelasCapturadas.Count);
+            for (int i = 0; i < parcelas; i++)
+            {
+                Assert.Equal((short)(i + 1), parcelasCapturadas[i].Numero);
+                Assert.Equal(100m, parcelasCapturadas[i].Valor);
+            }
+
+            Assert.Equal(acordoCapturado.Id, dto.Id);
+            Assert.Equal(acordoCapturado.ValorTotal, dto.ValorTotal);
+            Assert.Equal(parcelas, (short)dto.Parcelas.Count);
+        }
+
+        [Fact]
+        public async Task RegistrarPagamentoManualAsync_BoletoExistente_DeveRegistrarPagamento()
+        {
+            var boletoId = Guid.NewGuid();
+            var boleto = new Boleto { Id = boletoId, UnidadeId = Guid.NewGuid(), Valor = 120m };
+
+            _mockBoletoRepository.Setup(r => r.GetByIdAsync(boletoId, default)).ReturnsAsync(boleto);
+            _mockBoletoRepository.Setup(r => r.UpdateAsync(boleto, default)).Returns(Task.CompletedTask);
+            _mockBoletoRepository.Setup(r => r.SaveChangesAsync(default)).ReturnsAsync(1);
+
+            Pagamento? pagamentoCapturado = null;
+            _mockPagamentoRepository
+                .Setup(r => r.AddAsync(It.IsAny<Pagamento>(), default))
+                .Callback<Pagamento, CancellationToken>((p, ct) => pagamentoCapturado = p)
+                .Returns(Task.CompletedTask);
+            _mockPagamentoRepository.Setup(r => r.SaveChangesAsync(default)).ReturnsAsync(1);
+
+            var valorPago = 50m;
+            var dataPgto = DateTime.UtcNow;
+
+            var dto = await _financeiroService.RegistrarPagamentoManualAsync(boletoId, valorPago, dataPgto);
+
+            _mockBoletoRepository.Verify(r => r.UpdateAsync(boleto, default), Times.Once);
+            _mockPagamentoRepository.Verify(r => r.AddAsync(It.IsAny<Pagamento>(), default), Times.Once);
+            _mockBoletoRepository.Verify(r => r.SaveChangesAsync(default), Times.Once);
+            _mockPagamentoRepository.Verify(r => r.SaveChangesAsync(default), Times.Once);
+
+            Assert.Equal(BoletoStatus.Pago, boleto.Status);
+            Assert.NotNull(dto);
+            Assert.Equal(pagamentoCapturado!.Id, dto.PagamentoId);
+            Assert.Equal("Confirmado", dto.Status);
+        }
+
+        [Fact]
+        public async Task RegistrarPagamentoManualAsync_BoletoInexistente_DeveRetornarNull()
+        {
+            _mockBoletoRepository.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default)).ReturnsAsync((Boleto?)null);
+
+            var dto = await _financeiroService.RegistrarPagamentoManualAsync(Guid.NewGuid(), 10m, DateTime.UtcNow);
+
+            Assert.Null(dto);
+            _mockPagamentoRepository.Verify(r => r.AddAsync(It.IsAny<Pagamento>(), default), Times.Never);
+            _mockBoletoRepository.Verify(r => r.UpdateAsync(It.IsAny<Boleto>(), default), Times.Never);
         }
 
 
