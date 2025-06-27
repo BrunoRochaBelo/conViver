@@ -569,6 +569,70 @@ namespace conViver.Infrastructure.Migrations
                 b.Navigation("Ocorrencia");
             });
 
+            modelBuilder.Entity("conViver.Core.Entities.ContaBancaria", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Agencia")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Banco")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Conta")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<decimal>("SaldoAtual")
+                    .HasColumnType("TEXT");
+
+                b.HasKey("Id");
+
+                b.ToTable("ContasBancarias");
+            });
+
+            modelBuilder.Entity("conViver.Core.Entities.ExtratoBancario", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
+
+                b.Property<Guid>("ContaBancariaId")
+                    .HasColumnType("TEXT");
+
+                b.Property<DateTime>("Data")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Historico")
+                    .HasColumnType("TEXT");
+
+                b.Property<string>("Tipo")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<decimal>("Valor")
+                    .HasColumnType("TEXT");
+
+                b.HasKey("Id");
+
+                b.HasIndex("ContaBancariaId");
+
+                b.ToTable("ExtratosBancarios");
+            });
+
+            modelBuilder.Entity("conViver.Core.Entities.ExtratoBancario", b =>
+            {
+                b.HasOne("conViver.Core.Entities.ContaBancaria", null)
+                    .WithMany("Lancamentos")
+                    .HasForeignKey("ContaBancariaId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
+
             modelBuilder.Entity("conViver.Core.Entities.OcorrenciaComentario", b =>
             {
                 b.HasOne("conViver.Core.Entities.Ocorrencia", "Ocorrencia")
