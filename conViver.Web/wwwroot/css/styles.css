@@ -1555,9 +1555,7 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
 
 
 .document-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Layout responsivo em grid */
-    gap: var(--cv-spacing-md);
+    /* Layout handled by .card-grid */
 }
 
 .document-item { /* Estilo para cada card de documento - usa .cv-card como base */
