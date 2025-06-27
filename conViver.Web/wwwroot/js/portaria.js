@@ -134,7 +134,7 @@ async function carregarVisitantesAtuais(unidadeFilter = '') {
     // showGlobalFeedback('Carregando visitantes atuais...', 'info');
 
     try {
-        let url = '/api/visitantes/atuais';
+        let url = '/api/v1/visitantes/atuais';
         // Filtering by unidadeFilter (string for unit name) is deferred as API expects Guid.
         // if (unidadeFilter) {
         //     url += `?unidadeNome=${encodeURIComponent(unidadeFilter)}`; // Example if API supported name filter
@@ -183,7 +183,7 @@ function adicionarListenersSaida() {
             const visitanteId = event.target.dataset.id;
             if (confirm(`Deseja realmente registrar a saída do visitante?`)) {
                 try {
-                    await apiClient.post(`/api/visitantes/${visitanteId}/registrar-saida`, {});
+                    await apiClient.post(`/api/v1/visitantes/${visitanteId}/registrar-saida`, {});
                     carregarVisitantesAtuais(); // Refresh the list
                 } catch (err) {
                     console.error('Erro ao registrar saída:', err);
@@ -218,7 +218,7 @@ if (formRegistrarVisitante && registrarVisitanteMsg) {
         registrarVisitanteMsg.textContent = 'Registrando entrada...';
 
         try {
-            const response = await apiClient.post('/api/visitantes/registrar-entrada', data);
+            const response = await apiClient.post('/api/v1/visitantes/registrar-entrada', data);
             registrarVisitanteMsg.className = 'feedback-message success';
             registrarVisitanteMsg.textContent = 'Entrada registrada com sucesso! ID: ' + response.id;
             formRegistrarVisitante.reset();
@@ -250,7 +250,7 @@ if (btnValidarQRCode && registrarVisitanteMsg && formRegistrarVisitante) {
 
 
         try {
-            const response = await apiClient.post('/api/visitantes/validar-qr-code', { qrCodeValue });
+            const response = await apiClient.post('/api/v1/visitantes/validar-qr-code', { qrCodeValue });
             registrarVisitanteMsg.className = 'feedback-message success';
             registrarVisitanteMsg.textContent = `Entrada por QR Code validada para: ${response.nome}. Status: ${response.status}`;
 
@@ -299,7 +299,7 @@ async function carregarHistoricoVisitantes(filters = {}) {
         if (filters.fim) params.append('fim', filters.fim);
         if (filters.nomeVisitante) params.append('nomeVisitante', filters.nomeVisitante);
 
-        const url = `/api/visitantes/historico?${params.toString()}`;
+        const url = `/api/v1/visitantes/historico?${params.toString()}`;
         const visitas = await apiClient.get(url);
 
         historicoLoadingMsg.style.display = 'none';

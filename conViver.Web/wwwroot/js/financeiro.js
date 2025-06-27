@@ -277,44 +277,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Funções de Renderização ---
     function renderCobrancas(cobrancas) {
         if (!tbodyCobrancas) {
-            console.error('Elemento tbody .js-lista-cobrancas não encontrado.');
+            console.error('Elemento .js-lista-cobrancas não encontrado.');
             return;
         }
         tbodyCobrancas.innerHTML = '';
 
         if (!cobrancas || cobrancas.length === 0) {
-            tbodyCobrancas.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhuma cobrança encontrada.</td></tr>';
+            tbodyCobrancas.innerHTML = '<p class="cv-info-message">Nenhuma cobrança encontrada.</p>';
             return;
         }
 
         cobrancas.forEach(cobranca => {
-            const tr = tbodyCobrancas.insertRow();
-            tr.insertCell().textContent = cobranca.unidadeId ? cobranca.unidadeId.substring(0, 8) + '...' : 'N/A';
-            tr.insertCell().textContent = cobranca.nomeSacado || 'N/A';
-            tr.insertCell().textContent = formatCurrency(cobranca.valor);
-            tr.insertCell().textContent = formatDate(new Date(cobranca.dataVencimento));
+            const card = document.createElement('div');
+            card.className = 'cv-card cobranca-card';
 
-            const statusCell = tr.insertCell();
-            statusCell.textContent = cobranca.statusCobranca;
-            statusCell.className = `status-${cobranca.statusCobranca.toLowerCase().replace(/\s+/g, '-')}`;
-
-
-            const acoesCell = tr.insertCell();
-            acoesCell.innerHTML = `
-                <button class="cv-button cv-button--small cv-button--info js-btn-detalhes-cobranca" data-id="${cobranca.id}" title="Detalhes">Detalhes</button>
-                <button class="cv-button cv-button--small js-btn-segunda-via" data-id="${cobranca.id}" title="2ª Via">2ª Via</button>
-            `;
+            const statusKey = cobranca.statusCobranca || '';
+            const statusClass = `status-tag--${statusKey.toLowerCase().replace(/\s+/g, '-')}`;
 
             const cancellableStatuses = ["Pendente", "Gerado", "Registrado", "Enviado", "Atrasado"];
-            if (cancellableStatuses.includes(cobranca.statusCobranca)) {
-                 const cancelButton = document.createElement('button');
-                 cancelButton.className = "cv-button cv-button--small cv-button--danger js-btn-cancelar-cobranca";
-                 cancelButton.dataset.id = cobranca.id;
-                 cancelButton.title = "Cancelar";
-                 cancelButton.textContent = "Cancelar";
-                 acoesCell.appendChild(document.createTextNode(' '));
-                 acoesCell.appendChild(cancelButton);
-            }
+
+            card.innerHTML = `
+                <div class="cobranca-card__header">
+                    <h3>🏠 ${cobranca.unidadeId ? cobranca.unidadeId : 'N/A'}</h3>
+                    <span class="status-tag ${statusClass}">${statusKey}</span>
+                </div>
+                <p>👤 ${cobranca.nomeSacado || 'N/A'}</p>
+                <p>💵 ${formatCurrency(cobranca.valor)}</p>
+                <p>📅 ${formatDate(new Date(cobranca.dataVencimento))}</p>
+                <div class="cobranca-card__actions">
+                    <button class="cv-button cv-button--small cv-button--info js-btn-detalhes-cobranca" data-id="${cobranca.id}" title="Detalhes">Detalhes</button>
+                    <button class="cv-button cv-button--small js-btn-segunda-via" data-id="${cobranca.id}" title="2ª Via">2ª Via</button>
+                    ${cancellableStatuses.includes(cobranca.statusCobranca) ? `<button class="cv-button cv-button--small cv-button--danger js-btn-cancelar-cobranca" data-id="${cobranca.id}" title="Cancelar">Cancelar</button>` : ''}
+                </div>
+            `;
+
+            tbodyCobrancas.appendChild(card);
         });
     }
 
@@ -340,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Funções de Fetch ---
     async function fetchAndRenderCobrancas(status = '') {
         if (!tbodyCobrancas) return;
-        tbodyCobrancas.innerHTML = '<tr><td colspan="6" class="text-center">Carregando cobranças...</td></tr>';
+        tbodyCobrancas.innerHTML = '<p>Carregando cobranças...</p>';
         if (cobrancasSkeleton) showFeedSkeleton(cobrancasSkeleton);
 
         let apiUrl = '/financeiro/cobrancas';
@@ -353,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderCobrancas(cobrancas);
         } catch (error) {
             console.error('Erro ao buscar cobranças:', error);
-            tbodyCobrancas.innerHTML = '<tr><td colspan="6" class="text-center error-message">Erro ao carregar cobranças. Tente novamente.</td></tr>';
+            tbodyCobrancas.innerHTML = '<p class="cv-error-message">Erro ao carregar cobranças. Tente novamente.</p>';
             const defaultMessage = 'Ocorreu um erro inesperado ao buscar cobranças.';
             if (error instanceof ApiError) {
                 showGlobalFeedback(`Erro ao buscar cobranças: ${error.message || defaultMessage}`, 'error');
@@ -406,24 +403,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchAndRenderDespesas() {
         if (!despesasTableBody) return;
-        despesasTableBody.innerHTML = '<tr><td colspan="3">Carregando...</td></tr>';
+        despesasTableBody.innerHTML = '<p>Carregando...</p>';
         try {
             const despesas = await apiClient.get('/financeiro/despesas');
             despesasTableBody.innerHTML = '';
             if (despesas && despesas.length) {
                 despesas.forEach(d => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${d.categoria || ''}</td><td>${formatCurrency(d.valor)}</td><td>${formatDate(new Date(d.dataVencimento))}</td>`;
-                    despesasTableBody.appendChild(tr);
+                    const card = document.createElement('div');
+                    card.className = 'cv-card despesa-card';
+                    card.innerHTML = `
+                        <div class="despesa-card__header">
+                            <h3>💸 ${d.categoria || ''}</h3>
+                            <span>${formatCurrency(d.valor)}</span>
+                        </div>
+                        <p>📅 ${formatDate(new Date(d.dataVencimento))}</p>
+                    `;
+                    despesasTableBody.appendChild(card);
                 });
             } else {
-                despesasTableBody.innerHTML = '<tr><td colspan="3">Nenhuma despesa encontrada.</td></tr>';
+                despesasTableBody.innerHTML = '<p class="cv-info-message">Nenhuma despesa encontrada.</p>';
             }
             renderDespesasChart(despesas || []);
         } catch (err) {
             console.error('Erro ao buscar despesas:', err);
             showGlobalFeedback('Erro ao carregar despesas', 'error');
-            despesasTableBody.innerHTML = '<tr><td colspan="3" class="error-message">Falha ao carregar.</td></tr>';
+            despesasTableBody.innerHTML = '<p class="cv-error-message">Falha ao carregar.</p>';
         }
     }
 
