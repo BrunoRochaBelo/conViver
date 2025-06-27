@@ -10,6 +10,7 @@ $routes = @(
     '/forgot-password.html',
     '/register.html',
     '/reset-password.html',
+    '/layout.html',
     '/pages/dashboard.html',
     '/pages/comunicacao.html',
     '/pages/financeiro.html',
