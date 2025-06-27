@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/styles.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body class="financeiro-page">
     <header class="cv-header">
@@ -26,7 +28,16 @@
     </div>
     <nav id="mainNav"></nav>
     <main class="cv-container fin-cobrancas-main">
-        <h1 class="fin-cobrancas__title">Emissão e Gestão de Cobranças</h1>
+        <div id="finTabs" class="cv-tabs fin-subtabs">
+            <button class="cv-tab-button active" data-subtab="cobrancas">Cobranças</button>
+            <button class="cv-tab-button" data-subtab="despesas">Despesas</button>
+            <button class="cv-tab-button" data-subtab="relatorios">Relatórios</button>
+            <button class="cv-tab-button" data-subtab="orcamento">Orçamento</button>
+            <button class="cv-tab-button" data-subtab="tendencias">Tendências</button>
+        </div>
+
+        <div class="cv-tab-content active" id="content-cobrancas">
+            <h1 class="fin-cobrancas__title">Emissão e Gestão de Cobranças</h1>
 
         <section class="db-section fin-cobrancas__dashboard">
             <h2 class="db-section__title">Resumo Financeiro</h2>
@@ -99,6 +110,33 @@
                     <p>Conteúdo do modal...</p>
                 </div>
             </div>
+        </div>
+        </div> <!-- fim content-cobrancas -->
+
+        <div class="cv-tab-content" id="content-despesas" style="display:none;">
+            <h2>Despesas</h2>
+            <canvas id="graficoDespesas" height="320"></canvas>
+            <table class="cv-table fin-despesas__table">
+                <thead>
+                    <tr><th>Categoria</th><th>Valor</th><th>Vencimento</th></tr>
+                </thead>
+                <tbody class="js-lista-despesas"></tbody>
+            </table>
+        </div>
+
+        <div class="cv-tab-content" id="content-relatorios" style="display:none;">
+            <h2>Relatórios</h2>
+            <canvas id="graficoBalancete" height="320"></canvas>
+        </div>
+
+        <div class="cv-tab-content" id="content-orcamento" style="display:none;">
+            <h2>Orçamento</h2>
+            <canvas id="graficoOrcamento" height="320"></canvas>
+        </div>
+
+        <div class="cv-tab-content" id="content-tendencias" style="display:none;">
+            <h2>Tendências</h2>
+            <canvas id="graficoTendencias" height="320"></canvas>
         </div>
     </main>
     <script type="module" src="../js/nav.js"></script>
