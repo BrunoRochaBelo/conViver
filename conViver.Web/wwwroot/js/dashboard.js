@@ -17,8 +17,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const ultimosAvisosEl = document.querySelector('.js-db-ultimos-avisos');
     const inadimplenciaChartCanvas = document.getElementById('inadimplenciaChart');
     let inadimplenciaChartInstance = null; // Para manter a instância do gráfico
-    const dashboardSkeleton = document.getElementById('dashboard-skeleton');
 
+    const dashboardSkeleton = document.getElementById('dashboard-skeleton');
     // Loading indicator (simple text for now, could be a spinner) - Kept for local loading messages if still desired
     const showLoading = (container, message = "Carregando...") => {
         if (container) container.innerHTML = `<p class="loading-message">${message}</p>`;
@@ -223,7 +223,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function carregarDadosDashboard() {
         if (dashboardSkeleton) showFeedSkeleton(dashboardSkeleton);
-        showGlobalFeedback('Carregando dados do dashboard...', 'info', 3000);
 
         // Set loading states for all sections (local indicators can remain or be removed if global is sufficient)
         showLoading(inadimplenciaPercentEl.parentNode, 'Carregando métricas...');
@@ -255,7 +254,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 renderAlertas(dados.alertas, alertasEl);
                 renderAtividades(dados.atividadesRecentes, ultimosChamadosEl, "Chamado", "Nenhum chamado recente.");
                 renderAtividades(dados.atividadesRecentes, ultimosAvisosEl, "Aviso", "Nenhum aviso recente.");
-                showGlobalFeedback('Dashboard carregado com sucesso!', 'success', 3000);
             } else {
                 showGlobalFeedback("Não foi possível carregar os dados do dashboard. Resposta vazia.", 'error');
                 clearAllSections();

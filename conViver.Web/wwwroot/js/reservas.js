@@ -1,4 +1,4 @@
-import { showGlobalFeedback } from "./main.js";
+import { showGlobalFeedback, showSkeleton, hideSkeleton } from "./main.js";
 import { requireAuth, getUserInfo, getRoles } from "./auth.js";
 import apiClient from "./apiClient.js";
 import { initFabMenu } from "./fabMenu.js";
@@ -56,7 +56,7 @@ let filtroEspacoModalAgenda, filtroDataModalAgenda;
 // Modal filter elements for Minhas Reservas Tab
 let filtroDataModalMinhas, filtroEspacoModalMinhas, filtroStatusModalMinhas;
 
-document.addEventListener("DOMContentLoaded", async () => {
+export async function initialize() {
   // Autenticação e info do usuário
   requireAuth();
   const userInfo = getUserInfo();
@@ -265,7 +265,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
   initFabMenu(actions);
-});
+}
+
+if (document.readyState !== "loading") {
+  initialize();
+} else {
+  document.addEventListener("DOMContentLoaded", initialize);
+}
 
 async function initReservasPage() {
   // Elementos de nova reserva
@@ -546,6 +552,7 @@ async function carregarMinhasReservas(page = 1, append = false) {
 
   const container = document.getElementById(minhasReservasItemsContainerId);
   const sentinel = document.getElementById(minhasReservasSentinelId);
+  const skeleton = container ? container.parentElement.querySelector('.feed-skeleton-container') : null;
 
   if (!container) {
     console.error("Container para 'Minhas Reservas' não encontrado.");
@@ -558,16 +565,7 @@ async function carregarMinhasReservas(page = 1, append = false) {
     noMoreItemsMinhasReservas = false; // Reset for new filter/load
   }
 
-  let loadingMsg = container.querySelector(".cv-loading-message");
-  if (!loadingMsg && !append) { // Only add main loading message if not appending and not already there
-    loadingMsg = document.createElement("p");
-    loadingMsg.className = "cv-loading-message";
-    container.appendChild(loadingMsg);
-  }
-  if (loadingMsg) {
-    loadingMsg.textContent = append ? "Carregando mais reservas..." : "Carregando suas reservas...";
-    loadingMsg.style.display = "block";
-  }
+  if (!append && skeleton) showSkeleton(skeleton);
   if (sentinel) sentinel.style.display = "block";
 
 
@@ -601,7 +599,7 @@ async function carregarMinhasReservas(page = 1, append = false) {
     // or similar. For now, we'll use responseData.items and check length against pageSize.
     const items = responseData.items || [];
 
-    if (loadingMsg) loadingMsg.style.display = "none";
+    if (!append && skeleton) hideSkeleton(skeleton);
 
     if (items.length > 0) {
       if (!append) container.dataset.loadedOnce = "true"; // Mark as loaded once for the tab logic
@@ -641,7 +639,7 @@ async function carregarMinhasReservas(page = 1, append = false) {
     }
   } catch (err) {
     console.error("Erro ao carregar 'Minhas Reservas':", err);
-    if (loadingMsg) loadingMsg.style.display = "none";
+    if (!append && skeleton) hideSkeleton(skeleton);
     if (!append) {
       container.innerHTML =
         '<p class="cv-error-message" style="text-align:center;">Erro ao carregar suas reservas. Tente novamente mais tarde.</p>';
@@ -692,16 +690,8 @@ async function carregarReservasListView(page, append = false) {
     noMoreItemsListView = false;
   }
 
-  let loadingMsg = container.querySelector(".cv-loading-message");
-  if (!loadingMsg) {
-    loadingMsg = document.createElement("p");
-    loadingMsg.className = "cv-loading-message";
-    container.appendChild(loadingMsg);
-  }
-  loadingMsg.textContent = append
-    ? "Carregando mais reservas..."
-    : "Carregando lista de reservas...";
-  loadingMsg.style.display = "block";
+  const skeleton = container.parentElement.querySelector('.feed-skeleton-container');
+  if (!append && skeleton) showSkeleton(skeleton);
   if (sentinel) sentinel.style.display = "block";
 
     try {
@@ -740,7 +730,7 @@ async function carregarReservasListView(page, append = false) {
 
     const items = responseData.items || responseData; // Adaptar conforme a resposta da API
 
-    loadingMsg.style.display = "none";
+    if (!append && skeleton) hideSkeleton(skeleton);
 
     if (items.length > 0) {
       if (!append) container.dataset.loadedOnce = "true";
@@ -777,7 +767,7 @@ async function carregarReservasListView(page, append = false) {
     }
   } catch (err) {
     console.error("Erro ao carregar lista de reservas:", err);
-    loadingMsg.style.display = "none";
+    if (!append && skeleton) hideSkeleton(skeleton);
     if (!append) {
       container.innerHTML =
         '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas. Tente novamente mais tarde.</p>';
@@ -1197,7 +1187,7 @@ function initializeFullCalendar() {
 async function carregarReservasDia(dataStr) {
   if (!agendaDiaListContainer) return;
   agendaDiaListContainer.innerHTML = "";
-  if (agendaDiaSkeleton) agendaDiaSkeleton.style.display = "block";
+  showSkeleton(agendaDiaSkeleton);
   if (agendaDiaLoading) agendaDiaLoading.style.display = "block";
   try {
     const params = {
@@ -1218,7 +1208,7 @@ async function carregarReservasDia(dataStr) {
     console.error("Erro ao carregar reservas do dia:", err);
     agendaDiaListContainer.innerHTML = '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas.</p>';
   } finally {
-    if (agendaDiaSkeleton) agendaDiaSkeleton.style.display = "none";
+    hideSkeleton(agendaDiaSkeleton);
     if (agendaDiaLoading) agendaDiaLoading.style.display = "none";
   }
 }

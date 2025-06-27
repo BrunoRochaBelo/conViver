@@ -552,6 +552,7 @@ async function carregarMinhasReservas(page = 1, append = false) {
 
   const container = document.getElementById(minhasReservasItemsContainerId);
   const sentinel = document.getElementById(minhasReservasSentinelId);
+  const skeleton = container ? container.parentElement.querySelector('.feed-skeleton-container') : null;
 
   if (!container) {
     console.error("Container para 'Minhas Reservas' não encontrado.");
@@ -564,16 +565,7 @@ async function carregarMinhasReservas(page = 1, append = false) {
     noMoreItemsMinhasReservas = false; // Reset for new filter/load
   }
 
-  let loadingMsg = container.querySelector(".cv-loading-message");
-  if (!loadingMsg && !append) { // Only add main loading message if not appending and not already there
-    loadingMsg = document.createElement("p");
-    loadingMsg.className = "cv-loading-message";
-    container.appendChild(loadingMsg);
-  }
-  if (loadingMsg) {
-    loadingMsg.textContent = append ? "Carregando mais reservas..." : "Carregando suas reservas...";
-    loadingMsg.style.display = "block";
-  }
+  if (!append && skeleton) showSkeleton(skeleton);
   if (sentinel) sentinel.style.display = "block";
 
 
@@ -607,7 +599,7 @@ async function carregarMinhasReservas(page = 1, append = false) {
     // or similar. For now, we'll use responseData.items and check length against pageSize.
     const items = responseData.items || [];
 
-    if (loadingMsg) loadingMsg.style.display = "none";
+    if (!append && skeleton) hideSkeleton(skeleton);
 
     if (items.length > 0) {
       if (!append) container.dataset.loadedOnce = "true"; // Mark as loaded once for the tab logic
@@ -647,7 +639,7 @@ async function carregarMinhasReservas(page = 1, append = false) {
     }
   } catch (err) {
     console.error("Erro ao carregar 'Minhas Reservas':", err);
-    if (loadingMsg) loadingMsg.style.display = "none";
+    if (!append && skeleton) hideSkeleton(skeleton);
     if (!append) {
       container.innerHTML =
         '<p class="cv-error-message" style="text-align:center;">Erro ao carregar suas reservas. Tente novamente mais tarde.</p>';
@@ -698,16 +690,8 @@ async function carregarReservasListView(page, append = false) {
     noMoreItemsListView = false;
   }
 
-  let loadingMsg = container.querySelector(".cv-loading-message");
-  if (!loadingMsg) {
-    loadingMsg = document.createElement("p");
-    loadingMsg.className = "cv-loading-message";
-    container.appendChild(loadingMsg);
-  }
-  loadingMsg.textContent = append
-    ? "Carregando mais reservas..."
-    : "Carregando lista de reservas...";
-  loadingMsg.style.display = "block";
+  const skeleton = container.parentElement.querySelector('.feed-skeleton-container');
+  if (!append && skeleton) showSkeleton(skeleton);
   if (sentinel) sentinel.style.display = "block";
 
     try {
@@ -746,7 +730,7 @@ async function carregarReservasListView(page, append = false) {
 
     const items = responseData.items || responseData; // Adaptar conforme a resposta da API
 
-    loadingMsg.style.display = "none";
+    if (!append && skeleton) hideSkeleton(skeleton);
 
     if (items.length > 0) {
       if (!append) container.dataset.loadedOnce = "true";
@@ -783,7 +767,7 @@ async function carregarReservasListView(page, append = false) {
     }
   } catch (err) {
     console.error("Erro ao carregar lista de reservas:", err);
-    loadingMsg.style.display = "none";
+    if (!append && skeleton) hideSkeleton(skeleton);
     if (!append) {
       container.innerHTML =
         '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas. Tente novamente mais tarde.</p>';

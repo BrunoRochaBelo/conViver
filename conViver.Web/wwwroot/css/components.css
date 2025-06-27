@@ -498,40 +498,88 @@ html[data-theme="dark"] .cv-nav__link:hover {
 }
 
 /* Skeleton Screen Components */
-.feed-skeleton-item {
-    padding: var(--cv-spacing-md);
-    border-radius: var(--cv-border-radius-md);
-    border: 1px solid var(--current-border-subtle, #eee);
-    margin-bottom: var(--cv-spacing-md);
-    position: relative;
-    overflow: hidden;
+.feed-skeleton-container {
+    /* This container is managed by JS (display: block/none) */
 }
+
+.feed-skeleton-item {
+    background-color: var(--current-bg-white); /* Match card background */
+    border: var(--cv-border-width) solid var(--current-border-color); /* Match card border */
+    border-radius: var(--cv-border-radius-lg); /* Match card radius */
+    padding: var(--cv-spacing-md);
+    margin-bottom: var(--cv-spacing-md);
+    box-shadow: var(--current-shadow-md); /* Match card shadow */
+    position: relative;
+    overflow: hidden; /* Important for shimmer effect */
+}
+
+/* Base for skeleton placeholder elements */
 .skeleton-title,
 .skeleton-line {
-    background-color: var(--cv-gray-200);
-    border-radius: 4px;
-    height: 16px;
-    margin-bottom: 8px;
+    background-color: var(--current-skeleton-bg, var(--cv-gray-200)); /* Use a themeable color or fallback */
+    border-radius: 4px; /* Consistent border radius for placeholders */
+    margin-bottom: 10px; /* Spacing between lines */
 }
+
+/* Specifics for title placeholder */
 .skeleton-title {
     width: 60%;
-    height: 20px;
+    height: 20px; /* Larger height for title */
 }
+
+/* Specifics for text line placeholders */
+.skeleton-line {
+    width: 100%; /* Full width by default */
+    height: 16px;
+}
+
 .skeleton-line.short {
-    width: 80%;
+    width: 75%; /* Shorter line variant */
 }
+
+.skeleton-line:last-child {
+    margin-bottom: 0; /* No margin for the last line in a group */
+}
+
+/* Shimmer Animation */
 .feed-skeleton-item::after {
     content: '';
     position: absolute;
     top: 0;
-    left: -150px;
+    left: 0; /* Start from the left edge of the item */
     height: 100%;
-    width: 150px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-    animation: skeleton-shimmer 1.2s infinite;
+    width: 100%; /* Cover the entire item */
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--current-skeleton-shimmer-color, rgba(255, 255, 255, 0.5)), /* Themeable shimmer */
+        transparent
+    );
+    transform: translateX(-100%); /* Start off-screen to the left */
+    animation: skeleton-shimmer 1.5s infinite; /* Slower, smoother animation */
 }
+
 @keyframes skeleton-shimmer {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(100%); }
+    0% {
+        transform: translateX(-100%);
+    }
+    50% { /* Add a midpoint for a more noticeable shimmer pass */
+        transform: translateX(100%);
+    }
+    100% {
+        transform: translateX(100%); /* Keep it off-screen at the end before looping */
+    }
 }
+
+/* Ensure dark theme variables are defined in styles.css or :root */
+/* Example:
+:root {
+    --current-skeleton-bg: var(--cv-gray-200);
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.5);
+}
+html[data-theme="dark"] {
+    --current-skeleton-bg: var(--cv-gray-700); // Or a darker shade
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.1); // More subtle shimmer for dark
+}
+*/
 

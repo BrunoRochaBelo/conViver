@@ -223,7 +223,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function carregarDadosDashboard() {
         if (dashboardSkeleton) showFeedSkeleton(dashboardSkeleton);
-        showGlobalFeedback('Carregando dados do dashboard...', 'info', 3000);
 
         // Set loading states for all sections (local indicators can remain or be removed if global is sufficient)
         showLoading(inadimplenciaPercentEl.parentNode, 'Carregando métricas...');
@@ -255,7 +254,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 renderAlertas(dados.alertas, alertasEl);
                 renderAtividades(dados.atividadesRecentes, ultimosChamadosEl, "Chamado", "Nenhum chamado recente.");
                 renderAtividades(dados.atividadesRecentes, ultimosAvisosEl, "Aviso", "Nenhum aviso recente.");
-                showGlobalFeedback('Dashboard carregado com sucesso!', 'success', 3000);
             } else {
                 showGlobalFeedback("Não foi possível carregar os dados do dashboard. Resposta vazia.", 'error');
                 clearAllSections();

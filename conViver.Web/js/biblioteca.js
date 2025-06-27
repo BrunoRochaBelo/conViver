@@ -48,7 +48,7 @@ async function loadDocumentos() {
     const skeleton = document.getElementById('biblioteca-skeleton');
 
     if (skeleton) showFeedSkeleton(skeleton);
-    listContainer.innerHTML = '<p class="cv-loading-message">Carregando documentos...</p>';
+    listContainer.innerHTML = '';
 
     const searchTerm = document.getElementById('docSearchInput')?.value || '';
     const category = document.getElementById('docCategoryFilter')?.value || '';
@@ -142,12 +142,10 @@ async function handleUploadDocumento(event) {
 
 
     try {
-        showGlobalFeedback('Enviando documento...', 'info');
         // O endpoint é /api/v1/syndic/docs
         const response = await apiClient.post('/api/v1/syndic/docs', formData, true); // true para indicar que é FormData
 
         if (response) { // apiClient.post deve retornar o DTO do documento criado ou um objeto de sucesso
-            showGlobalFeedback('Documento enviado com sucesso!', 'success');
             form.reset();
             document.getElementById('modalUploadDocumento').style.display = 'none';
             loadDocumentos(); // Recarrega a lista
@@ -170,10 +168,8 @@ async function handleUploadDocumento(event) {
 
 async function handleDeleteDocumento(docId) {
     try {
-        showGlobalFeedback('Excluindo documento...', 'info');
         // O endpoint é /api/v1/syndic/docs/{id}
         await apiClient.delete(`/api/v1/syndic/docs/${docId}`);
-        showGlobalFeedback('Documento excluído com sucesso!', 'success');
         loadDocumentos(); // Recarrega a lista
     } catch (error) {
         console.error(`Erro ao excluir documento ${docId}:`, error);
