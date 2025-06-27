@@ -69,19 +69,23 @@ namespace conViver.Infrastructure.Data.Repositories
                 query = query.Where(o => o.DataAbertura <= queryParams.PeriodoFim.Value);
             }
 
-            if (queryParams.Minha.HasValue && queryParams.Minha.Value && userId.HasValue)
+            if (!isAdminOrSindico && userId.HasValue)
+            {
+                var condId = await _context.Usuarios
+                    .Where(u => u.Id == userId.Value)
+                    .Select(u => u.CondominioId)
+                    .FirstOrDefaultAsync();
+
+                query = query.Where(o => o.CondominioId == condId);
+
+                if (!queryParams.Minha.GetValueOrDefault())
+                {
+                    query = query.Where(o => o.UsuarioId == userId.Value);
+                }
+            }
+            else if (queryParams.Minha.HasValue && queryParams.Minha.Value && userId.HasValue)
             {
                 query = query.Where(o => o.UsuarioId == userId.Value);
-            }
-            else if (!isAdminOrSindico && userId.HasValue) // Non-admin/sindico users might have restricted visibility
-            {
-                // Example: only see their own or from their condominio.
-                // This logic might need to be more complex based on exact business rules.
-                // For now, let's assume they can see all if not "Minha" specific, or this needs adjustment.
-                // query = query.Where(o => o.UsuarioId == userId.Value || o.CondominioId == SOME_USER_CONDOMINIO_ID);
-                // This part is complex and depends on how CondominioId is linked to the user.
-                // For this implementation, if not Admin/Sindico and not "Minha", they see all.
-                // This should be reviewed for actual security/visibility rules.
             }
 
             query = query
