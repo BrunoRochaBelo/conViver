@@ -12,5 +12,6 @@ rsync -a --delete "$WEB_DIR/js/" "$WEB_DIR/wwwroot/js/"
 
 # Also copy top-level html files
 rsync -a "$WEB_DIR/index.html" "$WEB_DIR/login.html" "$WEB_DIR/forgot-password.html" \
-      "$WEB_DIR/register.html" "$WEB_DIR/reset-password.html" "$WEB_DIR/wwwroot/"
+      "$WEB_DIR/register.html" "$WEB_DIR/reset-password.html" "$WEB_DIR/layout.html" \
+      "$WEB_DIR/wwwroot/"
 
