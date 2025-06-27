@@ -740,6 +740,11 @@ async function handleDeleteAviso(itemId) {
   }
 }
 
+// Returns the raw roles saved in localStorage by the authentication flow.
+// Residents may appear as "Condomino" or "Inquilino" but the Ocorrências
+// endpoints expect the more generic role "Morador". Permission checks that
+// rely on that role should treat "Condomino" and "Inquilino" as synonyms of
+// "Morador".
 function getUserRoles() {
   const user = JSON.parse(localStorage.getItem("userInfo"));
   if (user && user.roles) return user.roles;
