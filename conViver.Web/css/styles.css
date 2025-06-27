@@ -1554,9 +1554,15 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
 }
 
 
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--cv-spacing-md);
+}
+
 .document-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Layout responsivo em grid */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: var(--cv-spacing-md);
 }
 
