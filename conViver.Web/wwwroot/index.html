@@ -2,12 +2,53 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>conViver</title>
-    <script>
-      const theme = localStorage.getItem('cv_theme');
-      if (theme) document.documentElement.setAttribute('data-theme', theme);
-      window.location.replace('layout.html?page=comunicacao');
-    </script>
+    <title>conViver - Dashboard</title>
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
-<body></body>
+<body>
+    <div id="global-message-banner" class="message-banner"></div>
+    <header class="cv-header">
+        <div class="cv-container cv-header__container">
+            <h1 class="cv-header__title">conViver</h1>
+            <button id="userMenuButton" class="user-avatar"></button>
+        </div>
+    </header>
+    <div id="userMenuModal" class="cv-modal user-menu-modal">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close" id="userMenuClose">&times;</span>
+            <ul class="user-menu-list">
+                <li><button id="toggleThemeButton" class="cv-button">Alterar Tema</button></li>
+                <li><button id="goProfileButton" class="cv-button">Gerenciar Perfil</button></li>
+                <li><button id="userLogoutButton" class="cv-button">Logout</button></li>
+            </ul>
+        </div>
+    </div>
+    <nav id="mainNav"></nav>
+    <main class="db-main cv-container">
+        <section class="db-metrics-grid">
+            <div class="cv-card db-metric-card">
+                <h2 class="db-metric-card__title">Inadimplência</h2>
+                <p class="db-metric-card__value js-inadimplencia">--%</p>
+            </div>
+            <div class="cv-card db-metric-card">
+                <h2 class="db-metric-card__title">Saldo em Conta</h2>
+                <p class="db-metric-card__value js-saldo">R$ --</p>
+            </div>
+            <div class="cv-card db-metric-card">
+                <h2 class="db-metric-card__title">Próximas Despesas</h2>
+                <ul class="db-metric-card__list js-proximas-despesas">
+                    <li>...</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+    <script src="js/config.js"></script>
+    <script type="module" src="js/nav.js"></script>
+    <script src="js/apiClient.js" type="module"></script>
+    <script src="js/auth.js" type="module"></script>
+    <script type="module" src="js/userMenu.js"></script>
+    <script type="module" src="js/dashboard.js"></script>
+    <script src="js/main.js" type="module"></script>
+</body>
 </html>
