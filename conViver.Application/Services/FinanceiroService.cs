@@ -38,35 +38,42 @@ namespace conViver.Application.Services // Changed namespace to match convention
 
         public async Task<DashboardFinanceiroCobrancasDto> GetDashboardCobrancasAsync(Guid condominioId)
         {
-            // This is a simplified dashboard implementation.
-            // TODO: Implement proper filtering by condominioId for all queries and more accurate calculations.
-            // For example, 'todosBoletos' should be filtered by condominioId.
-            // InadimplenciaPercentual and TotalPixMes are currently placeholders.
+            // Seleciona boletos apenas do condomínio informado
+            var boletosQuery = from b in _boletoRepository.Query()
+                               join u in _unidadeRepository.Query() on b.UnidadeId equals u.Id
+                               where u.CondominioId == condominioId
+                               select b;
 
-            Console.WriteLine($"Gerando dashboard de cobranças para Condomínio ID: {condominioId} (implementação simplificada)");
+            var boletos = await boletosQuery.ToListAsync();
 
-            // Example: Calculate based on existing boletos (needs condominioId filter)
-             var todosBoletosNoCondominio = await _boletoRepository.Query()
-                                // .Where(b => b.Unidade.CondominioId == condominioId) // This requires Boleto to have a direct navigation to Unidade or a join
-                                .ToListAsync(); // Placeholder: Should be filtered by condominioId
-
-            // The following lines demonstrate conceptual calculations but lack condominioId filtering for now.
-            // This would require joining Boleto with Unidade to filter by condominioId,
-            // similar to ListarCobrancasAsync, if Boleto itself doesn't store CondominioId.
-            // As a simplification for this step, we'll use all boletos and acknowledge this limitation.
-
-            var pendentes = todosBoletosNoCondominio.Count(b =>
+            var totalBoletos = boletos.Count;
+            var pendentes = boletos.Count(b =>
                 b.Status == BoletoStatus.Gerado ||
                 b.Status == BoletoStatus.Registrado ||
+                b.Status == BoletoStatus.Enviado ||
                 b.Status == BoletoStatus.Vencido);
-            var pagosNoMes = todosBoletosNoCondominio.Count(b => b.Status == BoletoStatus.Pago && b.DataPagamento.HasValue && b.DataPagamento.Value.Month == DateTime.UtcNow.Month && b.DataPagamento.Value.Year == DateTime.UtcNow.Year);
 
-            // InadimplenciaPercentual and TotalPixMes would require more complex logic and data.
+            var inadimplenciaPercentual = totalBoletos == 0
+                ? 0m
+                : Math.Round((decimal)pendentes / totalBoletos * 100, 2);
+
+            // Total de pagamentos via Pix no mês corrente
+            var pixValor = await (from p in _pagamentoRepository.Query()
+                                 join b in _boletoRepository.Query() on p.BoletoId equals b.Id into pb
+                                 from boleto in pb.DefaultIfEmpty()
+                                 join u in _unidadeRepository.Query() on boleto!.UnidadeId equals u.Id into ub
+                                 from unidade in ub.DefaultIfEmpty()
+                                 where p.Origem.ToLower() == "pix" &&
+                                       p.DataPgto.Month == DateTime.UtcNow.Month &&
+                                       p.DataPgto.Year == DateTime.UtcNow.Year &&
+                                       (boleto == null || unidade.CondominioId == condominioId)
+                                 select p.ValorPago).SumAsync();
+
             return new DashboardFinanceiroCobrancasDto
             {
-                InadimplenciaPercentual = 10.5m, // Mocked: Needs real calculation
-                TotalPixMes = (decimal)new Random().Next(500, 2000), // Mocked: Needs real calculation based on Pix transactions
-                TotalBoletosPendentes = pendentes // Partially dynamic, but lacks condominioId filter
+                InadimplenciaPercentual = inadimplenciaPercentual,
+                TotalPixMes = pixValor,
+                TotalBoletosPendentes = pendentes
             };
         }
 
