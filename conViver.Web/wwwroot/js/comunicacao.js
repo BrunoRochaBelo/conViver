@@ -10,6 +10,7 @@ let noMoreFeedItems = false;
 const feedContainerSelector = ".js-avisos"; // This is specific to the Mural tab's feed section
 const feedScrollSentinelId = "notice-scroll-sentinel";
 let fetchedFeedItems = [];
+let currentSortOrder = "desc";
 // const skeletonCount = 3; // Will be determined by HTML or specific tab logic
 
 function showFeedSkeleton(tabContentId = "content-mural") {
@@ -178,6 +179,7 @@ export async function initialize() {
   setupFeedContainerClickListener();
   setupFabMenu();
   setupFilterModalAndButton(); // Setup filter modal and its trigger
+  setupSortModalAndButton();
   setupModalEventListeners(); // Setup generic close/submit for other modals
 }
 
@@ -297,6 +299,22 @@ function setupFilterModalAndButton() {
 
   if (openFilterButton && modalFiltros) {
     openFilterButton.addEventListener("click", () => {
+      const activeTab = document.querySelector(".cv-tab-button.active")?.id;
+      modalFiltros.querySelectorAll("[data-filter-context]").forEach((el) => {
+        el.style.display = "none";
+      });
+      if (activeTab === "tab-enquetes") {
+        modalFiltros.querySelectorAll('[data-filter-context="enquetes"]').forEach((el) => (el.style.display = "block"));
+        modalFiltros.querySelector("h2").textContent = "Filtros de Enquetes";
+      } else if (activeTab === "tab-solicitacoes") {
+        modalFiltros.querySelectorAll('[data-filter-context="solicitacoes"]').forEach((el) => (el.style.display = "block"));
+        modalFiltros.querySelector("h2").textContent = "Filtros de Solicitações";
+      } else if (activeTab === "tab-ocorrencias") {
+        modalFiltros.querySelectorAll('[data-filter-context="ocorrencias"]').forEach((el) => (el.style.display = "block"));
+        modalFiltros.querySelector("h2").textContent = "Filtros de Ocorrências";
+      } else {
+        modalFiltros.querySelector("h2").textContent = "Filtros do Mural";
+      }
       modalFiltros.style.display = "flex";
     });
   }
@@ -326,6 +344,33 @@ function setupFilterModalAndButton() {
       // showGlobalFeedback("Aplicando filtros ao feed...", "info"); // Skeleton provides visual feedback
       loadInitialFeedItems(); // Reloads feed using values from modal's filters
       if (modalFiltros) modalFiltros.style.display = "none"; // Close modal after applying
+    });
+  }
+}
+
+function setupSortModalAndButton() {
+  const openSortButton = document.getElementById("open-sort-button");
+  const sortModal = document.getElementById("modal-sort");
+  const closeSortButtons = document.querySelectorAll(".js-modal-sort-close");
+  const applySortButton = document.getElementById("apply-sort-button");
+  const sortSelect = document.getElementById("sort-order-select");
+
+  if (openSortButton && sortModal) {
+    openSortButton.addEventListener("click", () => {
+      if (sortSelect) sortSelect.value = currentSortOrder;
+      sortModal.style.display = "flex";
+    });
+  }
+  closeSortButtons.forEach((btn) => btn.addEventListener("click", () => (sortModal.style.display = "none")));
+  window.addEventListener("click", (e) => {
+    if (e.target === sortModal) sortModal.style.display = "none";
+  });
+  if (applySortButton && sortSelect) {
+    applySortButton.addEventListener("click", () => {
+      currentSortOrder = sortSelect.value;
+      sortModal.style.display = "none";
+      showFeedSkeleton(getActiveTabContentId());
+      loadInitialFeedItems();
     });
   }
 }
@@ -832,6 +877,19 @@ async function fetchAndDisplayFeedItems(page, append = false) {
   const periodoFilterInput = document.getElementById(
     "period-filter-modal"
   )?.value;
+  const activeTabId = document.querySelector(".cv-tab-button.active")?.id || "tab-mural";
+  let autorFilter = null;
+  let statusFilter = null;
+  if (activeTabId === "tab-enquetes") {
+    autorFilter = document.getElementById("enquete-author-filter")?.value;
+    statusFilter = document.getElementById("enquete-status-filter")?.value;
+  } else if (activeTabId === "tab-solicitacoes") {
+    autorFilter = document.getElementById("solicitacao-author-filter")?.value;
+    statusFilter = document.getElementById("solicitacao-status-filter")?.value;
+  } else if (activeTabId === "tab-ocorrencias") {
+    autorFilter = document.getElementById("ocorrencia-author-filter")?.value;
+    statusFilter = document.getElementById("ocorrencia-status-filter")?.value;
+  }
   let periodoInicio = null,
     periodoFim = null;
   if (periodoFilterInput) {
@@ -851,6 +909,8 @@ async function fetchAndDisplayFeedItems(page, append = false) {
       categoria: categoriaFilter,
       periodoInicio: periodoInicio ? periodoInicio.toISOString() : null,
       periodoFim: periodoFim ? periodoFim.toISOString() : null,
+      status: statusFilter,
+      minhas: autorFilter === "minhas" ? true : null,
     });
 
     const items = response || [];
@@ -909,9 +969,8 @@ async function fetchAndDisplayFeedItems(page, append = false) {
         if (itemAData.prioridadeOrdenacao !== itemBData.prioridadeOrdenacao) {
           return itemAData.prioridadeOrdenacao - itemBData.prioridadeOrdenacao;
         }
-        return (
-          new Date(itemBData.dataHoraPrincipal) - new Date(itemAData.dataHoraPrincipal)
-        );
+        const diff = new Date(itemBData.dataHoraPrincipal) - new Date(itemAData.dataHoraPrincipal);
+        return currentSortOrder === "desc" ? diff : -diff;
       });
       allRenderedItems.forEach((el) =>
         muralFeedContainer.insertBefore(el, sentinelElement) // Re-insert in sorted order
