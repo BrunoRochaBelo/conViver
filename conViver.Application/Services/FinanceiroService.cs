@@ -4,13 +4,14 @@ using conViver.Core.Interfaces; // Assuming IRepository and potentially IFinance
 using conViver.Core.Enums;    // Assuming BoletoStatus is here
 using Microsoft.EntityFrameworkCore; // For ToListAsync, etc.
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace conViver.Application.Services // Changed namespace to match convention
 {
-    public class FinanceiroService
+    public class FinanceiroService : IFinanceiroService
     {
         private readonly IRepository<Boleto> _boletoRepository;
         private readonly IRepository<Unidade> _unidadeRepository; // Assuming needed for NomeSacado
@@ -367,6 +368,12 @@ namespace conViver.Application.Services // Changed namespace to match convention
         {
             // Em um cenário real enviaria e-mail/notificação
             return Task.FromResult(true);
+        }
+
+        public Task RegistrarPagamentoAsync(Boleto boleto, decimal valor, CancellationToken cancellationToken = default)
+        {
+            boleto.RegistrarPagamento(valor, DateTime.UtcNow);
+            return Task.CompletedTask;
         }
 
         public async Task<PagamentoDto?> RegistrarPagamentoManualAsync(Guid boletoId, decimal valor, DateTime dataPagamento)

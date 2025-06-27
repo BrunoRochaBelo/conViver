@@ -15,7 +15,7 @@ public static class DependencyInjection
         services.AddTransient<CondominioService>();
         services.AddTransient<IUsuarioService, UsuarioService>();
         services.AddTransient<UsuarioService>();
-        services.AddTransient<FinanceiroService>();
+        services.AddTransient<IFinanceiroService, FinanceiroService>();
         services.AddTransient<ReservaService>();
         services.AddTransient<OrdemServicoService>();
         services.AddTransient<AvisoService>();
