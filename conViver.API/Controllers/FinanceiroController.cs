@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using conViver.Core.Entities;
-using conViver.Application.Services; // Corrected namespace
+using conViver.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using conViver.Core.DTOs; // Added for DTOs
 using System.Collections.Generic; // Added for IEnumerable
@@ -16,9 +16,9 @@ namespace conViver.API.Controllers;
 [Authorize(Roles = "Sindico")]
 public class FinanceiroController : ControllerBase
 {
-    private readonly FinanceiroService _financeiro;
+    private readonly IFinanceiroService _financeiro;
 
-    public FinanceiroController(FinanceiroService financeiro)
+    public FinanceiroController(IFinanceiroService financeiro)
     {
         _financeiro = financeiro;
     }
@@ -420,6 +420,42 @@ public class FinanceiroController : ControllerBase
         var result = await _financeiro.RegistrarPagamentoManualAsync(dto.BoletoId, dto.Valor, dto.DataPagamento);
         if (result == null) return NotFound();
         return CreatedAtAction(nameof(GetCobranca), new { id = dto.BoletoId }, result);
+    }
+
+    [HttpPost("orcamentos/{ano}")]
+    public async Task<ActionResult<IEnumerable<OrcamentoAnualDto>>> RegistrarOrcamento(int ano, [FromBody] List<OrcamentoCategoriaInputDto> categorias)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+        var resultado = await _financeiro.RegistrarOrcamentoAsync(condominioId, ano, categorias);
+        return Ok(resultado);
+    }
+
+    [HttpGet("orcamentos/{ano}")]
+    public async Task<ActionResult<IEnumerable<OrcamentoAnualDto>>> ObterOrcamento(int ano)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+        var itens = await _financeiro.ObterOrcamentoAsync(condominioId, ano);
+        return Ok(itens);
+    }
+
+    [HttpGet("orcamentos/{ano}/comparativo")]
+    public async Task<ActionResult<IEnumerable<OrcamentoComparativoDto>>> CompararOrcamento(int ano)
+    {
+        var condominioIdClaim = User.FindFirstValue("condominioId");
+        if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
+        {
+            return Unauthorized("CondominioId não encontrado ou inválido no token.");
+        }
+        var itens = await _financeiro.CompararExecucaoOrcamentoAsync(condominioId, ano);
+        return Ok(itens);
     }
 
     /// <summary>
