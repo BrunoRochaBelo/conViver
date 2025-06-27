@@ -1,6 +1,6 @@
 import apiClient from "./apiClient.js";
 import { requireAuth } from "./auth.js";
-import { showGlobalFeedback } from "./main.js";
+import { showGlobalFeedback, showSkeleton, hideSkeleton } from "./main.js";
 import { initFabMenu } from "./fabMenu.js";
 
 // --- Global state & constants ---
@@ -34,20 +34,13 @@ function showFeedSkeleton(tabContentId = "content-mural") {
     }
   }
 
-  const skeletonContainer = tabContentElement.querySelector(".feed-skeleton-container");
-  if (skeletonContainer) {
-    skeletonContainer.style.display = "block";
-  }
+  showSkeleton(tabContentElement);
 }
 
 function hideFeedSkeleton(tabContentId = "content-mural") {
   const tabContentElement = document.getElementById(tabContentId);
   if (!tabContentElement) return;
-
-  const skeletonContainer = tabContentElement.querySelector(".feed-skeleton-container");
-  if (skeletonContainer) {
-    skeletonContainer.style.display = "none";
-  }
+  hideSkeleton(tabContentElement);
   // Restore info message if no actual content is loaded for certain tabs
   if (tabContentId === "content-enquetes" || tabContentId === "content-solicitacoes") {
     const infoMessage = tabContentElement.querySelector(".cv-info-message");
@@ -111,7 +104,7 @@ let modalFiltros; // Novo modal de filtros
 let chamadoStatusModalFormGroup;
 let chamadoCategoriaModalFormGroup;
 
-document.addEventListener("DOMContentLoaded", async () => {
+export async function initialize() {
   requireAuth();
 
   // Modals Init
@@ -186,7 +179,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupFabMenu();
   setupFilterModalAndButton(); // Setup filter modal and its trigger
   setupModalEventListeners(); // Setup generic close/submit for other modals
-});
+}
+
+if (document.readyState !== "loading") {
+  initialize();
+} else {
+  document.addEventListener("DOMContentLoaded", initialize);
+}
 
 // --- Tab System ---
 function setupTabs() {

@@ -89,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const form = event.target;
         const submitButton = form.querySelector('button[type="submit"]');
-        showGlobalFeedback('Processando...', 'info', 2000);
         submitButton.disabled = true;
 
         const unidadeId = form.unidadeId.value.trim();
@@ -118,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             await apiClient.post('/financeiro/cobrancas', novaCobrancaDto);
-            showGlobalFeedback('Cobrança emitida com sucesso!', 'success', 5000);
             closeModal();
             fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
             fetchAndRenderDashboard();
@@ -147,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!confirm('Tem certeza que deseja gerar as cobranças em lote para o mês atual? Esta ação pode levar alguns instantes.')) {
                 return;
             }
-            showGlobalFeedback('Processando...', 'info', 2000);
             btnGerarLote.disabled = true;
 
             const hoje = new Date();
@@ -159,7 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const resultado = await apiClient.post('/financeiro/cobrancas/gerar-lote', requestBody);
                 if (resultado.sucesso) {
-                    showGlobalFeedback(resultado.mensagem || 'Lote gerado com sucesso!', 'success', 5000);
                     fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
                     fetchAndRenderDashboard();
                 } else {
@@ -190,13 +186,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (target.classList.contains('js-btn-detalhes-cobranca')) {
                 openModal(`Detalhes da Cobrança ${cobrancaId.substring(0,8)}...`, `<p>Detalhes completos da cobrança ${cobrancaId} serão exibidos aqui... (Funcionalidade a ser implementada)</p>`);
             } else if (target.classList.contains('js-btn-segunda-via')) {
-                showGlobalFeedback('Processando...', 'info', 2000);
                 target.disabled = true;
                 try {
                     const response = await apiClient.get(`/financeiro/cobrancas/${cobrancaId}/segunda-via`);
                     if (response && response.url) {
                         window.open(response.url, '_blank');
-                        showGlobalFeedback('Link da 2ª via aberto em nova aba.', 'success', 5000);
                     } else {
                         showGlobalFeedback('Não foi possível obter o link da 2ª via ou o link não foi fornecido.', 'error');
                     }
@@ -208,13 +202,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else if (target.classList.contains('js-btn-cancelar-cobranca')) {
                 if (!confirm('Tem certeza que deseja cancelar esta cobrança?')) return;
-                showGlobalFeedback('Processando...', 'info', 2000);
                 target.disabled = true;
                 try {
                     // Assuming PUT request for cancel, adjust if it's POST or DELETE
                     const resultado = await apiClient.put(`/financeiro/cobrancas/${cobrancaId}/cancelar`, {});
                     if (resultado && resultado.sucesso) {
-                        showGlobalFeedback(resultado.mensagem || 'Cobrança cancelada com sucesso!', 'success', 5000);
                         fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
                         fetchAndRenderDashboard();
                     } else {

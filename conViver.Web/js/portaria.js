@@ -183,9 +183,7 @@ function adicionarListenersSaida() {
             const visitanteId = event.target.dataset.id;
             if (confirm(`Deseja realmente registrar a saída do visitante?`)) {
                 try {
-                    showGlobalFeedback('Registrando saída...', 'info');
                     await apiClient.post(`/api/visitantes/${visitanteId}/registrar-saida`, {});
-                    showGlobalFeedback('Saída registrada com sucesso!', 'success', 3000);
                     carregarVisitantesAtuais(); // Refresh the list
                 } catch (err) {
                     console.error('Erro ao registrar saída:', err);
@@ -218,13 +216,11 @@ if (formRegistrarVisitante && registrarVisitanteMsg) {
         registrarVisitanteMsg.style.display = 'block';
         registrarVisitanteMsg.className = 'feedback-message info';
         registrarVisitanteMsg.textContent = 'Registrando entrada...';
-        showGlobalFeedback('Registrando entrada...', 'info');
 
         try {
             const response = await apiClient.post('/api/visitantes/registrar-entrada', data);
             registrarVisitanteMsg.className = 'feedback-message success';
             registrarVisitanteMsg.textContent = 'Entrada registrada com sucesso! ID: ' + response.id;
-            showGlobalFeedback('Entrada registrada com sucesso!', 'success', 3000);
             formRegistrarVisitante.reset();
 
             if (document.getElementById('visitantes-atuais').classList.contains('active')) {
@@ -244,20 +240,20 @@ if (btnValidarQRCode && registrarVisitanteMsg && formRegistrarVisitante) {
     btnValidarQRCode.addEventListener('click', async () => {
         const qrCodeValue = document.getElementById('visQRCodeEntrada').value;
         if (!qrCodeValue) {
-            showGlobalFeedback('Por favor, insira um QR Code.', 'warning', 4000);
+            // Campo obrigatório
             return;
         }
 
         registrarVisitanteMsg.style.display = 'block';
         registrarVisitanteMsg.className = 'feedback-message info';
         registrarVisitanteMsg.textContent = 'Validando QR Code...';
-        showGlobalFeedback('Validando QR Code...', 'info');
+
 
         try {
             const response = await apiClient.post('/api/visitantes/validar-qr-code', { qrCodeValue });
             registrarVisitanteMsg.className = 'feedback-message success';
             registrarVisitanteMsg.textContent = `Entrada por QR Code validada para: ${response.nome}. Status: ${response.status}`;
-            showGlobalFeedback('Entrada por QR Code validada!', 'success', 3000);
+
             formRegistrarVisitante.reset();
 
             // Switch to "Visitantes Atuais" tab and refresh
@@ -294,7 +290,7 @@ async function carregarHistoricoVisitantes(filters = {}) {
     historicoLoadingMsg.style.display = 'block';
     if (skeleton) showFeedSkeleton(skeleton);
     historicoNoDataMsg.style.display = 'none';
-    showGlobalFeedback('Carregando histórico de visitantes...', 'info');
+
 
     try {
         const params = new URLSearchParams();
@@ -326,7 +322,7 @@ async function carregarHistoricoVisitantes(filters = {}) {
         } else {
             historicoNoDataMsg.style.display = 'block';
         }
-        showGlobalFeedback('Histórico de visitantes carregado.', 'success', 3000);
+
     } catch (err) {
         console.error('Erro ao listar histórico de visitantes:', err);
         historicoLoadingMsg.style.display = 'none';
@@ -375,13 +371,13 @@ export async function initialize() {
     const btnFilterAtuais = document.getElementById('btnFiltrarVisitantesAtuais');
     if (btnFilterAtuais) {
         btnFilterAtuais.addEventListener('click', () => {
-            showGlobalFeedback('Funcionalidade de filtro por unidade (atuais) a ser implementada/conectada com API.', 'info');
+
         });
     }
     const btnClearFilterAtuais = document.getElementById('btnLimparFiltroVisitantesAtuais');
     if (btnClearFilterAtuais) {
         btnClearFilterAtuais.addEventListener('click', () => {
-            showGlobalFeedback('Funcionalidade de filtro por unidade (atuais) a ser implementada/conectada com API.', 'info');
+
         });
     }
 

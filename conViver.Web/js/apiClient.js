@@ -1,24 +1,10 @@
-import { showGlobalFeedback } from './main.js';
+// showGlobalFeedback removed to reduce toast noise
 // Base path for the API. With app.UsePathBase("/api/v1") the
 // frontend must explicitly prefix requests with /api/v1.
 // const API_BASE = 'http://localhost:5000/api/v1'; // Replaced by config
 const API_BASE = window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL ? window.APP_CONFIG.API_BASE_URL : '';
 
-// DOM Elements for visual feedback
-const loadingOverlay = document.getElementById('global-loading-overlay');
-
-// Helper functions for visual feedback
-function showLoading() {
-    if (loadingOverlay) loadingOverlay.style.display = 'flex';
-}
-
-function hideLoading() {
-    if (loadingOverlay) loadingOverlay.style.display = 'none';
-}
-
-function showMessage(message, type = 'info', duration = 3000) {
-    showGlobalFeedback(message, type, duration);
-}
+// Loading overlay and automatic toast messages removed
 
 /**
  * Custom error class for API requests.
@@ -73,7 +59,6 @@ async function request(path, options = {}) {
     }
 
 
-    showLoading();
     try {
         const res = await fetch(url, opts);
 
@@ -97,11 +82,6 @@ async function request(path, options = {}) {
             throw new ApiError(errorMessage, res.status, url, loggedOptions);
         }
 
-        // Show success message for modification methods
-        if (['POST', 'PUT', 'DELETE'].includes(method.toUpperCase())) {
-            showMessage('Operation successful!', 'success');
-        }
-
         if (res.status === 204) { // No Content
             return null;
         }
@@ -109,11 +89,9 @@ async function request(path, options = {}) {
 
     } catch (error) {
         if (error instanceof ApiError) {
-            showMessage(error.message, 'error');
             // Re-throw ApiError instances directly
             throw error;
         } else {
-            showMessage('An unexpected error occurred.', 'error');
             // Catch network errors or other unexpected errors during fetch
             console.error(
                 `Network or unexpected error during API Request: ${method} ${url}. Error: ${error.message}`,
@@ -122,7 +100,7 @@ async function request(path, options = {}) {
             throw new ApiError(`Network request failed for ${method} ${url}. ${error.message}`, null, url, loggedOptions);
         }
     } finally {
-        hideLoading();
+        // no overlay to hide
     }
 }
 
