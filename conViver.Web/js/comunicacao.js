@@ -755,7 +755,7 @@ function setupFabMenu() {
     actions.push({ label: "Novo Aviso", onClick: openCriarAvisoModal });
     actions.push({ label: "Nova Enquete", onClick: openCreateEnqueteModal });
   }
-  actions.push({ label: "Novo Chamado", onClick: openCreateChamadoModal });
+  actions.push({ label: "Criar Solicitação", onClick: openCreateChamadoModal });
 
   initFabMenu(actions);
 }
@@ -1838,8 +1838,8 @@ function openCreateChamadoModal() {
   ) {
     formCriarChamado.reset();
     chamadoIdFieldModal.value = "";
-    modalChamadoTitle.textContent = "Novo Chamado";
-    formChamadoSubmitButtonModal.textContent = "Abrir Chamado";
+    modalChamadoTitle.textContent = "Nova Solicitação";
+    formChamadoSubmitButtonModal.textContent = "Abrir Solicitação";
     chamadoStatusModalFormGroup.style.display = "none";
     chamadoCategoriaModalFormGroup.style.display = "block";
     document.getElementById("chamado-descricao-modal").disabled = false;
