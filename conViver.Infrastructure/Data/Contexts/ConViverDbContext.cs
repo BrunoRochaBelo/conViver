@@ -14,6 +14,9 @@ public class ConViverDbContext : DbContext
     public DbSet<Unidade> Unidades => Set<Unidade>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Boleto> Boletos => Set<Boleto>();
+    public DbSet<Acordo> Acordos => Set<Acordo>();
+    public DbSet<ParcelaAcordo> ParcelasAcordo => Set<ParcelaAcordo>();
+    public DbSet<Pagamento> Pagamentos => Set<Pagamento>();
     public DbSet<Reserva> Reservas => Set<Reserva>();
     public DbSet<Aviso> Avisos => Set<Aviso>();
     public DbSet<Visitante> Visitantes => Set<Visitante>();
@@ -185,6 +188,39 @@ public class ConViverDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Relationship with Ocorrencia already defined in Ocorrencia entity configuration
+        });
+
+        // Acordo e Parcelas
+        modelBuilder.Entity<ParcelaAcordo>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.AcordoId).IsRequired();
+            entity.Property(p => p.Numero).IsRequired();
+            entity.Property(p => p.Valor).IsRequired();
+            entity.Property(p => p.Vencimento).IsRequired();
+
+            entity.HasOne<Acordo>()
+                .WithMany()
+                .HasForeignKey(p => p.AcordoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne<Boleto>()
+                .WithMany()
+                .HasForeignKey(p => p.BoletoId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Pagamento>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Origem).IsRequired();
+            entity.Property(p => p.ValorPago).IsRequired();
+            entity.Property(p => p.DataPgto).IsRequired();
+
+            entity.HasOne<Boleto>()
+                .WithMany()
+                .HasForeignKey(p => p.BoletoId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
