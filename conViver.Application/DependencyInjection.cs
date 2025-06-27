@@ -15,13 +15,14 @@ public static class DependencyInjection
         services.AddTransient<CondominioService>();
         services.AddTransient<IUsuarioService, UsuarioService>();
         services.AddTransient<UsuarioService>();
-        services.AddTransient<FinanceiroService>();
+        services.AddTransient<IFinanceiroService, FinanceiroService>();
         services.AddTransient<ReservaService>();
         services.AddTransient<OrdemServicoService>();
         services.AddTransient<AvisoService>();
         services.AddTransient<VotacaoService>();
         services.AddTransient<VisitanteService>();
         services.AddTransient<EncomendaService>();
+        services.AddTransient<ContaBancariaService>();
         services.AddTransient<DashboardService>(); // Add DashboardService registration
         services.AddTransient<IOcorrenciaService, OcorrenciaService>(); // Added OcorrenciaService
 

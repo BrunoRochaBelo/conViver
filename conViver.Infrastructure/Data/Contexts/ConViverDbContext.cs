@@ -1,202 +1,248 @@
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using conViver.Core.Entities;
-using conViver.Core.Enums; // Added for Ocorrencia Enums
+using conViver.Core.Enums;
 
-namespace conViver.Infrastructure.Data.Contexts;
-
-public class ConViverDbContext : DbContext
+namespace conViver.Infrastructure.Data.Contexts
 {
-    public ConViverDbContext(DbContextOptions<ConViverDbContext> options) : base(options)
+    public class ConViverDbContext : DbContext
     {
-    }
-
-    public DbSet<Condominio> Condominios => Set<Condominio>();
-    public DbSet<Unidade> Unidades => Set<Unidade>();
-    public DbSet<Usuario> Usuarios => Set<Usuario>();
-    public DbSet<Boleto> Boletos => Set<Boleto>();
-    public DbSet<Reserva> Reservas => Set<Reserva>();
-    public DbSet<Aviso> Avisos => Set<Aviso>();
-    public DbSet<Visitante> Visitantes => Set<Visitante>();
-    public DbSet<Encomenda> Encomendas => Set<Encomenda>();
-    public DbSet<OrdemServico> OrdensServico => Set<OrdemServico>();
-    public DbSet<PrestadorServico> Prestadores => Set<PrestadorServico>();
-    public DbSet<LancamentoFinanceiro> Lancamentos => Set<LancamentoFinanceiro>();
-    public DbSet<Despesa> Despesas => Set<Despesa>();
-    public DbSet<Documento> Documentos => Set<Documento>();
-    public DbSet<Votacao> Votacoes => Set<Votacao>();
-    public DbSet<OpcaoVotacao> OpcoesVotacao => Set<OpcaoVotacao>();
-    public DbSet<VotoRegistrado> VotosRegistrados => Set<VotoRegistrado>();
-    public DbSet<Chamado> Chamados => Set<Chamado>();
-    public DbSet<AvaliacaoPrestador> AvaliacoesPrestadores { get; set; } = null!; // Adicionado DbSet para AvaliacaoPrestador
-
-    // Ocorrências
-    public DbSet<Ocorrencia> Ocorrencias { get; set; }
-    public DbSet<OcorrenciaAnexo> OcorrenciaAnexos { get; set; }
-    public DbSet<OcorrenciaComentario> OcorrenciaComentarios { get; set; }
-    public DbSet<OcorrenciaStatusHistorico> OcorrenciaStatusHistoricos { get; set; }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
-
-        modelBuilder.Entity<Condominio>().OwnsOne(c => c.Endereco);
-        modelBuilder.Entity<Boleto>().HasIndex(b => new { b.NossoNumero, b.CodigoBanco }).IsUnique();
-
-        // Relacionamento Usuario <-> Unidade (Um-para-Muitos: Uma Unidade tem Muitos Usuarios)
-        modelBuilder.Entity<Usuario>()
-            .HasOne(u => u.Unidade) // Usuario tem uma Unidade (principal)
-            .WithMany(un => un.Usuarios) // Unidade tem muitos Usuarios
-            .HasForeignKey(u => u.UnidadeId) // Chave estrangeira em Usuario
-            .IsRequired(); // Define que UnidadeId é obrigatória em Usuario.
-
-        // Relacionamento Votacao <-> OpcaoVotacao (Um-para-Muitos)
-        modelBuilder.Entity<Votacao>()
-            .HasMany(v => v.Opcoes)
-            .WithOne(o => o.Votacao)
-            .HasForeignKey(o => o.VotacaoId)
-            .OnDelete(DeleteBehavior.Cascade); // Ou Restrict, dependendo da regra de negócio
-
-        // Relacionamento OpcaoVotacao <-> VotoRegistrado (Um-para-Muitos)
-        modelBuilder.Entity<OpcaoVotacao>()
-            .HasMany(o => o.VotosRecebidos)
-            .WithOne(vr => vr.OpcaoVotacao)
-            .HasForeignKey(vr => vr.OpcaoVotacaoId)
-            .OnDelete(DeleteBehavior.Cascade); // Ou Restrict
-
-        // Configuração para Chamado.Fotos (List<string>)
-        // Se estiver usando EF Core 5+ e um provedor como Npgsql (PostgreSQL), List<string> pode ser mapeado para jsonb nativamente.
-        // Para SQL Server, ou versões mais antigas, um ValueConverter seria necessário para serializar para uma string JSON.
-        // Exemplo de ValueConverter (não adicionando agora, apenas para ilustração):
-        // modelBuilder.Entity<Chamado>()
-        //     .Property(c => c.Fotos)
-        //     .HasConversion(
-        //         v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-        //         v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>(),
-        //         new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<List<string>>(
-        //             (c1, c2) => c1!.SequenceEqual(c2!),
-        //             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-        //             c => c.ToList()));
-        // Por enquanto, deixaremos o EF Core tentar o mapeamento padrão.
-
-        // Relacionamento PrestadorServico <-> AvaliacaoPrestador (Um-para-Muitos)
-        modelBuilder.Entity<PrestadorServico>()
-            .HasMany(p => p.Avaliacoes)
-            .WithOne(a => a.PrestadorServico)
-            .HasForeignKey(a => a.PrestadorServicoId)
-            .OnDelete(DeleteBehavior.Cascade); // Ou Restrict, dependendo da regra (Cascade deleta avaliações se prestador for removido)
-
-        // Índice para AvaliacaoPrestador
-        // A unicidade de (PrestadorServicoId, UsuarioId, OrdemServicoId) pode ser complexa.
-        // Um usuário pode avaliar o mesmo prestador múltiplas vezes se for para OS diferentes.
-        // Um usuário pode avaliar o mesmo prestador uma vez de forma geral (OrdemServicoId = null).
-        // IsUnique(false) significa que não há restrição de unicidade no banco para essa combinação, apenas cria o índice.
-        // Se uma regra de negócio específica de unicidade for necessária, ela deve ser implementada na lógica de serviço.
-        modelBuilder.Entity<AvaliacaoPrestador>()
-            .HasIndex(a => new { a.PrestadorServicoId, a.UsuarioId, a.OrdemServicoId })
-            .IsUnique(false);
-
-        // Ocorrencia Configuration
-        modelBuilder.Entity<Ocorrencia>(entity =>
+        public ConViverDbContext(DbContextOptions<ConViverDbContext> options)
+            : base(options)
         {
-            entity.HasKey(o => o.Id);
-            entity.Property(o => o.Titulo).IsRequired();
-            entity.Property(o => o.Descricao).IsRequired();
-            entity.Property(o => o.Categoria).IsRequired().HasConversion<string>();
-            entity.Property(o => o.Status).IsRequired().HasConversion<string>();
-            entity.Property(o => o.Prioridade).IsRequired().HasConversion<string>();
-            entity.Property(o => o.DataAbertura).IsRequired();
-            entity.Property(o => o.DataAtualizacao).IsRequired();
-            entity.Property(o => o.UsuarioId).IsRequired();
-            entity.Property(o => o.CondominioId).IsRequired();
-            // UnidadeId is nullable, so no IsRequired()
+        }
 
-            entity.HasOne(o => o.Usuario)
-                .WithMany() // Assuming Usuario does not have a direct ICollection<Ocorrencia> yet. If it does, specify it here.
-                .HasForeignKey(o => o.UsuarioId)
-                .OnDelete(DeleteBehavior.Restrict);
+        public DbSet<Condominio> Condominios => Set<Condominio>();
+        public DbSet<Unidade> Unidades => Set<Unidade>();
+        public DbSet<Usuario> Usuarios => Set<Usuario>();
+        public DbSet<Boleto> Boletos => Set<Boleto>();
+        public DbSet<Acordo> Acordos => Set<Acordo>();
+        public DbSet<ParcelaAcordo> ParcelasAcordo => Set<ParcelaAcordo>();
+        public DbSet<Pagamento> Pagamentos => Set<Pagamento>();
+        public DbSet<Reserva> Reservas => Set<Reserva>();
+        public DbSet<Aviso> Avisos => Set<Aviso>();
+        public DbSet<Visitante> Visitantes => Set<Visitante>();
+        public DbSet<Encomenda> Encomendas => Set<Encomenda>();
+        public DbSet<OrdemServico> OrdensServico => Set<OrdemServico>();
+        public DbSet<PrestadorServico> Prestadores => Set<PrestadorServico>();
+        public DbSet<LancamentoFinanceiro> Lancamentos => Set<LancamentoFinanceiro>();
+        public DbSet<Despesa> Despesas => Set<Despesa>();
+        public DbSet<Documento> Documentos => Set<Documento>();
+        public DbSet<OrcamentoAnual> OrcamentosAnuais => Set<OrcamentoAnual>();
+        public DbSet<Votacao> Votacoes => Set<Votacao>();
+        public DbSet<OpcaoVotacao> OpcoesVotacao => Set<OpcaoVotacao>();
+        public DbSet<VotoRegistrado> VotosRegistrados => Set<VotoRegistrado>();
+        public DbSet<Chamado> Chamados => Set<Chamado>();
+        public DbSet<AvaliacaoPrestador> AvaliacoesPrestadores { get; set; } = null!;
 
-            entity.HasOne(o => o.Unidade)
-                .WithMany() // Assuming Unidade does not have a direct ICollection<Ocorrencia> yet.
-                .HasForeignKey(o => o.UnidadeId)
-                .OnDelete(DeleteBehavior.Restrict); // Or SetNull if appropriate for nullable FK
+        // Ocorrências
+        public DbSet<Ocorrencia> Ocorrencias { get; set; }
+        public DbSet<OcorrenciaAnexo> OcorrenciaAnexos { get; set; }
+        public DbSet<OcorrenciaComentario> OcorrenciaComentarios { get; set; }
+        public DbSet<OcorrenciaStatusHistorico> OcorrenciaStatusHistoricos { get; set; }
 
-            entity.HasOne(o => o.Condominio)
-                .WithMany() // Assuming Condominio does not have a direct ICollection<Ocorrencia> yet.
-                .HasForeignKey(o => o.CondominioId)
-                .OnDelete(DeleteBehavior.Restrict);
+        // Banco
+        public DbSet<ContaBancaria> ContasBancarias => Set<ContaBancaria>();
+        public DbSet<ExtratoBancario> ExtratosBancarios => Set<ExtratoBancario>();
 
-            entity.HasMany(o => o.Anexos)
-                .WithOne(a => a.Ocorrencia)
-                .HasForeignKey(a => a.OcorrenciaId)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Owned type: Endereço de Condomínio
+            modelBuilder.Entity<Condominio>()
+                .OwnsOne(c => c.Endereco);
+
+            // Índice único em Boleto
+            modelBuilder.Entity<Boleto>()
+                .HasIndex(b => new { b.NossoNumero, b.CodigoBanco })
+                .IsUnique();
+
+            // Relação Usuário ↔ Unidade
+            modelBuilder.Entity<Usuario>()
+                .HasOne(u => u.Unidade)
+                .WithMany(un => un.Usuarios)
+                .HasForeignKey(u => u.UnidadeId)
+                .IsRequired();
+
+            // Votação e Opções
+            modelBuilder.Entity<Votacao>()
+                .HasMany(v => v.Opcoes)
+                .WithOne(o => o.Votacao)
+                .HasForeignKey(o => o.VotacaoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasMany(o => o.Comentarios)
-                .WithOne(c => c.Ocorrencia)
-                .HasForeignKey(c => c.OcorrenciaId)
+            modelBuilder.Entity<OpcaoVotacao>()
+                .HasMany(o => o.VotosRecebidos)
+                .WithOne(vr => vr.OpcaoVotacao)
+                .HasForeignKey(vr => vr.OpcaoVotacaoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasMany(o => o.HistoricoStatus)
-                .WithOne(h => h.Ocorrencia)
-                .HasForeignKey(h => h.OcorrenciaId)
+            // Chamado.Fotos como JSON
+            modelBuilder.Entity<Chamado>()
+                .Property(c => c.Fotos)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, null) ?? new List<string>());
+
+            // Prestador ↔ Avaliações
+            modelBuilder.Entity<PrestadorServico>()
+                .HasMany(p => p.Avaliacoes)
+                .WithOne(a => a.PrestadorServico)
+                .HasForeignKey(a => a.PrestadorServicoId)
                 .OnDelete(DeleteBehavior.Cascade);
-        });
 
-        // OcorrenciaAnexo Configuration
-        modelBuilder.Entity<OcorrenciaAnexo>(entity =>
-        {
-            entity.HasKey(oa => oa.Id);
-            entity.Property(oa => oa.OcorrenciaId).IsRequired();
-            entity.Property(oa => oa.Url).IsRequired();
-            entity.Property(oa => oa.NomeArquivo).IsRequired();
-            entity.Property(oa => oa.Tipo).IsRequired();
-            entity.Property(oa => oa.Tamanho).IsRequired();
+            modelBuilder.Entity<AvaliacaoPrestador>()
+                .HasIndex(a => new { a.PrestadorServicoId, a.UsuarioId, a.OrdemServicoId })
+                .IsUnique(false);
 
-            // Relationship already defined in Ocorrencia entity configuration
-        });
+            // Ocorrências
+            modelBuilder.Entity<Ocorrencia>(entity =>
+            {
+                entity.HasKey(o => o.Id);
+                entity.Property(o => o.Titulo).IsRequired();
+                entity.Property(o => o.Descricao).IsRequired();
+                entity.Property(o => o.Categoria).HasConversion<string>().IsRequired();
+                entity.Property(o => o.Status).HasConversion<string>().IsRequired();
+                entity.Property(o => o.Prioridade).HasConversion<string>().IsRequired();
+                entity.Property(o => o.DataAbertura).IsRequired();
+                entity.Property(o => o.DataAtualizacao).IsRequired();
+                entity.Property(o => o.UsuarioId).IsRequired();
+                entity.Property(o => o.CondominioId).IsRequired();
 
-        // OcorrenciaComentario Configuration
-        modelBuilder.Entity<OcorrenciaComentario>(entity =>
-        {
-            entity.HasKey(oc => oc.Id);
-            entity.Property(oc => oc.OcorrenciaId).IsRequired();
-            entity.Property(oc => oc.UsuarioId).IsRequired();
-            entity.Property(oc => oc.Texto).IsRequired();
-            entity.Property(oc => oc.Data).IsRequired();
+                entity.HasOne(o => o.Usuario)
+                    .WithMany()
+                    .HasForeignKey(o => o.UsuarioId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(oc => oc.Usuario)
-                .WithMany() // Assuming Usuario does not have ICollection<OcorrenciaComentario>
-                .HasForeignKey(oc => oc.UsuarioId)
-                .OnDelete(DeleteBehavior.Restrict); // Prevent comment deletion from causing user deletion issues
+                entity.HasOne(o => o.Unidade)
+                    .WithMany()
+                    .HasForeignKey(o => o.UnidadeId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            // Relationship with Ocorrencia already defined in Ocorrencia entity configuration
-        });
+                entity.HasOne(o => o.Condominio)
+                    .WithMany()
+                    .HasForeignKey(o => o.CondominioId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-        // OcorrenciaStatusHistorico Configuration
-        modelBuilder.Entity<OcorrenciaStatusHistorico>(entity =>
-        {
-            entity.HasKey(osh => osh.Id);
-            entity.Property(osh => osh.OcorrenciaId).IsRequired();
-            entity.Property(osh => osh.Status).IsRequired().HasConversion<string>();
-            entity.Property(osh => osh.AlteradoPorId).IsRequired();
-            entity.Property(osh => osh.Data).IsRequired();
+                entity.HasMany(o => o.Anexos)
+                    .WithOne(a => a.Ocorrencia)
+                    .HasForeignKey(a => a.OcorrenciaId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne(osh => osh.AlteradoPor) // Navigation property to Usuario
-                .WithMany() // Assuming Usuario does not have ICollection<OcorrenciaStatusHistorico>
-                .HasForeignKey(osh => osh.AlteradoPorId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasMany(o => o.Comentarios)
+                    .WithOne(c => c.Ocorrencia)
+                    .HasForeignKey(c => c.OcorrenciaId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            // Relationship with Ocorrencia already defined in Ocorrencia entity configuration
-        });
+                entity.HasMany(o => o.HistoricoStatus)
+                    .WithOne(h => h.Ocorrencia)
+                    .HasForeignKey(h => h.OcorrenciaId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
-        modelBuilder.Entity<Despesa>(entity =>
-        {
-            entity.HasKey(d => d.Id);
-            entity.Property(d => d.CondominioId).IsRequired();
-            entity.Property(d => d.Descricao).IsRequired();
-            entity.Property(d => d.Valor).IsRequired();
-            entity.Property(d => d.DataCompetencia).IsRequired();
-            entity.Property(d => d.DataRegistro).IsRequired();
-            entity.Property(d => d.Status).IsRequired();
-        });
+            modelBuilder.Entity<OcorrenciaAnexo>(entity =>
+            {
+                entity.HasKey(oa => oa.Id);
+                entity.Property(oa => oa.Url).IsRequired();
+                entity.Property(oa => oa.NomeArquivo).IsRequired();
+                entity.Property(oa => oa.Tipo).IsRequired();
+                entity.Property(oa => oa.Tamanho).IsRequired();
+            });
+
+            modelBuilder.Entity<OcorrenciaComentario>(entity =>
+            {
+                entity.HasKey(oc => oc.Id);
+                entity.Property(oc => oc.Texto).IsRequired();
+                entity.Property(oc => oc.Data).IsRequired();
+
+                entity.HasOne(oc => oc.Usuario)
+                    .WithMany()
+                    .HasForeignKey(oc => oc.UsuarioId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<OcorrenciaStatusHistorico>(entity =>
+            {
+                entity.HasKey(osh => osh.Id);
+                entity.Property(osh => osh.Status).HasConversion<string>().IsRequired();
+                entity.Property(osh => osh.AlteradoPorId).IsRequired();
+                entity.Property(osh => osh.Data).IsRequired();
+
+                entity.HasOne(osh => osh.AlteradoPor)
+                    .WithMany()
+                    .HasForeignKey(osh => osh.AlteradoPorId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ContaBancaria e ExtratoBancario
+            modelBuilder.Entity<ContaBancaria>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Banco).IsRequired();
+                entity.Property(c => c.Agencia).IsRequired();
+                entity.Property(c => c.Conta).IsRequired();
+            });
+
+            modelBuilder.Entity<ExtratoBancario>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Tipo).IsRequired();
+                entity.Property(e => e.Valor).IsRequired();
+                entity.Property(e => e.Data).IsRequired();
+
+                entity.HasOne(e => e.ContaBancaria)
+                    .WithMany(c => c.Lancamentos)
+                    .HasForeignKey(e => e.ContaBancariaId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ParcelaAcordo
+            modelBuilder.Entity<ParcelaAcordo>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.Numero).IsRequired();
+                entity.Property(p => p.Valor).IsRequired();
+                entity.Property(p => p.Vencimento).IsRequired();
+
+                entity.HasOne<Acordo>()
+                    .WithMany()
+                    .HasForeignKey(p => p.AcordoId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne<Boleto>()
+                    .WithMany()
+                    .HasForeignKey(p => p.BoletoId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Pagamento
+            modelBuilder.Entity<Pagamento>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.Origem).IsRequired();
+                entity.Property(p => p.ValorPago).IsRequired();
+                entity.Property(p => p.DataPgto).IsRequired();
+
+                entity.HasOne<Boleto>()
+                    .WithMany()
+                    .HasForeignKey(p => p.BoletoId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Despesa
+            modelBuilder.Entity<Despesa>(entity =>
+            {
+                entity.HasKey(d => d.Id);
+                entity.Property(d => d.CondominioId).IsRequired();
+                entity.Property(d => d.Descricao).IsRequired();
+                entity.Property(d => d.Valor).IsRequired();
+                entity.Property(d => d.DataCompetencia).IsRequired();
+                entity.Property(d => d.DataRegistro).IsRequired();
+                entity.Property(d => d.Status).IsRequired();
+            });
+        }
     }
 }

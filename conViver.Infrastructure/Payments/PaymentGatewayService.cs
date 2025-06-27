@@ -1,11 +1,10 @@
 using conViver.Core.Entities;
-using conViver.Core.Interfaces;
-using conViver.Core.Enums;
+
 using Microsoft.Extensions.Logging;
 
 namespace conViver.Infrastructure.Payments;
 
-public class PaymentGatewayService : IFinanceiroService
+public class PaymentGatewayService
 {
     private readonly ILogger<PaymentGatewayService> _logger;
 

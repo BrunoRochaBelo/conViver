@@ -1,34 +1,38 @@
 using conViver.Core.DTOs;
 using conViver.Core.Entities;
-using conViver.Core.Interfaces; // Assuming IRepository and potentially IFinanceiroService for gateway interactions
-using conViver.Core.Enums;    // Assuming BoletoStatus is here
-using Microsoft.EntityFrameworkCore; // For ToListAsync, etc.
+using conViver.Core.Interfaces;
+using conViver.Core.Enums;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace conViver.Application.Services // Changed namespace to match convention
+namespace conViver.Application.Services
 {
-    public class FinanceiroService
+    public class FinanceiroService : IFinanceiroService
     {
         private readonly IRepository<Boleto> _boletoRepository;
-        private readonly IRepository<Unidade> _unidadeRepository; // Assuming needed for NomeSacado
+        private readonly IRepository<Unidade> _unidadeRepository;
         private readonly IRepository<Pagamento> _pagamentoRepository;
         private readonly IRepository<Acordo> _acordoRepository;
         private readonly IRepository<ParcelaAcordo> _parcelaRepository;
         private readonly IRepository<Despesa> _despesaRepository;
-        // private readonly IFinanceiroGateway _financeiroGateway; // Example if you have a specific gateway interface
+        private readonly IRepository<OrcamentoAnual> _orcamentoRepository;
+        private readonly IRepository<LancamentoFinanceiro> _lancamentoRepository;
+        private readonly INotificacaoService _notificacaoService;
 
-        // Constructor updated to reflect repository usage
         public FinanceiroService(
             IRepository<Boleto> boletoRepository,
             IRepository<Unidade> unidadeRepository,
             IRepository<Pagamento> pagamentoRepository,
             IRepository<Acordo> acordoRepository,
             IRepository<ParcelaAcordo> parcelaRepository,
-            IRepository<Despesa> despesaRepository
-            /*, IFinanceiroGateway financeiroGateway */)
+            IRepository<Despesa> despesaRepository,
+            IRepository<OrcamentoAnual> orcamentoRepository,
+            IRepository<LancamentoFinanceiro> lancamentoRepository,
+            INotificacaoService notificacaoService)
         {
             _boletoRepository = boletoRepository;
             _unidadeRepository = unidadeRepository;
@@ -36,40 +40,59 @@ namespace conViver.Application.Services // Changed namespace to match convention
             _acordoRepository = acordoRepository;
             _parcelaRepository = parcelaRepository;
             _despesaRepository = despesaRepository;
-            // _financeiroGateway = financeiroGateway;
+            _orcamentoRepository = orcamentoRepository;
+            _lancamentoRepository = lancamentoRepository;
+            _notificacaoService = notificacaoService;
         }
 
         public async Task<DashboardFinanceiroCobrancasDto> GetDashboardCobrancasAsync(Guid condominioId)
         {
-            // This is a simplified dashboard implementation.
-            // TODO: Implement proper filtering by condominioId for all queries and more accurate calculations.
-            // For example, 'todosBoletos' should be filtered by condominioId.
-            // InadimplenciaPercentual and TotalPixMes are currently placeholders.
+            var boletos = await (from b in _boletoRepository.Query()
+                                 join u in _unidadeRepository.Query() on b.UnidadeId equals u.Id
+                                 where u.CondominioId == condominioId
+                                 select b)
+                                .ToListAsync();
 
-            Console.WriteLine($"Gerando dashboard de cobranças para Condomínio ID: {condominioId} (implementação simplificada)");
+            var hoje = DateTime.UtcNow;
 
-            // Example: Calculate based on existing boletos (needs condominioId filter)
-             var todosBoletosNoCondominio = await _boletoRepository.Query()
-                                // .Where(b => b.Unidade.CondominioId == condominioId) // This requires Boleto to have a direct navigation to Unidade or a join
-                                .ToListAsync(); // Placeholder: Should be filtered by condominioId
-
-            // The following lines demonstrate conceptual calculations but lack condominioId filtering for now.
-            // This would require joining Boleto with Unidade to filter by condominioId,
-            // similar to ListarCobrancasAsync, if Boleto itself doesn't store CondominioId.
-            // As a simplification for this step, we'll use all boletos and acknowledge this limitation.
-
-            var pendentes = todosBoletosNoCondominio.Count(b =>
+            var pendentes = boletos.Count(b =>
                 b.Status == BoletoStatus.Gerado ||
                 b.Status == BoletoStatus.Registrado ||
+                b.Status == BoletoStatus.Enviado ||
                 b.Status == BoletoStatus.Vencido);
-            var pagosNoMes = todosBoletosNoCondominio.Count(b => b.Status == BoletoStatus.Pago && b.DataPagamento.HasValue && b.DataPagamento.Value.Month == DateTime.UtcNow.Month && b.DataPagamento.Value.Year == DateTime.UtcNow.Year);
 
-            // InadimplenciaPercentual and TotalPixMes would require more complex logic and data.
+            var boletosMes = boletos.Where(b =>
+                b.DataVencimento.Year == hoje.Year &&
+                b.DataVencimento.Month == hoje.Month &&
+                b.Status != BoletoStatus.Cancelado)
+                .ToList();
+
+            var valorPrevisto = boletosMes.Sum(b => b.Valor);
+
+            var pagamentosMes = await (from p in _pagamentoRepository.Query()
+                                       join b in _boletoRepository.Query() on p.BoletoId equals b.Id
+                                       join u in _unidadeRepository.Query() on b.UnidadeId equals u.Id
+                                       where u.CondominioId == condominioId &&
+                                             p.DataPgto.Year == hoje.Year &&
+                                             p.DataPgto.Month == hoje.Month
+                                       select new { p.ValorPago, p.Origem })
+                                      .ToListAsync();
+
+            var valorPago = pagamentosMes.Sum(p => p.ValorPago);
+            var totalPixMes = pagamentosMes
+                .Where(p => p.Origem.Equals("pix", StringComparison.OrdinalIgnoreCase))
+                .Sum(p => p.ValorPago);
+
+            var valorAberto = valorPrevisto - valorPago;
+            var inadimplencia = valorPrevisto == 0
+                ? 0m
+                : Math.Round((valorAberto / valorPrevisto) * 100m, 1);
+
             return new DashboardFinanceiroCobrancasDto
             {
-                InadimplenciaPercentual = 10.5m, // Mocked: Needs real calculation
-                TotalPixMes = (decimal)new Random().Next(500, 2000), // Mocked: Needs real calculation based on Pix transactions
-                TotalBoletosPendentes = pendentes // Partially dynamic, but lacks condominioId filter
+                InadimplenciaPercentual = inadimplencia,
+                TotalPixMes = totalPixMes,
+                TotalBoletosPendentes = pendentes
             };
         }
 
@@ -78,61 +101,51 @@ namespace conViver.Application.Services // Changed namespace to match convention
             var boletosQuery = _boletoRepository.Query();
             var unidadesQuery = _unidadeRepository.Query();
 
-            // Join Boleto with Unidade and filter by CondominioId
             var query = from boleto in boletosQuery
                         join unidade in unidadesQuery on boleto.UnidadeId equals unidade.Id
                         where unidade.CondominioId == condominioId
-                        select new // Project to an intermediate anonymous type for now
-                        {
-                            Boleto = boleto,
-                            UnidadeIdentificacao = unidade.Identificacao // Get Unidade.Identificacao for NomeSacado
-                        };
+                        select new { boleto, unidade.Identificacao };
 
-            if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<BoletoStatus>(status, true, out var st))
+            if (!string.IsNullOrWhiteSpace(status)
+                && Enum.TryParse<BoletoStatus>(status, true, out var st))
             {
                 if (status.Equals("Pendente", StringComparison.OrdinalIgnoreCase))
                 {
-                    query = query.Where(b => b.Boleto.Status == BoletoStatus.Gerado ||
-                                             b.Boleto.Status == BoletoStatus.Registrado ||
-                                             b.Boleto.Status == BoletoStatus.Enviado ||
-                                             b.Boleto.Status == BoletoStatus.Vencido);
+                    query = query.Where(x =>
+                        x.boleto.Status == BoletoStatus.Gerado ||
+                        x.boleto.Status == BoletoStatus.Registrado ||
+                        x.boleto.Status == BoletoStatus.Enviado ||
+                        x.boleto.Status == BoletoStatus.Vencido);
                 }
                 else
                 {
-                    query = query.Where(b => b.Boleto.Status == st);
+                    query = query.Where(x => x.boleto.Status == st);
                 }
             }
 
-            // Select the final CobrancaDto
-            // NomeSacado will use Unidade.Identificacao. A proper NomeSacado would require further relations (e.g., to Usuario).
-            return await query.Select(b => new CobrancaDto
-            {
-                Id = b.Boleto.Id,
-                UnidadeId = b.Boleto.UnidadeId,
-                NomeSacado = $"Unidade {b.UnidadeIdentificacao}", // Using Unidade.Identificacao as NomeSacado
-                Valor = b.Boleto.Valor,
-                DataVencimento = b.Boleto.DataVencimento,
-                StatusCobranca = b.Boleto.Status.ToString(),
-                LinkSegundaVia = $"/api/v1/financeiro/cobrancas/{b.Boleto.Id}/segunda-via"
-            }).ToListAsync();
+            return await query
+                .Select(x => new CobrancaDto
+                {
+                    Id = x.boleto.Id,
+                    UnidadeId = x.boleto.UnidadeId,
+                    NomeSacado = $"Unidade {x.Identificacao}",
+                    Valor = x.boleto.Valor,
+                    DataVencimento = x.boleto.DataVencimento,
+                    StatusCobranca = x.boleto.Status.ToString(),
+                    LinkSegundaVia = $"/api/v1/financeiro/cobrancas/{x.boleto.Id}/segunda-via"
+                })
+                .ToListAsync();
         }
 
         public async Task<CobrancaDto?> GetCobrancaByIdAsync(Guid id)
         {
             var boleto = await _boletoRepository.GetByIdAsync(id);
-            if (boleto == null)
-            {
-                Console.WriteLine($"[GetCobrancaByIdAsync] Boleto com ID {id} não encontrado.");
-                return null;
-            }
+            if (boleto == null) return null;
 
             var unidade = await _unidadeRepository.GetByIdAsync(boleto.UnidadeId);
-            var nomeSacado = unidade != null ? $"Unidade {unidade.Identificacao}" : "Unidade não identificada";
-            if (unidade == null)
-            {
-                Console.WriteLine($"[GetCobrancaByIdAsync] Unidade com ID {boleto.UnidadeId} para o Boleto ID {id} não encontrada.");
-                // Proceeding with boleto data but NomeSacado will be a fallback.
-            }
+            var nomeSacado = unidade != null
+                ? $"Unidade {unidade.Identificacao}"
+                : "Unidade não identificada";
 
             return new CobrancaDto
             {
@@ -146,47 +159,34 @@ namespace conViver.Application.Services // Changed namespace to match convention
             };
         }
 
-        public async Task<CobrancaDto> CriarCobrancaAsync(Guid condominioId, NovaCobrancaDto novaCobrancaDto)
+        public async Task<CobrancaDto> CriarCobrancaAsync(Guid condominioId, NovaCobrancaDto dto)
         {
-            if (novaCobrancaDto.DataVencimento.Date < DateTime.UtcNow.Date.AddDays(3)) // Basic validation
+            if (dto.DataVencimento.Date < DateTime.UtcNow.Date.AddDays(3))
                 throw new InvalidOperationException("Data de vencimento inválida. Deve ser pelo menos 3 dias no futuro.");
 
             var boleto = new Boleto
             {
                 Id = Guid.NewGuid(),
-                UnidadeId = novaCobrancaDto.UnidadeId,
-                Valor = novaCobrancaDto.Valor,
-                DataVencimento = novaCobrancaDto.DataVencimento.Date,
-                // NossoNumero and CodigoBanco are set to placeholder values.
-                // In a real scenario, these would be generated or come from a configuration/gateway.
-                // LinhaDigitavel remains empty initially. Status defaults to Gerado.
+                UnidadeId = dto.UnidadeId,
+                Valor = dto.Valor,
+                DataVencimento = dto.DataVencimento.Date
             };
-
-            // Set placeholder values for NossoNumero and CodigoBanco
-            // These would typically be handled by a dedicated service or integration.
-            // For now, we're directly setting them as per the subtask instructions.
-            // The Registrar method in Boleto entity is for a later stage (e.g., when interacting with a bank gateway).
-            // boleto.Registrar(string.Empty, "PH-NN-12345", "PH-CB-001", DateTime.UtcNow);
-            // Directly setting private setters is not possible here without changing the entity or using reflection.
-            // Instead, we acknowledge they are string.Empty as per entity design for now.
-            // The subtask asked to ensure they are "handled appropriately".
-            // Given the current Boleto entity design, NossoNumero and CodigoBanco are private set and initialized to string.Empty.
-            // They are intended to be set via the Registrar method.
-            // However, the Registrar method also changes the status to Registrado and requires LinhaDigitavel.
-            // For this step, we are only creating the Boleto with initial data.
-            // We will use the existing mechanism which means they will be string.Empty unless Registrar is called.
-            // If the intention was to have them pre-filled even before "Registrar", the Boleto entity would need adjustment.
-            // For now, we proceed without setting them directly, respecting encapsulation.
-            // The placeholder note in the original code is more accurate for this stage.
 
             await _boletoRepository.AddAsync(boleto);
             await _boletoRepository.SaveChangesAsync();
 
-            return new CobrancaDto // Map to CobrancaDto for the response
+            var unidade = await _unidadeRepository.GetByIdAsync(boleto.UnidadeId);
+            if (unidade != null)
+            {
+                var msg = $"Nova cobrança gerada para Unidade {unidade.Identificacao} no valor de {boleto.Valor:C} com vencimento {boleto.DataVencimento:dd/MM}.";
+                await _notificacaoService.SendAsync($"condo:{unidade.CondominioId}", msg);
+            }
+
+            return new CobrancaDto
             {
                 Id = boleto.Id,
                 UnidadeId = boleto.UnidadeId,
-                NomeSacado = "Proprietário Unidade " + boleto.UnidadeId.ToString().Substring(0,4), // Placeholder
+                NomeSacado = "Proprietário Unidade " + boleto.UnidadeId.ToString()[..4],
                 Valor = boleto.Valor,
                 DataVencimento = boleto.DataVencimento,
                 StatusCobranca = boleto.Status.ToString(),
@@ -196,213 +196,150 @@ namespace conViver.Application.Services // Changed namespace to match convention
 
         public async Task<ResultadoOperacaoDto> GerarCobrancasEmLoteAsync(Guid condominioId, GeracaoLoteRequestDto request)
         {
-            Console.WriteLine($"Iniciando geração de cobranças em lote para Condomínio {condominioId}, Mês: {request.Mes}, Ano: {request.Ano}");
-
-            // Validate request
             if (request.Mes < 1 || request.Mes > 12)
                 return new ResultadoOperacaoDto { Sucesso = false, Mensagem = "Mês inválido." };
-            if (request.Ano < DateTime.UtcNow.Year - 1 || request.Ano > DateTime.UtcNow.Year + 5) // Basic year range validation
+            if (request.Ano < DateTime.UtcNow.Year - 1 || request.Ano > DateTime.UtcNow.Year + 5)
                 return new ResultadoOperacaoDto { Sucesso = false, Mensagem = "Ano inválido." };
 
             var unidades = await _unidadeRepository.Query()
-                                                  .Where(u => u.CondominioId == condominioId)
-                                                  .ToListAsync();
-
+                .Where(u => u.CondominioId == condominioId)
+                .ToListAsync();
             if (!unidades.Any())
-            {
-                Console.WriteLine($"Nenhuma unidade encontrada para o Condomínio {condominioId}.");
                 return new ResultadoOperacaoDto { Sucesso = false, Mensagem = "Nenhuma unidade encontrada para o condomínio." };
-            }
 
-            // Assume due day is the 10th of the month. This should be configurable in a real application.
             DateTime dataVencimento;
             try
             {
                 dataVencimento = new DateTime(request.Ano, request.Mes, 10);
             }
-            catch (ArgumentOutOfRangeException)
+            catch
             {
-                 return new ResultadoOperacaoDto { Sucesso = false, Mensagem = "Data de vencimento inválida (dia 10 não existe para o mês/ano)." };
+                return new ResultadoOperacaoDto { Sucesso = false, Mensagem = "Data de vencimento inválida (dia 10 não existe para o mês/ano)." };
             }
-
-
             if (dataVencimento < DateTime.UtcNow.Date.AddDays(3))
-            {
-                // Potentially adjust to ensure it's always in the future, or let CriarCobranca handle this if we were calling it.
-                // For direct creation, this check is important here.
-                 return new ResultadoOperacaoDto { Sucesso = false, Mensagem = "Data de vencimento (dia 10 do mês/ano) deve ser pelo menos 3 dias no futuro." };
-            }
+                return new ResultadoOperacaoDto { Sucesso = false, Mensagem = "Data de vencimento (dia 10 do mês/ano) deve ser pelo menos 3 dias no futuro." };
 
-            decimal valorTotalLote = 0;
-            if (request.DescricoesPadrao != null && request.DescricoesPadrao.Any())
-            {
-                valorTotalLote = request.DescricoesPadrao.Sum(d => d.Valor);
-            }
-            else
-            {
-                // If no descriptions/values are provided, we might decide not to generate boletos,
-                // or generate them with zero value if that's a valid scenario.
-                // For now, let's assume this means no charges are to be applied this lote.
-                Console.WriteLine("Nenhuma descrição de padrão de cobrança fornecida ou valor total é zero. Nenhum boleto será gerado.");
-                return new ResultadoOperacaoDto { Sucesso = true, Mensagem = "Nenhuma descrição de padrão de cobrança fornecida ou valor total é zero. Nenhum boleto foi gerado." };
-            }
-
-
-            var novosBoletos = new List<Boleto>();
-            foreach (var unidade in unidades)
-            {
-                var boleto = new Boleto
-                {
-                    Id = Guid.NewGuid(),
-                    UnidadeId = unidade.Id,
-                    Valor = valorTotalLote, // Assuming the same total value for all units in this batch
-                    DataVencimento = dataVencimento
+            var valorTotalLote = request.DescricoesPadrao?.Sum(d => d.Valor) ?? 0m;
+            if (valorTotalLote == 0)
+                return new ResultadoOperacaoDto {
+                    Sucesso = true,
+                    Mensagem = "Nenhuma descrição de padrão de cobrança fornecida ou valor total é zero. Nenhum boleto foi gerado."
                 };
-                novosBoletos.Add(boleto);
-                Console.WriteLine($"Boleto preparado para Unidade {unidade.Identificacao}, Valor: {boleto.Valor}, Vencimento: {boleto.DataVencimento:yyyy-MM-dd}");
-            }
 
-            if (novosBoletos.Any())
-            {
-                foreach (var boleto in novosBoletos)
-                {
-                    await _boletoRepository.AddAsync(boleto);
-                }
-                await _boletoRepository.SaveChangesAsync();
-                Console.WriteLine($"{novosBoletos.Count} boletos gerados e salvos com sucesso.");
-                return new ResultadoOperacaoDto { Sucesso = true, Mensagem = $"{novosBoletos.Count} boletos gerados com sucesso." };
-            }
+            var novosBoletos = unidades.Select(u => new Boleto {
+                Id = Guid.NewGuid(),
+                UnidadeId = u.Id,
+                Valor = valorTotalLote,
+                DataVencimento = dataVencimento
+            }).ToList();
 
-            return new ResultadoOperacaoDto { Sucesso = true, Mensagem = "Nenhum boleto precisou ser gerado." };
+            foreach (var b in novosBoletos)
+                await _boletoRepository.AddAsync(b);
+
+            await _boletoRepository.SaveChangesAsync();
+            await _notificacaoService.SendAsync($"condo:{condominioId}", $"{novosBoletos.Count} boletos gerados com sucesso.");
+
+            return new ResultadoOperacaoDto { Sucesso = true, Mensagem = $"{novosBoletos.Count} boletos gerados com sucesso." };
         }
 
         public async Task<string?> ObterLinkSegundaViaAsync(Guid cobrancaId)
         {
             var boleto = await _boletoRepository.GetByIdAsync(cobrancaId);
-
-            if (boleto == null)
-            {
-                // Log: Boleto not found
-                Console.WriteLine($"Boleto com ID {cobrancaId} não encontrado.");
-                return null;
-            }
-
+            if (boleto == null) return null;
             if (boleto.Status == BoletoStatus.Pago || boleto.Status == BoletoStatus.Cancelado)
-            {
-                // Log: Boleto not eligible for second via
-                Console.WriteLine($"Boleto com ID {cobrancaId} está {boleto.Status} e não é elegível para segunda via.");
                 return null;
-            }
 
-            // In a real scenario, this would interact with a payment gateway or PDF generation service.
-            // For now, we call a helper method that returns a dummy URL.
-            return await GerarUrlSegundaViaAsync(boleto);
-        }
-
-        private async Task<string> GerarUrlSegundaViaAsync(Boleto boleto)
-        {
-            // Simulate PDF generation or URL retrieval from a gateway
-            await Task.Delay(20); // Simulate async work if any (e.g., calling an external service)
-            // TODO: Replace with actual PDF generation logic or call to a payment gateway
-            // For example, this could involve generating a PDF and storing it temporarily, then returning a URL to it,
-            // or calling a bank's API to get a second via URL.
-            Console.WriteLine($"Gerando link de segunda via (simulado) para Boleto ID: {boleto.Id}");
+            await Task.Delay(20);
             return $"https://example.com/segunda-via/{boleto.Id}/pdf";
         }
 
         public async Task<ResultadoOperacaoDto> CancelarCobrancaAsync(Guid cobrancaId)
         {
-            Console.WriteLine($"Tentando cancelar cobrança com ID: {cobrancaId}");
             var boleto = await _boletoRepository.GetByIdAsync(cobrancaId);
             if (boleto == null)
-            {
-                Console.WriteLine($"Cobrança com ID {cobrancaId} não encontrada para cancelamento.");
                 return new ResultadoOperacaoDto { Sucesso = false, Mensagem = "Cobrança não encontrada." };
-            }
 
             try
             {
-                boleto.Cancelar(); // Uses the entity's method to change status and check eligibility
+                boleto.Cancelar();
                 await _boletoRepository.UpdateAsync(boleto);
                 await _boletoRepository.SaveChangesAsync();
-                Console.WriteLine($"Cobrança com ID {cobrancaId} cancelada com sucesso.");
                 return new ResultadoOperacaoDto { Sucesso = true, Mensagem = "Cobrança cancelada com sucesso." };
             }
             catch (InvalidOperationException ex)
             {
-                Console.WriteLine($"Operação inválida ao tentar cancelar cobrança {cobrancaId}: {ex.Message}");
                 return new ResultadoOperacaoDto { Sucesso = false, Mensagem = ex.Message };
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Erro inesperado ao cancelar cobrança {cobrancaId}: {ex.ToString()}");
-                return new ResultadoOperacaoDto { Sucesso = false, Mensagem = "Erro ao cancelar a cobrança." };
             }
         }
 
-        // This method seems like a duplicate or older version.
-        // GetCobrancaByIdAsync is preferred for consistency if it returns CobrancaDto.
-        // If this is still needed for internal Boleto entity access, it can remain.
-        // For now, assuming GetCobrancaByIdAsync is the primary method for external use.
         public Task<Boleto?> GetBoletoByIdAsync(Guid id, CancellationToken ct = default)
-        {
-            return _boletoRepository.GetByIdAsync(id, ct);
-        }
+            => _boletoRepository.GetByIdAsync(id, ct);
 
         public async Task<BoletoPdfDto?> ObterBoletoPdfAsync(Guid id)
         {
             var boleto = await _boletoRepository.GetByIdAsync(id);
             if (boleto == null) return null;
-            var dummy = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"Boleto {id}"));
-            return new BoletoPdfDto
-            {
+            var dummy = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"Boleto {id}"));
+            return new BoletoPdfDto {
                 PdfBase64 = dummy,
                 BrCode = $"BR-CODE-{id:N}",
-                Metadados = new Dictionary<string, object>
-                {
-                    { "valor", boleto.Valor },
-                    { "status", boleto.Status.ToString() }
+                Metadados = new Dictionary<string, object> {
+                    ["valor"] = boleto.Valor,
+                    ["status"] = boleto.Status.ToString()
                 }
             };
         }
 
-        public Task<bool> ReenviarBoletoAsync(Guid id)
+        public Task<bool> ReenviarBoletoAsync(Guid id) => Task.FromResult(true);
+
+        public Task RegistrarPagamentoAsync(Boleto boleto, decimal valor, CancellationToken cancellationToken = default)
         {
-            // Em um cenário real enviaria e-mail/notificação
-            return Task.FromResult(true);
+            boleto.RegistrarPagamento(valor, DateTime.UtcNow);
+            return Task.CompletedTask;
         }
 
         public async Task<PagamentoDto?> RegistrarPagamentoManualAsync(Guid boletoId, decimal valor, DateTime dataPagamento)
         {
             var boleto = await _boletoRepository.GetByIdAsync(boletoId);
             if (boleto == null) return null;
+
             boleto.RegistrarPagamento(valor, dataPagamento);
             await _boletoRepository.UpdateAsync(boleto);
 
-            var pagamento = new Pagamento
-            {
+            var pagamento = new Pagamento {
                 Id = Guid.NewGuid(),
                 BoletoId = boletoId,
                 Origem = "manual",
                 ValorPago = valor,
                 DataPgto = dataPagamento
             };
+
             await _pagamentoRepository.AddAsync(pagamento);
             await _boletoRepository.SaveChangesAsync();
             await _pagamentoRepository.SaveChangesAsync();
 
-            return new PagamentoDto { PagamentoId = pagamento.Id, Status = pagamento.Status.ToString() };
+            var unidade = await _unidadeRepository.GetByIdAsync(boleto.UnidadeId);
+            if (unidade != null) {
+                var msg = $"Cobrança paga - Unidade {unidade.Identificacao} pagou {valor:C} em {dataPagamento:dd/MM}.";
+                await _notificacaoService.SendAsync($"condo:{unidade.CondominioId}", msg);
+            }
+
+            return new PagamentoDto {
+                PagamentoId = pagamento.Id,
+                Status = pagamento.Status.ToString()
+            };
         }
 
         public async Task<bool> ProcessarWebhookAsync(PagamentoWebhookDto dto)
         {
-            var boleto = await _boletoRepository.Query().FirstOrDefaultAsync(b => b.NossoNumero == dto.NossoNumero);
+            var boleto = await _boletoRepository.Query()
+                .FirstOrDefaultAsync(b => b.NossoNumero == dto.NossoNumero);
             if (boleto == null) return false;
+
             boleto.RegistrarPagamento(dto.ValorPago, dto.DataPagamento);
             await _boletoRepository.UpdateAsync(boleto);
 
-            var pagamento = new Pagamento
-            {
+            var pagamento = new Pagamento {
                 Id = Guid.NewGuid(),
                 BoletoId = boleto.Id,
                 Origem = "webhook",
@@ -410,9 +347,17 @@ namespace conViver.Application.Services // Changed namespace to match convention
                 DataPgto = dto.DataPagamento,
                 TraceId = dto.TraceId
             };
+
             await _pagamentoRepository.AddAsync(pagamento);
             await _boletoRepository.SaveChangesAsync();
             await _pagamentoRepository.SaveChangesAsync();
+
+            var unidade = await _unidadeRepository.GetByIdAsync(boleto.UnidadeId);
+            if (unidade != null) {
+                var msg = $"Cobrança paga - Unidade {unidade.Identificacao} pagou {dto.ValorPago:C} em {dto.DataPagamento:dd/MM}.";
+                await _notificacaoService.SendAsync($"condo:{unidade.CondominioId}", msg);
+            }
+
             return true;
         }
 
@@ -420,6 +365,7 @@ namespace conViver.Application.Services // Changed namespace to match convention
         {
             var pag = await _pagamentoRepository.GetByIdAsync(pagamentoId);
             if (pag == null) return false;
+
             pag.Status = PagamentoStatus.Estornado;
             pag.UpdatedAt = DateTime.UtcNow;
             await _pagamentoRepository.UpdateAsync(pag);
@@ -430,8 +376,7 @@ namespace conViver.Application.Services // Changed namespace to match convention
         public async Task<InstallmentPlanDto> CriarAcordoAsync(Guid unidadeId, decimal entrada, short parcelas)
         {
             var valorParcela = 100m;
-            var acordo = new Acordo
-            {
+            var acordo = new Acordo {
                 Id = Guid.NewGuid(),
                 UnidadeId = unidadeId,
                 ValorTotal = entrada + valorParcela * parcelas,
@@ -441,10 +386,8 @@ namespace conViver.Application.Services // Changed namespace to match convention
             await _acordoRepository.AddAsync(acordo);
 
             var listaParcelas = new List<ParcelaAcordo>();
-            for (short i = 1; i <= parcelas; i++)
-            {
-                var p = new ParcelaAcordo
-                {
+            for (short i = 1; i <= parcelas; i++) {
+                var p = new ParcelaAcordo {
                     Id = Guid.NewGuid(),
                     AcordoId = acordo.Id,
                     Numero = i,
@@ -459,13 +402,11 @@ namespace conViver.Application.Services // Changed namespace to match convention
             await _acordoRepository.SaveChangesAsync();
             await _parcelaRepository.SaveChangesAsync();
 
-            return new InstallmentPlanDto
-            {
+            return new InstallmentPlanDto {
                 Id = acordo.Id,
                 ValorTotal = acordo.ValorTotal,
                 Entrada = acordo.Entrada,
-                Parcelas = listaParcelas.Select(x => new InstallmentDto
-                {
+                Parcelas = listaParcelas.Select(x => new InstallmentDto {
                     Numero = x.Numero,
                     Valor = x.Valor,
                     Vencimento = x.Vencimento,
@@ -478,14 +419,17 @@ namespace conViver.Application.Services // Changed namespace to match convention
         {
             var acordo = await _acordoRepository.GetByIdAsync(acordoId);
             if (acordo == null) return null;
-            var parcelas = await _parcelaRepository.Query().Where(p => p.AcordoId == acordoId).OrderBy(p => p.Numero).ToListAsync();
-            return new InstallmentPlanDto
-            {
+
+            var parcelas = await _parcelaRepository.Query()
+                .Where(p => p.AcordoId == acordoId)
+                .OrderBy(p => p.Numero)
+                .ToListAsync();
+
+            return new InstallmentPlanDto {
                 Id = acordo.Id,
                 ValorTotal = acordo.ValorTotal,
                 Entrada = acordo.Entrada,
-                Parcelas = parcelas.Select(p => new InstallmentDto
-                {
+                Parcelas = parcelas.Select(p => new InstallmentDto {
                     Numero = p.Numero,
                     Valor = p.Valor,
                     Vencimento = p.Vencimento,
@@ -494,36 +438,13 @@ namespace conViver.Application.Services // Changed namespace to match convention
             };
         }
 
-        // --- Métodos simplificados para compatibilidade com os controllers ---
-        public async Task<DespesaDto> CriarDespesaAsync(Guid condominioId, Guid usuarioId, DespesaInputDto input)
-        {
-            var despesa = new Despesa
-            {
-                Id = Guid.NewGuid(),
-                CondominioId = condominioId,
-                Descricao = input.Descricao,
-                Valor = input.Valor,
-                DataCompetencia = input.DataCompetencia,
-                DataVencimento = input.DataVencimento,
-                Categoria = input.Categoria,
-                Observacoes = input.Observacoes,
-                DataRegistro = DateTime.UtcNow,
-                Status = "Pendente",
-                UsuarioRegistroId = usuarioId
-            };
-
-            await _despesaRepository.AddAsync(despesa);
-            await _despesaRepository.SaveChangesAsync();
-
-            return MapDespesaToDto(despesa);
-        }
-
         public async Task<IEnumerable<DespesaDto>> ListarDespesasAsync(Guid condominioId, string? categoria, string? mesCompetencia)
         {
-            var query = _despesaRepository.Query().Where(d => d.CondominioId == condominioId);
+            var query = _despesaRepository.Query()
+                .Where(d => d.CondominioId == condominioId);
 
             if (!string.IsNullOrWhiteSpace(categoria))
-                query = query.Where(d => d.Categoria != null && d.Categoria.ToLower() == categoria.ToLower());
+                query = query.Where(d => d.Categoria != null && d.Categoria.Equals(categoria, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrWhiteSpace(mesCompetencia) && DateTime.TryParse($"{mesCompetencia}-01", out var comp))
             {
@@ -540,39 +461,58 @@ namespace conViver.Application.Services // Changed namespace to match convention
 
         public async Task<DespesaDto?> ObterDespesaPorIdAsync(Guid id, Guid condominioId)
         {
-            var despesa = await _despesaRepository.Query()
-                .FirstOrDefaultAsync(d => d.Id == id && d.CondominioId == condominioId);
+            var d = await _despesaRepository.Query()
+                .FirstOrDefaultAsync(x => x.Id == id && x.CondominioId == condominioId);
+            return d == null ? null : MapDespesaToDto(d);
+        }
 
-            return despesa == null ? null : MapDespesaToDto(despesa);
+        public async Task<DespesaDto> CriarDespesaAsync(Guid condominioId, Guid usuarioId, DespesaInputDto input)
+        {
+            var d = new Despesa {
+                Id = Guid.NewGuid(),
+                CondominioId = condominioId,
+                Descricao = input.Descricao,
+                Valor = input.Valor,
+                DataCompetencia = input.DataCompetencia,
+                DataVencimento = input.DataVencimento,
+                Categoria = input.Categoria,
+                Observacoes = input.Observacoes,
+                DataRegistro = DateTime.UtcNow,
+                Status = "Pendente",
+                UsuarioRegistroId = usuarioId
+            };
+
+            await _despesaRepository.AddAsync(d);
+            await _despesaRepository.SaveChangesAsync();
+            return MapDespesaToDto(d);
         }
 
         public async Task<DespesaDto?> AtualizarDespesaAsync(Guid id, Guid condominioId, Guid usuarioId, DespesaInputDto input)
         {
-            var despesa = await _despesaRepository.Query()
-                .FirstOrDefaultAsync(d => d.Id == id && d.CondominioId == condominioId);
-            if (despesa == null) return null;
+            var d = await _despesaRepository.Query()
+                .FirstOrDefaultAsync(x => x.Id == id && x.CondominioId == condominioId);
+            if (d == null) return null;
 
-            despesa.Descricao = input.Descricao;
-            despesa.Valor = input.Valor;
-            despesa.DataCompetencia = input.DataCompetencia;
-            despesa.DataVencimento = input.DataVencimento;
-            despesa.Categoria = input.Categoria;
-            despesa.Observacoes = input.Observacoes;
-            despesa.UsuarioRegistroId = usuarioId;
+            d.Descricao = input.Descricao;
+            d.Valor = input.Valor;
+            d.DataCompetencia = input.DataCompetencia;
+            d.DataVencimento = input.DataVencimento;
+            d.Categoria = input.Categoria;
+            d.Observacoes = input.Observacoes;
+            d.UsuarioRegistroId = usuarioId;
 
-            await _despesaRepository.UpdateAsync(despesa);
+            await _despesaRepository.UpdateAsync(d);
             await _despesaRepository.SaveChangesAsync();
-
-            return MapDespesaToDto(despesa);
+            return MapDespesaToDto(d);
         }
 
         public async Task<bool> RemoverDespesaAsync(Guid id, Guid condominioId, Guid usuarioId)
         {
-            var despesa = await _despesaRepository.Query()
-                .FirstOrDefaultAsync(d => d.Id == id && d.CondominioId == condominioId);
-            if (despesa == null) return false;
+            var d = await _despesaRepository.Query()
+                .FirstOrDefaultAsync(x => x.Id == id && x.CondominioId == condominioId);
+            if (d == null) return false;
 
-            await _despesaRepository.DeleteAsync(despesa);
+            await _despesaRepository.DeleteAsync(d);
             await _despesaRepository.SaveChangesAsync();
             return true;
         }
@@ -583,43 +523,42 @@ namespace conViver.Application.Services // Changed namespace to match convention
                 .Where(d => d.CondominioId == condominioId && d.DataCompetencia >= inicio && d.DataCompetencia <= fim)
                 .ToListAsync();
 
-            var boletos = await (from b in _boletoRepository.Query()
-                                 join u in _unidadeRepository.Query() on b.UnidadeId equals u.Id
-                                 where u.CondominioId == condominioId && b.DataVencimento >= inicio && b.DataVencimento <= fim
-                                 select new BalanceteItemDto
-                                 {
-                                     Categoria = "Cobranca",
-                                     Descricao = $"Boleto {b.Id.ToString().Substring(0,8)}",
-                                     Valor = b.Valor,
-                                     Data = b.DataVencimento
-                                 }).ToListAsync();
+            var receitas = await (from b in _boletoRepository.Query()
+                                  join u in _unidadeRepository.Query() on b.UnidadeId equals u.Id
+                                  where u.CondominioId == condominioId
+                                        && b.DataVencimento >= inicio
+                                        && b.DataVencimento <= fim
+                                  select new BalanceteItemDto {
+                                      Categoria = "Cobrança",
+                                      Descricao = $"Boleto {b.Id:D8}",
+                                      Valor = b.Valor,
+                                      Data = b.DataVencimento
+                                  })
+                                 .ToListAsync();
 
-            var despesaItems = despesas.Select(d => new BalanceteItemDto
-            {
+            var despesasItems = despesas.Select(d => new BalanceteItemDto {
                 Categoria = d.Categoria ?? "Geral",
                 Descricao = d.Descricao,
                 Valor = d.Valor,
                 Data = d.DataCompetencia
             }).ToList();
 
-            var totalReceitas = boletos.Sum(r => r.Valor);
-            var totalDespesas = despesaItems.Sum(d => d.Valor);
+            var totalReceitas = receitas.Sum(r => r.Valor);
+            var totalDespesas = despesasItems.Sum(d => d.Valor);
 
-            return new BalanceteDto
-            {
+            return new BalanceteDto {
                 PeriodoInicio = inicio,
                 PeriodoFim = fim,
                 SaldoAnterior = 0m,
-                Receitas = boletos,
-                Despesas = despesaItems,
+                Receitas = receitas,
+                Despesas = despesasItems,
                 TotalReceitas = totalReceitas,
                 TotalDespesas = totalDespesas,
                 SaldoAtual = totalReceitas - totalDespesas
             };
         }
 
-        private static DespesaDto MapDespesaToDto(Despesa d) => new DespesaDto
-        {
+        private static DespesaDto MapDespesaToDto(Despesa d) => new DespesaDto {
             Id = d.Id,
             Descricao = d.Descricao,
             Valor = d.Valor,
