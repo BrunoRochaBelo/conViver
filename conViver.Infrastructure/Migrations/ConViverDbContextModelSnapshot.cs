@@ -360,6 +360,32 @@ namespace conViver.Infrastructure.Migrations
                 b.ToTable("Lancamentos");
             });
 
+            modelBuilder.Entity("conViver.Core.Entities.OrcamentoAnual", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("TEXT");
+
+                b.Property<int>("Ano")
+                    .HasColumnType("INTEGER");
+
+                b.Property<string>("Categoria")
+                    .IsRequired()
+                    .HasColumnType("TEXT");
+
+                b.Property<Guid>("CondominioId")
+                    .HasColumnType("TEXT");
+
+                b.Property<decimal>("ValorPrevisto")
+                    .HasColumnType("TEXT");
+
+                b.HasKey("Id");
+
+                b.HasIndex("CondominioId");
+
+                b.ToTable("OrcamentosAnuais");
+            });
+
             modelBuilder.Entity("conViver.Core.Entities.Ocorrencia", b =>
             {
                 b.Property<Guid>("Id")

@@ -9,6 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const tbodyCobrancas = document.querySelector('.js-lista-cobrancas');
     const filtroStatusEl = document.querySelector('.js-filtro-status-cobranca');
+    const despesasTableBody = document.querySelector('.js-lista-despesas');
+    const graficoDespesasEl = document.getElementById('graficoDespesas');
+    const graficoBalanceteEl = document.getElementById('graficoBalancete');
+    const graficoOrcamentoEl = document.getElementById('graficoOrcamento');
+    const graficoTendenciasEl = document.getElementById('graficoTendencias');
 
     const summaryInadimplenciaEl = document.querySelector('.js-summary-inadimplencia');
     const summaryPixEl = document.querySelector('.js-summary-pix');
@@ -22,6 +27,48 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModalButton = document.querySelector('.js-modal-close-cobranca');
     const btnNovaCobranca = document.querySelector('.js-btn-nova-cobranca');
     const btnGerarLote = document.querySelector('.js-btn-gerar-lote');
+
+    // Tab Navigation
+    const tabButtons = document.querySelectorAll('#finTabs .cv-tab-button');
+    const tabContents = document.querySelectorAll('main .cv-tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                content.style.display = 'none';
+            });
+
+            const target = document.getElementById('content-' + button.dataset.subtab);
+            if (target) {
+                target.classList.add('active');
+                target.style.display = 'block';
+            }
+
+            switch (button.dataset.subtab) {
+                case 'despesas':
+                    fetchAndRenderDespesas();
+                    break;
+                case 'relatorios':
+                    fetchAndRenderBalancete();
+                    break;
+                case 'orcamento':
+                    fetchAndRenderOrcamento();
+                    break;
+                case 'tendencias':
+                    fetchAndRenderTendencias();
+                    break;
+                default:
+                    break;
+            }
+        });
+    });
+    if (tabButtons.length > 0) {
+        tabButtons[0].click();
+    }
 
     // --- Modal Logic ---
     function openModal(title, contentHtml) {
@@ -338,6 +385,107 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } finally {
             if (cobrancasSkeleton) hideFeedSkeleton(cobrancasSkeleton);
+        }
+    }
+
+    // --- Novas Seções ---
+    let despesasChart = null;
+    let balanceteChart = null;
+    let orcamentoChart = null;
+    let tendenciasChart = null;
+
+    function renderDespesasChart(despesas) {
+        if (!graficoDespesasEl || typeof Chart === 'undefined') return;
+        if (despesasChart) despesasChart.destroy();
+        const data = {
+            labels: despesas.map(d => d.categoria),
+            datasets: [{ label: 'Valor', data: despesas.map(d => d.valor), backgroundColor: '#36A2EB' }]
+        };
+        despesasChart = new Chart(graficoDespesasEl.getContext('2d'), { type: 'bar', data });
+    }
+
+    async function fetchAndRenderDespesas() {
+        if (!despesasTableBody) return;
+        despesasTableBody.innerHTML = '<tr><td colspan="3">Carregando...</td></tr>';
+        try {
+            const despesas = await apiClient.get('/financeiro/despesas');
+            despesasTableBody.innerHTML = '';
+            if (despesas && despesas.length) {
+                despesas.forEach(d => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${d.categoria || ''}</td><td>${formatCurrency(d.valor)}</td><td>${formatDate(new Date(d.dataVencimento))}</td>`;
+                    despesasTableBody.appendChild(tr);
+                });
+            } else {
+                despesasTableBody.innerHTML = '<tr><td colspan="3">Nenhuma despesa encontrada.</td></tr>';
+            }
+            renderDespesasChart(despesas || []);
+        } catch (err) {
+            console.error('Erro ao buscar despesas:', err);
+            showGlobalFeedback('Erro ao carregar despesas', 'error');
+            despesasTableBody.innerHTML = '<tr><td colspan="3" class="error-message">Falha ao carregar.</td></tr>';
+        }
+    }
+
+    function renderBalanceteChart(balancete) {
+        if (!graficoBalanceteEl || typeof Chart === 'undefined' || !balancete) return;
+        if (balanceteChart) balanceteChart.destroy();
+        const data = {
+            labels: ['Receitas', 'Despesas'],
+            datasets: [{ data: [balancete.totalReceitas || 0, balancete.totalDespesas || 0], backgroundColor: ['#36A2EB', '#FF6384'] }]
+        };
+        balanceteChart = new Chart(graficoBalanceteEl.getContext('2d'), { type: 'doughnut', data });
+    }
+
+    async function fetchAndRenderBalancete() {
+        try {
+            const dataInicio = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+            const dataFim = new Date().toISOString().split('T')[0];
+            const balancete = await apiClient.get(`/financeiro/relatorios/balancete?dataInicio=${dataInicio}&dataFim=${dataFim}`);
+            renderBalanceteChart(balancete);
+        } catch (err) {
+            console.error('Erro ao obter balancete:', err);
+            showGlobalFeedback('Erro ao carregar relatório', 'error');
+        }
+    }
+
+    function renderOrcamentoChart(resumo) {
+        if (!graficoOrcamentoEl || typeof Chart === 'undefined' || !resumo) return;
+        if (orcamentoChart) orcamentoChart.destroy();
+        const data = {
+            labels: (resumo.itens || []).map(i => i.categoria),
+            datasets: [{ label: 'Valor', data: (resumo.itens || []).map(i => i.valor), backgroundColor: '#4BC0C0' }]
+        };
+        orcamentoChart = new Chart(graficoOrcamentoEl.getContext('2d'), { type: 'bar', data });
+    }
+
+    async function fetchAndRenderOrcamento() {
+        try {
+            const resumo = await apiClient.get('/financeiro/orcamento');
+            renderOrcamentoChart(resumo);
+        } catch (err) {
+            console.error('Erro ao obter orçamento:', err);
+            showGlobalFeedback('Erro ao carregar orçamento', 'error');
+        }
+    }
+
+    function renderTendenciasChart(tendencias) {
+        if (!graficoTendenciasEl || typeof Chart === 'undefined' || !Array.isArray(tendencias)) return;
+        if (tendenciasChart) tendenciasChart.destroy();
+        const data = {
+            labels: tendencias.map(t => t.mes),
+            datasets: [{ label: 'Valor', data: tendencias.map(t => t.valor), backgroundColor: '#FFCE56' }]
+        };
+        tendenciasChart = new Chart(graficoTendenciasEl.getContext('2d'), { type: 'line', data });
+    }
+
+    async function fetchAndRenderTendencias() {
+        try {
+            const dados = await apiClient.get('/financeiro/tendencias');
+            renderTendenciasChart(dados);
+        } catch (err) {
+            console.error('Erro ao obter tendencias:', err);
+            showGlobalFeedback('Erro ao carregar tendencias', 'error');
         }
     }
 

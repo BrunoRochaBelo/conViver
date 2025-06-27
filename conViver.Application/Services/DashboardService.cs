@@ -1,6 +1,8 @@
 using conViver.Core.DTOs;
-// using conViver.Core.Interfaces; // Para repositórios futuros
-// using conViver.Core.Entities; // Para entidades futuras
+using conViver.Core.Entities;
+using conViver.Core.Enums;
+using conViver.Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,50 +12,77 @@ namespace conViver.Application.Services;
 
 public class DashboardService
 {
-    // Injete repositórios e outros serviços aqui quando for buscar dados reais
-    // Ex: private readonly IRepository<Condominio> _condominioRepo;
+    private readonly IRepository<Boleto> _boletoRepository;
+    private readonly IRepository<Pagamento> _pagamentoRepository;
+    private readonly IRepository<LancamentoFinanceiro> _lancamentoRepository;
+    private readonly IRepository<Unidade> _unidadeRepository;
 
-    public DashboardService(/* Dependências aqui */)
+    public DashboardService(
+        IRepository<Boleto> boletoRepository,
+        IRepository<Pagamento> pagamentoRepository,
+        IRepository<LancamentoFinanceiro> lancamentoRepository,
+        IRepository<Unidade> unidadeRepository)
     {
+        _boletoRepository = boletoRepository;
+        _pagamentoRepository = pagamentoRepository;
+        _lancamentoRepository = lancamentoRepository;
+        _unidadeRepository = unidadeRepository;
     }
 
-    public Task<DashboardGeralDto> GetDashboardGeralAsync(Guid condominioId /* ou userId */)
+    public async Task<DashboardGeralDto> GetDashboardGeralAsync(Guid condominioId)
     {
-        // TODO: Implementar lógica para buscar dados reais dos repositórios/serviços
-        // Por enquanto, retorna dados mockados para permitir o desenvolvimento do front-end.
+        var boletosQuery = from b in _boletoRepository.Query()
+                           join u in _unidadeRepository.Query() on b.UnidadeId equals u.Id
+                           where u.CondominioId == condominioId
+                           select b;
 
-        var mockMetrics = new DashboardMetricsDto
-        {
-            InadimplenciaPercentual = 12.5m,
-            InadimplenciaValorTotal = 1250.75m,
-            SaldoDisponivel = 7530.40m,
-            ProximasDespesas = new List<ProximaDespesaDto>
+        var totalBoletos = await boletosQuery.CountAsync();
+        var boletosPendentes = boletosQuery.Where(b =>
+            b.Status == BoletoStatus.Gerado ||
+            b.Status == BoletoStatus.Registrado ||
+            b.Status == BoletoStatus.Enviado ||
+            b.Status == BoletoStatus.Vencido);
+
+        var totalPendentes = await boletosPendentes.CountAsync();
+        var valorPendentes = await boletosPendentes.SumAsync(b => b.Valor - (b.ValorPago ?? 0));
+
+        var inadimplenciaPercentual = totalBoletos == 0 ? 0m : Math.Round((decimal)totalPendentes / totalBoletos * 100, 2);
+
+        var lancamentosQuery = from l in _lancamentoRepository.Query()
+                               join u in _unidadeRepository.Query() on l.UnidadeId equals u.Id
+                               where u.CondominioId == condominioId
+                               select l;
+
+        var totalCreditos = await lancamentosQuery.Where(l => l.Tipo.ToLower() == "credito").SumAsync(l => l.Valor);
+        var totalDebitos = await lancamentosQuery.Where(l => l.Tipo.ToLower() == "debito").SumAsync(l => l.Valor);
+        var saldoDisponivel = totalCreditos - totalDebitos;
+
+        var proximasDespesas = await lancamentosQuery
+            .Where(l => l.Tipo.ToLower() == "debito" && l.Data >= DateTime.UtcNow)
+            .OrderBy(l => l.Data)
+            .Take(5)
+            .Select(l => new ProximaDespesaDto
             {
-                new() { Id = Guid.NewGuid(), Descricao = "Conta de Luz", Valor = 350.00m, DataVencimento = DateTime.UtcNow.AddDays(5) },
-                new() { Id = Guid.NewGuid(), Descricao = "Manutenção Elevador", Valor = 800.00m, DataVencimento = DateTime.UtcNow.AddDays(10) }
-            }
-        };
+                Id = l.Id,
+                Descricao = l.Descricao ?? string.Empty,
+                Valor = l.Valor,
+                DataVencimento = l.Data
+            })
+            .ToListAsync();
 
-        var mockAlerts = new List<AlertaDto>
+        var metrics = new DashboardMetricsDto
         {
-            new() { Id = Guid.NewGuid(), Titulo = "Contrato de Seguro Vencendo", Mensagem = "O contrato de seguro do condomínio vence em 15 dias.", Criticidade = "alta", DataCriacao = DateTime.UtcNow.AddDays(-1) },
-            new() { Id = Guid.NewGuid(), Titulo = "Caixa d'água precisa de limpeza", Mensagem = "Agendar limpeza da caixa d'água.", Criticidade = "normal", DataCriacao = DateTime.UtcNow.AddDays(-3) }
+            InadimplenciaPercentual = inadimplenciaPercentual,
+            InadimplenciaValorTotal = valorPendentes,
+            SaldoDisponivel = saldoDisponivel,
+            ProximasDespesas = proximasDespesas
         };
 
-        var mockAtividades = new List<AtividadeRecenteDto>
+        return new DashboardGeralDto
         {
-            new() { Id = Guid.NewGuid(), Tipo = "Chamado", Descricao = "Vazamento na unidade 101", DataOcorrencia = DateTime.UtcNow.AddHours(-5) },
-            new() { Id = Guid.NewGuid(), Tipo = "Aviso", Descricao = "Manutenção da piscina agendada para 25/07", DataOcorrencia = DateTime.UtcNow.AddHours(-20) },
-            new() { Id = Guid.NewGuid(), Tipo = "Chamado", Descricao = "Lâmpada queimada no corredor do Bloco B", DataOcorrencia = DateTime.UtcNow.AddDays(-1) }
+            Metricas = metrics,
+            Alertas = new List<AlertaDto>(),
+            AtividadesRecentes = new List<AtividadeRecenteDto>()
         };
-
-        var dashboardData = new DashboardGeralDto
-        {
-            Metricas = mockMetrics,
-            Alertas = mockAlerts,
-            AtividadesRecentes = mockAtividades.OrderByDescending(a => a.DataOcorrencia).ToList()
-        };
-
-        return Task.FromResult(dashboardData);
     }
 }
