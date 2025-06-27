@@ -72,6 +72,7 @@ export function buildNavigation() {
         a.className = 'cv-nav__link';
         if (currentPage === item.key || (currentPage === 'index' && item.key === 'dashboard')) {
             a.classList.add('cv-nav__link--active');
+            a.setAttribute('aria-current', 'page');
         }
         li.appendChild(a);
         ul.appendChild(li);
