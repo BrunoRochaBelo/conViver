@@ -34,7 +34,7 @@ public class AvisosController : ControllerBase
     /// <response code="200">Retorna a lista de avisos.</response>
     /// <response code="401">Usuário não autorizado ou CondominioId não encontrado no token.</response>
     [HttpGet("/api/v1/app/avisos")] // Rota atualizada
-    [Authorize(Roles = "Sindico,Condomino,Inquilino")] // Roles atualizadas (verificar nomes corretos)
+    [Authorize(Roles = "Sindico,Morador")] // Roles atualizadas (verificar nomes corretos)
     public async Task<ActionResult<IEnumerable<Aviso>>> ListarAvisosPorApp([FromQuery] int page = 1, [FromQuery] int size = 10)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
