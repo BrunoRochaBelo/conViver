@@ -18,6 +18,14 @@ let currentUserId = null;
 let currentUserRoles = [];
 let agendaDiaListContainer, agendaDiaLoading, agendaDiaSkeleton;
 let dataSelecionadaAgenda = new Date().toISOString().split("T")[0];
+function getStatusBadgeHtml(status) {
+  const s = status ? status.toLowerCase() : "";
+  let type = "success";
+  if (s.includes("pendente") || s.includes("aguardando")) type = "warning";
+  else if (s.includes("cancel") || s.includes("recus") || s.includes("vencid") || s.includes("extraviad") || s.includes("devolvid")) type = "danger";
+  return `<span class="status-badge status-badge--${type}"><span class="status-icon icon-${type}"></span>${status}</span>`;
+}
+
 
 // List View (Agenda Tab)
 let currentPageListView = 1;
@@ -813,21 +821,10 @@ function renderCardReservaListView(reserva) {
   });
   const fimFmt = new Date(reserva.fim).toLocaleString("pt-BR", {
     hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  let statusClass = "";
-  if (reserva.status === "Confirmada") statusClass = "cv-text-success";
-  else if (reserva.status === "Pendente") statusClass = "cv-text-warning";
-  else if (reserva.status.startsWith("Cancelada"))
-    statusClass = "cv-text-error";
-
   card.innerHTML = `
     <h3>${reserva.nomeEspacoComum}</h3>
     <p><strong>Data:</strong> ${inicioFmt} - ${fimFmt}</p>
-    <p><strong>Status:</strong> <span class="${statusClass}">${
-    reserva.status
-  }</span></p>
+    <p><strong>Status:</strong> ${getStatusBadgeHtml(reserva.status)}</p>
     <p><strong>Solicitante:</strong> ${
       reserva.nomeUsuarioSolicitante || reserva.nomeUnidade || "N/A"
     }</p>

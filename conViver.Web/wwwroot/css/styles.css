@@ -1554,9 +1554,15 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
 }
 
 
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--cv-spacing-md);
+}
+
 .document-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Layout responsivo em grid */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: var(--cv-spacing-md);
 }
 
@@ -1618,12 +1624,15 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
 }
 
 /* Reservas - Espaços Comuns */
+/* Portaria Cards */
+
 .card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: var(--cv-spacing-md);
 }
 
+/* --- Espaços Comuns --- */
 .espaco-card {
     display: flex;
     flex-direction: column;
@@ -1645,5 +1654,37 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     justify-content: flex-end;
     padding-top: var(--cv-spacing-sm);
     border-top: 1px solid var(--current-border-subtle);
+}
+
+/* --- Visitantes & Encomendas --- */
+.visitante-card,
+.encomenda-card {
+    background-color: var(--current-bg-white);
+    border: var(--cv-border-width) solid var(--current-border-color);
+    border-radius: var(--cv-border-radius-lg);
+    padding: var(--cv-spacing-md);
+    box-shadow: var(--current-shadow-md);
+}
+
+.visitante-card h4,
+.encomenda-card h4 {
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-xs);
+    font-size: var(--cv-font-size-lg);
+    color: var(--current-text-primary);
+}
+
+.visitante-card p,
+.encomenda-card p {
+    margin: 2px 0;
+    font-size: 0.9rem;
+    color: var(--current-text-secondary);
+}
+
+.visitante-card__acoes,
+.encomenda-card__acoes {
+    margin-top: var(--cv-spacing-sm);
+    display: flex;
+    gap: var(--cv-spacing-xs);
 }
 
