@@ -846,6 +846,8 @@ function renderCardReservaListView(reserva) {
   });
   const fimFmt = new Date(reserva.fim).toLocaleString("pt-BR", {
     hour: "2-digit",
+    minute: "2-digit",
+  });
   card.innerHTML = `
     <h3>${reserva.nomeEspacoComum}</h3>
     <p><strong>Data:</strong> ${inicioFmt} - ${fimFmt}</p>
