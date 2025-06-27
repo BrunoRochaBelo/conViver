@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using conViver.Core.Entities;
 using conViver.Core.Enums;
@@ -12,7 +9,10 @@ namespace conViver.Infrastructure.Data.Contexts
 {
     public class ConViverDbContext : DbContext
     {
-        public ConViverDbContext(DbContextOptions<ConViverDbContext> options) : base(options) { }
+        public ConViverDbContext(DbContextOptions<ConViverDbContext> options)
+            : base(options)
+        {
+        }
 
         public DbSet<Condominio> Condominios => Set<Condominio>();
         public DbSet<Unidade> Unidades => Set<Unidade>();
@@ -28,6 +28,7 @@ namespace conViver.Infrastructure.Data.Contexts
         public DbSet<OrdemServico> OrdensServico => Set<OrdemServico>();
         public DbSet<PrestadorServico> Prestadores => Set<PrestadorServico>();
         public DbSet<LancamentoFinanceiro> Lancamentos => Set<LancamentoFinanceiro>();
+        public DbSet<Despesa> Despesas => Set<Despesa>();
         public DbSet<Documento> Documentos => Set<Documento>();
         public DbSet<OrcamentoAnual> OrcamentosAnuais => Set<OrcamentoAnual>();
         public DbSet<Votacao> Votacoes => Set<Votacao>();
@@ -50,28 +51,23 @@ namespace conViver.Infrastructure.Data.Contexts
         {
             base.OnModelCreating(modelBuilder);
 
-            // ----------------------------
-            // Índices e Owned Types
-            // ----------------------------
+            // Owned type: Endereço de Condomínio
             modelBuilder.Entity<Condominio>()
                 .OwnsOne(c => c.Endereco);
 
+            // Índice único em Boleto
             modelBuilder.Entity<Boleto>()
                 .HasIndex(b => new { b.NossoNumero, b.CodigoBanco })
                 .IsUnique();
 
-            // ----------------------------
-            // Relações Usuário ↔ Unidade
-            // ----------------------------
+            // Relação Usuário ↔ Unidade
             modelBuilder.Entity<Usuario>()
                 .HasOne(u => u.Unidade)
                 .WithMany(un => un.Usuarios)
                 .HasForeignKey(u => u.UnidadeId)
                 .IsRequired();
 
-            // ----------------------------
             // Votação e Opções
-            // ----------------------------
             modelBuilder.Entity<Votacao>()
                 .HasMany(v => v.Opcoes)
                 .WithOne(o => o.Votacao)
@@ -84,18 +80,14 @@ namespace conViver.Infrastructure.Data.Contexts
                 .HasForeignKey(vr => vr.OpcaoVotacaoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ----------------------------
-            // Chamado.Fotos → JSON
-            // ----------------------------
+            // Chamado.Fotos como JSON
             modelBuilder.Entity<Chamado>()
                 .Property(c => c.Fotos)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, null),
                     v => JsonSerializer.Deserialize<List<string>>(v, null) ?? new List<string>());
 
-            // ----------------------------
             // Prestador ↔ Avaliações
-            // ----------------------------
             modelBuilder.Entity<PrestadorServico>()
                 .HasMany(p => p.Avaliacoes)
                 .WithOne(a => a.PrestadorServico)
@@ -106,9 +98,7 @@ namespace conViver.Infrastructure.Data.Contexts
                 .HasIndex(a => new { a.PrestadorServicoId, a.UsuarioId, a.OrdemServicoId })
                 .IsUnique(false);
 
-            // ----------------------------
             // Ocorrências
-            // ----------------------------
             modelBuilder.Entity<Ocorrencia>(entity =>
             {
                 entity.HasKey(o => o.Id);
@@ -187,9 +177,7 @@ namespace conViver.Infrastructure.Data.Contexts
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // ----------------------------
-            // Contas e Extratos Bancários
-            // ----------------------------
+            // ContaBancaria e ExtratoBancario
             modelBuilder.Entity<ContaBancaria>(entity =>
             {
                 entity.HasKey(c => c.Id);
@@ -211,9 +199,7 @@ namespace conViver.Infrastructure.Data.Contexts
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // ----------------------------
-            // Acordo e Parcelas
-            // ----------------------------
+            // ParcelaAcordo
             modelBuilder.Entity<ParcelaAcordo>(entity =>
             {
                 entity.HasKey(p => p.Id);
@@ -232,9 +218,7 @@ namespace conViver.Infrastructure.Data.Contexts
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // ----------------------------
-            // Pagamentos
-            // ----------------------------
+            // Pagamento
             modelBuilder.Entity<Pagamento>(entity =>
             {
                 entity.HasKey(p => p.Id);
@@ -246,6 +230,18 @@ namespace conViver.Infrastructure.Data.Contexts
                     .WithMany()
                     .HasForeignKey(p => p.BoletoId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Despesa
+            modelBuilder.Entity<Despesa>(entity =>
+            {
+                entity.HasKey(d => d.Id);
+                entity.Property(d => d.CondominioId).IsRequired();
+                entity.Property(d => d.Descricao).IsRequired();
+                entity.Property(d => d.Valor).IsRequired();
+                entity.Property(d => d.DataCompetencia).IsRequired();
+                entity.Property(d => d.DataRegistro).IsRequired();
+                entity.Property(d => d.Status).IsRequired();
             });
         }
     }

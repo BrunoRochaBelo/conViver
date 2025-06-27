@@ -4,9 +4,9 @@ using conViver.Core.Interfaces;
 using conViver.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace conViver.Application.Services
@@ -18,6 +18,7 @@ namespace conViver.Application.Services
         private readonly IRepository<Pagamento> _pagamentoRepository;
         private readonly IRepository<Acordo> _acordoRepository;
         private readonly IRepository<ParcelaAcordo> _parcelaRepository;
+        private readonly IRepository<Despesa> _despesaRepository;
         private readonly IRepository<OrcamentoAnual> _orcamentoRepository;
         private readonly IRepository<LancamentoFinanceiro> _lancamentoRepository;
         private readonly INotificacaoService _notificacaoService;
@@ -28,6 +29,7 @@ namespace conViver.Application.Services
             IRepository<Pagamento> pagamentoRepository,
             IRepository<Acordo> acordoRepository,
             IRepository<ParcelaAcordo> parcelaRepository,
+            IRepository<Despesa> despesaRepository,
             IRepository<OrcamentoAnual> orcamentoRepository,
             IRepository<LancamentoFinanceiro> lancamentoRepository,
             INotificacaoService notificacaoService)
@@ -37,6 +39,7 @@ namespace conViver.Application.Services
             _pagamentoRepository = pagamentoRepository;
             _acordoRepository = acordoRepository;
             _parcelaRepository = parcelaRepository;
+            _despesaRepository = despesaRepository;
             _orcamentoRepository = orcamentoRepository;
             _lancamentoRepository = lancamentoRepository;
             _notificacaoService = notificacaoService;
@@ -101,11 +104,7 @@ namespace conViver.Application.Services
             var query = from boleto in boletosQuery
                         join unidade in unidadesQuery on boleto.UnidadeId equals unidade.Id
                         where unidade.CondominioId == condominioId
-                        select new
-                        {
-                            boleto,
-                            unidade.Identificacao
-                        };
+                        select new { boleto, unidade.Identificacao };
 
             if (!string.IsNullOrWhiteSpace(status)
                 && Enum.TryParse<BoletoStatus>(status, true, out var st))
@@ -222,14 +221,12 @@ namespace conViver.Application.Services
 
             var valorTotalLote = request.DescricoesPadrao?.Sum(d => d.Valor) ?? 0m;
             if (valorTotalLote == 0)
-                return new ResultadoOperacaoDto
-                {
+                return new ResultadoOperacaoDto {
                     Sucesso = true,
                     Mensagem = "Nenhuma descrição de padrão de cobrança fornecida ou valor total é zero. Nenhum boleto foi gerado."
                 };
 
-            var novosBoletos = unidades.Select(u => new Boleto
-            {
+            var novosBoletos = unidades.Select(u => new Boleto {
                 Id = Guid.NewGuid(),
                 UnidadeId = u.Id,
                 Valor = valorTotalLote,
@@ -282,16 +279,13 @@ namespace conViver.Application.Services
         {
             var boleto = await _boletoRepository.GetByIdAsync(id);
             if (boleto == null) return null;
-
             var dummy = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"Boleto {id}"));
-            return new BoletoPdfDto
-            {
+            return new BoletoPdfDto {
                 PdfBase64 = dummy,
                 BrCode = $"BR-CODE-{id:N}",
-                Metadados = new Dictionary<string, object>
-                {
-                    { "valor", boleto.Valor },
-                    { "status", boleto.Status.ToString() }
+                Metadados = new Dictionary<string, object> {
+                    ["valor"] = boleto.Valor,
+                    ["status"] = boleto.Status.ToString()
                 }
             };
         }
@@ -312,8 +306,7 @@ namespace conViver.Application.Services
             boleto.RegistrarPagamento(valor, dataPagamento);
             await _boletoRepository.UpdateAsync(boleto);
 
-            var pagamento = new Pagamento
-            {
+            var pagamento = new Pagamento {
                 Id = Guid.NewGuid(),
                 BoletoId = boletoId,
                 Origem = "manual",
@@ -326,14 +319,12 @@ namespace conViver.Application.Services
             await _pagamentoRepository.SaveChangesAsync();
 
             var unidade = await _unidadeRepository.GetByIdAsync(boleto.UnidadeId);
-            if (unidade != null)
-            {
+            if (unidade != null) {
                 var msg = $"Cobrança paga - Unidade {unidade.Identificacao} pagou {valor:C} em {dataPagamento:dd/MM}.";
                 await _notificacaoService.SendAsync($"condo:{unidade.CondominioId}", msg);
             }
 
-            return new PagamentoDto
-            {
+            return new PagamentoDto {
                 PagamentoId = pagamento.Id,
                 Status = pagamento.Status.ToString()
             };
@@ -348,8 +339,7 @@ namespace conViver.Application.Services
             boleto.RegistrarPagamento(dto.ValorPago, dto.DataPagamento);
             await _boletoRepository.UpdateAsync(boleto);
 
-            var pagamento = new Pagamento
-            {
+            var pagamento = new Pagamento {
                 Id = Guid.NewGuid(),
                 BoletoId = boleto.Id,
                 Origem = "webhook",
@@ -363,8 +353,7 @@ namespace conViver.Application.Services
             await _pagamentoRepository.SaveChangesAsync();
 
             var unidade = await _unidadeRepository.GetByIdAsync(boleto.UnidadeId);
-            if (unidade != null)
-            {
+            if (unidade != null) {
                 var msg = $"Cobrança paga - Unidade {unidade.Identificacao} pagou {dto.ValorPago:C} em {dto.DataPagamento:dd/MM}.";
                 await _notificacaoService.SendAsync($"condo:{unidade.CondominioId}", msg);
             }
@@ -387,22 +376,18 @@ namespace conViver.Application.Services
         public async Task<InstallmentPlanDto> CriarAcordoAsync(Guid unidadeId, decimal entrada, short parcelas)
         {
             var valorParcela = 100m;
-            var acordo = new Acordo
-            {
+            var acordo = new Acordo {
                 Id = Guid.NewGuid(),
                 UnidadeId = unidadeId,
                 ValorTotal = entrada + valorParcela * parcelas,
                 Entrada = entrada,
                 Parcelas = parcelas
             };
-
             await _acordoRepository.AddAsync(acordo);
 
             var listaParcelas = new List<ParcelaAcordo>();
-            for (short i = 1; i <= parcelas; i++)
-            {
-                var p = new ParcelaAcordo
-                {
+            for (short i = 1; i <= parcelas; i++) {
+                var p = new ParcelaAcordo {
                     Id = Guid.NewGuid(),
                     AcordoId = acordo.Id,
                     Numero = i,
@@ -417,13 +402,11 @@ namespace conViver.Application.Services
             await _acordoRepository.SaveChangesAsync();
             await _parcelaRepository.SaveChangesAsync();
 
-            return new InstallmentPlanDto
-            {
+            return new InstallmentPlanDto {
                 Id = acordo.Id,
                 ValorTotal = acordo.ValorTotal,
                 Entrada = acordo.Entrada,
-                Parcelas = listaParcelas.Select(x => new InstallmentDto
-                {
+                Parcelas = listaParcelas.Select(x => new InstallmentDto {
                     Numero = x.Numero,
                     Valor = x.Valor,
                     Vencimento = x.Vencimento,
@@ -442,13 +425,11 @@ namespace conViver.Application.Services
                 .OrderBy(p => p.Numero)
                 .ToListAsync();
 
-            return new InstallmentPlanDto
-            {
+            return new InstallmentPlanDto {
                 Id = acordo.Id,
                 ValorTotal = acordo.ValorTotal,
                 Entrada = acordo.Entrada,
-                Parcelas = parcelas.Select(p => new InstallmentDto
-                {
+                Parcelas = parcelas.Select(p => new InstallmentDto {
                     Numero = p.Numero,
                     Valor = p.Valor,
                     Vencimento = p.Vencimento,
@@ -457,124 +438,39 @@ namespace conViver.Application.Services
             };
         }
 
-        public async Task<IEnumerable<OrcamentoAnualDto>> RegistrarOrcamentoAsync(
-            Guid condominioId,
-            int ano,
-            IEnumerable<OrcamentoCategoriaInputDto> categorias,
-            CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<DespesaDto>> ListarDespesasAsync(Guid condominioId, string? categoria, string? mesCompetencia)
         {
-            var entidades = new List<OrcamentoAnual>();
-            foreach (var cat in categorias)
+            var query = _despesaRepository.Query()
+                .Where(d => d.CondominioId == condominioId);
+
+            if (!string.IsNullOrWhiteSpace(categoria))
+                query = query.Where(d => d.Categoria != null && d.Categoria.Equals(categoria, StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrWhiteSpace(mesCompetencia) && DateTime.TryParse($"{mesCompetencia}-01", out var comp))
             {
-                var ent = new OrcamentoAnual
-                {
-                    Id = Guid.NewGuid(),
-                    CondominioId = condominioId,
-                    Ano = ano,
-                    Categoria = cat.Categoria,
-                    ValorPrevisto = cat.ValorPrevisto
-                };
-                await _orcamentoRepository.AddAsync(ent, cancellationToken);
-                entidades.Add(ent);
+                var start = new DateTime(comp.Year, comp.Month, 1);
+                var end = start.AddMonths(1).AddDays(-1);
+                query = query.Where(d => d.DataCompetencia >= start && d.DataCompetencia <= end);
             }
-            await _orcamentoRepository.SaveChangesAsync(cancellationToken);
 
-            return entidades.Select(e => new OrcamentoAnualDto
-            {
-                Id = e.Id,
-                Ano = e.Ano,
-                Categoria = e.Categoria,
-                ValorPrevisto = e.ValorPrevisto
-            });
-        }
-
-        public async Task<IEnumerable<OrcamentoAnualDto>> ObterOrcamentoAsync(
-            Guid condominioId,
-            int ano,
-            CancellationToken cancellationToken = default)
-        {
-            var itens = await _orcamentoRepository.Query()
-                .Where(o => o.CondominioId == condominioId && o.Ano == ano)
-                .ToListAsync(cancellationToken);
-
-            return itens.Select(e => new OrcamentoAnualDto
-            {
-                Id = e.Id,
-                Ano = e.Ano,
-                Categoria = e.Categoria,
-                ValorPrevisto = e.ValorPrevisto
-            });
-        }
-
-        public async Task<IEnumerable<OrcamentoComparativoDto>> CompararExecucaoOrcamentoAsync(
-            Guid condominioId,
-            int ano,
-            CancellationToken cancellationToken = default)
-        {
-            var orcamento = await _orcamentoRepository.Query()
-                .Where(o => o.CondominioId == condominioId && o.Ano == ano)
-                .ToListAsync(cancellationToken);
-
-            var gastos = await (from l in _lancamentoRepository.Query()
-                                join u in _unidadeRepository.Query() on l.UnidadeId equals u.Id
-                                where u.CondominioId == condominioId
-                                      && l.Data.Year == ano
-                                      && l.Tipo == "debito"
-                                group l by l.Descricao into g
-                                select new
-                                {
-                                    Categoria = g.Key!,
-                                    Valor = g.Sum(x => x.Valor)
-                                })
-                               .ToListAsync(cancellationToken);
-
-            return orcamento.Select(item =>
-            {
-                var exec = gastos.FirstOrDefault(g => g.Categoria == item.Categoria);
-                return new OrcamentoComparativoDto
-                {
-                    Categoria = item.Categoria,
-                    ValorPrevisto = item.ValorPrevisto,
-                    ValorExecutado = exec?.Valor ?? 0m
-                };
-            });
-        }
-
-        public async Task<int> MarcarBoletosVencidosAsync()
-        {
-            var hoje = DateTime.UtcNow.Date;
-            var pendentes = await _boletoRepository.Query()
-                .Where(b =>
-                    (b.Status == BoletoStatus.Gerado ||
-                     b.Status == BoletoStatus.Registrado ||
-                     b.Status == BoletoStatus.Enviado)
-                    && b.DataVencimento.Date < hoje)
+            return await query
+                .OrderByDescending(d => d.DataCompetencia)
+                .Select(d => MapDespesaToDto(d))
                 .ToListAsync();
-
-            foreach (var boleto in pendentes)
-            {
-                boleto.MarcarVencido(hoje);
-                await _boletoRepository.UpdateAsync(boleto);
-
-                var unidade = await _unidadeRepository.GetByIdAsync(boleto.UnidadeId);
-                if (unidade != null)
-                {
-                    var msg = $"Cobrança vencida - Unidade {unidade.Identificacao} no valor de {boleto.Valor:C}.";
-                    await _notificacaoService.SendAsync($"condo:{unidade.CondominioId}", msg);
-                }
-            }
-
-            if (pendentes.Any())
-                await _boletoRepository.SaveChangesAsync();
-
-            return pendentes.Count;
         }
 
-        // Métodos simplificados para controllers
-        public Task<DespesaDto> CriarDespesaAsync(Guid condominioId, Guid usuarioId, DespesaInputDto input)
-            => Task.FromResult(new DespesaDto
-            {
+        public async Task<DespesaDto?> ObterDespesaPorIdAsync(Guid id, Guid condominioId)
+        {
+            var d = await _despesaRepository.Query()
+                .FirstOrDefaultAsync(x => x.Id == id && x.CondominioId == condominioId);
+            return d == null ? null : MapDespesaToDto(d);
+        }
+
+        public async Task<DespesaDto> CriarDespesaAsync(Guid condominioId, Guid usuarioId, DespesaInputDto input)
+        {
+            var d = new Despesa {
                 Id = Guid.NewGuid(),
+                CondominioId = condominioId,
                 Descricao = input.Descricao,
                 Valor = input.Valor,
                 DataCompetencia = input.DataCompetencia,
@@ -584,21 +480,95 @@ namespace conViver.Application.Services
                 DataRegistro = DateTime.UtcNow,
                 Status = "Pendente",
                 UsuarioRegistroId = usuarioId
-            });
+            };
 
-        public Task<IEnumerable<DespesaDto>> ListarDespesasAsync(Guid condominioId, string? categoria, string? mesCompetencia)
-            => Task.FromResult<IEnumerable<DespesaDto>>(Array.Empty<DespesaDto>());
+            await _despesaRepository.AddAsync(d);
+            await _despesaRepository.SaveChangesAsync();
+            return MapDespesaToDto(d);
+        }
 
-        public Task<DespesaDto?> ObterDespesaPorIdAsync(Guid id, Guid condominioId)
-            => Task.FromResult<DespesaDto?>(null);
+        public async Task<DespesaDto?> AtualizarDespesaAsync(Guid id, Guid condominioId, Guid usuarioId, DespesaInputDto input)
+        {
+            var d = await _despesaRepository.Query()
+                .FirstOrDefaultAsync(x => x.Id == id && x.CondominioId == condominioId);
+            if (d == null) return null;
 
-        public Task<DespesaDto?> AtualizarDespesaAsync(Guid id, Guid condominioId, Guid usuarioId, DespesaInputDto input)
-            => Task.FromResult<DespesaDto?>(null);
+            d.Descricao = input.Descricao;
+            d.Valor = input.Valor;
+            d.DataCompetencia = input.DataCompetencia;
+            d.DataVencimento = input.DataVencimento;
+            d.Categoria = input.Categoria;
+            d.Observacoes = input.Observacoes;
+            d.UsuarioRegistroId = usuarioId;
 
-        public Task<bool> RemoverDespesaAsync(Guid id, Guid condominioId, Guid usuarioId)
-            => Task.FromResult(false);
+            await _despesaRepository.UpdateAsync(d);
+            await _despesaRepository.SaveChangesAsync();
+            return MapDespesaToDto(d);
+        }
 
-        public Task<BalanceteDto?> GerarBalanceteAsync(Guid condominioId, DateTime inicio, DateTime fim)
-            => Task.FromResult<BalanceteDto?>(null);
+        public async Task<bool> RemoverDespesaAsync(Guid id, Guid condominioId, Guid usuarioId)
+        {
+            var d = await _despesaRepository.Query()
+                .FirstOrDefaultAsync(x => x.Id == id && x.CondominioId == condominioId);
+            if (d == null) return false;
+
+            await _despesaRepository.DeleteAsync(d);
+            await _despesaRepository.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<BalanceteDto?> GerarBalanceteAsync(Guid condominioId, DateTime inicio, DateTime fim)
+        {
+            var despesas = await _despesaRepository.Query()
+                .Where(d => d.CondominioId == condominioId && d.DataCompetencia >= inicio && d.DataCompetencia <= fim)
+                .ToListAsync();
+
+            var receitas = await (from b in _boletoRepository.Query()
+                                  join u in _unidadeRepository.Query() on b.UnidadeId equals u.Id
+                                  where u.CondominioId == condominioId
+                                        && b.DataVencimento >= inicio
+                                        && b.DataVencimento <= fim
+                                  select new BalanceteItemDto {
+                                      Categoria = "Cobrança",
+                                      Descricao = $"Boleto {b.Id:D8}",
+                                      Valor = b.Valor,
+                                      Data = b.DataVencimento
+                                  })
+                                 .ToListAsync();
+
+            var despesasItems = despesas.Select(d => new BalanceteItemDto {
+                Categoria = d.Categoria ?? "Geral",
+                Descricao = d.Descricao,
+                Valor = d.Valor,
+                Data = d.DataCompetencia
+            }).ToList();
+
+            var totalReceitas = receitas.Sum(r => r.Valor);
+            var totalDespesas = despesasItems.Sum(d => d.Valor);
+
+            return new BalanceteDto {
+                PeriodoInicio = inicio,
+                PeriodoFim = fim,
+                SaldoAnterior = 0m,
+                Receitas = receitas,
+                Despesas = despesasItems,
+                TotalReceitas = totalReceitas,
+                TotalDespesas = totalDespesas,
+                SaldoAtual = totalReceitas - totalDespesas
+            };
+        }
+
+        private static DespesaDto MapDespesaToDto(Despesa d) => new DespesaDto {
+            Id = d.Id,
+            Descricao = d.Descricao,
+            Valor = d.Valor,
+            DataCompetencia = d.DataCompetencia,
+            DataVencimento = d.DataVencimento,
+            Categoria = d.Categoria,
+            Observacoes = d.Observacoes,
+            DataRegistro = d.DataRegistro,
+            Status = d.Status,
+            UsuarioRegistroId = d.UsuarioRegistroId
+        };
     }
 }

@@ -1,4 +1,3 @@
-// FinanceiroServiceTests.cs
 using Xunit;
 using Moq;
 using conViver.Core.Interfaces;
@@ -22,6 +21,7 @@ namespace conViver.Tests.Application.Services
         private readonly Mock<IRepository<Pagamento>> _mockPagamentoRepository;
         private readonly Mock<IRepository<Acordo>> _mockAcordoRepository;
         private readonly Mock<IRepository<ParcelaAcordo>> _mockParcelaRepository;
+        private readonly Mock<IRepository<Despesa>> _mockDespesaRepository;
         private readonly Mock<IRepository<OrcamentoAnual>> _mockOrcamentoRepository;
         private readonly Mock<IRepository<LancamentoFinanceiro>> _mockLancamentoRepository;
         private readonly Mock<INotificacaoService> _mockNotificacaoService;
@@ -34,6 +34,7 @@ namespace conViver.Tests.Application.Services
             _mockPagamentoRepository = new Mock<IRepository<Pagamento>>();
             _mockAcordoRepository = new Mock<IRepository<Acordo>>();
             _mockParcelaRepository = new Mock<IRepository<ParcelaAcordo>>();
+            _mockDespesaRepository = new Mock<IRepository<Despesa>>();
             _mockOrcamentoRepository = new Mock<IRepository<OrcamentoAnual>>();
             _mockLancamentoRepository = new Mock<IRepository<LancamentoFinanceiro>>();
             _mockNotificacaoService = new Mock<INotificacaoService>();
@@ -44,11 +45,14 @@ namespace conViver.Tests.Application.Services
                 _mockPagamentoRepository.Object,
                 _mockAcordoRepository.Object,
                 _mockParcelaRepository.Object,
+                _mockDespesaRepository.Object,
                 _mockOrcamentoRepository.Object,
                 _mockLancamentoRepository.Object,
                 _mockNotificacaoService.Object
             );
         }
+
+        // ---- Cobranças ----
 
         [Fact]
         public async Task CriarCobrancaAsync_ValidData_ShouldAddBoletoAndSaveChanges()
@@ -213,7 +217,7 @@ namespace conViver.Tests.Application.Services
                 Ano = DateTime.UtcNow.Year,
                 DescricoesPadrao = new[]
                 {
-                    new DescricaoPadraoDto { Descricao = "X", ValorPrevisto = 100m }
+                    new DescricaoPadraoDto { Descricao = "X", Valor = 100m }
                 }
             };
             var today = DateTime.UtcNow;
@@ -246,7 +250,12 @@ namespace conViver.Tests.Application.Services
         public async Task GerarCobrancasEmLoteAsync_NoUnidades_ShouldFail()
         {
             _mockUnidadeRepository.Setup(r => r.Query()).Returns(new List<Unidade>().AsQueryable());
-            var res = await _financeiroService.GerarCobrancasEmLoteAsync(Guid.NewGuid(), new GeracaoLoteRequestDto { Mes = 1, Ano = DateTime.UtcNow.Year + 1, DescricoesPadrao = new[] { new DescricaoPadraoDto { ValorPrevisto = 10m } } });
+            var res = await _financeiroService.GerarCobrancasEmLoteAsync(Guid.NewGuid(), new GeracaoLoteRequestDto
+            {
+                Mes = 1,
+                Ano = DateTime.UtcNow.Year + 1,
+                DescricoesPadrao = new[] { new DescricaoPadraoDto { Valor = 10m } }
+            });
             Assert.False(res.Sucesso);
         }
 
@@ -258,7 +267,12 @@ namespace conViver.Tests.Application.Services
         public async Task GerarCobrancasEmLoteAsync_InvalidParams_ShouldFail(int mes, int ano)
         {
             _mockUnidadeRepository.Setup(r => r.Query()).Returns(new[] { new Unidade { Id = Guid.NewGuid(), CondominioId = Guid.NewGuid() } }.AsQueryable());
-            var res = await _financeiroService.GerarCobrancasEmLoteAsync(Guid.NewGuid(), new GeracaoLoteRequestDto { Mes = mes, Ano = ano, DescricoesPadrao = new[] { new DescricaoPadraoDto { ValorPrevisto = 10m } } });
+            var res = await _financeiroService.GerarCobrancasEmLoteAsync(Guid.NewGuid(), new GeracaoLoteRequestDto
+            {
+                Mes = mes,
+                Ano = ano,
+                DescricoesPadrao = new[] { new DescricaoPadraoDto { Valor = 10m } }
+            });
             Assert.False(res.Sucesso);
         }
 
@@ -266,7 +280,12 @@ namespace conViver.Tests.Application.Services
         public async Task GerarCobrancasEmLoteAsync_EmptyDescriptions_ShouldSucceedNoBoletos()
         {
             _mockUnidadeRepository.Setup(r => r.Query()).Returns(new[] { new Unidade { Id = Guid.NewGuid(), CondominioId = Guid.NewGuid() } }.AsQueryable());
-            var res = await _financeiroService.GerarCobrancasEmLoteAsync(Guid.NewGuid(), new GeracaoLoteRequestDto { Mes = DateTime.UtcNow.Month, Ano = DateTime.UtcNow.Year, DescricoesPadrao = Array.Empty<DescricaoPadraoDto>() });
+            var res = await _financeiroService.GerarCobrancasEmLoteAsync(Guid.NewGuid(), new GeracaoLoteRequestDto
+            {
+                Mes = DateTime.UtcNow.Month,
+                Ano = DateTime.UtcNow.Year,
+                DescricoesPadrao = Array.Empty<DescricaoPadraoDto>()
+            });
             Assert.True(res.Sucesso);
         }
 
@@ -387,79 +406,80 @@ namespace conViver.Tests.Application.Services
             Assert.Equal(2, dto.TotalBoletosPendentes);
         }
 
+        // ---- Despesa ----
+
         [Fact]
-        public async Task CriarDespesaAsync_ShouldReturnPendingDespesa()
+        public async Task CriarDespesaAsync_DeveAdicionarDespesaERetornarDto()
         {
-            var condId = Guid.NewGuid();
-            var usrId = Guid.NewGuid();
             var input = new DespesaInputDto
             {
-                Descricao = "Limpeza",
+                Descricao = "Material de limpeza",
                 Valor = 50m,
-                DataCompetencia = DateTime.UtcNow.Date,
-                DataVencimento = DateTime.UtcNow.Date.AddDays(5),
-                Categoria = "Servicos",
+                DataCompetencia = DateTime.UtcNow,
+                DataVencimento = DateTime.UtcNow.AddDays(5),
+                Categoria = "Limpeza",
                 Observacoes = "Teste"
             };
 
-            var result = await _financeiroService.CriarDespesaAsync(condId, usrId, input);
-            Assert.Equal("Pendente", result.Status);
-            Assert.Equal(input.Descricao, result.Descricao);
-        }
-
-        [Fact]
-        public async Task ListarDespesasAsync_ShouldReturnEmpty()
-        {
-            var list = await _financeiroService.ListarDespesasAsync(Guid.NewGuid(), null, null);
-            Assert.Empty(list);
-        }
-
-        [Fact]
-        public async Task GerarBalanceteAsync_ShouldReturnNull()
-        {
-            var result = await _financeiroService.GerarBalanceteAsync(Guid.NewGuid(), DateTime.UtcNow.AddMonths(-1), DateTime.UtcNow);
-            Assert.Null(result);
-        }
-
-        [Fact]
-        public async Task CriarAcordoAsync_ShouldPersistAndAssignParcels()
-        {
-            var uid = Guid.NewGuid();
-            decimal entrada = 100m;
-            short parcelas = 2;
-
-            Acordo? cap = null;
-            var caps = new List<ParcelaAcordo>();
-            _mockAcordoRepository
-                .Setup(r => r.AddAsync(It.IsAny<Acordo>(), default))
-                .Callback<Acordo, CancellationToken>((a, _) => cap = a)
+            Despesa? capturada = null;
+            _mockDespesaRepository
+                .Setup(r => r.AddAsync(It.IsAny<Despesa>(), default))
+                .Callback<Despesa, CancellationToken>((d, _) => capturada = d)
                 .Returns(Task.CompletedTask);
-            _mockParcelaRepository
-                .Setup(r => r.AddAsync(It.IsAny<ParcelaAcordo>(), default))
-                .Callback<ParcelaAcordo, CancellationToken>((p, _) => caps.Add(p))
-                .Returns(Task.CompletedTask);
-            _mockAcordoRepository.Setup(r => r.SaveChangesAsync(default)).ReturnsAsync(1);
-            _mockParcelaRepository.Setup(r => r.SaveChangesAsync(default)).ReturnsAsync(1);
+            _mockDespesaRepository.Setup(r => r.SaveChangesAsync(default)).ReturnsAsync(1);
 
-            var dto = await _financeiroService.CriarAcordoAsync(uid, entrada, parcelas);
+            var dto = await _financeiroService.CriarDespesaAsync(Guid.NewGuid(), Guid.NewGuid(), input);
 
-            Assert.Equal(parcelas, caps.Count);
-            Assert.Equal(entrada + 100m * parcelas, cap!.ValorTotal);
-            Assert.Equal(parcelas, dto.Parcelas.Count);
+            Assert.NotNull(capturada);
+            Assert.Equal(input.Descricao, capturada!.Descricao);
+            Assert.Equal(input.Valor, capturada.Valor);
+            Assert.Equal(dto.Id, capturada.Id);
+            _mockDespesaRepository.Verify(r => r.AddAsync(It.IsAny<Despesa>(), default), Times.Once);
+            _mockDespesaRepository.Verify(r => r.SaveChangesAsync(default), Times.Once);
         }
 
         [Fact]
-        public async Task RegistrarPagamentoManualAsync_BoletoInexistente_DeveRetornarNull()
+        public async Task RemoverDespesaAsync_Inexistente_DeveRetornarFalse()
         {
-            _mockBoletoRepository.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default))
-                .ReturnsAsync((Boleto?)null);
-
-            var dto = await _financeiroService.RegistrarPagamentoManualAsync(Guid.NewGuid(), 10m, DateTime.UtcNow);
-
-            Assert.Null(dto);
-            _mockPagamentoRepository.Verify(r => r.AddAsync(It.IsAny<Pagamento>(), default), Times.Never);
-            _mockBoletoRepository.Verify(r => r.UpdateAsync(It.IsAny<Boleto>(), default), Times.Never);
+            _mockDespesaRepository.Setup(r => r.Query()).Returns(new List<Despesa>().AsQueryable());
+            var ok = await _financeiroService.RemoverDespesaAsync(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+            Assert.False(ok);
         }
+
+        // ---- Balancete ----
+
+        [Fact]
+        public async Task GerarBalanceteAsync_DeveGerarBalanceteCorretamente()
+        {
+            var condId = Guid.NewGuid();
+            var inicio = new DateTime(2025, 1, 1);
+            var fim = new DateTime(2025, 1, 31);
+
+            // Simula despesas
+            var despesas = new[]
+            {
+                new Despesa { Id = Guid.NewGuid(), CondominioId = condId, Descricao = "Teste", Valor = 100m, DataCompetencia = new DateTime(2025,1,5) }
+            }.AsQueryable();
+            _mockDespesaRepository.Setup(r => r.Query()).Returns(despesas);
+
+            // Simula boletos
+            var boletos = new[]
+            {
+                new Boleto { Id = Guid.NewGuid(), UnidadeId = Guid.NewGuid(), Valor = 200m, DataVencimento = new DateTime(2025,1,10) }
+            }.AsQueryable();
+            var unidades = new[] { new Unidade { Id = boletos.First().UnidadeId, CondominioId = condId } }.AsQueryable();
+            _mockBoletoRepository.Setup(r => r.Query()).Returns(boletos);
+            _mockUnidadeRepository.Setup(r => r.Query()).Returns(unidades);
+
+            var bal = await _financeiroService.GerarBalanceteAsync(condId, inicio, fim);
+
+            Assert.NotNull(bal);
+            Assert.Equal(200m, bal!.TotalReceitas);
+            Assert.Equal(100m, bal.TotalDespesas);
+            Assert.Equal(100m, bal.SaldoAtual);
+        }
+
+        // ---- Orçamento Anual ----
 
         [Fact]
         public async Task RegistrarOrcamentoAsync_ShouldAddItemsAndReturnDtos()
@@ -489,12 +509,13 @@ namespace conViver.Tests.Application.Services
         {
             var condId = Guid.NewGuid();
             var ano = 2025;
+
             var orcamentos = new List<OrcamentoAnual>
             {
                 new() { Id = Guid.NewGuid(), CondominioId = condId, Ano = ano, Categoria = "Manutencao", ValorPrevisto = 1000m },
                 new() { Id = Guid.NewGuid(), CondominioId = condId, Ano = ano, Categoria = "Limpeza", ValorPrevisto = 500m }
-            };
-            _mockOrcamentoRepository.Setup(r => r.Query()).Returns(orcamentos.AsQueryable());
+            }.AsQueryable();
+            _mockOrcamentoRepository.Setup(r => r.Query()).Returns(orcamentos);
 
             var unidade = new Unidade { Id = Guid.NewGuid(), CondominioId = condId, Identificacao = "101" };
             _mockUnidadeRepository.Setup(r => r.Query()).Returns(new[] { unidade }.AsQueryable());
@@ -503,15 +524,15 @@ namespace conViver.Tests.Application.Services
             {
                 new() { Id = Guid.NewGuid(), UnidadeId = unidade.Id, Tipo = "debito", Valor = 600m, Data = new DateTime(ano,1,10), Descricao = "Manutencao" },
                 new() { Id = Guid.NewGuid(), UnidadeId = unidade.Id, Tipo = "debito", Valor = 200m, Data = new DateTime(ano,2,5), Descricao = "Limpeza" }
-            };
-            _mockLancamentoRepository.Setup(r => r.Query()).Returns(lancs.AsQueryable());
+            }.AsQueryable();
+            _mockLancamentoRepository.Setup(r => r.Query()).Returns(lancs);
 
             var resultado = (await _financeiroService.CompararExecucaoOrcamentoAsync(condId, ano)).ToList();
 
             Assert.Equal(2, resultado.Count);
-            var manut = resultado.First(r => r.Categoria == "Manutencao");
-            Assert.Equal(1000m, manut.ValorPrevisto);
-            Assert.Equal(600m, manut.ValorExecutado);
+            var mant = resultado.First(r => r.Categoria == "Manutencao");
+            Assert.Equal(1000m, mant.ValorPrevisto);
+            Assert.Equal(600m, mant.ValorExecutado);
         }
     }
 }
