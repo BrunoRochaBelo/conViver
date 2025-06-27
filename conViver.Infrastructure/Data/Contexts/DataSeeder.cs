@@ -45,7 +45,7 @@ public static class DataSeeder
             db.Unidades.Add(unidade);
             db.SaveChanges();
 
-            // Now create the admin user linked to the Unidade
+            // Now create one user for each available perfil
             var adminUser = new Usuario
             {
                 Id = Guid.NewGuid(),
@@ -58,7 +58,19 @@ public static class DataSeeder
             };
             db.Usuarios.Add(adminUser);
 
-            // Additional regular test user as referenced in README
+            var sindicoUser = new Usuario
+            {
+                Id = Guid.NewGuid(),
+                Nome = "Usuário Síndico",
+                Email = "sindico@conviver.local",
+                SenhaHash = BCrypt.Net.BCrypt.HashPassword("sindico123"),
+                Perfil = PerfilUsuario.Sindico,
+                UnidadeId = unidade.Id,
+                CondominioId = condominio.Id
+            };
+            db.Usuarios.Add(sindicoUser);
+
+            // Existing regular test user as Morador
             var testUser = new Usuario
             {
                 Id = Guid.NewGuid(),
@@ -70,6 +82,18 @@ public static class DataSeeder
                 CondominioId = condominio.Id
             };
             db.Usuarios.Add(testUser);
+
+            var porteiroUser = new Usuario
+            {
+                Id = Guid.NewGuid(),
+                Nome = "Usuário Porteiro",
+                Email = "porteiro@conviver.local",
+                SenhaHash = BCrypt.Net.BCrypt.HashPassword("porteiro123"),
+                Perfil = PerfilUsuario.Porteiro,
+                UnidadeId = unidade.Id,
+                CondominioId = condominio.Id
+            };
+            db.Usuarios.Add(porteiroUser);
 
             db.SaveChanges();
         }

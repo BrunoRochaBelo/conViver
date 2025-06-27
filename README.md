@@ -90,7 +90,11 @@ conViver/
 
 > Com Docker (`docker compose up -d`) você já sobe **PostgreSQL, Redis e API** num tapa.
 > Para desenvolvimento rápido, a API suporta **SQLite** (arquivo `conviver.db`).
-> Rode `dotnet ef database update --project conViver.Infrastructure` antes de `dotnet run` para criar o banco. O `DataSeeder` roda na primeira execução e insere um condomínio, unidade e usuários de exemplo (`admin@conviver.local` / `admin123` e `teste@conviver.local` / `123456`).
+> Rode `dotnet ef database update --project conViver.Infrastructure` antes de `dotnet run` para criar o banco. O `DataSeeder` roda na primeira execução e insere um condomínio, unidade e usuários de exemplo:
+> `admin@conviver.local` / `admin123` (Administrador),
+> `sindico@conviver.local` / `sindico123` (Síndico),
+> `teste@conviver.local` / `123456` (Morador) e
+> `porteiro@conviver.local` / `porteiro123` (Porteiro).
 
 ### 1. Clone & restaure pacotes
 ```bash
@@ -140,7 +144,7 @@ dotnet build -t:Run -f net8.0-android
 | `WEB_API_BASE_URL`            | Define a URL base da API para o cliente web. Valor em `conViver.Web/js/config.js` (ex: `window.APP_CONFIG.API_BASE_URL`).                | `http://localhost:5000/api/v1`                            |
 
 `conViver.API/appsettings.Development.json` possui defaults seguros para desenvolvimento.
-> Usuários de exemplo: `admin@conviver.local` / `admin123` (administrador) e `teste@conviver.local` / `123456` (morador). Verifique se ainda estão válidos após migrações e seeders.
+> Usuários de exemplo: `admin@conviver.local` / `admin123` (Administrador), `sindico@conviver.local` / `sindico123` (Síndico), `teste@conviver.local` / `123456` (Morador) e `porteiro@conviver.local` / `porteiro123` (Porteiro). Verifique se ainda estão válidos após migrações e seeders.
 
 ## Scripts & Automação
 Scripts úteis localmente e em pipelines.
