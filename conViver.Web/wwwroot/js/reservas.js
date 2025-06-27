@@ -76,7 +76,7 @@ export async function initialize() {
   // Autenticação e info do usuário
   requireAuth();
   const userInfo = getUserInfo();
-  if (!userInfo?.id) {
+  if (!userInfo || !userInfo.id) {
     console.error("Não foi possível obter o ID do usuário.");
     showGlobalFeedback(
       "Erro ao identificar usuário. Recarregue a página.",
@@ -132,17 +132,18 @@ export async function initialize() {
 
 
   // Toggle views
-  btnViewCalendario?.addEventListener("click", () =>
-    toggleReservasView("calendario")
-  );
-  btnViewLista?.addEventListener("click", () => toggleReservasView("lista"));
+  if (btnViewCalendario)
+    btnViewCalendario.addEventListener("click", () =>
+      toggleReservasView("calendario")
+    );
+  if (btnViewLista) btnViewLista.addEventListener("click", () => toggleReservasView("lista"));
 
-  btnViewLista?.addEventListener("click", () => toggleReservasView("lista"));
+  if (btnViewLista) btnViewLista.addEventListener("click", () => toggleReservasView("lista"));
 
   setupTabs(); // This will also trigger initial load for the active tab.
 
   // Filtros da lista (on-page for Agenda Tab's List View)
-  btnAplicarFiltrosLista?.addEventListener("click", () => {
+  if (btnAplicarFiltrosLista) btnAplicarFiltrosLista.addEventListener("click", () => {
     currentPageListView = 1;
     noMoreItemsListView = false;
     const c = document.getElementById(listViewItemsContainerId);
@@ -198,7 +199,7 @@ export async function initialize() {
     });
   }
 
-  aplicarFiltrosModalButton?.addEventListener("click", () => {
+  if (aplicarFiltrosModalButton) aplicarFiltrosModalButton.addEventListener("click", () => {
     const agendaTabActive = tabAgendaBtn.classList.contains("active");
 
     if (agendaTabActive) {
@@ -224,7 +225,7 @@ export async function initialize() {
         const [year, month] = dataSelecionadaModal.split('-');
         calendarioReservas.gotoDate(`${year}-${month}-01`);
       } else {
-        calendarioReservas?.refetchEvents(); // Refetch com base no espaço e data atual do calendário
+        calendarioReservas && calendarioReservas.refetchEvents(); // Refetch com base no espaço e data atual do calendário
       }
 
       // Lista: recarregar com os novos filtros (incluindo o período da modal)
@@ -256,7 +257,7 @@ export async function initialize() {
     }
   });
 
-  btnAplicarFiltrosMinhas?.addEventListener("click", () => {
+  if (btnAplicarFiltrosMinhas) btnAplicarFiltrosMinhas.addEventListener("click", () => {
     currentPageMinhasReservas = 1;
     noMoreItemsMinhasReservas = false;
     // Ensure container is marked as not loaded once if we want a full refresh
@@ -271,13 +272,19 @@ export async function initialize() {
   const actions = [
     {
       label: "Nova Reserva",
-      onClick: () => document.getElementById("fab-nova-reserva")?.click(),
+      onClick: () => {
+        const btn = document.getElementById("fab-nova-reserva");
+        if (btn) btn.click();
+      },
     },
   ];
   if (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador")) {
     actions.push({
       label: "Novo Espaço Comum",
-      onClick: () => document.getElementById("btn-adicionar-espaco")?.click(),
+      onClick: () => {
+        const btn = document.getElementById("btn-adicionar-espaco");
+        if (btn) btn.click();
+      },
     });
   }
   initFabMenu(actions);
@@ -293,9 +300,9 @@ async function initReservasPage() {
   // Elementos de nova reserva
   const fabNovaReserva = document.getElementById("fab-nova-reserva");
   const modalNovaReserva = document.getElementById("modal-nova-reserva");
-  const closeModalNovaReservaButton = modalNovaReserva?.querySelector(
-    ".js-modal-nova-reserva-close"
-  );
+  const closeModalNovaReservaButton = modalNovaReserva
+    ? modalNovaReserva.querySelector(".js-modal-nova-reserva-close")
+    : null;
   const formNovaReserva = document.getElementById("form-nova-reserva");
   const selectEspacoComumCalendario = document.getElementById(
     "select-espaco-comum-calendario"
@@ -305,15 +312,15 @@ async function initReservasPage() {
   // Termos de uso
   const linkTermosUso = document.getElementById("link-termos-uso-reserva");
   const modalTermosUso = document.getElementById("modal-termos-uso-reserva");
-  const closeModalTermosUso = modalTermosUso?.querySelector(
-    ".js-modal-termos-uso-close"
-  );
+  const closeModalTermosUso = modalTermosUso
+    ? modalTermosUso.querySelector(".js-modal-termos-uso-close")
+    : null;
 
   // Detalhe de reserva
   const modalDetalheReserva = document.getElementById("modal-detalhe-reserva");
-  const closeModalDetalheReserva = modalDetalheReserva?.querySelector(
-    ".js-modal-detalhe-reserva-close"
-  );
+  const closeModalDetalheReserva = modalDetalheReserva
+    ? modalDetalheReserva.querySelector(".js-modal-detalhe-reserva-close")
+    : null;
   const btnCancelarReservaModal = document.getElementById(
     "btn-cancelar-reserva-modal"
   );
@@ -332,9 +339,9 @@ async function initReservasPage() {
   adminEspacosGrid = document.getElementById("admin-espacos-grid");
   btnAdicionarEspaco = document.getElementById("btn-adicionar-espaco");
   modalGerenciarEspaco = document.getElementById("modal-gerenciar-espaco-comum");
-  closeModalGerenciarEspaco = modalGerenciarEspaco?.querySelector(
-    ".js-modal-gerenciar-espaco-close"
-  );
+  closeModalGerenciarEspaco = modalGerenciarEspaco
+    ? modalGerenciarEspaco.querySelector(".js-modal-gerenciar-espaco-close")
+    : null;
   formGerenciarEspaco = document.getElementById("form-gerenciar-espaco-comum");
 
   if (adminEspacosSection) {
@@ -347,7 +354,7 @@ async function initReservasPage() {
   }
 
   // Abre modal de nova reserva
-  fabNovaReserva?.addEventListener("click", () => {
+  if (fabNovaReserva) fabNovaReserva.addEventListener("click", () => {
     document.getElementById("modal-nova-reserva-title").textContent =
       "Solicitar Nova Reserva";
     formNovaReserva.reset();
@@ -369,56 +376,63 @@ async function initReservasPage() {
     exibirInfoEspacoSelecionadoModal(esp);
   });
 
-  closeModalNovaReservaButton?.addEventListener(
-    "click",
-    () => (modalNovaReserva.style.display = "none")
-  );
+  if (closeModalNovaReservaButton)
+    closeModalNovaReservaButton.addEventListener(
+      "click",
+      () => (modalNovaReserva.style.display = "none")
+    );
   window.addEventListener("click", (e) => {
     if (e.target === modalNovaReserva) modalNovaReserva.style.display = "none";
   });
-  formNovaReserva?.addEventListener("submit", handleSalvarReservaFormSubmit);
+  if (formNovaReserva)
+    formNovaReserva.addEventListener("submit", handleSalvarReservaFormSubmit);
 
   // Termos de uso
-  linkTermosUso?.addEventListener("click", (e) => {
+  if (linkTermosUso) linkTermosUso.addEventListener("click", (e) => {
     e.preventDefault();
     modalTermosUso.style.display = "flex";
   });
-  closeModalTermosUso?.addEventListener(
-    "click",
-    () => (modalTermosUso.style.display = "none")
-  );
+  if (closeModalTermosUso)
+    closeModalTermosUso.addEventListener(
+      "click",
+      () => (modalTermosUso.style.display = "none")
+    );
   window.addEventListener("click", (e) => {
     if (e.target === modalTermosUso) modalTermosUso.style.display = "none";
   });
 
   // Detalhe de reserva
-  closeModalDetalheReserva?.addEventListener(
-    "click",
-    () => (modalDetalheReserva.style.display = "none")
-  );
+  if (closeModalDetalheReserva)
+    closeModalDetalheReserva.addEventListener(
+      "click",
+      () => (modalDetalheReserva.style.display = "none")
+    );
   window.addEventListener("click", (e) => {
     if (e.target === modalDetalheReserva)
       modalDetalheReserva.style.display = "none";
   });
 
-  btnCancelarReservaModal?.addEventListener("click", async () => {
+  if (btnCancelarReservaModal) btnCancelarReservaModal.addEventListener("click", async () => {
     const id = btnCancelarReservaModal.dataset.reservaId;
     if (id) {
       await handleCancelarReserva(id);
       modalDetalheReserva.style.display = "none";
     }
   });
-  btnAprovarReservaModal?.addEventListener("click", handleAprovarReserva);
-  btnRecusarReservaModal?.addEventListener("click", handleRecusarReserva);
-  btnEditarReservaModalTrigger?.addEventListener(
-    "click",
-    abrirModalEditarReservaPeloSindico
-  );
+  if (btnAprovarReservaModal)
+    btnAprovarReservaModal.addEventListener("click", handleAprovarReserva);
+  if (btnRecusarReservaModal)
+    btnRecusarReservaModal.addEventListener("click", handleRecusarReserva);
+  if (btnEditarReservaModalTrigger)
+    btnEditarReservaModalTrigger.addEventListener(
+      "click",
+      abrirModalEditarReservaPeloSindico
+    );
 
   // Atualiza seleção de espaço no calendário
-  selectEspacoComumCalendario?.addEventListener("change", () => {
+  if (selectEspacoComumCalendario) selectEspacoComumCalendario.addEventListener("change", () => {
     exibirInfoEspacoSelecionadoCalendario(selectEspacoComumCalendario.value);
-    calendarioReservas?.refetchEvents();
+    calendarioReservas && calendarioReservas.refetchEvents();
   });
 
   // Carrega dados e inicializa componentes
@@ -491,7 +505,7 @@ function toggleReservasView(view) {
     listViewContainer.style.display = "none";
     btnViewCalendario.classList.add("cv-button--primary");
     btnViewLista.classList.remove("cv-button--primary");
-    calendarioReservas?.refetchEvents();
+    calendarioReservas && calendarioReservas.refetchEvents();
   } else {
     calendarioViewContainer.style.display = "none";
     listViewContainer.style.display = "block";
@@ -559,7 +573,7 @@ function setupTabs() {
       }
       else if (button.id === "tab-agenda") {
         if (calendarioViewContainer && calendarioViewContainer.style.display !== 'none') {
-          calendarioReservas?.refetchEvents();
+          calendarioReservas && calendarioReservas.refetchEvents();
         } else if (listViewContainer && listViewContainer.style.display !== 'none') {
           const listContainer = document.getElementById(listViewItemsContainerId);
           if (!listContainer.dataset.loadedOnce || !listContainer.innerHTML.trim()) {
@@ -856,9 +870,9 @@ function renderCardReservaListView(reserva) {
     </div>
   `;
 
-  card
-    .querySelector(".js-detalhe-reserva-lista")
-    ?.addEventListener("click", () => {
+  const detalheBtn = card.querySelector(".js-detalhe-reserva-lista");
+  if (detalheBtn)
+    detalheBtn.addEventListener("click", () => {
       const fakeEv = {
         id: reserva.id,
         title: reserva.tituloReserva || reserva.nomeEspacoComum,
@@ -866,16 +880,20 @@ function renderCardReservaListView(reserva) {
         endStr: reserva.fim,
         extendedProps: { ...reserva },
       };
-      if (calendarioReservas?.options.eventClick) {
+      if (
+        calendarioReservas &&
+        calendarioReservas.options &&
+        calendarioReservas.options.eventClick
+      ) {
         calendarioReservas.options.eventClick({ event: fakeEv });
       } else {
         abrirModalDetalhesComDados(reserva);
       }
     });
 
-  card
-    .querySelector(".js-cancelar-reserva-lista")
-    ?.addEventListener("click", async () => {
+  const cancelarBtn = card.querySelector(".js-cancelar-reserva-lista");
+  if (cancelarBtn)
+    cancelarBtn.addEventListener("click", async () => {
       if (confirm("Tem certeza que deseja cancelar esta reserva?")) {
         await handleCancelarReserva(reserva.id);
         currentPageListView = 1;
@@ -883,7 +901,7 @@ function renderCardReservaListView(reserva) {
         const c = document.getElementById(listViewItemsContainerId);
         if (c) c.dataset.loadedOnce = "false";
         carregarReservasListView(1, false);
-        calendarioReservas?.refetchEvents();
+        calendarioReservas && calendarioReservas.refetchEvents();
       }
     });
 
@@ -1011,7 +1029,7 @@ function abrirModalDetalhesComDados(reserva) {
   } else if (podeCancUser) {
     const esp = espacosComunsList.find((e) => e.id === reserva.espacoComumId);
     let pode = true;
-    if (esp?.antecedenciaMinimaCancelamentoHoras) {
+    if (esp && esp.antecedenciaMinimaCancelamentoHoras) {
       if (
         Date.now() + esp.antecedenciaMinimaCancelamentoHoras * 3600 * 1000 >
         new Date(reserva.inicio).getTime()
@@ -1147,12 +1165,14 @@ function initializeFullCalendar() {
         ).value;
         if (sel) params.espacoComumId = sel;
 
-        const stat = document.getElementById(
+        const statEl = document.getElementById(
           "filtro-status-reserva-calendario"
-        )?.value;
-        const uni = document.getElementById(
+        );
+        const stat = statEl ? statEl.value : undefined;
+        const uniEl = document.getElementById(
           "filtro-unidade-reserva-calendario"
-        )?.value;
+        );
+        const uni = uniEl ? uniEl.value : undefined;
         if (
           currentUserRoles.includes("Sindico") ||
           currentUserRoles.includes("Administrador")
