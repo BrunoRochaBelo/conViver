@@ -14,9 +14,14 @@
       <ScriptFiles Include="js\**\*.*" />
     </ItemGroup>
 
+    <ItemGroup>
+      <RootHtmlFiles Include="index.html;login.html;forgot-password.html;register.html;reset-password.html;layout.html" />
+    </ItemGroup>
+
     <Copy SourceFiles="@(PageFiles)" DestinationFiles="@(PageFiles->'wwwroot/pages/%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(StyleFiles)" DestinationFiles="@(StyleFiles->'wwwroot/css/%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(ScriptFiles)" DestinationFiles="@(ScriptFiles->'wwwroot/js/%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(RootHtmlFiles)" DestinationFiles="@(RootHtmlFiles->'wwwroot/%(Filename)%(Extension)')" />
   </Target>
 
 </Project>
