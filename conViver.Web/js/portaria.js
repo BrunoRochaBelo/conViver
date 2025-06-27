@@ -115,18 +115,18 @@ function openSubTab(id) {
 
 
 async function carregarVisitantesAtuais(unidadeFilter = '') {
-    const tbody = document.querySelector('.js-visitantes-atuais-lista');
+    const container = document.querySelector('.js-visitantes-atuais-lista');
     const loadingMsg = document.getElementById('visitantesAtuaisLoadingMsg');
     const noDataMsg = document.getElementById('visitantesAtuaisNoDataMsg');
     const skeleton = document.getElementById('visitantes-skeleton');
 
-    if (!tbody || !loadingMsg || !noDataMsg) {
+    if (!container || !loadingMsg || !noDataMsg) {
         console.error('Elementos da tabela de visitantes atuais não encontrados.');
         showGlobalFeedback('Erro interno: UI de visitantes atuais incompleta.', 'error');
         return;
     }
 
-    tbody.innerHTML = '';
+    container.innerHTML = '';
     loadingMsg.style.display = 'block';
     if (skeleton) showFeedSkeleton(skeleton);
     noDataMsg.style.display = 'none';
@@ -145,20 +145,20 @@ async function carregarVisitantesAtuais(unidadeFilter = '') {
         loadingMsg.style.display = 'none';
         if (visitas && visitas.length > 0) {
             visitas.forEach(v => {
-                const tr = document.createElement('tr');
-                tr.dataset.id = v.id;
-                tr.innerHTML = `
-                    <td>${v.nome}</td>
-                    <td>${v.unidadeId ? v.unidadeId.slice(0, 8) + '...' : 'N/A'}</td>
-                    <td>${v.documento || ''}</td>
-                    <td>${v.motivoVisita || ''}</td>
-                    <td>${new Date(v.dataChegada).toLocaleString()}</td>
-                    <td>${v.horarioSaidaPrevisto ? new Date(v.horarioSaidaPrevisto).toLocaleString() : ''}</td>
-                    <td>
+                const card = document.createElement('div');
+                card.className = 'visitante-card cv-card';
+                card.dataset.id = v.id;
+                card.innerHTML = `
+                    <h4>${v.nome}</h4>
+                    <p>${v.documento || ''}</p>
+                    <p>${v.unidadeId ? v.unidadeId.slice(0, 8) + '...' : 'N/A'} - ${v.motivoVisita || ''}</p>
+                    <p>Chegada: ${new Date(v.dataChegada).toLocaleString()}</p>
+                    <p>Saída Prevista: ${v.horarioSaidaPrevisto ? new Date(v.horarioSaidaPrevisto).toLocaleString() : ''}</p>
+                    <div class="visitante-card__acoes">
                         <button class="cv-button cv-button--small btn-registrar-saida" data-id="${v.id}">Registrar Saída</button>
-                    </td>
+                    </div>
                 `;
-                tbody.appendChild(tr);
+                container.appendChild(card);
             });
         } else {
             noDataMsg.style.display = 'block';
@@ -167,7 +167,7 @@ async function carregarVisitantesAtuais(unidadeFilter = '') {
     } catch (err) {
         console.error('Erro ao listar visitantes atuais:', err);
         loadingMsg.style.display = 'none';
-        tbody.innerHTML = '<tr><td colspan="7" class="error-message">Falha ao carregar visitantes atuais.</td></tr>';
+        container.innerHTML = '<div class="error-message">Falha ao carregar visitantes atuais.</div>';
         showGlobalFeedback('Erro ao carregar visitantes atuais: ' + (err.message || 'Erro desconhecido'), 'error');
     } finally {
         if (skeleton) hideFeedSkeleton(skeleton);
@@ -175,10 +175,10 @@ async function carregarVisitantesAtuais(unidadeFilter = '') {
 }
 
 function adicionarListenersSaida() {
-    const tbody = document.querySelector('.js-visitantes-atuais-lista');
-    if (!tbody) return;
+    const container = document.querySelector('.js-visitantes-atuais-lista');
+    if (!container) return;
 
-    tbody.addEventListener('click', async (event) => {
+    container.addEventListener('click', async (event) => {
         if (event.target.classList.contains('btn-registrar-saida')) {
             const visitanteId = event.target.dataset.id;
             if (confirm(`Deseja realmente registrar a saída do visitante?`)) {
@@ -272,21 +272,21 @@ if (btnValidarQRCode && registrarVisitanteMsg && formRegistrarVisitante) {
 }
 
 // --- Histórico de Visitantes ---
-const historicoTbody = document.querySelector('.js-historico-visitantes-lista');
+const historicoContainer = document.querySelector('.js-historico-visitantes-lista');
 const historicoLoadingMsg = document.getElementById('historicoLoadingMsg');
 const historicoNoDataMsg = document.getElementById('historicoNoDataMsg');
 const btnFiltrarHistorico = document.getElementById('btnFiltrarHistorico');
 const btnLimparFiltroHistorico = document.getElementById('btnLimparFiltroHistorico');
 
 async function carregarHistoricoVisitantes(filters = {}) {
-    if (!historicoTbody || !historicoLoadingMsg || !historicoNoDataMsg) {
+    if (!historicoContainer || !historicoLoadingMsg || !historicoNoDataMsg) {
         console.error('Elementos da tabela de histórico de visitantes não encontrados.');
         return;
     }
 
     const skeleton = document.getElementById('historico-skeleton');
 
-    historicoTbody.innerHTML = '';
+    historicoContainer.innerHTML = '';
     historicoLoadingMsg.style.display = 'block';
     if (skeleton) showFeedSkeleton(skeleton);
     historicoNoDataMsg.style.display = 'none';
@@ -305,19 +305,19 @@ async function carregarHistoricoVisitantes(filters = {}) {
         historicoLoadingMsg.style.display = 'none';
         if (visitas && visitas.length > 0) {
             visitas.forEach(v => {
-                const tr = document.createElement('tr');
-                tr.dataset.id = v.id;
-                tr.innerHTML = `
-                    <td>${v.nome}</td>
-                    <td>${v.unidadeId ? v.unidadeId.slice(0, 8) + '...' : 'N/A'}</td>
-                    <td>${v.documento || ''}</td>
-                    <td>${v.motivoVisita || ''}</td>
-                    <td>${new Date(v.dataChegada).toLocaleString()}</td>
-                    <td>${v.dataSaida ? new Date(v.dataSaida).toLocaleString() : 'Presente'}</td>
-                    <td>${v.status}</td>
-                    <td>${v.observacoes || ''}</td>
+                const card = document.createElement('div');
+                card.className = 'visitante-card cv-card';
+                card.dataset.id = v.id;
+                card.innerHTML = `
+                    <h4>${v.nome}</h4>
+                    <p>${v.unidadeId ? v.unidadeId.slice(0, 8) + '...' : 'N/A'} - ${v.motivoVisita || ''}</p>
+                    <p>${v.documento || ''}</p>
+                    <p>Chegada: ${new Date(v.dataChegada).toLocaleString()}</p>
+                    <p>Saída: ${v.dataSaida ? new Date(v.dataSaida).toLocaleString() : 'Presente'}</p>
+                    <p>Status: ${v.status}</p>
+                    <p>${v.observacoes || ''}</p>
                 `;
-                historicoTbody.appendChild(tr);
+                historicoContainer.appendChild(card);
             });
         } else {
             historicoNoDataMsg.style.display = 'block';
@@ -326,7 +326,7 @@ async function carregarHistoricoVisitantes(filters = {}) {
     } catch (err) {
         console.error('Erro ao listar histórico de visitantes:', err);
         historicoLoadingMsg.style.display = 'none';
-        historicoTbody.innerHTML = '<tr><td colspan="8" class="error-message">Falha ao carregar histórico.</td></tr>';
+        historicoContainer.innerHTML = '<div class="error-message">Falha ao carregar histórico.</div>';
         showGlobalFeedback('Erro ao carregar histórico: ' + (err.message || 'Erro desconhecido'), 'error');
     } finally {
         if (skeleton) hideFeedSkeleton(skeleton);
@@ -401,15 +401,15 @@ if (document.readyState !== 'loading') {
 
 // Original carregarEncomendas (can be moved to an 'encomendas.js' or kept if tabs eventually integrate it)
 async function carregarEncomendas() {
-    const tbody = document.querySelector('.js-encomendas');
+    const container = document.querySelector('.js-encomendas');
     const loadingMsg = document.getElementById('encomendasLoadingMsg');
     const noDataMsg = document.getElementById('encomendasNoDataMsg');
     const skeleton = document.getElementById('encomendas-skeleton');
-    if (!tbody || !loadingMsg || !noDataMsg) {
+    if (!container || !loadingMsg || !noDataMsg) {
         console.error('Elementos de encomendas não encontrados.');
         return;
     }
-    tbody.innerHTML = '';
+    container.innerHTML = '';
     loadingMsg.style.display = 'block';
     noDataMsg.style.display = 'none';
     if (skeleton) showFeedSkeleton(skeleton);
@@ -418,21 +418,28 @@ async function carregarEncomendas() {
         const encomendas = await apiClient.get('/syndic/encomendas?status=recebida');
 
         loadingMsg.style.display = 'none';
-        tbody.innerHTML = '';
+        container.innerHTML = '';
         if (encomendas && encomendas.length > 0) {
             encomendas.forEach(e => {
-                const tr = document.createElement('tr');
+                const card = document.createElement('div');
+                card.className = 'encomenda-card cv-card';
+                card.dataset.id = e.id;
                 const status = e.status || (e.retiradoEm ? 'Retirada' : 'Aguardando');
                 const btn = e.retiradoEm ? '' : `<button class="cv-button cv-button--small btn-retirar" data-id="${e.id}">Confirmar Retirada</button>`;
-                tr.innerHTML = `<td>${e.descricao || ''}</td><td>${e.unidadeId.slice(0,8)}...</td><td>${status}</td><td>${btn}</td>`;
-                tbody.appendChild(tr);
+                card.innerHTML = `
+                    <h4>${e.descricao || ''}</h4>
+                    <p>Unidade: ${e.unidadeId.slice(0,8)}...</p>
+                    <p>Status: ${status}</p>
+                    <div class="encomenda-card__acoes">${btn}</div>
+                `;
+                container.appendChild(card);
             });
         } else {
             noDataMsg.style.display = 'block';
         }
     } catch(err) {
         console.error('Erro ao listar encomendas', err);
-        tbody.innerHTML = '<tr><td colspan="4" class="error-message">Falha ao carregar encomendas.</td></tr>';
+        container.innerHTML = '<div class="error-message">Falha ao carregar encomendas.</div>';
     } finally {
         if (skeleton) hideFeedSkeleton(skeleton);
     }
@@ -441,7 +448,7 @@ async function carregarEncomendas() {
 function setupEncomendas() {
     const form = document.getElementById('formNovaEncomenda');
     const msg = document.getElementById('novaEncomendaMsg');
-    const tbody = document.querySelector('.js-encomendas');
+    const container = document.querySelector('.js-encomendas');
     if (form && msg) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -465,8 +472,8 @@ function setupEncomendas() {
         });
     }
 
-    if (tbody) {
-        tbody.addEventListener('click', async (ev) => {
+    if (container) {
+        container.addEventListener('click', async (ev) => {
             if (ev.target.classList.contains('btn-retirar')) {
                 const id = ev.target.dataset.id;
                 if (confirm('Confirmar retirada da encomenda?')) {
