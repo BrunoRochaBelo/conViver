@@ -369,13 +369,23 @@ html[data-theme="dark"] .cv-nav {
     color: var(--current-text-primary); /* Changed from text-link for a more subdued default state */
     text-decoration: none;
     font-weight: normal;
-    display: block; /* Make links take full width for easier tapping */
+    display: flex; /* Support icon and label */
+    align-items: center;
     width: 100%;
     text-align: left;
-    padding: var(--cv-spacing-sm); /* Larger padding for easier tapping */
-    border-radius: var(--cv-border-radius-md); /* Slightly larger radius for nav links */
+    padding: var(--cv-spacing-sm);
+    border-radius: var(--cv-border-radius-md);
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.1s ease-in-out;
-    font-weight: 500; /* Medium weight for nav links */
+    font-weight: 500;
+    gap: var(--cv-spacing-xs);
+}
+.cv-nav__icon {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+}
+.cv-nav__label {
+    line-height: 1;
 }
 @media (min-width: 768px) {
     .cv-nav {
