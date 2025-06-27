@@ -3,7 +3,16 @@ import { requireAuth } from './auth.js';
 import { formatCurrency, formatDate, showGlobalFeedback } from './main.js'; // Updated import
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
+function getStatusBadgeHtml(status) {
+    const s = status ? status.toLowerCase() : "";
+    let type = "success";
+    if (s.includes("pendente") || s.includes("aguardando")) type = "warning";
+    else if (s.includes("cancel") || s.includes("recus") || s.includes("vencid") || s.includes("extraviad") || s.includes("devolvid")) type = "danger";
+    return `<span class="status-badge status-badge--${type}"><span class="status-icon icon-${type}"></span>${status}</span>`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+
     requireAuth();
 
     // DOM Elements
@@ -295,9 +304,8 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.insertCell().textContent = formatDate(new Date(cobranca.dataVencimento));
 
             const statusCell = tr.insertCell();
-            statusCell.textContent = cobranca.statusCobranca;
-            statusCell.className = `status-${cobranca.statusCobranca.toLowerCase().replace(/\s+/g, '-')}`;
 
+            statusCell.innerHTML = getStatusBadgeHtml(cobranca.statusCobranca);
 
             const acoesCell = tr.insertCell();
             acoesCell.innerHTML = `
