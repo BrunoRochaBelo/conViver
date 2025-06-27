@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>conViver</title>
+    <script>
+      const t = localStorage.getItem('cv_theme');
+      if (t) document.documentElement.setAttribute('data-theme', t);
+    </script>
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
