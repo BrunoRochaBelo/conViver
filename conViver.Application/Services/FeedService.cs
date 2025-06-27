@@ -20,7 +20,7 @@ namespace conViver.Application.Services
         private readonly OcorrenciaService _ocorrenciaService;
         private readonly DocumentoService _documentoService;
         private readonly EncomendaService _encomendaService;
-        private readonly FinanceiroService _financeiroService;
+        private readonly IFinanceiroService _financeiroService;
         private readonly ReservaService _reservaService;
         private readonly OrdemServicoService _ordemServicoService; // Added
         private readonly IRepository<Votacao> _votacaoRepository;
@@ -42,7 +42,7 @@ namespace conViver.Application.Services
             IRepository<Usuario> usuarioRepository,
             IRepository<Unidade> unidadeRepository,
             IRepository<Reserva> reservaRepository,
-            FinanceiroService financeiroService,
+            IFinanceiroService financeiroService,
             ReservaService reservaService,
             OrdemServicoService ordemServicoService, // Added
             IRepository<OrdemServico> ordemServicoRepository) // Added
