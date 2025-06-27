@@ -54,8 +54,8 @@ if (loginForm) {
             document.body.classList.remove('loading-active'); // Remove loading class from body
             // Button remains disabled while redirecting
 
-            // Redirect to the main page (layout.html?page=comunicacao)
-            window.location.href = 'layout.html?page=comunicacao';
+            // Redirect to the main page (index.html or dashboard)
+            window.location.href = 'index.html';
 
         } catch (error) {
             document.body.classList.remove('loading-active'); // Remove loading class from body
