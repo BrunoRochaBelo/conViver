@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (roles.includes('Sindico')) {
         actions.push({ label: 'Novo Aviso', href: 'comunicacao.html' });
     } else {
-        actions.push({ label: 'Novo Chamado', href: 'comunicacao.html' });
+        actions.push({ label: 'Criar Solicitação', href: 'comunicacao.html' });
     }
     initFabMenu(actions);
 });
