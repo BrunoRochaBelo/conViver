@@ -78,7 +78,6 @@ function getActiveTabContentId() {
 let criarAvisoModal, formCriarAviso, avisoIdField;
 let criarEnqueteModal,
   formCriarEnquete,
-  enqueteIdField,
   modalEnqueteTitle,
   formEnqueteSubmitButton;
 let modalEnqueteDetalhe,
@@ -123,7 +122,6 @@ export async function initialize() {
 
   criarEnqueteModal = document.getElementById("modal-criar-enquete");
   formCriarEnquete = document.getElementById("form-criar-enquete");
-  enqueteIdField = document.getElementById("enquete-id");
   modalEnqueteTitle = document.getElementById("modal-enquete-title");
   formEnqueteSubmitButton = document.getElementById(
     "form-enquete-submit-button"
@@ -602,12 +600,9 @@ function setupModalEventListeners() {
     if (formCriarEnquete) {
       formCriarEnquete.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const id = enqueteIdField.value;
-        const perguntaOuTitulo =
-          document.getElementById("enquete-pergunta").value;
+        const perguntaOuTitulo = document.getElementById("enquete-pergunta").value;
         const opcoesTexto = document.getElementById("enquete-opcoes").value;
         const prazo = document.getElementById("enquete-prazo").value;
-        const tipoEnquete = document.getElementById("enquete-tipo").value;
 
         const opcoesDto = opcoesTexto
           .split("\n")
@@ -623,15 +618,11 @@ function setupModalEventListeners() {
         }
         const enqueteData = {
           Titulo: perguntaOuTitulo,
-          Descricao: `Tipo: ${tipoEnquete}`,
+          Descricao: "",
           DataFim: prazo ? prazo : null,
           Opcoes: opcoesDto,
         };
-        if (id) {
-          await handleUpdateEnquete(id, enqueteData);
-        } else {
-          await handleCreateEnquete(enqueteData);
-        }
+        await handleCreateEnquete(enqueteData);
         if (criarEnqueteModal) criarEnqueteModal.style.display = "none";
         formCriarEnquete.reset();
       });
@@ -1738,7 +1729,6 @@ function setupEnquetesTab() {
 function openCreateEnqueteModal() {
   if (criarEnqueteModal) {
     formCriarEnquete.reset();
-    enqueteIdField.value = "";
     modalEnqueteTitle.textContent = "Nova Enquete";
     formEnqueteSubmitButton.textContent = "Salvar Enquete";
     criarEnqueteModal.style.display = "flex";
