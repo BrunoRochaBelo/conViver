@@ -703,17 +703,20 @@ async function handleDeleteOcorrencia() {
     if (!confirm('Tem certeza que deseja excluir esta ocorrência? Esta ação não pode ser desfeita.')) {
         return;
     }
+    const card = document.querySelector(`.ocorrencia-card[data-ocorrencia-id="${currentOcorrenciaId}"]`);
+    if (card) card.style.display = 'none';
     isLoading = true;
 
     try {
         await apiClient.delete(`/api/ocorrencias/${currentOcorrenciaId}`);
+        if (card) card.remove();
         closeDetalheOcorrenciaModal();
         await loadOcorrencias(1, currentFilter); // Refresh list, go to first page
         showGlobalFeedback('Ocorrência excluída com sucesso!', 'success', 4000);
     } catch (error) {
         console.error('Erro ao excluir ocorrência:', error);
-        showGlobalFeedback(`Erro ao excluir ocorrência: ${error.message}`, 'error', 6000);
-        // Potentially show error in modal if it's still relevant or a global message
+        if (card) card.style.display = '';
+        showGlobalFeedback('Falha ao remover ocorrência.', 'error');
     } finally {
         isLoading = false;
     }

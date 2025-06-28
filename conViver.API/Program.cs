@@ -111,6 +111,7 @@ app.UsePathBase("/api/v1");
 
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<CachingMiddleware>();
 
 // Enable CORS
 app.UseCors(AllowDevOrigins);

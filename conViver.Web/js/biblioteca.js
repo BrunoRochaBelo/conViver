@@ -101,6 +101,7 @@ async function loadDocumentos() {
     documentos.forEach(doc => {
         const docElement = document.createElement('div');
         docElement.className = 'cv-card document-item';
+        docElement.dataset.docId = doc.id;
         // Usar doc.url diretamente se for a URL de download, ou construir com base no ID
         // A rota de download é /api/v1/docs/download/{id}
         const downloadUrl = `${apiClient.getBaseUrl()}/docs/download/${doc.id}`;
@@ -127,8 +128,9 @@ async function loadDocumentos() {
         document.querySelectorAll('.js-delete-doc').forEach(button => {
             button.addEventListener('click', async (event) => {
                 const docId = event.target.dataset.docId;
+                const card = event.target.closest('.document-item');
                 if (confirm(`Tem certeza que deseja excluir o documento ID: ${docId}?`)) {
-                    await handleDeleteDocumento(docId);
+                    await handleDeleteDocumento(docId, card);
                 }
             });
         });
@@ -156,16 +158,16 @@ async function handleUploadDocumento(event) {
     }
 }
 
-async function handleDeleteDocumento(docId) {
+async function handleDeleteDocumento(docId, card) {
+    if (card) card.style.display = 'none';
     try {
-        // O endpoint é /api/v1/syndic/docs/{id}
         await apiClient.delete(`/api/v1/syndic/docs/${docId}`);
-        loadDocumentos(); // Recarrega a lista
+        if (card) card.remove();
+        else loadDocumentos();
     } catch (error) {
         console.error(`Erro ao excluir documento ${docId}:`, error);
-         if (!error.handledByApiClient) {
-            showGlobalFeedback(error.message || 'Falha ao excluir documento.', 'error');
-        }
+        if (card) card.style.display = '';
+        showGlobalFeedback('Falha ao remover documento.', 'error');
     }
 }
 

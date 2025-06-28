@@ -1,6 +1,6 @@
 import apiClient from "./apiClient.js";
 import { requireAuth } from "./auth.js";
-import { showGlobalFeedback, showSkeleton, hideSkeleton } from "./main.js";
+import { showGlobalFeedback, showSkeleton, hideSkeleton, showInlineSpinner } from "./main.js";
 import { initFabMenu } from "./fabMenu.js";
 
 // --- Global state & constants ---
@@ -494,6 +494,8 @@ function setupModalEventListeners() {
     if (formCriarAviso && avisoIdField) {
       formCriarAviso.addEventListener("submit", async (event) => {
         event.preventDefault();
+        const submitBtn = formCriarAviso.querySelector('button[type="submit"]');
+        const hideSpinner = showInlineSpinner(submitBtn);
         const currentAvisoId = avisoIdField.value;
         const formData = new FormData(formCriarAviso);
 
@@ -546,6 +548,8 @@ function setupModalEventListeners() {
               "error"
             );
           }
+        } finally {
+          hideSpinner();
         }
       });
     }
@@ -755,7 +759,9 @@ function setupFeedItemActionButtons() {
         if (
           confirm("Tem certeza que deseja encerrar esta enquete manualmente?")
         ) {
+          const hideSpinner = showInlineSpinner(event.target);
           await handleEndEnquete(itemId);
+          hideSpinner();
         }
       });
     } else {
@@ -781,26 +787,24 @@ function setupFeedItemActionButtons() {
 }
 
 async function handleDeleteAviso(itemId) {
-  showGlobalFeedback("Excluindo aviso...", "info");
+  const card = document.querySelector(
+    `${feedContainerSelector} .cv-card[data-item-id="${itemId}"][data-item-type="Aviso"]`
+  );
+  if (card) card.style.display = "none";
   try {
     await apiClient.delete(`/api/v1/avisos/syndic/avisos/${itemId}`);
     showGlobalFeedback("Aviso excluído com sucesso!", "success");
     fetchedFeedItems = fetchedFeedItems.filter(
       (i) => !(i.id.toString() === itemId.toString() && i.itemType === "Aviso")
     );
-    const cardToRemove = document.querySelector(
-      `${feedContainerSelector} .cv-card[data-item-id="${itemId}"][data-item-type="Aviso"]`
-    );
-    if (cardToRemove) {
-      cardToRemove.remove();
-    } else {
+    if (card) card.remove();
+    else {
       await loadInitialFeedItems();
     }
   } catch (error) {
     console.error("Erro ao excluir aviso:", error);
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(error.message || "Falha ao excluir o aviso.", "error");
-    }
+    if (card) card.style.display = "";
+    showGlobalFeedback("Falha ao remover aviso.", "error");
   }
 }
 
@@ -1262,7 +1266,9 @@ async function handleFeedItemClick(event) {
   }
   if (clickedElement.classList.contains("js-end-enquete-item")) {
     if (confirm("Tem certeza que deseja encerrar esta enquete manualmente?")) {
+      const hideSpinner = showInlineSpinner(clickedElement);
       await handleEndEnquete(itemId);
+      hideSpinner();
     }
     return;
   }
@@ -1633,6 +1639,8 @@ async function submitChamadoUpdateBySindico(chamadoId) {
   const respostaTextarea = document.getElementById(
     "modal-chamado-resposta-textarea"
   );
+  const updateBtn = document.getElementById("modal-chamado-submit-sindico-update");
+  const hideSpinner = showInlineSpinner(updateBtn);
 
   if (!statusSelect || !respostaTextarea) {
     showGlobalFeedback(
@@ -1667,6 +1675,8 @@ async function submitChamadoUpdateBySindico(chamadoId) {
         "error"
       );
     }
+  } finally {
+    hideSpinner();
   }
 }
 

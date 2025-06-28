@@ -1,6 +1,6 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth } from './auth.js';
-import { formatCurrency, formatDate, showGlobalFeedback } from './main.js';
+import { formatCurrency, formatDate, showGlobalFeedback, showInlineSpinner } from './main.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
 function getStatusBadgeHtml(status) {
@@ -259,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (target.classList.contains('js-btn-cancelar-cobranca')) {
                 if (!confirm('Tem certeza que deseja cancelar esta cobrança?')) return;
                 target.disabled = true;
+                const hideSpinner = showInlineSpinner(target);
                 try {
                     const resultado = await apiClient.put(`/financeiro/cobrancas/${cobrancaId}/cancelar`, {});
                     if (resultado && resultado.sucesso) {
@@ -277,6 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } finally {
                     target.disabled = false;
+                    hideSpinner();
                 }
             }
         });

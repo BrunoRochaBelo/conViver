@@ -177,6 +177,25 @@ export function hideSkeleton(target) {
     });
 }
 
+/**
+ * Mostra um pequeno spinner dentro do elemento fornecido e retorna
+ * uma função que remove o spinner.
+ * @param {HTMLElement} element Elemento onde o spinner será exibido.
+ * @returns {Function} Função para remover o spinner criado.
+ */
+export function showInlineSpinner(element) {
+    if (!element) return () => {};
+
+    const spinner = document.createElement('span');
+    spinner.className = 'inline-spinner';
+    spinner.setAttribute('aria-hidden', 'true');
+    element.appendChild(spinner);
+
+    return () => {
+        if (spinner.parentElement) spinner.remove();
+    };
+}
+
 
 // Exemplo de como poderia ser usado para inicializações (se necessário no futuro):
 // document.addEventListener('DOMContentLoaded', () => {

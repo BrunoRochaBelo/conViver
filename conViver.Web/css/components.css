@@ -654,8 +654,7 @@ html[data-theme="dark"] {
 .status-badge--danger {
     background-color: var(--current-color-error-bg);
     color: var(--current-semantic-error);
-}
-/* === End Status Badge Utility Classes === */
+}/* === End Status Badge Utility Classes === */
 
 /* === Progress Bar Component === */
 .cv-progress {
@@ -675,3 +674,22 @@ html[data-theme="dark"] {
     transition: width 0.2s ease;
 }
 /* === End Progress Bar Component === */
+
+/* === Inline Spinner Utility === */
+.inline-spinner {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: cv-inline-spin 0.75s linear infinite;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+@keyframes cv-inline-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+

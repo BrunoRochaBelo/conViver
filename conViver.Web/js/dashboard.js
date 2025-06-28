@@ -1,8 +1,8 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth, getUserRoles } from './auth.js';
 import { formatCurrency, formatDate, showGlobalFeedback } from './main.js'; // Updated import
+import messages from './messages.js';
 import { initFabMenu } from './fabMenu.js';
-import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     requireAuth(); // Ensures user is authenticated before proceeding
@@ -222,7 +222,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function carregarDadosDashboard() {
-        if (dashboardSkeleton) showFeedSkeleton(dashboardSkeleton);
 
         // Set loading states for all sections (local indicators can remain or be removed if global is sufficient)
         showLoading(inadimplenciaPercentEl.parentNode, 'Carregando métricas...');
@@ -241,7 +240,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             console.log('Buscando dados do dashboard...');
-            const dados = await apiClient.get('/dashboard/geral');
+            const dados = await apiClient.get('/dashboard/geral', { showSkeleton: dashboardSkeleton });
             console.log('Dados recebidos:', dados);
 
             // Clear local loading messages (optional, as global feedback is present)
@@ -263,13 +262,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             clearAllSections();
             let errorMessage = 'Ocorreu um erro inesperado ao carregar o dashboard.';
             if (error instanceof ApiError) {
-                errorMessage = `Erro da API (${error.status || 'Rede'}): ${error.message || 'Não foi possível conectar à API.'}`;
+                if (!error.status) {
+                    errorMessage = messages.erroConexao;
+                } else if (error.status >= 500) {
+                    errorMessage = messages.erroServidor;
+                } else {
+                    errorMessage = error.message;
+                }
             } else if (error.message) {
                 errorMessage = error.message;
             }
             showGlobalFeedback(errorMessage, 'error');
         } finally {
-            if (dashboardSkeleton) hideFeedSkeleton(dashboardSkeleton);
+            // skeleton handled by apiClient
         }
     }
 

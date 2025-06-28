@@ -5,6 +5,7 @@ import { initFabMenu } from './fabMenu.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 import { createProgressBar, showProgress, xhrPost } from './progress.js';
 
+
 // --- Função de Badge de Status ---
 function getStatusBadgeHtml(status) {
     const s = status ? status.toLowerCase() : "";
@@ -118,10 +119,9 @@ async function carregarVisitantesAtuais() {
     container.innerHTML = '';
     loadingMsg.style.display = 'block';
     noDataMsg.style.display = 'none';
-    if (skeleton) showFeedSkeleton(skeleton);
 
     try {
-        const visitas = await apiClient.get('/api/v1/visitantes/atuais');
+        const visitas = await apiClient.get('/api/v1/visitantes/atuais', { showSkeleton: skeleton });
         loadingMsg.style.display = 'none';
 
         if (visitas && visitas.length > 0) {
@@ -152,7 +152,7 @@ async function carregarVisitantesAtuais() {
         container.innerHTML = '<div class="error-message">Falha ao carregar visitantes atuais.</div>';
         showGlobalFeedback('Erro ao carregar visitantes atuais: ' + (err.message || ''), 'error');
     } finally {
-        if (skeleton) hideFeedSkeleton(skeleton);
+        // skeleton handled by apiClient
     }
 }
 
@@ -265,12 +265,11 @@ async function carregarHistoricoVisitantes(filters = {}) {
     historicoContainer.innerHTML = '';
     historicoLoadingMsg.style.display = 'block';
     historicoNoDataMsg.style.display = 'none';
-    if (skeleton) showFeedSkeleton(skeleton);
 
     try {
         const params = new URLSearchParams();
         Object.entries(filters).forEach(([k,v]) => v && params.append(k, v));
-        const visitas = await apiClient.get(`/api/v1/visitantes/historico?${params.toString()}`);
+        const visitas = await apiClient.get(`/api/v1/visitantes/historico?${params.toString()}`, { showSkeleton: skeleton });
 
         historicoLoadingMsg.style.display = 'none';
         if (visitas && visitas.length > 0) {
@@ -298,7 +297,7 @@ async function carregarHistoricoVisitantes(filters = {}) {
         historicoContainer.innerHTML = '<div class="error-message">Falha ao carregar histórico.</div>';
         showGlobalFeedback('Erro ao carregar histórico: ' + (err.message || ''), 'error');
     } finally {
-        if (skeleton) hideFeedSkeleton(skeleton);
+        // skeleton handled by apiClient
     }
 }
 
@@ -355,10 +354,9 @@ async function carregarEncomendas() {
     container.innerHTML = '';
     loadingMsg.style.display = 'block';
     noDataMsg.style.display = 'none';
-    if (skeleton) showFeedSkeleton(skeleton);
 
     try {
-        const encomendas = await apiClient.get('/syndic/encomendas?status=recebida');
+        const encomendas = await apiClient.get('/syndic/encomendas?status=recebida', { showSkeleton: skeleton });
         loadingMsg.style.display = 'none';
 
         if (encomendas && encomendas.length > 0) {
@@ -386,7 +384,7 @@ async function carregarEncomendas() {
         console.error('Erro ao listar encomendas:', err);
         container.innerHTML = '<div class="error-message">Falha ao carregar encomendas.</div>';
     } finally {
-        if (skeleton) hideFeedSkeleton(skeleton);
+        // skeleton handled by apiClient
     }
 }
 
