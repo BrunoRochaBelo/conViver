@@ -656,3 +656,22 @@ html[data-theme="dark"] {
     color: var(--current-semantic-error);
 }
 /* === End Status Badge Utility Classes === */
+
+/* === Progress Bar Component === */
+.cv-progress {
+    width: 100%;
+    height: 8px;
+    background-color: var(--current-border-color);
+    border-radius: var(--cv-border-radius-md);
+    overflow: hidden;
+    display: none;
+    margin-top: var(--cv-spacing-sm);
+}
+
+.cv-progress__bar {
+    height: 100%;
+    width: 0%;
+    background-color: var(--current-primary-blue);
+    transition: width 0.2s ease;
+}
+/* === End Progress Bar Component === */
