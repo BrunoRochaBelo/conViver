@@ -120,8 +120,11 @@ dotnet run
 set ASPNETCORE_ENVIRONMENT=Development
 dotnet run
 
-# Opcional: configure `REDIS_CONNECTION` para usar Redis (ex. `docker compose up`).
-# Se omitido ou a conexão falhar, a API usa um cache em memória apenas para a sessão atual.
+# Certifique-se de que o Redis esteja rodando
+# (ex.: `docker compose up` ou `redis-server`).
+# A conexão padrão em `appsettings.Development.json` usa
+# `localhost:6379,abortConnect=false` para evitar falhas caso o
+# serviço ainda não esteja disponível.
 
 # /auth/signup é um POST – veja API_REFERENCE.md atualizado para DTOs corretos.
 

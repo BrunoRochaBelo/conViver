@@ -21,7 +21,6 @@
     <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" /> <!-- Stable for .NET 8 -->
     <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.0" /> <!-- Stable for .NET 8 -->
     <PackageReference Include="StackExchange.Redis" Version="2.7.33" /> <!-- Recent stable -->
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.5.1" /> <!-- Added for JWT -->
   </ItemGroup>
 

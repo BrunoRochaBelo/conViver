@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-using conViver.Core.Interfaces;
+using conViver.Infrastructure.Cache;
 
 namespace conViver.API.Middleware;
 
@@ -8,9 +8,9 @@ public class CachingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<CachingMiddleware> _logger;
-    private readonly ICacheService _cache;
+    private readonly RedisCacheService _cache;
 
-    public CachingMiddleware(RequestDelegate next, ILogger<CachingMiddleware> logger, ICacheService cache)
+    public CachingMiddleware(RequestDelegate next, ILogger<CachingMiddleware> logger, RedisCacheService cache)
     {
         _next = next;
         _logger = logger;
