@@ -1,6 +1,7 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth, getUserRoles } from './auth.js';
 import { formatCurrency, formatDate, showGlobalFeedback } from './main.js'; // Updated import
+import messages from './messages.js';
 import { initFabMenu } from './fabMenu.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
@@ -263,7 +264,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             clearAllSections();
             let errorMessage = 'Ocorreu um erro inesperado ao carregar o dashboard.';
             if (error instanceof ApiError) {
-                errorMessage = `Erro da API (${error.status || 'Rede'}): ${error.message || 'Não foi possível conectar à API.'}`;
+                if (!error.status) {
+                    errorMessage = messages.erroConexao;
+                } else if (error.status >= 500) {
+                    errorMessage = messages.erroServidor;
+                } else {
+                    errorMessage = error.message;
+                }
             } else if (error.message) {
                 errorMessage = error.message;
             }
