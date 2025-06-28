@@ -1,4 +1,5 @@
 import apiClient, { setToken, ApiError } from './apiClient.js'; // Import ApiError
+import messages from './messages.js';
 
 // Get references to form elements
 const loginForm = document.getElementById('loginForm');
@@ -80,16 +81,16 @@ if (loginForm) {
                         errorDetails = 'Por favor, verifique os dados inseridos.';
                     }
                 } else if (error.status === 400) {
-                    errorMessage = 'Requisição inválida.';
+                    errorMessage = messages.erroValidacao;
                     if (errorDetails === error.message || (error.message && error.message.includes('status code 400'))) {
-                        errorDetails = 'Verifique os dados fornecidos e tente novamente.';
+                        errorDetails = messages.erroValidacao;
                     }
                 } else if (error.status >= 500) {
-                    errorMessage = 'Erro no servidor.';
-                    errorDetails = 'Por favor, tente novamente mais tarde.';
+                    errorMessage = messages.erroServidor;
+                    errorDetails = messages.erroServidor;
                 } else if (!error.status) { // Rede
-                    errorMessage = 'Erro de conexão.';
-                    errorDetails = 'Não foi possível conectar ao servidor. Verifique sua internet.';
+                    errorMessage = messages.erroConexao;
+                    errorDetails = messages.erroConexao;
                 }
             }
 

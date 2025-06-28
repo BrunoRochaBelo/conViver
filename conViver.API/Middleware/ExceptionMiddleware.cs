@@ -36,6 +36,18 @@ public class ExceptionMiddleware
                 context.Response.StatusCode = StatusCodes.Status404NotFound;
                 await context.Response.WriteAsJsonAsync(new { code = "NOT_FOUND", message = notFoundException.Message });
             }
+            else if (ex is UnauthorizedAccessException unauthEx)
+            {
+                _logger.LogWarning(ex, "Unauthorized access: {Message}", unauthEx.Message);
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await context.Response.WriteAsJsonAsync(new { code = "UNAUTHORIZED", message = unauthEx.Message });
+            }
+            else if (ex is InvalidOperationException invalidOp)
+            {
+                _logger.LogWarning(ex, "Invalid operation: {Message}", invalidOp.Message);
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await context.Response.WriteAsJsonAsync(new { code = "INVALID_OPERATION", message = invalidOp.Message });
+            }
             // Example for another specific exception type, e.g. UnauthorizedAccessException
             // else if (ex is UnauthorizedAccessException unauthEx)
             // {
