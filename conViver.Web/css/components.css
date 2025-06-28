@@ -557,74 +557,93 @@ html[data-theme="dark"] .cv-nav__link:hover {
 }
 
 /* Base for skeleton placeholder elements */
-.skeleton-title,
-.skeleton-line {
-    background-color: var(--current-skeleton-bg, var(--cv-gray-200)); /* Use a themeable color or fallback */
-    border-radius: 4px; /* Consistent border radius for placeholders */
-    margin-bottom: 10px; /* Spacing between lines */
+.skeleton-block {
+    background-color: var(--current-skeleton-bg, var(--cv-gray-200));
+    border-radius: var(--cv-border-radius-sm); /* Consistent 4px radius */
+    margin-bottom: var(--cv-spacing-sm); /* 8px */
+}
+.skeleton-block:last-child {
+    margin-bottom: 0;
 }
 
 /* Specifics for title placeholder */
 .skeleton-title {
     width: 60%;
-    height: 20px; /* Larger height for title */
+    height: 1.25rem; /* Approx 20px, aligns with --cv-font-size-xl */
+    margin-bottom: var(--cv-spacing-md); /* 16px, more space after a title */
 }
 
 /* Specifics for text line placeholders */
 .skeleton-line {
-    width: 100%; /* Full width by default */
-    height: 16px;
+    width: 100%;
+    height: 0.875rem; /* Approx 14px, aligns with --cv-font-size-base or md */
+}
+.skeleton-line--short { /* More descriptive class name */
+    width: 75%;
+}
+.skeleton-line--medium {
+    width: 90%;
+}
+.skeleton-line--long { /* Explicitly full width if needed, otherwise default is 100% */
+    width: 100%;
 }
 
-.skeleton-line.short {
-    width: 75%; /* Shorter line variant */
+
+/* For simulating an image placeholder */
+.skeleton-image {
+    width: 100%;
+    aspect-ratio: 16 / 9; /* Or common image aspect ratio */
+    margin-bottom: var(--cv-spacing-sm);
 }
 
-.skeleton-line:last-child {
-    margin-bottom: 0; /* No margin for the last line in a group */
+/* For simulating an avatar placeholder */
+.skeleton-avatar {
+    width: 40px; /* Example size */
+    height: 40px;
+    border-radius: 50%; /* Circular */
+    margin-right: var(--cv-spacing-sm);
+    float: left; /* Example layout */
+}
+.skeleton-block-group {
+    display: flex;
+    flex-direction: column;
 }
 
-/* Shimmer Animation */
+
+/* Shimmer Animation - remains the same */
 .feed-skeleton-item::after {
     content: '';
     position: absolute;
     top: 0;
-    left: 0; /* Start from the left edge of the item */
+    left: 0;
     height: 100%;
-    width: 100%; /* Cover the entire item */
+    width: 100%;
     background: linear-gradient(
         90deg,
         transparent,
-        var(--current-skeleton-shimmer-color, rgba(255, 255, 255, 0.5)), /* Themeable shimmer */
+        var(--current-skeleton-shimmer-color, rgba(255, 255, 255, 0.5)),
         transparent
     );
-    transform: translateX(-100%); /* Start off-screen to the left */
-    animation: skeleton-shimmer 1.5s infinite; /* Slower, smoother animation */
+    transform: translateX(-100%);
+    animation: skeleton-shimmer 1.5s infinite;
 }
 
 @keyframes skeleton-shimmer {
-    0% {
-        transform: translateX(-100%);
-    }
-    50% { /* Add a midpoint for a more noticeable shimmer pass */
-        transform: translateX(100%);
-    }
-    100% {
-        transform: translateX(100%); /* Keep it off-screen at the end before looping */
-    }
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(100%); }
+    100% { transform: translateX(100%); }
 }
 
-/* Ensure dark theme variables are defined in styles.css or :root */
-/* Example:
-:root {
+/* Theme variables for skeleton (ensure these are in :root and html[data-theme="dark"]) */
+/* :root {
     --current-skeleton-bg: var(--cv-gray-200);
     --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.5);
 }
 html[data-theme="dark"] {
-    --current-skeleton-bg: var(--cv-gray-700); // Or a darker shade
-    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.1); // More subtle shimmer for dark
-}
-*/
+    --current-skeleton-bg: var(--cv-dark-gray-300); // Adjusted for dark theme
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.1);
+} */
+
 
 /* === Status Badge Utility Classes === */
 .status-badge {
@@ -659,20 +678,25 @@ html[data-theme="dark"] {
 /* === Progress Bar Component === */
 .cv-progress {
     width: 100%;
-    height: 8px;
-    background-color: var(--current-border-color);
-    border-radius: var(--cv-border-radius-md);
+    height: 12px; /* Aumentar a altura para melhor visibilidade */
+    background-color: var(--current-border-subtle); /* Usar uma cor de fundo mais sutil */
+    border-radius: var(--cv-border-radius-lg); /* Raio de borda maior, mais Apple-like */
     overflow: hidden;
-    display: none;
-    margin-top: var(--cv-spacing-sm);
+    display: none; /* Controlado por JS */
+    margin-top: var(--cv-spacing-md); /* Aumentar margem superior para espaçamento */
+    margin-bottom: var(--cv-spacing-sm);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.075); /* Sombra interna sutil */
 }
 
 .cv-progress__bar {
     height: 100%;
     width: 0%;
     background-color: var(--current-primary-blue);
-    transition: width 0.2s ease;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transição mais suave */
+    border-radius: var(--cv-border-radius-lg); /* Garante que a barra interna também tenha cantos arredondados */
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1); /* Efeito de profundidade sutil */
 }
+
 /* === End Progress Bar Component === */
 
 /* === Inline Spinner Utility === */

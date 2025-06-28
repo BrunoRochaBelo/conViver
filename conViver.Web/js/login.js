@@ -1,6 +1,8 @@
 import apiClient, { setToken, ApiError } from './apiClient.js'; // Import ApiError
 import messages from './messages.js';
 
+import { showInlineSpinner } from './main.js'; // Importar showInlineSpinner
+
 // Get references to form elements
 const loginForm = document.getElementById('loginForm');
 const emailInput = document.getElementById('email');
@@ -20,8 +22,13 @@ function showFeedback(message, type = 'error', details = '') {
         fullMessage += `: ${details}`;
     }
     loginFeedback.textContent = fullMessage;
-    loginFeedback.className = 'login-form__feedback'; // Reset classes
-    loginFeedback.classList.add(`login-form__feedback--${type}`);
+    loginFeedback.className = 'login-form__feedback cv-alert cv-alert--hidden'; // Reset classes, start hidden
+    loginFeedback.classList.add(`cv-alert--${type}`);
+    loginFeedback.classList.remove('cv-alert--hidden'); // Make visible
+    if (type === 'loading') {
+        loginFeedback.classList.remove(`cv-alert--loading`); // loading is not a cv-alert type
+        loginFeedback.classList.add(`cv-alert--info`); // Use info for loading message background
+    }
 }
 
 /**
@@ -29,7 +36,7 @@ function showFeedback(message, type = 'error', details = '') {
  */
 function clearFeedback() {
     loginFeedback.textContent = '';
-    loginFeedback.className = 'login-form__feedback';
+    loginFeedback.className = 'login-form__feedback cv-alert cv-alert--hidden';
 }
 
 if (loginForm) {
@@ -38,11 +45,15 @@ if (loginForm) {
         clearFeedback(); // Clear previous messages
 
         // Show loading state
-        showFeedback('Autenticando...', 'loading');
-        document.body.classList.add('loading-active'); // Add loading class to body
+        // showFeedback('Autenticando...', 'loading'); // Replaced by spinner
+        // document.body.classList.add('loading-active'); // Not strictly needed if button has spinner
+
         loginButton.disabled = true;
         emailInput.disabled = true;
         passwordInput.disabled = true;
+        const originalButtonText = loginButton.innerHTML;
+        loginButton.innerHTML = 'Entrando... <span class="inline-spinner"></span>';
+
 
         const email = emailInput.value;
         const password = passwordInput.value;
@@ -51,15 +62,17 @@ if (loginForm) {
             const response = await apiClient.post('/auth/login', { Email: email, Senha: password });
             setToken(response.accessToken);
 
-            showFeedback('Login bem-sucedido! Redirecionando...', 'success');
-            document.body.classList.remove('loading-active'); // Remove loading class from body
+            // showFeedback('Login bem-sucedido! Redirecionando...', 'success'); // Feedback might not be visible due to redirect
+            // document.body.classList.remove('loading-active');
             // Button remains disabled while redirecting
+            loginButton.innerHTML = 'Sucesso! Redirecionando...'; // Update button text
 
             // Redirect to the main page
             window.location.href = 'layout.html?page=comunicacao';
 
         } catch (error) {
-            document.body.classList.remove('loading-active'); // Remove loading class from body
+            // document.body.classList.remove('loading-active');
+            loginButton.innerHTML = originalButtonText; // Restore button text
             let errorMessage = 'Falha no login.';
             // Default detail message, can be overridden by API's message
             let errorDetails = 'Verifique suas credenciais ou tente novamente mais tarde.';

@@ -2,6 +2,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap');
 
 :root {
+    --current-skeleton-bg: var(--cv-gray-200);
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.3); /* Adjusted shimmer for light */
     /* Primary Colors */
     --cv-primary-blue: #007AFF;
     --cv-primary-green: #34C759;
@@ -164,6 +166,8 @@
 }
 
 html[data-theme="dark"] {
+    --current-skeleton-bg: var(--cv-dark-gray-300);
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.08); /* Adjusted shimmer for dark */
     --current-primary-blue: var(--cv-dark-primary-blue);
     --current-primary-green: var(--cv-dark-primary-green);
     --current-primary-orange: var(--cv-dark-primary-orange);
@@ -1493,6 +1497,35 @@ html[data-theme="dark"] .cv-modal-close {
     top: 5px;
     font-size: 1.2em; /* Ajustar tamanho do emoji se necessário */
 }
+
+/* Progressive Image Loading Styles for Feed */
+.feed-item__image-container {
+    width: 100%;
+    /* Definir uma aspect-ratio ajuda a evitar layout shift. Ex: 16/9.
+       Ajuste conforme o aspect ratio mais comum das suas imagens. */
+    aspect-ratio: 16 / 9;
+    background-color: var(--current-border-subtle); /* Cor de fundo enquanto a imagem não carrega */
+    margin-bottom: var(--cv-spacing-sm);
+    overflow: hidden; /* Garante que a imagem não ultrapasse o container */
+    border-radius: var(--cv-border-radius-md); /* Consistente com cards */
+}
+
+.feed-item__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cobre o container, pode cortar um pouco da imagem */
+    display: block;
+    /* Initial blur for LQIP effect - will be overridden by JS once high-res loads */
+    filter: blur(10px);
+    transform: scale(1.1); /* Slightly zoom to avoid blurred edges showing container bg */
+    transition: filter 0.5s ease-out, transform 0.5s ease-out; /* Suaviza a transição */
+}
+
+.feed-item__image.loaded {
+    filter: blur(0);
+    transform: scale(1);
+}
+
 
 .feed-item__pin {
     font-size: 0.85em;

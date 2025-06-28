@@ -140,21 +140,30 @@ async function loadDocumentos() {
 async function handleUploadDocumento(event) {
     event.preventDefault();
     const form = event.target;
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = 'Enviando... <span class="inline-spinner"></span>';
+
     const formData = new FormData(form);
+    uploadProgressBar.style.display = 'block'; // Garante que a barra seja exibida
     showProgress(uploadProgressBar, 0);
-    showGlobalFeedback('Enviando...', 'info', 2000);
+    // showGlobalFeedback('Enviando...', 'info', 2000); // Spinner no botão e barra são suficientes
 
     try {
         await xhrPost('/api/v1/syndic/docs', formData, p => showProgress(uploadProgressBar, p), true);
-        showProgress(uploadProgressBar, 100);
+        showProgress(uploadProgressBar, 100); // Completa a barra
         form.reset();
         document.getElementById('modalUploadDocumento').style.display = 'none';
-        loadDocumentos();
-        showGlobalFeedback('Documento enviado!', 'success');
+        loadDocumentos(); // Recarrega a lista de documentos
+        showGlobalFeedback('Documento enviado com sucesso!', 'success');
     } catch (error) {
-        uploadProgressBar.style.display = 'none';
         console.error('Erro ao enviar documento:', error);
         showGlobalFeedback(error.message || 'Falha no upload do documento.', 'error');
+    } finally {
+        uploadProgressBar.style.display = 'none'; // Esconde a barra após o processo
+        submitButton.innerHTML = originalButtonText;
+        submitButton.disabled = false;
     }
 }
 
