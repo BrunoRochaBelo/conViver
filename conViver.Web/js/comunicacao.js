@@ -1159,7 +1159,7 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     setupFeedItemActionButtons(); // Re-attach event listeners if items were added/changed
 
   } catch (error) {
-    console.error("Erro ao buscar feed:", error);
+    console.error("Erro ao buscar feed:", error); // Log original error
     const activeTabContentIdOnError = getActiveTabContentId();
     hideFeedSkeleton("content-mural");
     if (activeTabContentIdOnError !== "content-mural") {
@@ -1167,16 +1167,27 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     }
 
     const currentVisibleItemsOnError = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)");
-    if (currentVisibleItemsOnError.length === 0) {
+    if (currentVisibleItemsOnError.length === 0 && !append) { // Only show full page error if not appending and no items visible
       const errorMsgCheck = muralFeedContainer.querySelector(".cv-error-message");
-      if (errorMsgCheck) errorMsgCheck.remove();
+      if (errorMsgCheck) errorMsgCheck.remove(); // Remove old one if any
+
       const errorP = document.createElement("p");
-      errorP.className = "cv-error-message";
-      errorP.textContent = "Erro ao carregar o feed. Tente novamente mais tarde.";
+      errorP.className = "cv-error-message"; // Use a class that can be styled
+      errorP.textContent = error.message || "Não foi possível carregar o feed. Verifique sua conexão e tente novamente.";
+
+      // Clear any "no items" message before adding error message
+      const noItemsMsg = muralFeedContainer.querySelector(".cv-no-items-message");
+      if (noItemsMsg) noItemsMsg.remove();
+
       if (sentinelElement) muralFeedContainer.insertBefore(errorP, sentinelElement);
       else muralFeedContainer.appendChild(errorP);
     } else if (append) {
-      showGlobalFeedback("Erro ao carregar mais itens.", "error"); // Keep this for infinite scroll errors
+      // For append errors (infinite scroll), a global toast is acceptable as the main content is still visible.
+      // This is handled by apiClient for non-GET or network errors. If it's an ApiError from GET, it's suppressed by design.
+      // We could add a small inline indicator near the sentinel if desired, but a toast for "load more failed" is common.
+      // For now, if apiClient doesn't show it for GET ApiError, nothing will be shown, which is fine.
+      // If it's a network error, apiClient WILL show a toast.
+      console.warn("Erro ao carregar mais itens (append), feedback global pode já ter sido exibido pelo apiClient para erros de rede.");
     }
     if (sentinelElement) sentinelElement.style.display = "none"; // Stop trying to load more on error
   } finally {
