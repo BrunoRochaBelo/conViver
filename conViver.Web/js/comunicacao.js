@@ -309,7 +309,7 @@ function setupTabs() {
 // --- Filter Modal ---
 function setupFilterModalAndButton() {
   const openFilterButton = document.getElementById("open-filter-modal-button");
-  const closeFilterModalButtons = document.querySelectorAll(
+  const closeFilterModalButton = document.querySelector(
     ".js-modal-filtros-close"
   );
   const applyFiltersModalButton = document.getElementById(
@@ -337,11 +337,10 @@ function setupFilterModalAndButton() {
       modalFiltros.style.display = "flex";
     });
   }
-  closeFilterModalButtons.forEach((btn) =>
-    btn.addEventListener("click", () => {
+  if (closeFilterModalButton && modalFiltros) {
+    closeFilterModalButton.addEventListener("click", () => {
       modalFiltros.style.display = "none";
-    })
-  );
+    });
   }
   if (modalFiltros) {
     // Close on outside click
