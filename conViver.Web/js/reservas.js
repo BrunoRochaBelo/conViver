@@ -1,4 +1,4 @@
-import { showGlobalFeedback, showSkeleton, hideSkeleton } from "./main.js";
+import { showGlobalFeedback } from "./main.js";
 import { requireAuth, getUserInfo, getRoles } from "./auth.js";
 import apiClient from "./apiClient.js";
 import { initFabMenu } from "./fabMenu.js";
@@ -615,7 +615,6 @@ async function carregarMinhasReservas(page = 1, append = false) {
     noMoreItemsMinhasReservas = false; // Reset for new filter/load
   }
 
-  if (!append && skeleton) showSkeleton(skeleton);
   if (sentinel) sentinel.style.display = "block";
 
 
@@ -644,12 +643,11 @@ async function carregarMinhasReservas(page = 1, append = false) {
       ).toISOString();
     }
 
-    const responseData = await apiClient.get("/api/v1/app/reservas/minhas-reservas", params);
+    const responseData = await apiClient.get("/api/v1/app/reservas/minhas-reservas", { params, showSkeleton: !append ? skeleton : null });
     // Assuming API returns { items: [], pageNumber: X, pageSize: Y, totalCount: Z, hasNextPage: bool }
     // or similar. For now, we'll use responseData.items and check length against pageSize.
     const items = responseData.items || [];
 
-    if (!append && skeleton) hideSkeleton(skeleton);
 
     if (items.length > 0) {
       if (!append) container.dataset.loadedOnce = "true"; // Mark as loaded once for the tab logic
@@ -689,7 +687,6 @@ async function carregarMinhasReservas(page = 1, append = false) {
     }
   } catch (err) {
     console.error("Erro ao carregar 'Minhas Reservas':", err);
-    if (!append && skeleton) hideSkeleton(skeleton);
     if (!append) {
       container.innerHTML =
         '<p class="cv-error-message" style="text-align:center;">Erro ao carregar suas reservas. Tente novamente mais tarde.</p>';
@@ -741,7 +738,6 @@ async function carregarReservasListView(page, append = false) {
   }
 
   const skeleton = container.parentElement.querySelector('.feed-skeleton-container');
-  if (!append && skeleton) showSkeleton(skeleton);
   if (sentinel) sentinel.style.display = "block";
 
     try {
@@ -771,7 +767,7 @@ async function carregarReservasListView(page, append = false) {
       }
 
     // Chamada real à API (substitui o mock)
-    const responseData = await apiClient.get("/api/v1/app/reservas/lista", params);
+    const responseData = await apiClient.get("/api/v1/app/reservas/lista", { params, showSkeleton: !append ? skeleton : null });
     // Assumindo que a API retorna um objeto com 'items' e 'hasNextPage' ou similar
     // ou um array diretamente e verificamos o tamanho para 'noMoreItemsListView'
     // Para este exemplo, vou assumir que retorna um array de itens.
@@ -779,8 +775,6 @@ async function carregarReservasListView(page, append = false) {
     // a lógica de noMoreItemsListView precisaria ser ajustada.
 
     const items = responseData.items || responseData; // Adaptar conforme a resposta da API
-
-    if (!append && skeleton) hideSkeleton(skeleton);
 
     if (items.length > 0) {
       if (!append) container.dataset.loadedOnce = "true";
@@ -817,7 +811,6 @@ async function carregarReservasListView(page, append = false) {
     }
   } catch (err) {
     console.error("Erro ao carregar lista de reservas:", err);
-    if (!append && skeleton) hideSkeleton(skeleton);
     if (!append) {
       container.innerHTML =
         '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas. Tente novamente mais tarde.</p>';
@@ -1269,7 +1262,6 @@ function initializeFullCalendar() {
 async function carregarReservasDia(dataStr) {
   if (!agendaDiaListContainer) return;
   agendaDiaListContainer.innerHTML = "";
-  showSkeleton(agendaDiaSkeleton);
   if (agendaDiaLoading) agendaDiaLoading.style.display = "block";
   try {
     const params = {
@@ -1279,7 +1271,7 @@ async function carregarReservasDia(dataStr) {
       periodoInicio: new Date(`${dataStr}T00:00:00`).toISOString(),
       periodoFim: new Date(`${dataStr}T23:59:59`).toISOString(),
     };
-    const resp = await apiClient.get("/api/v1/app/reservas/lista", params);
+    const resp = await apiClient.get("/api/v1/app/reservas/lista", { params, showSkeleton: agendaDiaSkeleton });
     const items = resp.items || resp;
     if (items.length > 0) {
       items.forEach((r) => agendaDiaListContainer.appendChild(renderCardReservaListView(r)));
@@ -1290,7 +1282,6 @@ async function carregarReservasDia(dataStr) {
     console.error("Erro ao carregar reservas do dia:", err);
     agendaDiaListContainer.innerHTML = '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas.</p>';
   } finally {
-    hideSkeleton(agendaDiaSkeleton);
     if (agendaDiaLoading) agendaDiaLoading.style.display = "none";
   }
 }
