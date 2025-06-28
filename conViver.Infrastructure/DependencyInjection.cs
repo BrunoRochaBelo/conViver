@@ -35,8 +35,18 @@ public static class DependencyInjection
         services.AddSingleton(AuthConfiguration.FromConfiguration(configuration));
         services.AddSingleton<JwtService>();
 
-        services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(configuration["REDIS_CONNECTION"] ?? "localhost:6379"));
-        services.AddSingleton<RedisCacheService>();
+        var useRedis = configuration.GetValue<bool?>("USE_REDIS") ?? true;
+        var redisConn = configuration["REDIS_CONNECTION"];
+
+        if (useRedis && !string.IsNullOrWhiteSpace(redisConn))
+        {
+            services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConn));
+            services.AddSingleton<ICacheService, RedisCacheService>();
+        }
+        else
+        {
+            services.AddSingleton<ICacheService, InMemoryCacheService>();
+        }
 
         services.AddScoped<INotificacaoService, NotificationService>();
         services.AddScoped<IFinanceiroService, FinanceiroService>();
