@@ -1994,7 +1994,7 @@ async function handleCreateOcorrencia() {
 
   try {
     showGlobalFeedback("Enviando ocorrência...", "info");
-    await apiClient.post("/api/ocorrencias", formData);
+    await postWithFiles("/api/ocorrencias", formData);
     showGlobalFeedback(
       "Ocorrência criada com sucesso! Ela aparecerá no feed.",
       "success"
