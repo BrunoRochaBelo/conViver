@@ -1,7 +1,13 @@
 ﻿# API Reference – conViver
 
-> Prefixo de rota: `/api/v1`  
+> Prefixo de rota: `/api/v1`
 > Todos os endpoints REST usam JSON e exigem header `Authorization: Bearer <token>` (exceto rotas públicas de auth).
+
+### Cache HTTP
+
+Alguns endpoints de leitura enviam cabeçalho `ETag`. Se o cliente reenviar
+`If-None-Match` com o valor fornecido e nada mudou, a API responde `304 Not Modified`.
+Isso reduz o tráfego e acelera apps que armazenam a última resposta.
 
 ---
 
@@ -1000,6 +1006,7 @@ Endpoints gerenciados por `AvisosController.cs`. Rotas base: `/api/v1/app/avisos
 *   `size` (int, default 10): Quantidade de itens por página.
 *   (`categoria` - mencionada no doc antigo, mas não no controller `ListarAvisosPorApp`. Pode ser adicionada).
 **Response 200** (`IEnumerable<Aviso>`) - Lista de entidades `Aviso` (verificar se DTO).
+**Response 304**: Enviado quando o cliente fornece `If-None-Match` com `ETag` válido.
 **Erros Comuns**:
 *   `401 Unauthorized`: CondominioId inválido.
 
