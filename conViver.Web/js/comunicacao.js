@@ -1,5 +1,5 @@
 import apiClient from "./apiClient.js";
-import { requireAuth } from "./auth.js";
+import { requireAuth, getUserInfo } from "./auth.js"; // Importa getUserInfo
 import { showGlobalFeedback, showSkeleton, hideSkeleton, showInlineSpinner } from "./main.js";
 import { initFabMenu } from "./fabMenu.js";
 
@@ -814,9 +814,13 @@ async function handleDeleteAviso(itemId) {
 // rely on that role should treat "Condomino" and "Inquilino" as synonyms of
 // "Morador".
 function getUserRoles() {
-  const user = JSON.parse(localStorage.getItem("userInfo"));
-  if (user && user.roles) return user.roles;
-  return ["Condomino"];
+  // const user = JSON.parse(localStorage.getItem("userInfo")); // LINHA ANTIGA
+  // if (user && user.roles) return user.roles; // LINHA ANTIGA
+  const userInfo = getUserInfo(); // NOVA LINHA: Usa a função de auth.js
+  if (userInfo && userInfo.roles) { // NOVA LINHA
+    return userInfo.roles; // NOVA LINHA
+  }
+  return ["Condomino"]; // Mantém o fallback
 }
 
 
