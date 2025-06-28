@@ -140,6 +140,11 @@ async function request(path, options = {}) {
                     `API Error: ${method} ${url} responded with ${res.status} ${res.statusText}. Message: "${errorMessage}"`,
                     { url, requestOptions: loggedOptions, status: res.status, responseBodyAttempt: res.bodyUsed ? '[consumed]' : 'available' }
                 );
+                // For GET requests, just throw the error. The caller will handle UI feedback.
+                // For other methods (POST, PUT, DELETE, PATCH), show global feedback.
+                if (method !== 'GET') {
+                    showGlobalFeedback(errorMessage, 'error');
+                }
                 throw new ApiError(errorMessage, res.status, url, loggedOptions);
             }
 
@@ -150,32 +155,37 @@ async function request(path, options = {}) {
             }
         }
 
-        // Handle success feedback
-        if (successMessage) {
-            showGlobalFeedback(successMessage, 'success');
-        } else {
-            // Default success messages
-            if (method === 'POST') showGlobalFeedback('Item criado com sucesso!', 'success');
-            else if (method === 'PUT' || method === 'PATCH') showGlobalFeedback('Alterações salvas com sucesso!', 'success');
-            else if (method === 'DELETE') showGlobalFeedback('Item excluído com sucesso!', 'success');
+        // Handle success feedback (only for non-GET requests or if explicitly requested)
+        if (method !== 'GET' || successMessage) {
+            if (successMessage) {
+                showGlobalFeedback(successMessage, 'success');
+            } else {
+                // Default success messages for non-GET
+                if (method === 'POST') showGlobalFeedback('Item criado com sucesso!', 'success');
+                else if (method === 'PUT' || method === 'PATCH') showGlobalFeedback('Alterações salvas com sucesso!', 'success');
+                else if (method === 'DELETE') showGlobalFeedback('Item excluído com sucesso!', 'success');
+            }
         }
         return resData;
 
     } catch (error) {
-        let displayErrorMessage = "Ocorreu um erro. Tente novamente."; // Default generic message
+        // The ApiError thrown from res.ok block for non-GET methods would have already shown feedback.
+        // This catch block now primarily handles network errors or other unexpected errors,
+        // or ApiErrors from GET requests that haven't shown feedback yet.
         if (error instanceof ApiError) {
-            displayErrorMessage = error.message || (error.status ? `Erro ${error.status}` : displayErrorMessage);
-            showGlobalFeedback(displayErrorMessage, 'error');
+            if (method === 'GET') { // Only show feedback here for GET errors or if not already shown
+                 // No global feedback for GET errors here; let the caller handle it.
+            }
             throw error; // Re-throw ApiError instances directly
         } else {
-            // Catch network errors or other unexpected errors
-            displayErrorMessage = error.message || displayErrorMessage;
+            // Catch network errors or other unexpected errors for all methods
+            const displayErrorMessage = error.message || "Ocorreu um erro de rede ou inesperado. Tente novamente.";
             console.error(
                 `Network or unexpected error during API Request: ${method} ${url}. Error: ${error.message}`,
                 { url, requestOptions: loggedOptions, originalError: error }
             );
-            showGlobalFeedback(displayErrorMessage, 'error');
-            throw new ApiError(`Network request failed for ${method} ${url}. ${error.message}`, null, url, loggedOptions);
+            showGlobalFeedback(displayErrorMessage, 'error'); // Show global feedback for these types of errors
+            throw new ApiError(displayErrorMessage, null, url, loggedOptions);
         }
     } finally {
         if (skeletonTimer) clearTimeout(skeletonTimer);
