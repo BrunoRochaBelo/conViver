@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const tbodyCobrancas = document.querySelector('.js-lista-cobrancas');
     const filtroStatusEl = document.querySelector('.js-filtro-status-cobranca');
+    const btnLimparFiltroCobrancaEl = document.getElementById('btnLimparFiltroCobranca'); // Botão Limpar Filtro
     const despesasTableBody = document.querySelector('.js-lista-despesas');
     const graficoDespesasEl = document.getElementById('graficoDespesas');
     const graficoBalanceteEl = document.getElementById('graficoBalancete');
@@ -508,6 +509,16 @@ document.addEventListener('DOMContentLoaded', () => {
         filtroStatusEl.addEventListener('change', (event) => {
             fetchAndRenderCobrancas(event.target.value);
         });
+
+        if (btnLimparFiltroCobrancaEl) {
+            btnLimparFiltroCobrancaEl.addEventListener('click', () => {
+                if (filtroStatusEl) {
+                    filtroStatusEl.value = ''; // Reseta o select para "Todos"
+                }
+                fetchAndRenderCobrancas(''); // Carrega cobranças sem filtro de status
+            });
+        }
+
     } else {
         console.error("Elementos essenciais do DOM não encontrados para a página de finanças.");
     }
