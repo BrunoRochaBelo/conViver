@@ -125,6 +125,8 @@ dotnet run
 # A conexão padrão em `appsettings.Development.json` usa
 # `localhost:6379,abortConnect=false` para evitar falhas caso o
 # serviço ainda não esteja disponível.
+# Você pode definir `USE_REDIS=false` para usar um cache em memória
+# e dispensar o serviço do Redis durante o desenvolvimento.
 
 # /auth/signup é um POST – veja API_REFERENCE.md atualizado para DTOs corretos.
 
@@ -145,6 +147,7 @@ dotnet build -t:Run -f net8.0-android
 | `DB_CONNECTION`               | String de conexão para PostgreSQL ou SQLite.                                                                                            | `Host=localhost;Database=conviver;Username=user;Password=pass` ou `Data Source=conviver.db` |
 | `JWT_SECRET`                  | Chave secreta para assinatura de tokens JWT (HMAC-SHA256). Mínimo 32 caracteres.                                                        | `uma-chave-secreta-muito-longa-e-segura-aqui`             |
 | `REDIS_CONNECTION`            | String de conexão para o Redis.                                                                                                         | `localhost:6379,abortConnect=false`                       |
+| `USE_REDIS`                   | Quando `true`, a API usa Redis para cache HTTP. Defina `false` para cache em memória. | `true` |
 | `BASE_URL`                    | URL base pública da API, usada em contextos como geração de links em emails.                                                            | `https://sua-api.com/api/v1`                              |
 | `API_CORS_ALLOWED_ORIGINS`    | Define as origens permitidas para CORS na API. Valor em `conViver.API/appsettings.json` (ex: `CorsSettings:AllowedOrigins`).            | `http://localhost:3000;https://yourdomain.com`            |
 | `WEB_API_BASE_URL`            | Define a URL base da API para o cliente web. Valor em `conViver.Web/js/config.js` (ex: `window.APP_CONFIG.API_BASE_URL`).                | `http://localhost:5000/api/v1`                            |

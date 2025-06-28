@@ -1,8 +1,11 @@
 using StackExchange.Redis;
 
+// ReSharper disable once CheckNamespace
+// Same namespace as interface
+
 namespace conViver.Infrastructure.Cache;
 
-public class RedisCacheService
+public class RedisCacheService : ICacheService
 {
     private readonly IDatabase _db;
 
