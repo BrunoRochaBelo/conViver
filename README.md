@@ -120,6 +120,12 @@ dotnet run
 set ASPNETCORE_ENVIRONMENT=Development
 dotnet run
 
+# Certifique-se de que o Redis esteja rodando
+# (ex.: `docker compose up` ou `redis-server`).
+# A conexão padrão em `appsettings.Development.json` usa
+# `localhost:6379,abortConnect=false` para evitar falhas caso o
+# serviço ainda não esteja disponível.
+
 # /auth/signup é um POST – veja API_REFERENCE.md atualizado para DTOs corretos.
 
 4. Front Web
