@@ -64,7 +64,7 @@ A solução **conViver** adota uma arquitetura em camadas isoladas, inspirada em
 - **Responsabilidade**: implementação concreta de persistência, mensageria, cache, logs e integrações externas.
 - **Conteúdo**:  
   - **EF Core** `ConViverDbContext`, Migrations, Repositórios (`UsuarioRepository`, `CondominioRepository`, etc.)
-  - **Autenticação** (JWT), **Cache** (Redis - `RedisCacheService`), **Logging** (Serilog)
+  - **Autenticação** (JWT), **Cache** (`ICacheService` com Redis ou memória), **Logging** (Serilog)
   - **Adapters** para APIs bancárias (simulado/genérico), armazenamento de arquivos (local/blob storage)
   - **Notificações Push** (Planejado/Futuro - `NotificationService` pode ser um placeholder)
 
@@ -137,7 +137,7 @@ Camada          | Projeto Relacionado     | Tecnologia Principal   | Por quê?
 Domínio         | `conViver.Core`         | C# (.NET 8)            | Lógica de negócio pura, performance, tipagem forte
 Aplicação       | `conViver.Application`  | C# (.NET 8)            | Orquestração de casos de uso, TDD, DI
 Persistência    | `conViver.Infrastructure` | EF Core + PostgreSQL   | Produtividade, ORM robusto, escalável
-Cache           | `conViver.Infrastructure` | Redis                  | Baixa latência, cache distribuído
+Cache           | `conViver.Infrastructure` | Redis (opcional) ou memória | Baixa latência, cache distribuído
 Autenticação    | `conViver.Infrastructure` | ASP.NET Core Identity (implícito), JWT | Padrões de segurança
 API             | `conViver.API`          | ASP.NET Core           | Framework web moderno, Swagger para documentação
 Frontend Web    | `conViver.Web`          | HTML5, CSS3, JS ES6 puro | Leve, sem dependências complexas, fácil integração

@@ -1,8 +1,9 @@
 using StackExchange.Redis;
+using conViver.Core.Interfaces;
 
 namespace conViver.Infrastructure.Cache;
 
-public class RedisCacheService
+public class RedisCacheService : ICacheService
 {
     private readonly IDatabase _db;
 
