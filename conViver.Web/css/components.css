@@ -656,3 +656,21 @@ html[data-theme="dark"] {
     color: var(--current-semantic-error);
 }
 /* === End Status Badge Utility Classes === */
+
+/* Inline spinner utility */
+.inline-spinner {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: cv-inline-spin 0.75s linear infinite;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+@keyframes cv-inline-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
