@@ -20,15 +20,18 @@ A solução utiliza um projeto de teste principal: `conViver.Tests`. Dentro dest
 
 ## 2. Preparando o Ambiente
 
-1. **.NET SDK 8.0** instalado e no `PATH`.  
-2. Variáveis de ambiente (pode usar `dotnet user-secrets` ou `.env`):  
+1. **.NET SDK 8.0** instalado e no `PATH`.
+2. Variáveis de ambiente (pode usar `dotnet user-secrets` ou `.env`):
    ```bash
    export DB_CONNECTION="Host=localhost;Port=5432;Username=postgres;Password=devpass;Database=conviver_test;"
    export REDIS_CONNECTION="localhost:6379"
    export JWT_SECRET="test-secret-32chars"
 
 
-Docker rodando para testes de integração com Testcontainers (se utilizados).
+3. Docker rodando para testes de integração com Testcontainers (se utilizados).
+4. Conexão com a **Internet** para restaurar os pacotes NuGet na primeira execução.
+   Caso precise executar offline, rode `scripts/populate_offline_packages.sh` previamente
+   em uma máquina conectada para gerar o cache em `./.nuget`.
 
 ## 3. Executando Testes Localmente
 
