@@ -835,8 +835,10 @@ function setupFabMenu() {
 
   const actions = [];
   if (isSindico) {
-    actions.push({ label: "Criar Aviso", onClick: openCriarAvisoModal });
-    actions.push({ label: "Criar Enquete", onClick: openCreateEnqueteModal });
+    actions.push(
+      { label: "Criar Aviso", onClick: openCriarAvisoModal },
+      { label: "Criar Enquete", onClick: openCreateEnqueteModal }
+    );
   }
 
   // Todos podem abrir um chamado (solicitação)
