@@ -1,8 +1,18 @@
 import apiClient from "./apiClient.js";
 import { requireAuth, getUserInfo } from "./auth.js"; // Importa getUserInfo
-import { showGlobalFeedback, showSkeleton, hideSkeleton, showInlineSpinner, createErrorStateElement, createEmptyStateElement } from "./main.js";
+import {
+    showGlobalFeedback,
+    showSkeleton,
+    hideSkeleton,
+    showInlineSpinner,
+    createErrorStateElement,
+    createEmptyStateElement,
+    showModalError, // Importar de main.js
+    clearModalError // Importar de main.js
+} from "./main.js";
 import { initFabMenu } from "./fabMenu.js";
 import { xhrPost } from './progress.js'; // Importar xhrPost
+
 
 // --- Global state & constants ---
 let currentFeedPage = 1;
@@ -558,7 +568,9 @@ function setupModalEventListeners() {
         const submitBtn = formCriarAviso.querySelector('button[type="submit"]');
         const originalButtonText = submitBtn.innerHTML;
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `${currentAvisoId ? 'Salvando...' : 'Criando...'} <span class="inline-spinner"></span>`;
+        submitBtn.innerHTML = `${avisoIdField.value ? 'Salvando...' : 'Criando...'} <span class="inline-spinner"></span>`;
+
+        clearModalError(criarAvisoModal); // Limpar erros anteriores
 
         // const hideSpinner = showInlineSpinner(submitBtn); // Replaced by direct manipulation
         const currentAvisoId = avisoIdField.value;
@@ -603,16 +615,20 @@ function setupModalEventListeners() {
             );
             showGlobalFeedback("Aviso criado com sucesso!", "success", 2500);
           }
+          // Sucesso:
           closeCriarAvisoModal();
           await loadInitialFeedItems();
+          // O showGlobalFeedback de sucesso (com duração reduzida) ainda é útil aqui
+          // para confirmar que a ação em background (loadInitialFeedItems) também ocorreu bem,
+          // e o modal fechou.
+          showGlobalFeedback(currentAvisoId ? "Aviso atualizado com sucesso!" : "Aviso criado com sucesso!", "success", 2500);
+
         } catch (error) {
           console.error("Erro ao salvar aviso:", error);
-          if (!error.handledByApiClient) {
-            showGlobalFeedback(
-              error.message || "Falha ao salvar o aviso.",
-              "error"
-            );
-          }
+          const errorMessage = error.detalhesValidacao || error.message || "Falha ao salvar o aviso. Verifique os dados e tente novamente.";
+          showModalError(criarAvisoModal, errorMessage);
+          // Não mostrar showGlobalFeedback de erro aqui, pois o erro já está no modal.
+          // Apenas se o erro for TÃO genérico que o apiClient já o tratou com um toast global.
         } finally {
           // hideSpinner(); // Replaced by direct manipulation
           submitBtn.innerHTML = originalButtonText;
@@ -675,10 +691,12 @@ function setupModalEventListeners() {
         e.preventDefault();
         const submitButton = formCriarEnquete.querySelector('button[type="submit"]');
         const originalButtonText = submitButton.innerHTML;
+        const id = enqueteIdField.value; // Captura o ID antes de desabilitar/mudar texto
+
         submitButton.disabled = true;
         submitButton.innerHTML = `${id ? 'Salvando...' : 'Criando...'} <span class="inline-spinner"></span>`;
+        clearModalError(criarEnqueteModal); // Limpar erros anteriores
 
-        const id = enqueteIdField.value;
         const perguntaOuTitulo =
           document.getElementById("enquete-pergunta").value;
         const opcoesTexto = document.getElementById("enquete-opcoes").value;
@@ -690,11 +708,21 @@ function setupModalEventListeners() {
           .map((opt) => opt.trim())
           .filter((opt) => opt !== "")
           .map((desc) => ({ Descricao: desc }));
+
+        if (!perguntaOuTitulo.trim()) {
+            showModalError(criarEnqueteModal, "O título/pergunta da enquete é obrigatório.");
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
+            return;
+        }
+
         if (opcoesDto.length < 2) {
-          showGlobalFeedback(
-            "Uma enquete deve ter pelo menos duas opções.",
-            "error"
-          );
+          showModalError(criarEnqueteModal, "Uma enquete deve ter pelo menos duas opções.");
+          // Restaurar botão e não retornar ainda, para que o finally seja alcançado se houver.
+          // No entanto, o fluxo atual não tem um try/finally em volta desta validação.
+          // Para consistência, restauramos o botão e retornamos.
+          submitButton.innerHTML = originalButtonText;
+          submitButton.disabled = false;
           return;
         }
         const enqueteData = {
@@ -703,15 +731,35 @@ function setupModalEventListeners() {
           DataFim: prazo ? prazo : null,
           Opcoes: opcoesDto,
         };
-        if (id) {
-          await handleUpdateEnquete(id, enqueteData);
-        } else {
-          await handleCreateEnquete(enqueteData);
+
+        try {
+          if (id) {
+            await handleUpdateEnquete(id, enqueteData); // Mostra warning global, não há erro de API esperado
+            // Se fosse uma API call real, o sucesso seria tratado aqui:
+            // if (criarEnqueteModal) criarEnqueteModal.style.display = "none";
+            // formCriarEnquete.reset();
+            // showGlobalFeedback("Enquete atualizada com sucesso!", "success", 2500);
+
+            // Por ora, como só exibe warning, podemos fechar o modal se desejado.
+            if (criarEnqueteModal) criarEnqueteModal.style.display = "none";
+            formCriarEnquete.reset();
+
+          } else {
+            await handleCreateEnquete(enqueteData); // Agora só faz a chamada e recarrega o feed
+            // Sucesso da criação:
+            if (criarEnqueteModal) criarEnqueteModal.style.display = "none";
+            formCriarEnquete.reset();
+            showGlobalFeedback("Nova enquete criada com sucesso! Ela aparecerá no feed.", "success", 2500);
+          }
+        } catch (error) {
+          // Este catch pegará erros de handleCreateEnquete (que agora propaga o erro)
+          // ou erros inesperados.
+          const errorMessage = error.detalhesValidacao || error.message || "Falha ao processar a enquete.";
+          showModalError(criarEnqueteModal, errorMessage);
+        } finally {
+          submitButton.innerHTML = originalButtonText;
+          submitButton.disabled = false;
         }
-        if (criarEnqueteModal) criarEnqueteModal.style.display = "none";
-        formCriarEnquete.reset();
-        submitButton.innerHTML = originalButtonText;
-        submitButton.disabled = false;
       });
     }
   }
@@ -738,27 +786,46 @@ function setupModalEventListeners() {
         event.preventDefault();
         const submitButton = formCriarChamado.querySelector('button[type="submit"]');
         const originalButtonText = submitButton.innerHTML;
+        const currentChamadoId = chamadoIdFieldModal.value;
+
         submitButton.disabled = true;
         submitButton.innerHTML = `${currentChamadoId ? 'Salvando...' : 'Abrindo...'} <span class="inline-spinner"></span>`;
+        clearModalError(criarChamadoModal);
 
-        const currentChamadoId = chamadoIdFieldModal.value;
         const chamadoData = {
           titulo: document.getElementById("chamado-titulo-modal").value,
           descricao: document.getElementById("chamado-descricao-modal").value,
           categoria: document.getElementById("chamado-categoria-modal").value,
         };
-        if (currentChamadoId) {
-          chamadoData.status = document.getElementById(
-            "chamado-status-modal"
-          ).value;
-          await handleUpdateChamado(currentChamadoId, chamadoData);
-        } else {
-          await handleCreateChamado(chamadoData);
+
+        try {
+          if (currentChamadoId) {
+            // Este é o modal de "Criar Chamado", mas o código permite um ID.
+            // Se currentChamadoId existir, significa que estamos editando através deste modal,
+            // o que é menos comum para "Criar Solicitação". A função handleUpdateChamado
+            // atualmente só exibe um warning. Se fosse uma edição real, o tratamento seria similar.
+            chamadoData.status = document.getElementById("chamado-status-modal").value;
+            await handleUpdateChamado(currentChamadoId, chamadoData); // Mostra warning global
+            if (criarChamadoModal) criarChamadoModal.style.display = "none"; // Fecha no "sucesso" do warning
+            formCriarChamado.reset();
+          } else {
+            // Validação simples antes de chamar a API
+            if (!chamadoData.titulo.trim() || !chamadoData.descricao.trim() || !chamadoData.categoria.trim()) {
+              throw new Error("Título, descrição e categoria são obrigatórios.");
+            }
+            await handleCreateChamado(chamadoData);
+            // Sucesso:
+            if (criarChamadoModal) criarChamadoModal.style.display = "none";
+            formCriarChamado.reset();
+            showGlobalFeedback("Nova solicitação aberta com sucesso! Ela aparecerá no feed.", "success", 2500);
+          }
+        } catch (error) {
+          const errorMessage = error.detalhesValidacao || error.message || "Falha ao processar a solicitação.";
+          showModalError(criarChamadoModal, errorMessage);
+        } finally {
+          submitButton.innerHTML = originalButtonText;
+          submitButton.disabled = false;
         }
-        if (criarChamadoModal) criarChamadoModal.style.display = "none";
-        formCriarChamado.reset();
-        submitButton.innerHTML = originalButtonText;
-        submitButton.disabled = false;
       });
     }
   }
@@ -782,10 +849,31 @@ function setupModalEventListeners() {
         event.preventDefault();
         const submitButton = formCriarOcorrencia.querySelector('button[type="submit"]');
         const originalButtonText = submitButton.innerHTML;
+
         submitButton.disabled = true;
         submitButton.innerHTML = 'Enviando... <span class="inline-spinner"></span>';
+        clearModalError(criarOcorrenciaModal); // Limpar erros anteriores
+
         try {
+          // handleCreateOcorrencia fará a validação e a chamada de API.
+          // Ele será modificado para mostrar erros de validação/API no modal.
           await handleCreateOcorrencia();
+          // Se handleCreateOcorrencia for bem-sucedido, ele fecha o modal e mostra o feedback de sucesso.
+        } catch (error) {
+          // Este catch é para erros que handleCreateOcorrencia pode relançar
+          // (especialmente erros de validação para que o botão seja resetado aqui)
+          // ou erros inesperados no próprio listener.
+          // Se showModalError já foi chamado em handleCreateOcorrencia, não há problema em chamar de novo,
+          // ou podemos fazer handleCreateOcorrencia retornar um booleano de sucesso/falha.
+          // Por ora, se handleCreateOcorrencia já mostrou o erro no modal, este catch pode não ser necessário
+          // para erros de API, mas sim para reset do botão em caso de erro de validação.
+          // A refatoração de handleCreateOcorrencia cuidará de mostrar o erro no modal.
+          // Este catch aqui garante que o botão seja redefinido.
+          const errorMessage = error.message || "Ocorreu um problema ao enviar a ocorrência.";
+          if (!criarOcorrenciaModal.querySelector('.cv-modal-error-message[style*="display: block"]')) {
+            // Só mostra erro aqui se handleCreateOcorrencia não o fez.
+            showModalError(criarOcorrenciaModal, errorMessage);
+          }
         } finally {
           submitButton.innerHTML = originalButtonText;
           submitButton.disabled = false;
@@ -1725,54 +1813,62 @@ function renderResultadosEnquete(opcoes, status, usuarioJaVotou, dataFim) {
 async function submitVoto(enqueteId) {
   const form = document.getElementById("form-votar-enquete");
   if (!form) return;
+
+  const submitButton = document.getElementById("modal-enquete-submit-voto");
+  if (!submitButton) return; // Safety check
+  const originalButtonText = submitButton.innerHTML;
+
+  clearModalError(modalEnqueteDetalhe); // Limpar erros anteriores
+
   const selectedOption = form.querySelector('input[name="opcaoVoto"]:checked');
   if (!selectedOption) {
-    showGlobalFeedback("Por favor, selecione uma opção para votar.", "warning");
+    showModalError(modalEnqueteDetalhe, "Por favor, selecione uma opção para votar.");
+    // Não desabilitar o botão ou mudar texto, pois o usuário precisa poder tentar de novo.
     return;
   }
   const opcaoId = selectedOption.value;
-  const submitButton = document.getElementById("modal-enquete-submit-voto");
-  const originalButtonText = submitButton.innerHTML;
 
-  // Optimistic UI: Update UI immediately
+  // UI Otimista e Desabilitar botão durante a submissão
   submitButton.disabled = true;
-  submitButton.innerHTML = 'Voto Registrado!'; // Feedback imediato de sucesso no botão
-  // Simular atualização da contagem de votos (se a UI mostrasse isso antes de reabrir)
-  // Por exemplo, encontrar a opção na UI e incrementar visualmente.
-  // Como handleEnqueteClick será chamado, ele já recarrega os dados.
-  // A principal mudança aqui é o feedback imediato no botão e desabilitá-lo.
+  submitButton.innerHTML = 'Registrando... <span class="inline-spinner"></span>';
 
-  // Esconder opções de voto e botão, mostrar mensagem de "já votou"
+  // A UI otimista de esconder opções e mostrar "voto registrado" pode ser mantida,
+  // mas precisa ser revertida em caso de erro.
+  const originalOpcoesHTML = modalEnqueteDetalheOpcoesContainer.innerHTML;
   modalEnqueteDetalheOpcoesContainer.innerHTML = '<p class="poll-status voted">Seu voto foi registrado. Atualizando resultados...</p>';
-  modalEnqueteSubmitVotoButton.style.display = "none";
-
+  // modalEnqueteSubmitVotoButton.style.display = "none"; // O botão já está desabilitado e com spinner
 
   try {
-    await apiClient.post(`/api/v1/votacoes/app/votacoes/${enqueteId}/votar`, {
-      OpcaoId: opcaoId,
-    });
-    showGlobalFeedback("Voto confirmado pelo servidor!", "success", 2000); // Mensagem mais curta
-    // modalEnqueteSubmitVotoButton.style.display = "none"; // Já feito
-    // await handleEnqueteClick(enqueteId, null); // Será chamado no finally
+    await apiClient.post(`/api/v1/votacoes/app/votacoes/${enqueteId}/votar`, { OpcaoId: opcaoId });
+    showGlobalFeedback("Voto confirmado pelo servidor!", "success", 2000);
+    // O handleEnqueteClick no finally vai recarregar e mostrar o estado correto (resultados/já votou).
+    // Não precisa mais esconder o botão aqui explicitamente, o handleEnqueteClick vai determinar.
   } catch (error) {
     console.error("Erro ao registrar voto:", error);
-    // Revert UI changes if error occurs
-    submitButton.innerHTML = originalButtonText; // Restaurar texto original do botão
-    submitButton.disabled = false; // Reabilitar o botão
-    // Recarregar as opções de voto e estado anterior (handleEnqueteClick fará isso)
-    showGlobalFeedback("Falha ao registrar o voto. Tente novamente.", "error");
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(
-        error.message || "Falha ao registrar o voto.",
-        "error"
-      );
-    }
-    // await handleEnqueteClick(enqueteId, null); // This re-renders, no need if modal closes or updates directly
-  } finally {
+    // Reverter UI otimista
+    modalEnqueteDetalheOpcoesContainer.innerHTML = originalOpcoesHTML; // Restaura as opções de voto
+
+    const errorMessage = error.message || "Falha ao registrar o voto. Tente novamente.";
+    showModalError(modalEnqueteDetalhe, errorMessage);
+
+    // Restaurar botão para permitir nova tentativa
     submitButton.innerHTML = originalButtonText;
-    // submitButton.disabled = false; // Keep disabled as it's hidden on success or error will re-enable if needed by handleEnqueteClick
-    // Re-calling handleEnqueteClick will re-evaluate if the button should be shown/enabled.
-     await handleEnqueteClick(enqueteId, null);
+    submitButton.disabled = false;
+    // Não chamar showGlobalFeedback de erro aqui.
+  } finally {
+    // Se não houve erro, o botão já estará com spinner. Se houve erro, foi resetado.
+    // O `handleEnqueteClick` vai re-renderizar o estado do modal, incluindo o botão.
+    // Se o voto foi bem sucedido, o botão não deve reaparecer (pois usuarioJaVotou será true).
+    // Se falhou, o botão já foi re-ativado no catch.
+    // Então, o reset do texto/estado do botão aqui pode não ser sempre necessário,
+    // mas é mais seguro garantir que ele volte ao estado original se não for ser escondido.
+    if (!submitButton.disabled) { // Se o catch já reabilitou.
+        // submitButton.innerHTML = originalButtonText; // Já feito no catch
+    } else if(modalEnqueteSubmitVotoButton.style.display !== 'none') { // Se ainda estiver visível e desabilitado (sucesso)
+        // O handleEnqueteClick vai esconder ou mudar o botão, então não precisa resetar aqui.
+    }
+
+    await handleEnqueteClick(enqueteId, null); // Recarrega os detalhes da enquete
   }
 }
 
@@ -1950,17 +2046,15 @@ async function submitChamadoUpdateBySindico(chamadoId) {
     "modal-chamado-resposta-textarea"
   );
   const updateBtn = document.getElementById("modal-chamado-submit-sindico-update");
-  // const hideSpinner = showInlineSpinner(updateBtn); // Replaced
   const originalButtonText = updateBtn.innerHTML;
   updateBtn.disabled = true;
   updateBtn.innerHTML = 'Salvando... <span class="inline-spinner"></span>';
-
+  clearModalError(modalChamadoDetalhe); // Limpar erros anteriores no modal de detalhes
 
   if (!statusSelect || !respostaTextarea) {
-    showGlobalFeedback(
-      "Erro: Elementos do formulário de atualização do síndico não encontrados.",
-      "error"
-    );
+    // Este erro é de setup, um toast global é aceitável ou um erro no console.
+    // Mas para consistência, tentaremos mostrar no modal se possível.
+    showModalError(modalChamadoDetalhe, "Erro interno: Elementos do formulário não encontrados.");
     updateBtn.innerHTML = originalButtonText;
     updateBtn.disabled = false;
     return;
@@ -1970,31 +2064,27 @@ async function submitChamadoUpdateBySindico(chamadoId) {
   const respostaDoSindico = respostaTextarea.value.trim();
 
   if (!status) {
-    showGlobalFeedback("O novo status do chamado é obrigatório.", "warning");
+    showModalError(modalChamadoDetalhe, "O novo status do chamado é obrigatório.");
     updateBtn.innerHTML = originalButtonText;
     updateBtn.disabled = false;
     return;
   }
 
   try {
-    // showGlobalFeedback("Atualizando chamado...", "info"); // Spinner on button is enough
     await apiClient.put(`/api/v1/chamados/syndic/chamados/${chamadoId}`, {
       status: status,
       respostaDoSindico: respostaDoSindico,
     });
-    showGlobalFeedback("Chamado atualizado com sucesso!", "success", 2500);
+    // Sucesso:
     if (modalChamadoDetalhe) modalChamadoDetalhe.style.display = "none";
     await loadInitialFeedItems();
+    showGlobalFeedback("Chamado atualizado com sucesso!", "success", 2500);
   } catch (error) {
     console.error("Erro ao atualizar chamado pelo síndico:", error);
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(
-        error.message || "Falha ao atualizar o chamado.",
-        "error"
-      );
-    }
+    const errorMessage = error.detalhesValidacao || error.message || "Falha ao atualizar o chamado.";
+    showModalError(modalChamadoDetalhe, errorMessage);
+    // Não mostrar showGlobalFeedback de erro aqui.
   } finally {
-    // hideSpinner();
     updateBtn.innerHTML = originalButtonText;
     updateBtn.disabled = false;
   }
@@ -2078,21 +2168,12 @@ function openCreateEnqueteModal() {
 }
 
 async function handleCreateEnquete(enqueteData) {
-  try {
-    showGlobalFeedback("Criando nova enquete...", "info");
-    await apiClient.post("/api/v1/votacoes/syndic/votacoes", enqueteData);
-    showGlobalFeedback(
-      "Nova enquete criada com sucesso! Ela aparecerá no feed.",
-      "success",
-      2500
-    );
-    await loadInitialFeedItems();
-  } catch (error) {
-    console.error("Erro ao criar enquete:", error);
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(error.message || "Falha ao criar a enquete.", "error");
-    }
-  }
+  // Opcional: manter o feedback "info" se desejado, mas o spinner no botão já indica processamento.
+  // showGlobalFeedback("Criando nova enquete...", "info", 1500);
+  await apiClient.post("/api/v1/votacoes/syndic/votacoes", enqueteData);
+  // Não mostra mais feedback de sucesso ou erro aqui. Deixa o chamador lidar.
+  await loadInitialFeedItems();
+  // Se apiClient.post lança um erro, ele será propagado para o chamador.
 }
 
 async function handleUpdateEnquete(id, enqueteData) {
@@ -2208,26 +2289,14 @@ function setupOcorrenciasTab() {
 }
 
 async function handleCreateChamado(chamadoData) {
-  try {
-    showGlobalFeedback("Abrindo novo chamado...", "info");
-    const dataParaApi = {
-      Titulo: chamadoData.titulo,
-      Descricao: `Categoria: ${chamadoData.categoria}\n\n${chamadoData.descricao}`,
-      // Fotos e UnidadeId são opcionais e seriam adicionados aqui se presentes em chamadoData e suportados pelo DTO.
-    };
-    await apiClient.post("/api/v1/chamados/app/chamados", dataParaApi);
-    showGlobalFeedback(
-      "Novo chamado aberto com sucesso! Ele aparecerá no feed.",
-      "success",
-      2500
-    );
-    await loadInitialFeedItems();
-  } catch (error) {
-    console.error("Erro ao abrir chamado:", error);
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(error.message || "Falha ao abrir o chamado.", "error");
-    }
-  }
+  // showGlobalFeedback("Abrindo novo chamado...", "info", 1500); // Opcional
+  const dataParaApi = {
+    Titulo: chamadoData.titulo,
+    Descricao: `Categoria: ${chamadoData.categoria}\n\n${chamadoData.descricao}`,
+    // Fotos e UnidadeId são opcionais e seriam adicionados aqui se presentes em chamadoData e suportados pelo DTO.
+  };
+  await apiClient.post("/api/v1/chamados/app/chamados", dataParaApi);
+  await loadInitialFeedItems(); // Propaga erro se houver
 }
 
 async function handleUpdateChamado(id, chamadoData) {
@@ -2295,11 +2364,16 @@ async function handleCreateOcorrencia() {
   const prioridade = ocorrenciaPrioridadeSelect.value || "NORMAL";
 
   if (!titulo || !descricao || !categoria) {
-    showGlobalFeedback(
-      "Preencha título, descrição e categoria da ocorrência.",
-      "warning"
-    );
-    return;
+    const message = "Preencha título, descrição e categoria da ocorrência.";
+    // Precisamos garantir que o modal de ocorrência seja passado ou acessível aqui
+    // Se criarOcorrenciaModal é globalmente acessível:
+    if (criarOcorrenciaModal) { // criarOcorrenciaModal é uma variável global no escopo do módulo
+        showModalError(criarOcorrenciaModal, message);
+    } else {
+        // Fallback se o modal não estiver acessível (improvável neste contexto)
+        showGlobalFeedback(message, "warning");
+    }
+    throw new Error(message); // Lança erro para que o listener do form possa resetar o botão no finally
   }
 
   const formData = new FormData();
@@ -2349,14 +2423,17 @@ async function handleCreateOcorrencia() {
       ocorrenciaAnexosPreviewContainer.innerHTML = "";
     }
     await loadInitialFeedItems();
+    // Sucesso já tratado pelo showGlobalFeedback no try.
   } catch (error) {
     console.error("Erro ao criar ocorrência:", error);
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(
-        error.message || "Falha ao criar a ocorrência.",
-        "error"
-      );
+    const errorMessage = error.detalhesValidacao || error.message || "Falha ao criar a ocorrência.";
+    if (criarOcorrenciaModal) { // criarOcorrenciaModal é global
+        showModalError(criarOcorrenciaModal, errorMessage);
+    } else {
+        // Fallback improvável
+        showGlobalFeedback(errorMessage, "error");
     }
+    throw error; // Relança o erro para o listener do form poder lidar com o finally (reset do botão)
   } finally {
     if (ocorrenciaProgressBar) ocorrenciaProgressBar.style.display = 'none';
   }

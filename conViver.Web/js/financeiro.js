@@ -1,6 +1,15 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth } from './auth.js';
-import { formatCurrency, formatDate, showGlobalFeedback, showInlineSpinner } from './main.js';
+import {
+    formatCurrency,
+    formatDate,
+    showGlobalFeedback,
+    showInlineSpinner,
+    createErrorStateElement, // Adicionado
+    createEmptyStateElement, // Adicionado
+    showModalError,          // Adicionado
+    clearModalError          // Adicionado
+} from './main.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
 function getStatusBadgeHtml(status) {
@@ -144,26 +153,35 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const form = event.target;
         const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.textContent; // Salva o texto original
+
         submitButton.disabled = true;
+        submitButton.innerHTML = 'Salvando... <span class="inline-spinner"></span>'; // Adiciona spinner
+        clearModalError(modalCobranca); // modalCobranca é a referência ao elemento do modal
 
         const unidadeId = form.unidadeId.value.trim();
         const valor = parseFloat(form.valor.value);
         const dataVencimento = form.dataVencimento.value;
         const descricao = form.descricao.value.trim();
+        let validationError = null;
 
         if (!unidadeId || !valor || !dataVencimento) {
-            showGlobalFeedback('Por favor, preencha todos os campos obrigatórios.', 'error');
-            submitButton.disabled = false;
-            return;
+            validationError = 'Por favor, preencha Unidade, Valor e Data de Vencimento.';
+        } else if (isNaN(valor) || valor <= 0) {
+            validationError = 'O valor da cobrança deve ser um número positivo.';
+        } else {
+            const hoje = new Date();
+            const dataVencObj = new Date(dataVencimento + "T00:00:00"); // Considerar timezone
+            hoje.setHours(0,0,0,0); // Normalizar hoje para comparar só data
+
+            if (dataVencObj < hoje) {
+                 validationError = 'A data de vencimento não pode ser no passado.';
+            }
         }
-        if (isNaN(valor) || valor <= 0) {
-            showGlobalFeedback('O valor da cobrança deve ser um número positivo.', 'error');
-            submitButton.disabled = false;
-            return;
-        }
-        const hoje = new Date().toISOString().split('T')[0];
-        if (dataVencimento < hoje) {
-            showGlobalFeedback('A data de vencimento não pode ser no passado.', 'error');
+
+        if (validationError) {
+            showModalError(modalCobranca, validationError);
+            submitButton.innerHTML = originalButtonText;
             submitButton.disabled = false;
             return;
         }
@@ -173,17 +191,15 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await apiClient.post('/financeiro/cobrancas', novaCobrancaDto);
             closeModal();
+            showGlobalFeedback("Cobrança emitida com sucesso!", "success", 2500); // Toast de sucesso
             fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
             fetchAndRenderDashboard();
         } catch (error) {
             console.error('Erro ao criar cobrança:', error);
-            const defaultMessage = 'Ocorreu um erro inesperado ao emitir a cobrança.';
-            if (error instanceof ApiError) {
-                showGlobalFeedback(`Erro ao emitir cobrança: ${error.message || defaultMessage}`, 'error');
-            } else {
-                showGlobalFeedback(defaultMessage, 'error');
-            }
+            const errorMessage = error.detalhesValidacao || error.message || 'Ocorreu um erro inesperado ao emitir a cobrança.';
+            showModalError(modalCobranca, errorMessage);
         } finally {
+            submitButton.innerHTML = originalButtonText; // Restaura texto original
             submitButton.disabled = false;
         }
     }
@@ -210,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const resultado = await apiClient.post('/financeiro/cobrancas/gerar-lote', requestBody);
                 if (resultado.sucesso) {
+                    showGlobalFeedback(resultado.mensagem || "Cobranças em lote geradas com sucesso!", "success", 3000);
                     fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
                     fetchAndRenderDashboard();
                 } else {
@@ -264,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const resultado = await apiClient.put(`/financeiro/cobrancas/${cobrancaId}/cancelar`, {});
                     if (resultado && resultado.sucesso) {
+                        showGlobalFeedback(resultado.mensagem || "Cobrança cancelada com sucesso!", "success", 2500);
                         fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
                         fetchAndRenderDashboard();
                     } else {
@@ -291,10 +309,25 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Elemento .js-lista-cobrancas não encontrado.');
             return;
         }
-        tbodyCobrancas.innerHTML = '';
+        tbodyCobrancas.innerHTML = ''; // Limpa antes de adicionar EmptyState ou cards
 
         if (!cobrancas || cobrancas.length === 0) {
-            tbodyCobrancas.innerHTML = '<p class="cv-info-message">Nenhuma cobrança encontrada.</p>';
+            const filtroStatus = filtroStatusEl ? filtroStatusEl.value : '';
+            const emptyState = createEmptyStateElement({
+                iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48px" height="48px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-9h4v2h-4v-2zm0-4h4v2h-4V7z"/></svg>`, // Ícone genérico de lista/dinheiro
+                title: filtroStatus ? "Nenhuma Cobrança Encontrada" : "Sem Cobranças",
+                description: filtroStatus
+                    ? "Não há cobranças que correspondam ao filtro de status selecionado."
+                    : "Ainda não há cobranças registradas ou todas foram liquidadas.",
+                actionButton: filtroStatus ? {
+                    text: "Limpar Filtro",
+                    onClick: () => {
+                        if (btnLimparFiltroCobrancaEl) btnLimparFiltroCobrancaEl.click();
+                    },
+                    classes: ["cv-button--secondary"]
+                } : null
+            });
+            tbodyCobrancas.appendChild(emptyState);
             return;
         }
 
@@ -355,16 +388,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const cobrancas = await apiClient.get(apiUrl);
-            renderCobrancas(cobrancas);
+            renderCobrancas(cobrancas); // renderCobrancas agora lida com o EmptyState
         } catch (error) {
             console.error('Erro ao buscar cobranças:', error);
-            tbodyCobrancas.innerHTML = '<p class="cv-error-message">Erro ao carregar cobranças. Tente novamente.</p>';
-            const defaultMessage = 'Ocorreu um erro inesperado ao buscar cobranças.';
-            if (error instanceof ApiError) {
-                showGlobalFeedback(`Erro ao buscar cobranças: ${error.message || defaultMessage}`, 'error');
-            } else {
-                showGlobalFeedback(defaultMessage, 'error');
+            if (tbodyCobrancas) { // Garante que o container existe
+                tbodyCobrancas.innerHTML = ''; // Limpa mensagens de carregamento ou conteúdo antigo
+                const errorState = createErrorStateElement({
+                    title: "Erro ao Carregar Cobranças",
+                    message: error.message || "Não foi possível buscar as cobranças. Verifique sua conexão e tente novamente.",
+                    retryButton: {
+                        text: "Tentar Novamente",
+                        onClick: () => fetchAndRenderCobrancas(status)
+                    }
+                });
+                tbodyCobrancas.appendChild(errorState);
             }
+            // O showGlobalFeedback foi removido pois o ErrorState é o feedback principal.
         } finally {
             if (cobrancasSkeleton) hideFeedSkeleton(cobrancasSkeleton);
         }
@@ -411,31 +450,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchAndRenderDespesas() {
         if (!despesasTableBody) return;
-        despesasTableBody.innerHTML = '<p>Carregando...</p>';
+
+        const despesasSkeletonId = 'despesas-skeleton'; // ID para o skeleton de despesas
+        let skeletonElement = document.getElementById(despesasSkeletonId);
+        if (!skeletonElement && despesasTableBody.parentNode) { // Cria skeleton se não existir
+            skeletonElement = document.createElement('div');
+            skeletonElement.id = despesasSkeletonId;
+            skeletonElement.className = 'feed-skeleton-container'; // Reutilizar estilo de skeleton
+            skeletonElement.innerHTML = `
+                <div class="feed-skeleton-item"><div class="skeleton-block skeleton-title" style="width: 40%; height: 20px;"></div><div class="skeleton-block skeleton-line"></div><div class="skeleton-block skeleton-line--short"></div></div>
+                <div class="feed-skeleton-item"><div class="skeleton-block skeleton-title" style="width: 50%; height: 20px;"></div><div class="skeleton-block skeleton-line"></div><div class="skeleton-block skeleton-line--short"></div></div>
+            `; // Skeleton simples para 2 cards
+            despesasTableBody.parentNode.insertBefore(skeletonElement, despesasTableBody);
+        }
+
+        if (skeletonElement) showSkeleton(skeletonElement);
+        despesasTableBody.innerHTML = ''; // Limpa conteúdo antigo
+
         try {
             const despesas = await apiClient.get('/financeiro/despesas');
-            despesasTableBody.innerHTML = '';
+            despesasTableBody.innerHTML = ''; // Limpa novamente caso o skeleton tenha sido inserido no mesmo container
+
             if (despesas && despesas.length) {
                 despesas.forEach(d => {
                     const card = document.createElement('div');
-                    card.className = 'cv-card despesa-card';
+                    card.className = 'cv-card despesa-card'; // Manter card para estilo
                     card.innerHTML = `
                         <div class="despesa-card__header">
-                            <h3>💸 ${d.categoria || ''}</h3>
+                            <h3>💸 ${d.categoria || 'Despesa'}</h3>
                             <span>${formatCurrency(d.valor)}</span>
                         </div>
-                        <p>📅 ${formatDate(new Date(d.dataVencimento))}</p>
+                        <p>Vencimento: 📅 ${formatDate(new Date(d.dataVencimento))}</p>
+                        ${d.descricao ? `<p class="despesa-card__descricao"><em>${d.descricao}</em></p>` : ''}
                     `;
                     despesasTableBody.appendChild(card);
                 });
             } else {
-                despesasTableBody.innerHTML = '<p class="cv-info-message">Nenhuma despesa encontrada.</p>';
+                const emptyState = createEmptyStateElement({
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48px" height="48px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"/></svg>`, // Ícone de informação/lista vazia
+                    title: "Sem Despesas",
+                    description: "Nenhuma despesa registrada para este período ou com os filtros aplicados."
+                });
+                despesasTableBody.appendChild(emptyState);
             }
             renderDespesasChart(despesas || []);
         } catch (err) {
             console.error('Erro ao buscar despesas:', err);
-            showGlobalFeedback('Erro ao carregar despesas', 'error');
-            despesasTableBody.innerHTML = '<p class="cv-error-message">Falha ao carregar.</p>';
+            despesasTableBody.innerHTML = ''; // Limpa
+            const errorState = createErrorStateElement({
+                title: "Erro ao Carregar Despesas",
+                message: err.message || "Não foi possível buscar as despesas. Tente novamente.",
+                retryButton: {
+                    text: "Tentar Novamente",
+                    onClick: fetchAndRenderDespesas
+                }
+            });
+            despesasTableBody.appendChild(errorState);
+            // showGlobalFeedback foi removido
+        } finally {
+            if (skeletonElement) hideSkeleton(skeletonElement);
         }
     }
 
