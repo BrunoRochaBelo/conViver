@@ -21,18 +21,36 @@
             <section class="communication__mural card-grid js-avisos">
                 <!-- Skeleton items for Mural -->
                 <div class="feed-skeleton-container" style="display: none;">
-                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
-                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
-                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-image skeleton-block"></div>
+                        <div class="skeleton-title skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                    </div>
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-title skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--medium"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                    </div>
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-image skeleton-block"></div>
+                        <div class="skeleton-title skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                    </div>
                 </div>
                 <!-- Feed items (including prioritized ones) will be loaded here by JS (infinite scroll) -->
             </section>
         </div>
 
         <div class="cv-tab-content" id="content-enquetes" style="display:none;">
-            <!-- Skeleton items for Enquetes (even if it's just a message, good for consistency) -->
+            <!-- Skeleton items for Enquetes -->
             <div class="feed-skeleton-container" style="display: none;">
-                <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                <div class="cv-card feed-skeleton-item">
+                    <div class="skeleton-title skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block skeleton-line--medium"></div>
+                </div>
             </div>
             <p class="cv-info-message" style="padding: 20px; text-align: center;">
                 Nenhuma enquete encontrada para os filtros atuais.
@@ -43,7 +61,11 @@
         <div class="cv-tab-content" id="content-solicitacoes" style="display:none;">
             <!-- Skeleton items for Solicitacoes -->
             <div class="feed-skeleton-container" style="display: none;">
-                <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                <div class="cv-card feed-skeleton-item">
+                    <div class="skeleton-title skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                </div>
             </div>
             <p class="cv-info-message" style="padding: 20px; text-align: center;">
                 Nenhuma solicitação encontrada para os filtros atuais.
@@ -54,7 +76,11 @@
         <div class="cv-tab-content" id="content-ocorrencias" style="display:none;">
             <!-- Skeleton items for Ocorrencias -->
             <div class="feed-skeleton-container" style="display: none;">
-                <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                <div class="cv-card feed-skeleton-item">
+                    <div class="skeleton-title skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                </div>
             </div>
             <p class="cv-info-message" style="padding: 20px; text-align: center;">
                 Nenhuma ocorrência encontrada para os filtros atuais.
@@ -187,6 +213,7 @@
                 <div class="cv-form-group">
                     <label for="aviso-imagem">Imagem (Opcional):</label>
                     <input type="file" id="aviso-imagem" name="imagem" class="cv-input" accept="image/*">
+                    <img id="aviso-imagem-preview" src="#" alt="Pré-visualização da imagem" style="max-width: 100%; max-height: 200px; margin-top: 10px; display: none;" loading="lazy">
                 </div>
                 <div class="cv-form-group">
                     <label for="aviso-anexos">Anexos (PDFs, etc. Opcional):</label>

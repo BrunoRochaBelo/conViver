@@ -2,6 +2,7 @@ import apiClient from "./apiClient.js";
 import { requireAuth, getUserInfo } from "./auth.js"; // Importa getUserInfo
 import { showGlobalFeedback, showSkeleton, hideSkeleton, showInlineSpinner } from "./main.js";
 import { initFabMenu } from "./fabMenu.js";
+import { xhrPost } from './progress.js'; // Importar xhrPost
 
 // --- Global state & constants ---
 let currentFeedPage = 1;
@@ -489,14 +490,27 @@ function openCriarAvisoModal() {
     formCriarAviso.reset();
     avisoIdField.value = "";
     criarAvisoModal.querySelector("h2").textContent = "Criar Novo Aviso";
-    formCriarAviso.querySelector('button[type="submit"]').textContent =
-      "Salvar Aviso";
+    formCriarAviso.querySelector('button[type="submit"]').textContent = "Salvar Aviso";
+    // Resetar e esconder preview da imagem
+    const imgPreview = document.getElementById("aviso-imagem-preview");
+    if (imgPreview) {
+        imgPreview.style.display = "none";
+        imgPreview.src = "#";
+    }
+    document.getElementById("aviso-imagem").value = ""; // Limpar o input file
     criarAvisoModal.style.display = "flex";
   }
 }
 
 function openEditFeedItemModal(itemType, itemId) {
   if (itemType === "Aviso") {
+    // Resetar e esconder preview da imagem ao abrir para edição também
+    const imgPreview = document.getElementById("aviso-imagem-preview");
+    if (imgPreview) {
+        imgPreview.style.display = "none";
+        imgPreview.src = "#";
+    }
+    document.getElementById("aviso-imagem").value = "";
     const itemData = fetchedFeedItems.find(
       (i) => i.id.toString() === itemId.toString() && i.itemType === "Aviso"
     );
@@ -561,7 +575,11 @@ function setupModalEventListeners() {
       formCriarAviso.addEventListener("submit", async (event) => {
         event.preventDefault();
         const submitBtn = formCriarAviso.querySelector('button[type="submit"]');
-        const hideSpinner = showInlineSpinner(submitBtn);
+        const originalButtonText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `${currentAvisoId ? 'Salvando...' : 'Criando...'} <span class="inline-spinner"></span>`;
+
+        // const hideSpinner = showInlineSpinner(submitBtn); // Replaced by direct manipulation
         const currentAvisoId = avisoIdField.value;
         const formData = new FormData(formCriarAviso);
 
@@ -615,7 +633,9 @@ function setupModalEventListeners() {
             );
           }
         } finally {
-          hideSpinner();
+          // hideSpinner(); // Replaced by direct manipulation
+          submitBtn.innerHTML = originalButtonText;
+          submitBtn.disabled = false;
         }
       });
     }
@@ -672,6 +692,11 @@ function setupModalEventListeners() {
     if (formCriarEnquete) {
       formCriarEnquete.addEventListener("submit", async (e) => {
         e.preventDefault();
+        const submitButton = formCriarEnquete.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML = `${id ? 'Salvando...' : 'Criando...'} <span class="inline-spinner"></span>`;
+
         const id = enqueteIdField.value;
         const perguntaOuTitulo =
           document.getElementById("enquete-pergunta").value;
@@ -704,6 +729,8 @@ function setupModalEventListeners() {
         }
         if (criarEnqueteModal) criarEnqueteModal.style.display = "none";
         formCriarEnquete.reset();
+        submitButton.innerHTML = originalButtonText;
+        submitButton.disabled = false;
       });
     }
   }
@@ -728,6 +755,11 @@ function setupModalEventListeners() {
     ) {
       formCriarChamado.addEventListener("submit", async (event) => {
         event.preventDefault();
+        const submitButton = formCriarChamado.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML = `${currentChamadoId ? 'Salvando...' : 'Abrindo...'} <span class="inline-spinner"></span>`;
+
         const currentChamadoId = chamadoIdFieldModal.value;
         const chamadoData = {
           titulo: document.getElementById("chamado-titulo-modal").value,
@@ -743,7 +775,9 @@ function setupModalEventListeners() {
           await handleCreateChamado(chamadoData);
         }
         if (criarChamadoModal) criarChamadoModal.style.display = "none";
-      formCriarChamado.reset();
+        formCriarChamado.reset();
+        submitButton.innerHTML = originalButtonText;
+        submitButton.disabled = false;
       });
     }
   }
@@ -765,7 +799,16 @@ function setupModalEventListeners() {
     if (formCriarOcorrencia) {
       formCriarOcorrencia.addEventListener("submit", async (event) => {
         event.preventDefault();
-        await handleCreateOcorrencia();
+        const submitButton = formCriarOcorrencia.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML = 'Enviando... <span class="inline-spinner"></span>';
+        try {
+          await handleCreateOcorrencia();
+        } finally {
+          submitButton.innerHTML = originalButtonText;
+          submitButton.disabled = false;
+        }
       });
     }
   }
@@ -821,13 +864,21 @@ function setupFeedItemActionButtons() {
     if (isSindico) {
       newButton.style.display = "inline-block";
       newButton.addEventListener("click", async (event) => {
-        const itemId = event.target.dataset.itemId;
+        const buttonElement = event.currentTarget; // Use currentTarget
+        const itemId = buttonElement.dataset.itemId;
         if (
           confirm("Tem certeza que deseja encerrar esta enquete manualmente?")
         ) {
-          const hideSpinner = showInlineSpinner(event.target);
-          await handleEndEnquete(itemId);
-          hideSpinner();
+          const originalButtonText = buttonElement.innerHTML;
+          buttonElement.disabled = true;
+          buttonElement.innerHTML = 'Encerrando... <span class="inline-spinner"></span>';
+          try {
+            await handleEndEnquete(itemId);
+          } finally {
+            buttonElement.innerHTML = originalButtonText;
+            buttonElement.disabled = false;
+            // The feed will be reloaded by handleEndEnquete, so button state will be updated.
+          }
         }
       });
     } else {
@@ -843,8 +894,17 @@ function setupFeedItemActionButtons() {
       if (isSindico) {
         newButton.style.display = "inline-block";
         newButton.addEventListener("click", async (event) => {
-          const itemId = event.target.dataset.itemId;
-          await handleGenerateAtaEnquete(itemId);
+          const buttonElement = event.currentTarget;
+          const itemId = buttonElement.dataset.itemId;
+          const originalButtonText = buttonElement.innerHTML;
+          buttonElement.disabled = true;
+          buttonElement.innerHTML = 'Gerando... <span class="inline-spinner"></span>';
+          try {
+            await handleGenerateAtaEnquete(itemId);
+          } finally {
+            buttonElement.innerHTML = originalButtonText;
+            buttonElement.disabled = false;
+          }
         });
       } else {
         newButton.style.display = "none";
@@ -1031,6 +1091,19 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     // If we want a specific "loading more" visual, it would go here.
     // e.g., a small spinner near the sentinel.
     // For simplicity, we'll let the existing skeleton cover this or just load.
+    // Show a small spinner near the sentinel when loading more items
+    if (append && sentinelElement) {
+      const spinner = sentinelElement.querySelector('.inline-spinner');
+      if (!spinner) {
+        const spinnerElement = document.createElement('span');
+        spinnerElement.className = 'inline-spinner';
+        spinnerElement.style.display = 'block';
+        spinnerElement.style.margin = 'var(--cv-spacing-md) auto'; // Center it
+        sentinelElement.insertAdjacentElement('beforebegin', spinnerElement);
+      } else {
+        spinner.style.display = 'block';
+      }
+    }
   }
   if (sentinelElement) sentinelElement.style.display = "block"; // Keep sentinel active
 
@@ -1112,6 +1185,21 @@ async function fetchAndDisplayFeedItems(page, append = false) {
           )
         ) {
           fetchedFeedItems.push(item);
+        }
+        // After appending, find the image and apply progressive loading logic
+        const imgElement = itemElement.querySelector('.feed-item__image');
+        if (imgElement && imgElement.dataset.src) {
+          const highResImage = new Image();
+          highResImage.onload = () => {
+            imgElement.src = highResImage.src;
+            imgElement.classList.add('loaded');
+          };
+          highResImage.onerror = () => {
+            // Optional: handle error, e.g., remove blur, show broken image icon
+            imgElement.classList.add('loaded'); // Remove blur even on error to show placeholder or broken icon clearly
+            console.error("Erro ao carregar imagem de alta resolução:", imgElement.dataset.src);
+          };
+          highResImage.src = imgElement.dataset.src;
         }
       });
 
@@ -1197,6 +1285,14 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     hideFeedSkeleton("content-mural");
     if(finalActiveTab !== "content-mural") hideFeedSkeleton(finalActiveTab);
 
+    // Hide spinner for "load more" if it was shown
+    if (append && sentinelElement) {
+        const spinner = sentinelElement.parentElement.querySelector('.inline-spinner:not(#' + feedScrollSentinelId + ' .inline-spinner)');
+        if (spinner) {
+            spinner.style.display = 'none';
+        }
+    }
+
     // Restore info messages for Enquetes/Solicitações if they are active and mural is empty
     if ((finalActiveTab === "content-enquetes" || finalActiveTab === "content-solicitacoes")) {
         const muralItems = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)");
@@ -1254,7 +1350,19 @@ function renderFeedItem(item) {
   let tagDisplay =
     categoriaMap[categoriaParaTag?.toLowerCase()] || categoriaParaTag;
 
-  let contentHtml = `
+  let contentHtml = "";
+  // Adicionar imagem com lazy loading e preparo para progressive loading
+  if (item.imagemUrl) {
+    // Usaremos um placeholder simples por enquanto. Idealmente, seria uma LQIP real.
+    // Poderia ser uma miniatura de 1x1 pixel ou um SVG placeholder.
+    const placeholderSrc = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"; // 1x1 pixel transparente
+    contentHtml += `
+      <div class="feed-item__image-container">
+        <img src="${placeholderSrc}" data-src="${item.imagemUrl}" alt="Imagem do feed: ${item.titulo}" class="feed-item__image" loading="lazy">
+      </div>`;
+  }
+
+  contentHtml += `
         <h3 class="feed-item__title">${pinLabel}${item.titulo}</h3>
         <p class="feed-item__summary">${item.resumo}</p>
         <div class="feed-item__meta">
@@ -1529,23 +1637,48 @@ async function submitVoto(enqueteId) {
     return;
   }
   const opcaoId = selectedOption.value;
+  const submitButton = document.getElementById("modal-enquete-submit-voto");
+  const originalButtonText = submitButton.innerHTML;
+
+  // Optimistic UI: Update UI immediately
+  submitButton.disabled = true;
+  submitButton.innerHTML = 'Voto Registrado!'; // Feedback imediato de sucesso no botão
+  // Simular atualização da contagem de votos (se a UI mostrasse isso antes de reabrir)
+  // Por exemplo, encontrar a opção na UI e incrementar visualmente.
+  // Como handleEnqueteClick será chamado, ele já recarrega os dados.
+  // A principal mudança aqui é o feedback imediato no botão e desabilitá-lo.
+
+  // Esconder opções de voto e botão, mostrar mensagem de "já votou"
+  modalEnqueteDetalheOpcoesContainer.innerHTML = '<p class="poll-status voted">Seu voto foi registrado. Atualizando resultados...</p>';
+  modalEnqueteSubmitVotoButton.style.display = "none";
+
+
   try {
-    showGlobalFeedback("Registrando seu voto...", "info");
     await apiClient.post(`/api/v1/votacoes/app/votacoes/${enqueteId}/votar`, {
       OpcaoId: opcaoId,
     });
-    showGlobalFeedback("Voto registrado com sucesso!", "success");
-    modalEnqueteSubmitVotoButton.style.display = "none";
-    await handleEnqueteClick(enqueteId, null);
+    showGlobalFeedback("Voto confirmado pelo servidor!", "success", 2000); // Mensagem mais curta
+    // modalEnqueteSubmitVotoButton.style.display = "none"; // Já feito
+    // await handleEnqueteClick(enqueteId, null); // Será chamado no finally
   } catch (error) {
     console.error("Erro ao registrar voto:", error);
+    // Revert UI changes if error occurs
+    submitButton.innerHTML = originalButtonText; // Restaurar texto original do botão
+    submitButton.disabled = false; // Reabilitar o botão
+    // Recarregar as opções de voto e estado anterior (handleEnqueteClick fará isso)
+    showGlobalFeedback("Falha ao registrar o voto. Tente novamente.", "error");
     if (!error.handledByApiClient) {
       showGlobalFeedback(
         error.message || "Falha ao registrar o voto.",
         "error"
       );
     }
-    await handleEnqueteClick(enqueteId, null);
+    // await handleEnqueteClick(enqueteId, null); // This re-renders, no need if modal closes or updates directly
+  } finally {
+    submitButton.innerHTML = originalButtonText;
+    // submitButton.disabled = false; // Keep disabled as it's hidden on success or error will re-enable if needed by handleEnqueteClick
+    // Re-calling handleEnqueteClick will re-evaluate if the button should be shown/enabled.
+     await handleEnqueteClick(enqueteId, null);
   }
 }
 
@@ -1707,7 +1840,8 @@ function renderDetalhesGenerico(itemData, itemType) {
   if (itemData.fotos && itemData.fotos.length > 0) {
     html += `<p><strong>Fotos:</strong></p><div class="item-photos">`;
     itemData.fotos.forEach((fotoUrl) => {
-      html += `<img src="${fotoUrl}" alt="Foto do item" style="max-width:100px; margin:5px; border:1px solid #ddd;">`;
+      // Adicionado loading="lazy"
+      html += `<img src="${fotoUrl}" alt="Foto do item" style="max-width:100px; margin:5px; border:1px solid #ddd;" loading="lazy">`;
     });
     html += `</div>`;
   }
@@ -1721,13 +1855,19 @@ async function submitChamadoUpdateBySindico(chamadoId) {
     "modal-chamado-resposta-textarea"
   );
   const updateBtn = document.getElementById("modal-chamado-submit-sindico-update");
-  const hideSpinner = showInlineSpinner(updateBtn);
+  // const hideSpinner = showInlineSpinner(updateBtn); // Replaced
+  const originalButtonText = updateBtn.innerHTML;
+  updateBtn.disabled = true;
+  updateBtn.innerHTML = 'Salvando... <span class="inline-spinner"></span>';
+
 
   if (!statusSelect || !respostaTextarea) {
     showGlobalFeedback(
       "Erro: Elementos do formulário de atualização do síndico não encontrados.",
       "error"
     );
+    updateBtn.innerHTML = originalButtonText;
+    updateBtn.disabled = false;
     return;
   }
 
@@ -1736,11 +1876,13 @@ async function submitChamadoUpdateBySindico(chamadoId) {
 
   if (!status) {
     showGlobalFeedback("O novo status do chamado é obrigatório.", "warning");
+    updateBtn.innerHTML = originalButtonText;
+    updateBtn.disabled = false;
     return;
   }
 
   try {
-    showGlobalFeedback("Atualizando chamado...", "info");
+    // showGlobalFeedback("Atualizando chamado...", "info"); // Spinner on button is enough
     await apiClient.put(`/api/v1/chamados/syndic/chamados/${chamadoId}`, {
       status: status,
       respostaDoSindico: respostaDoSindico,
@@ -1757,7 +1899,9 @@ async function submitChamadoUpdateBySindico(chamadoId) {
       );
     }
   } finally {
-    hideSpinner();
+    // hideSpinner();
+    updateBtn.innerHTML = originalButtonText;
+    updateBtn.disabled = false;
   }
 }
 
@@ -2071,10 +2215,30 @@ async function handleCreateOcorrencia() {
       formData.append("anexos", f)
     );
   }
+  // Adicionar a barra de progresso ao formulário de ocorrências, se não existir
+  let ocorrenciaProgressBar = formCriarOcorrencia.querySelector('.cv-progress');
+  if (!ocorrenciaProgressBar) {
+      ocorrenciaProgressBar = document.createElement('div');
+      ocorrenciaProgressBar.className = 'cv-progress';
+      const bar = document.createElement('div');
+      bar.className = 'cv-progress__bar';
+      ocorrenciaProgressBar.appendChild(bar);
+      formCriarOcorrencia.appendChild(ocorrenciaProgressBar); // Adiciona no final do formulário
+  }
+  ocorrenciaProgressBar.style.display = 'block';
+  ocorrenciaProgressBar.querySelector('.cv-progress__bar').style.width = '0%';
+
 
   try {
-    showGlobalFeedback("Enviando ocorrência...", "info");
-    await postWithFiles("/api/ocorrencias", formData);
+    // showGlobalFeedback("Enviando ocorrência...", "info"); // Spinner e barra são suficientes
+
+    // Usar xhrPost de progress.js que já lida com FormData e token
+    await xhrPost("/api/ocorrencias", formData, (progress) => {
+        if (ocorrenciaProgressBar) {
+            ocorrenciaProgressBar.querySelector('.cv-progress__bar').style.width = `${progress}%`;
+        }
+    }, true); // true indica que é FormData
+    if(ocorrenciaProgressBar) ocorrenciaProgressBar.querySelector('.cv-progress__bar').style.width = '100%';
     showGlobalFeedback(
       "Ocorrência criada com sucesso! Ela aparecerá no feed.",
       "success"
@@ -2095,31 +2259,80 @@ async function handleCreateOcorrencia() {
         "error"
       );
     }
+  } finally {
+    if (ocorrenciaProgressBar) ocorrenciaProgressBar.style.display = 'none';
   }
 }
 
-async function postWithFiles(path, formData) {
-  const token = localStorage.getItem("cv_token");
-  const headers = {};
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  const response = await fetch(
-    (window.APP_CONFIG?.API_BASE_URL || "") + path,
-    {
-      method: "POST",
-      body: formData,
-      headers,
-    }
-  );
-  if (!response.ok) {
-    const data = await response
-      .json()
-      .catch(() => ({ message: `Falha ${response.status}` }));
-    throw new Error(data.message);
-  }
-  return response.headers.get("content-type")?.includes("application/json")
-    ? await response.json()
-    : null;
-}
+// Removido postWithFiles local, pois xhrPost de progress.js será usado.
+//   const token = localStorage.getItem("cv_token");
+//   const headers = {};
+//   if (token) {
+//     headers["Authorization"] = `Bearer ${token}`;
+//   }
+//   const response = await fetch(
+//     (window.APP_CONFIG?.API_BASE_URL || "") + path,
+//     {
+//       method: "POST",
+//       body: formData,
+//       headers,
+//       // Para XHR, a lógica de progresso é diferente.
+//       // Esta função usa fetch, que não suporta onprogress diretamente para upload.
+//       // Para progresso de upload com fetch, precisaríamos de um Service Worker
+//       // ou usar XHR. Dado que `progress.js` usa XHR, vamos adaptar para usar XHR aqui
+//       // ou modificar `xhrPost` para ser mais genérico se ele já não for.
+//       // Por simplicidade, e assumindo que `xhrPost` já existe e é adequado:
+//     }
+//     // Se xhrPost já está em progress.js e faz o que precisamos:
+//     // return xhrPost(path, formData, onProgress, true); // true para indicar que é uma chamada de API autenticada
+//     // Caso contrário, implementamos uma lógica XHR básica aqui:
+//   ); // Fim do fetch original
+
+//   // A lógica de XHR para progresso de upload:
+//   return new Promise((resolve, reject) => {
+//     const xhr = new XMLHttpRequest();
+//     xhr.open("POST", (window.APP_CONFIG?.API_BASE_URL || "") + path, true);
+//     if (token) {
+//       xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+//     }
+//     // Não defina Content-Type para FormData, o XHR faz isso.
+
+//     if (onProgress && typeof onProgress === 'function') {
+//       xhr.upload.onprogress = (event) => {
+//         if (event.lengthComputable) {
+//           const percentComplete = (event.loaded / event.total) * 100;
+//           onProgress(percentComplete);
+//         }
+//       };
+//     }
+
+//     xhr.onload = () => {
+//       if (xhr.status >= 200 && xhr.status < 300) {
+//         try {
+//           const contentType = xhr.getResponseHeader("content-type");
+//           if (contentType && contentType.includes("application/json")) {
+//             resolve(JSON.parse(xhr.responseText));
+//           } else {
+//             resolve(null); // ou xhr.responseText se for texto simples
+//           }
+//         } catch (e) {
+//           resolve(null); // Resposta não-JSON bem-sucedida
+//         }
+//       } else {
+//         try {
+//             const errorData = JSON.parse(xhr.responseText);
+//             reject(new Error(errorData.message || `Falha ${xhr.status}`));
+//         } catch (e) {
+//             reject(new Error(`Falha ${xhr.status}: ${xhr.statusText}`));
+//         }
+//       }
+//     };
+
+//     xhr.onerror = () => {
+//       reject(new Error("Falha de rede ou CORS ao enviar formulário."));
+//     };
+
+//     xhr.send(formData);
+//   });
+// }
 
