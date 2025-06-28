@@ -1,6 +1,15 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth, getCurrentUser } from './auth.js';
 import { createProgressBar, showProgress, xhrPost } from './progress.js';
+import {
+    showGlobalFeedback,
+    createErrorStateElement,
+    createEmptyStateElement,
+    showModalError,
+    clearModalError,
+    showSkeleton,
+    hideSkeleton
+} from './main.js'; // Importar helpers de UI
 
 // --- DOM Elements ---
 const listaOcorrenciasEl = document.getElementById('listaOcorrencias');
@@ -236,13 +245,36 @@ async function loadCategorias() {
 }
 
 function renderOcorrencias(ocorrencias, paginationInfo) { // paginationInfo is not used yet
-    listaOcorrenciasEl.innerHTML = ''; // Clear previous list
+    listaOcorrenciasEl.innerHTML = ''; // Clear previous list (skeletons, errors, or old items)
+    if (noOcorrenciasMessageEl) noOcorrenciasMessageEl.style.display = 'none'; // Esconde a mensagem de texto antiga
 
     if (!ocorrencias || ocorrencias.length === 0) {
-        noOcorrenciasMessageEl.style.display = 'block';
+        let title = "Nenhuma Ocorrência";
+        let description = "Ainda não há ocorrências registradas.";
+        // Personalizar mensagem com base no filtro atual (currentFilter)
+        if (currentFilter === 'minhas') {
+            title = "Você Ainda Não Tem Ocorrências";
+            description = "Você não registrou nenhuma ocorrência ou todas as suas foram resolvidas e arquivadas.";
+        } else if (currentFilter === 'abertas') {
+            title = "Nenhuma Ocorrência Aberta";
+            description = "Não há ocorrências com status 'Aberta', 'Em Análise' ou 'Em Atendimento' no momento.";
+        } else if (currentFilter === 'resolvidas') {
+            title = "Nenhuma Ocorrência Resolvida";
+            description = "Ainda não há ocorrências marcadas como 'Resolvida'.";
+        } else if (currentFilter !== 'todas') { // Se for um filtro de categoria
+            title = `Nenhuma Ocorrência em "${currentFilter.replace(/_/g, ' ')}"`;
+            description = `Não foram encontradas ocorrências para esta categoria.`;
+        }
+
+        const emptyState = createEmptyStateElement({
+            iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48px" height="48px"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 13h-2v-2h2v2zm0-4h-2V7h2v4z"/></svg>`, // Ícone de documento com exclamação
+            title: title,
+            description: description
+        });
+        listaOcorrenciasEl.appendChild(emptyState);
         return;
     }
-    noOcorrenciasMessageEl.style.display = 'none';
+    // noOcorrenciasMessageEl.style.display = 'none'; // Já tratado acima
 
     ocorrencias.forEach(ocorrencia => {
         const card = document.createElement('div');
@@ -273,9 +305,25 @@ function renderOcorrencias(ocorrencias, paginationInfo) { // paginationInfo is n
 async function loadOcorrencias(page = 1, filter = currentFilter) {
     if (isLoading) return;
     isLoading = true;
-    ocorrenciasLoadingEl.style.display = 'block';
-    noOcorrenciasMessageEl.style.display = 'none';
-    listaOcorrenciasEl.innerHTML = ''; // Clear before loading
+
+    // Skeleton Logic:
+    // Assumindo que listaOcorrenciasEl é o container onde os cards ou o skeleton devem aparecer.
+    // Se não houver um elemento de skeleton dedicado no HTML, podemos criar um temporário
+    // ou aplicar uma classe de skeleton ao próprio listaOcorrenciasEl.
+    // Por simplicidade, vamos limpar e mostrar um texto de "Carregando..." se não houver skeleton global.
+    // O ideal é ter um .feed-skeleton-container dentro ou em volta de listaOcorrenciasEl.
+    // Para esta refatoração, vamos focar no ErrorState e EmptyState.
+    // A mensagem de loading textual já existe (ocorrenciasLoadingEl).
+    if (ocorrenciasLoadingEl) ocorrenciasLoadingEl.style.display = 'block';
+    if (noOcorrenciasMessageEl) noOcorrenciasMessageEl.style.display = 'none'; // Esconde msg de 'sem ocorrências' ou erro antigo
+    listaOcorrenciasEl.innerHTML = ''; // Limpa a lista para novos itens ou estado de erro/vazio
+
+    // Remover ErrorState anterior, se houver
+    const existingErrorState = listaOcorrenciasEl.querySelector('.cv-error-state');
+    if (existingErrorState) existingErrorState.remove();
+    const existingEmptyState = listaOcorrenciasEl.querySelector('.cv-empty-state');
+    if (existingEmptyState) existingEmptyState.remove();
+
 
     currentPage = page;
     currentFilter = filter;
@@ -314,14 +362,26 @@ async function loadOcorrencias(page = 1, filter = currentFilter) {
 
     try {
         const result = await apiClient.get(`/api/ocorrencias?${queryParams}`);
+        // renderOcorrencias agora lida com o caso de result.items ser vazio/nulo
         renderOcorrencias(result.items, { totalCount: result.totalCount, pageNumber: result.pageNumber, pageSize: result.pageSize });
     } catch (error) {
         console.error(`Erro ao carregar ocorrências (${filter}):`, error.message);
-        noOcorrenciasMessageEl.textContent = 'Erro ao carregar ocorrências. Tente novamente.';
-        noOcorrenciasMessageEl.style.display = 'block';
+        listaOcorrenciasEl.innerHTML = ''; // Limpa qualquer resquício
+        const errorState = createErrorStateElement({
+            title: "Erro ao Carregar Ocorrências",
+            message: error.message || "Não foi possível buscar as ocorrências. Verifique sua conexão e tente novamente.",
+            retryButton: {
+                text: "Tentar Novamente",
+                onClick: () => loadOcorrencias(page, filter)
+            }
+        });
+        listaOcorrenciasEl.appendChild(errorState);
+        // noOcorrenciasMessageEl não é mais usado para erros
     } finally {
         isLoading = false;
-        ocorrenciasLoadingEl.style.display = 'none';
+        if (ocorrenciasLoadingEl) ocorrenciasLoadingEl.style.display = 'none';
+        // Se usássemos um skeleton wrapper, o esconderíamos aqui:
+        // if (document.getElementById('ocorrencias-skeleton-wrapper')) hideSkeleton(document.getElementById('ocorrencias-skeleton-wrapper'));
     }
 }
 
@@ -423,8 +483,18 @@ async function handleAdicionarNovosAnexosSubmit() {
     if (!currentOcorrenciaId || isLoading) return;
 
     const files = detalheNovosAnexosInput.files;
+    if (modalDetalheOcorrencia) clearModalError(modalDetalheOcorrencia); // Limpa erros anteriores no modal de detalhe
+
     if (!files || files.length === 0) {
-        showGlobalFeedback('Nenhum arquivo selecionado para adicionar.', 'warning', 4000);
+        // Tenta mostrar o erro no modal de detalhe, se possível, perto do input de anexos.
+        // A função showModalError por padrão adiciona no final do .cv-modal-content ou antes do .cv-modal-footer.
+        // Para um erro mais específico de campo, seria necessário um container de erro dedicado perto do input.
+        // Por ora, o showModalError padrão é uma melhoria em relação ao toast global.
+        if (modalDetalheOcorrencia) {
+            showModalError(modalDetalheOcorrencia, 'Nenhum arquivo selecionado para adicionar.');
+        } else {
+            showGlobalFeedback('Nenhum arquivo selecionado para adicionar.', 'warning', 4000); // Fallback
+        }
         return;
     }
 
@@ -447,7 +517,12 @@ async function handleAdicionarNovosAnexosSubmit() {
     } catch (error) {
         novosAnexosProgress.style.display = 'none';
         console.error('Erro ao adicionar novos anexos:', error);
-        showGlobalFeedback(`Erro ao adicionar anexos: ${error.message}`, 'error', 6000);
+        const errorMessage = error.message || "Falha ao adicionar anexos.";
+        if (modalDetalheOcorrencia) {
+            showModalError(modalDetalheOcorrencia, errorMessage);
+        } else {
+            showGlobalFeedback(errorMessage, 'error', 6000); // Fallback
+        }
     } finally {
         isLoading = false;
     }
@@ -572,8 +647,18 @@ async function openDetalheOcorrenciaModal(ocorrenciaId) {
         modalDetalheOcorrencia.style.display = 'flex';
     } catch (error) {
         console.error(`Erro ao carregar detalhes da ocorrência ${ocorrenciaId}:`, error);
-        showGlobalFeedback(`Erro ao carregar detalhes: ${error.message}`, 'error', 6000);
+        // Limpar e esconder o modal em caso de erro grave ao carregar
+        closeDetalheOcorrenciaModal();
+        showGlobalFeedback(`Erro ao carregar detalhes da ocorrência: ${error.message || 'Tente novamente.'}`, 'error', 6000);
         currentOcorrenciaId = null;
+        // Poderia, alternativamente, mostrar um ErrorState dentro do modal se a estrutura HTML do modal fosse preparada para isso.
+        // Ex: const modalBody = modalDetalheOcorrencia.querySelector('.cv-modal-body');
+        // if(modalBody) {
+        //   modalBody.innerHTML = ''; // Limpa
+        //   const errState = createErrorStateElement({ title: "Erro", message: `Falha ao carregar dados da ocorrência. ${error.message}`});
+        //   modalBody.appendChild(errState);
+        //   modalDetalheOcorrencia.style.display = 'flex'; // Garante que o modal com o erro seja visível
+        // }
     } finally {
         isLoading = false;
     }

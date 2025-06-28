@@ -308,4 +308,65 @@ export function createErrorStateElement({ iconHTML, title = "Oops! Algo deu erra
 }
 
 // Adicionar console.log no final para teste de carregamento do script
-console.log('main.js com helpers de state carregado.');
+console.log('main.js com helpers de state e modal error carregado.');
+
+// --- Funções Auxiliares para Erro em Modal (Movidas de comunicacao.js) ---
+/**
+ * Exibe uma mensagem de erro dentro de um elemento modal.
+ * @param {HTMLElement} modalElement O elemento do modal.
+ * @param {string} message A mensagem de erro a ser exibida.
+ */
+export function showModalError(modalElement, message) {
+    if (!modalElement) {
+        console.warn("showModalError: modalElement não fornecido.");
+        showGlobalFeedback(message, 'error'); // Fallback para global se o modal não for encontrado
+        return;
+    }
+    let errorContainer = modalElement.querySelector('.cv-modal-error-message');
+    if (!errorContainer) {
+        errorContainer = document.createElement('div');
+        errorContainer.className = 'cv-modal-error-message';
+        // Estilos aplicados diretamente para garantir visibilidade e feedback de erro
+        errorContainer.style.color = 'var(--current-semantic-error, #e53935)';
+        errorContainer.style.backgroundColor = 'var(--current-color-error-bg, #ffebee)';
+        errorContainer.style.padding = 'var(--cv-spacing-sm, 8px) var(--cv-spacing-md, 16px)';
+        errorContainer.style.marginTop = 'var(--cv-spacing-md, 16px)';
+        errorContainer.style.marginBottom = 'var(--cv-spacing-sm, 8px)';
+        errorContainer.style.borderRadius = 'var(--cv-border-radius-md, 8px)';
+        errorContainer.style.fontSize = '0.9em';
+        errorContainer.style.textAlign = 'center';
+        errorContainer.style.border = `1px solid var(--current-semantic-error-darker, #c62828)`;
+
+        const modalContent = modalElement.querySelector('.cv-modal-content');
+        const modalFooter = modalElement.querySelector('.cv-modal-footer');
+
+        if (modalContent) {
+            if (modalFooter) {
+                modalContent.insertBefore(errorContainer, modalFooter);
+            } else {
+                modalContent.appendChild(errorContainer);
+            }
+        } else {
+            modalElement.appendChild(errorContainer);
+            console.warn("showModalError: '.cv-modal-content' não encontrado. Mensagem de erro adicionada ao root do modal.", modalElement);
+        }
+    }
+    errorContainer.textContent = message;
+    errorContainer.style.display = 'block';
+}
+
+/**
+ * Limpa qualquer mensagem de erro exibida dentro de um elemento modal.
+ * @param {HTMLElement} modalElement O elemento do modal.
+ */
+export function clearModalError(modalElement) {
+    if (!modalElement) {
+        console.warn("clearModalError: modalElement não fornecido.");
+        return;
+    }
+    const errorContainer = modalElement.querySelector('.cv-modal-error-message');
+    if (errorContainer) {
+        errorContainer.textContent = '';
+        errorContainer.style.display = 'none';
+    }
+}

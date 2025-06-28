@@ -185,24 +185,41 @@ async function handleUploadDocumento(event) {
     const form = event.target;
     const submitButton = form.querySelector('button[type="submit"]');
     const originalButtonText = submitButton.innerHTML;
+    const modalUploadElement = document.getElementById('modalUploadDocumento'); // Obter o elemento do modal
+
     submitButton.disabled = true;
     submitButton.innerHTML = 'Enviando... <span class="inline-spinner"></span>';
+    if (modalUploadElement) clearModalError(modalUploadElement); // Limpar erros anteriores
 
     const formData = new FormData(form);
+
+    // Validação básica do arquivo (exemplo: verificar se um arquivo foi selecionado)
+    const fileInput = form.querySelector('input[type="file"]');
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        if (modalUploadElement) showModalError(modalUploadElement, "Por favor, selecione um arquivo para enviar.");
+        else showGlobalFeedback("Por favor, selecione um arquivo para enviar.", "warning"); // Fallback
+        submitButton.innerHTML = originalButtonText;
+        submitButton.disabled = false;
+        return;
+    }
+
+
     uploadProgressBar.style.display = 'block'; // Garante que a barra seja exibida
     showProgress(uploadProgressBar, 0);
-    // showGlobalFeedback('Enviando...', 'info', 2000); // Spinner no botão e barra são suficientes
 
     try {
         await xhrPost('/api/v1/syndic/docs', formData, p => showProgress(uploadProgressBar, p), true);
         showProgress(uploadProgressBar, 100); // Completa a barra
         form.reset();
-        document.getElementById('modalUploadDocumento').style.display = 'none';
+        if (modalUploadElement) modalUploadElement.style.display = 'none';
         loadDocumentos(); // Recarrega a lista de documentos
         showGlobalFeedback('Documento enviado com sucesso!', 'success', 2500);
     } catch (error) {
         console.error('Erro ao enviar documento:', error);
-        showGlobalFeedback(error.message || 'Falha no upload do documento.', 'error');
+        const errorMessage = error.message || 'Falha no upload do documento. Verifique o arquivo e tente novamente.';
+        if (modalUploadElement) showModalError(modalUploadElement, errorMessage);
+        else showGlobalFeedback(errorMessage, 'error'); // Fallback
+        showProgress(uploadProgressBar, 0); // Resetar barra em caso de erro também
     } finally {
         uploadProgressBar.style.display = 'none'; // Esconde a barra após o processo
         submitButton.innerHTML = originalButtonText;

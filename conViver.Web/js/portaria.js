@@ -1,8 +1,15 @@
 import apiClient from './apiClient.js';
 import { requireAuth, getRoles } from './auth.js';
-import { showGlobalFeedback } from './main.js';
+import {
+    showGlobalFeedback,
+    createErrorStateElement,
+    createEmptyStateElement,
+    showSkeleton, // Assumindo que apiClient.get usa isso ou temos elementos skeleton
+    hideSkeleton  // Assumindo que apiClient.get usa isso ou temos elementos skeleton
+} from './main.js';
 import { initFabMenu } from './fabMenu.js';
-import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
+// createProgressBar, showProgress, xhrPost não são usados diretamente aqui se os formulários já têm seus próprios.
+// Mas xhrPost é usado, então manter.
 import { createProgressBar, showProgress, xhrPost } from './progress.js';
 
 
@@ -116,13 +123,18 @@ async function carregarVisitantesAtuais() {
         return;
     }
 
-    container.innerHTML = '';
-    loadingMsg.style.display = 'block';
-    noDataMsg.style.display = 'none';
+    container.innerHTML = ''; // Limpa para skeleton, empty state ou error state
+    if (loadingMsg) loadingMsg.style.display = 'none'; // Esconde mensagem de texto antiga
+    if (noDataMsg) noDataMsg.style.display = 'none';   // Esconde mensagem de texto antiga
+
+    // apiClient.get lida com o skeleton se `skeleton` for um elemento válido.
+    // Se não, precisamos mostrar um skeleton aqui manualmente se desejado.
+    // Por ora, vamos assumir que `showSkeleton: skeleton` no apiClient é suficiente ou que não há skeleton visual para esta lista.
+    // Idealmente: if (skeleton) showSkeleton(skeleton);
 
     try {
         const visitas = await apiClient.get('/api/v1/visitantes/atuais', { showSkeleton: skeleton });
-        loadingMsg.style.display = 'none';
+        // if (loadingMsg) loadingMsg.style.display = 'none'; // Já tratado pelo fluxo normal
 
         if (visitas && visitas.length > 0) {
             visitas.forEach(v => {
@@ -131,10 +143,10 @@ async function carregarVisitantesAtuais() {
                 card.dataset.id = v.id;
                 card.innerHTML = `
                     <h4>${v.nome}</h4>
-                    <p>${v.unidadeId ? v.unidadeId.slice(0, 8) + '...' : 'N/A'} - ${v.motivoVisita || ''}</p>
-                    <p>${v.documento || ''}</p>
-                    <p>Chegada: ${new Date(v.dataChegada).toLocaleString()}</p>
-                    <p>Saída Prevista: ${v.horarioSaidaPrevisto ? new Date(v.horarioSaidaPrevisto).toLocaleString() : ''}</p>
+                    <p>Unidade: ${v.unidadeId ? v.unidadeId : 'N/A'} - Motivo: ${v.motivoVisita || 'N/A'}</p>
+                    <p>Documento: ${v.documento || 'N/A'}</p>
+                    <p>Chegada: ${new Date(v.dataChegada).toLocaleString('pt-BR')}</p>
+                    <p>Saída Prevista: ${v.horarioSaidaPrevisto ? new Date(v.horarioSaidaPrevisto).toLocaleString('pt-BR') : 'N/A'}</p>
                     <div class="visitante-card__acoes">
                         <button class="cv-button cv-button--small btn-registrar-saida" data-id="${v.id}">
                             Registrar Saída
@@ -144,15 +156,30 @@ async function carregarVisitantesAtuais() {
                 container.appendChild(card);
             });
         } else {
-            noDataMsg.style.display = 'block';
+            const emptyState = createEmptyStateElement({
+                iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48px" height="48px"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`, // Ícone de pessoa
+                title: "Nenhum Visitante Presente",
+                description: "Não há visitantes registrados como presentes no condomínio neste momento."
+            });
+            container.appendChild(emptyState);
         }
     } catch (err) {
         console.error('Erro ao listar visitantes atuais:', err);
-        loadingMsg.style.display = 'none';
-        container.innerHTML = '<div class="error-message">Falha ao carregar visitantes atuais.</div>';
-        showGlobalFeedback('Erro ao carregar visitantes atuais: ' + (err.message || ''), 'error');
+        // if (loadingMsg) loadingMsg.style.display = 'none'; // Esconde se ainda estiver visível
+        container.innerHTML = ''; // Limpa qualquer conteúdo ou skeleton
+        const errorState = createErrorStateElement({
+            title: "Erro ao Carregar Visitantes",
+            message: err.message || "Não foi possível buscar os visitantes atuais. Verifique sua conexão e tente novamente.",
+            retryButton: {
+                text: "Tentar Novamente",
+                onClick: carregarVisitantesAtuais
+            }
+        });
+        container.appendChild(errorState);
+        // showGlobalFeedback removido, ErrorState é o principal.
     } finally {
-        // skeleton handled by apiClient
+        // A opção showSkeleton no apiClient deve lidar com o hideSkeleton.
+        // Se controlássemos o skeleton manualmente: if (skeleton) hideSkeleton(skeleton);
     }
 }
 
