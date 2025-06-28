@@ -792,14 +792,24 @@ function getUserRoles() {
   return ["Condomino"];
 }
 
+
+function normalizeRoles(roles) {
+  return roles.map((r) =>
+    r === "Condomino" || r === "Inquilino" ? "Morador" : r
+  );
+}
+
 function setupFabMenu() {
   const roles = getUserRoles();
-  const isSindico = roles.includes("Sindico") || roles.includes("Administrador");
+  const normalizedRoles = normalizeRoles(roles);
+  const isSindico =
+    normalizedRoles.includes("Sindico") ||
+    normalizedRoles.includes("Administrador");
 
   const actions = [];
   if (isSindico) {
-    actions.push({ label: "Novo Aviso", onClick: openCriarAvisoModal });
-    actions.push({ label: "Nova Enquete", onClick: openCreateEnqueteModal });
+    actions.push({ label: "Criar Aviso", onClick: openCriarAvisoModal });
+    actions.push({ label: "Criar Enquete", onClick: openCreateEnqueteModal });
   }
 
   // Todos podem abrir um chamado (solicitação)
@@ -807,7 +817,7 @@ function setupFabMenu() {
 
   // Moradores, síndicos e administradores podem registrar ocorrências
   const canCreateOcorrencia =
-    roles.includes("Morador") || isSindico;
+    normalizedRoles.includes("Morador") || isSindico;
   if (canCreateOcorrencia) {
     actions.push({ label: "Criar Ocorrência", onClick: openCreateOcorrenciaModal });
   }
