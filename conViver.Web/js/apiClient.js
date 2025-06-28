@@ -4,6 +4,8 @@
 // const API_BASE = 'http://localhost:5000/api/v1'; // Replaced by config
 const API_BASE = window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL ? window.APP_CONFIG.API_BASE_URL : '';
 
+import { showSkeleton as displaySkeleton, hideSkeleton } from './skeleton.js';
+
 // Loading overlay and automatic toast messages removed
 
 /**
@@ -32,13 +34,41 @@ export function setToken(token) {
 }
 
 async function request(path, options = {}) {
-    const method = options.method || 'GET';
-    const url = `${API_BASE}${path}`;
+    const {
+        showSkeleton: skeletonTarget,
+        params,
+        ...fetchOptions
+    } = options || {};
+
+    const method = fetchOptions.method || 'GET';
+    let url = `${API_BASE}${path}`;
+
+    if (params && method === 'GET') {
+        const qs = new URLSearchParams();
+        for (const [k, v] of Object.entries(params)) {
+            if (v !== undefined && v !== null && v !== '') {
+                qs.append(k, v);
+            }
+        }
+        const qsStr = qs.toString();
+        if (qsStr) {
+            url += (url.includes('?') ? '&' : '?') + qsStr;
+        }
+    }
+
+    let skeletonTimer;
+    let skeletonShown = false;
+    if (method === 'GET' && skeletonTarget) {
+        skeletonTimer = setTimeout(() => {
+            displaySkeleton(skeletonTarget);
+            skeletonShown = true;
+        }, 200);
+    }
 
     // Log the request initiation
     console.info(`API Request: ${method} ${url}`);
 
-    const opts = { ...options, headers: { ...(options.headers || {}) } };
+    const opts = { ...fetchOptions, headers: { ...(fetchOptions.headers || {}) } };
     const token = getToken();
     if (token) {
         opts.headers['Authorization'] = `Bearer ${token}`;
@@ -100,12 +130,20 @@ async function request(path, options = {}) {
             throw new ApiError(`Network request failed for ${method} ${url}. ${error.message}`, null, url, loggedOptions);
         }
     } finally {
-        // no overlay to hide
+        if (skeletonTimer) clearTimeout(skeletonTimer);
+        if (skeletonTarget && skeletonShown) hideSkeleton(skeletonTarget);
     }
 }
 
 const apiClient = {
-    get: (path) => request(path), // Changed 'url' to 'path' for consistency
+    get: (path, opts) => {
+        if (opts && typeof opts === 'object' &&
+            !opts.method && !opts.body && !opts.headers &&
+            !opts.showSkeleton && !opts.params) {
+            return request(path, { params: opts });
+        }
+        return request(path, opts || {});
+    },
     post: (path, data) => request(path, { method: 'POST', body: data }),
     put: (path, data) => request(path, { method: 'PUT', body: data }),
     delete: (path) => request(path, { method: 'DELETE' })
