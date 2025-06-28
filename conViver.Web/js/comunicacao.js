@@ -938,16 +938,21 @@ function setupFeedItemActionButtons() {
         if (
           confirm("Tem certeza que deseja encerrar esta enquete manualmente?")
         ) {
-          const originalButtonText = buttonElement.innerHTML;
+          const originalButtonText = buttonElement.textContent; // Use textContent for plain text
           buttonElement.disabled = true;
-          buttonElement.innerHTML = 'Encerrando... <span class="inline-spinner"></span>';
+          // Clear existing content and add spinner
+          buttonElement.innerHTML = '<span class="inline-spinner"></span> Encerrando...';
           try {
             await handleEndEnquete(itemId);
-          } finally {
-            buttonElement.innerHTML = originalButtonText;
+            // On success, the feed reloads, button might be gone or updated.
+            // If it's still there and action was successful, it should reflect new state.
+          } catch (error) {
+            // On error, restore button text and re-enable
+            buttonElement.textContent = originalButtonText;
             buttonElement.disabled = false;
-            // The feed will be reloaded by handleEndEnquete, so button state will be updated.
           }
+          // No finally needed if success path removes/replaces button via feed reload
+          // and error path explicitly restores it.
         }
       });
     } else {
@@ -965,13 +970,18 @@ function setupFeedItemActionButtons() {
         newButton.addEventListener("click", async (event) => {
           const buttonElement = event.currentTarget;
           const itemId = buttonElement.dataset.itemId;
-          const originalButtonText = buttonElement.innerHTML;
+        const originalButtonText = buttonElement.textContent; // Use textContent
           buttonElement.disabled = true;
-          buttonElement.innerHTML = 'Gerando... <span class="inline-spinner"></span>';
+        buttonElement.innerHTML = '<span class="inline-spinner"></span> Gerando...';
           try {
             await handleGenerateAtaEnquete(itemId);
+          // Assuming success means the ata is downloaded and button state doesn't change,
+          // or if it does, it's handled by a feed reload if that occurs.
+        } catch (error) {
+          // Error is likely handled by showGlobalFeedback in handleGenerateAtaEnquete
           } finally {
-            buttonElement.innerHTML = originalButtonText;
+          // Always restore the button after attempt, regardless of success/failure of download
+          buttonElement.textContent = originalButtonText;
             buttonElement.disabled = false;
           }
         });
@@ -1420,45 +1430,68 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     if (muralIsEmpty) {
         const tabSpecificContentArea = document.getElementById(finalActiveTab);
         if (tabSpecificContentArea && finalActiveTab !== "content-mural") {
-            // Limpar área de conteúdo da aba específica (exceto o skeleton, se houver)
-            const existingMessages = tabSpecificContentArea.querySelectorAll(".cv-info-message, .cv-no-items-message, .cv-error-message, .cv-empty-state, .cv-error-state");
-            existingMessages.forEach(msg => msg.remove());
-
-            // Esconder o feed principal que estaria dentro dessas abas (se houver)
-            // Essas abas geralmente apenas filtram o mural, então o empty state do mural já é o principal.
-            // Contudo, elas têm seus próprios containers que podem mostrar uma mensagem se o mural estiver vazio E elas são a aba ativa.
+            // Limpar área de conteúdo da aba específica
+            const existingMessages = tabSpecificContentArea.querySelectorAll(".cv-info-message, .cv-no-items-message, .cv-error-message, .cv-empty-state, .cv-error-state, .feed-skeleton-container");
+            existingMessages.forEach(msg => msg.remove()); // Remove também skeletons se houver
 
             let emptyStateConfig = null;
+            const userRoles = getUserRoles();
+            const isSindico = userRoles.includes("Sindico") || userRoles.includes("Administrador");
+            const hasActiveFilters = document.getElementById("open-filter-modal-button")?.classList.contains("has-indicator");
+
+            let actionButtonConfig = null;
+
             if (finalActiveTab === "content-enquetes") {
+                if (isSindico) {
+                    actionButtonConfig = { text: "Criar Nova Enquete", onClick: openCreateEnqueteModal, classes: ["cv-button--primary"] };
+                }
                 emptyStateConfig = {
-                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-5h2v2h-2zm0-8h2v6h-2z"/></svg>`, // Ícone de enquete/info
-                    title: "Nenhuma Enquete Ativa",
-                    description: "Não há enquetes abertas ou correspondentes aos filtros no momento. Crie uma nova ou verifique mais tarde!"
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bar-chart-2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
+                    title: hasActiveFilters ? "Nenhuma Enquete Encontrada" : "Sem Enquetes no Momento",
+                    description: hasActiveFilters
+                        ? "Nenhuma enquete corresponde aos filtros aplicados. Tente ajustá-los ou crie uma nova enquete."
+                        : "Ainda não há enquetes ativas ou encerradas. Que tal criar a primeira?",
+                    actionButton: actionButtonConfig
                 };
             } else if (finalActiveTab === "content-solicitacoes") {
+                 actionButtonConfig = { text: "Abrir Nova Solicitação", onClick: openCreateChamadoModal, classes: ["cv-button--primary"] };
                 emptyStateConfig = {
-                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 12H5V5h14v9z"/></svg>`, // Ícone de chat/solicitação
-                    title: "Nenhuma Solicitação Encontrada",
-                    description: "Não há solicitações abertas ou correspondentes aos filtros. Se precisar, crie uma nova solicitação."
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
+                    title: hasActiveFilters ? "Nenhuma Solicitação Encontrada" : "Caixa de Solicitações Vazia",
+                    description: hasActiveFilters
+                        ? "Nenhuma solicitação corresponde aos filtros aplicados. Tente ajustá-los ou abra uma nova."
+                        : "Ainda não foram abertas solicitações. Se precisar de algo, este é o lugar!",
+                    actionButton: actionButtonConfig
+                };
+            } else if (finalActiveTab === "content-ocorrencias") {
+                 actionButtonConfig = { text: "Relatar Nova Ocorrência", onClick: openCreateOcorrenciaModal, classes: ["cv-button--primary"] };
+                emptyStateConfig = {
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+                    title: hasActiveFilters ? "Nenhuma Ocorrência Encontrada" : "Sem Ocorrências Registradas",
+                    description: hasActiveFilters
+                        ? "Nenhuma ocorrência corresponde aos filtros atuais. Tente ajustá-los ou relate uma nova."
+                        : "Ainda não há ocorrências registradas. Se identificar algo, utilize o botão abaixo.",
+                    actionButton: actionButtonConfig
                 };
             }
-             else if (finalActiveTab === "content-ocorrencias") {
-                emptyStateConfig = {
-                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="64px" height="64px"><path d="M12 5.99L19.53 19H4.47L12 5.99M12 2L1 21h22L12 2zm-1 14h2v2h-2v-2zm0-6h2v4h-2v-4z"/></svg>`,
-                    title: "Nenhuma Ocorrência Encontrada",
-                    description: "Não há ocorrências registradas que correspondam aos filtros atuais. Você pode registrar uma nova ocorrência se necessário."
-                };
-            }
-
 
             if (emptyStateConfig) {
-                // Onde inserir? Diretamente no tabSpecificContentArea, ou num sub-container?
-                // Se o tabSpecificContentArea já tem um '.feed-content' ou similar, usar ele.
-                // Por ora, insere direto, mas garante que não duplique.
-                let targetContainerForEmptyState = tabSpecificContentArea.querySelector('.feed-content'); // Exemplo
+                 // Adicionar botão de limpar filtros se houver filtros ativos e não houver já um botão de ação primário,
+                 // ou se o empty state for por causa dos filtros.
+                if (hasActiveFilters && (!emptyStateConfig.actionButton || emptyStateConfig.title.includes("Encontrada"))) {
+                    emptyStateConfig.secondaryActionButton = { // Adicionando um botão secundário
+                        text: "Limpar Filtros",
+                        onClick: () => {
+                            const clearFiltersBtnModal = document.getElementById("clear-filters-button-modal");
+                            if (clearFiltersBtnModal) clearFiltersBtnModal.click();
+                        },
+                        classes: ["cv-button--secondary"]
+                    };
+                }
+
+                let targetContainerForEmptyState = tabSpecificContentArea.querySelector('.feed-content');
                 if (!targetContainerForEmptyState) targetContainerForEmptyState = tabSpecificContentArea;
 
-                // Remove qualquer empty state anterior da aba específica
                 const oldTabEmptyState = targetContainerForEmptyState.querySelector('.cv-empty-state');
                 if(oldTabEmptyState) oldTabEmptyState.remove();
 
@@ -1467,18 +1500,17 @@ async function fetchAndDisplayFeedItems(page, append = false) {
             }
         }
     } else if (!muralIsEmpty && finalActiveTab !== "content-mural") {
-        // Se o mural NÃO está vazio, mas estávamos numa aba específica,
-        // precisamos garantir que o EmptyState dessa aba (se houver) seja removido,
-        // pois o conteúdo do mural (que é o que essas abas mostram) está visível.
         const tabSpecificContentArea = document.getElementById(finalActiveTab);
         if (tabSpecificContentArea) {
             const oldTabEmptyState = tabSpecificContentArea.querySelector('.cv-empty-state');
             if(oldTabEmptyState) oldTabEmptyState.remove();
-             const infoMsg = tabSpecificContentArea.querySelector(".cv-info-message"); // Legado
+            const infoMsg = tabSpecificContentArea.querySelector(".cv-info-message"); // Legado
             if(infoMsg) infoMsg.remove();
+            // Remover também skeletons se houver
+            const skeleton = tabSpecificContentArea.querySelector('.feed-skeleton-container');
+            if (skeleton) skeleton.remove();
         }
     }
-
   }
 }
 
@@ -1633,14 +1665,14 @@ async function handleFeedItemClick(event) {
   }
   if (clickedElement.classList.contains("js-end-enquete-item")) {
     if (confirm("Tem certeza que deseja encerrar esta enquete manualmente?")) {
-      const hideSpinner = showInlineSpinner(clickedElement);
-      await handleEndEnquete(itemId);
-      hideSpinner();
+      // Spinner logic is now inside the event listener in setupFeedItemActionButtons
+      await handleEndEnquete(itemId); // This will be called by the setup listener
     }
     return;
   }
   if (clickedElement.classList.contains("js-generate-ata-enquete-item")) {
-    await handleGenerateAtaEnquete(itemId);
+    // Spinner logic is now inside the event listener in setupFeedItemActionButtons
+    await handleGenerateAtaEnquete(itemId); // This will be called by the setup listener
     return;
   }
 

@@ -231,25 +231,39 @@ export function createEmptyStateElement({ iconHTML, title, description, actionBu
         descriptionMarkup = `<p class="cv-empty-state__description">${description}</p>`;
     }
 
-    let buttonMarkup = '';
+    let buttonsMarkup = '<div class="cv-empty-state__actions">';
     if (actionButton && actionButton.text && typeof actionButton.onClick === 'function') {
-        const buttonClasses = ['cv-button', 'cv-empty-state__action', ...(actionButton.classes || [])].join(' ');
-        // O ID do botão é gerado para poder adicionar o listener depois
-        // const buttonId = `empty-state-action-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-        buttonMarkup = `<button class="${buttonClasses}">${actionButton.text}</button>`;
+        const buttonClasses = ['cv-button', 'cv-empty-state__action', 'cv-empty-state__action--primary', ...(actionButton.classes || [])].join(' ');
+        buttonsMarkup += `<button class="${buttonClasses}">${actionButton.text}</button>`;
     }
+
+    // Adicionar botão de ação secundário, se existir na configuração
+    // A configuração agora pode ter `secondaryActionButton`
+    if (config.secondaryActionButton && config.secondaryActionButton.text && typeof config.secondaryActionButton.onClick === 'function') {
+        const secondaryButtonClasses = ['cv-button', 'cv-empty-state__action', 'cv-empty-state__action--secondary', ...(config.secondaryActionButton.classes || [])].join(' ');
+        buttonsMarkup += `<button class="${secondaryButtonClasses}">${config.secondaryActionButton.text}</button>`;
+    }
+    buttonsMarkup += '</div>';
+
 
     emptyState.innerHTML = `
         ${iconMarkup}
         <h3 class="cv-empty-state__title">${title}</h3>
         ${descriptionMarkup}
-        ${buttonMarkup}
+        ${buttonsMarkup}
     `;
 
     if (actionButton && actionButton.text && typeof actionButton.onClick === 'function') {
-        const buttonElement = emptyState.querySelector('.cv-empty-state__action');
+        const buttonElement = emptyState.querySelector('.cv-empty-state__action--primary');
         if (buttonElement) {
             buttonElement.addEventListener('click', actionButton.onClick);
+        }
+    }
+
+    if (config.secondaryActionButton && config.secondaryActionButton.text && typeof config.secondaryActionButton.onClick === 'function') {
+        const secondaryButtonElement = emptyState.querySelector('.cv-empty-state__action--secondary');
+        if (secondaryButtonElement) {
+            secondaryButtonElement.addEventListener('click', config.secondaryActionButton.onClick);
         }
     }
 
