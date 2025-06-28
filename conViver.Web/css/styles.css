@@ -758,6 +758,16 @@ main {
 }
 /* End of specific page styles */
 
+/* Inline spinner adjustments, especially within buttons */
+.cv-button .inline-spinner {
+    width: 0.8em; /* Slightly smaller than default text */
+    height: 0.8em;
+    border-width: 0.15em; /* Thinner border for smaller size */
+    margin-left: 0.5em; /* Space it from text if text is on the left */
+    margin-right: 0.2em; /* If text is on the right, or just general spacing */
+    vertical-align: -0.1em; /* Fine-tune vertical alignment with text */
+}
+
 /* Loading Overlay removed */
 
 /* Message Banner */
@@ -842,6 +852,24 @@ main {
     padding: var(--cv-spacing-md, 15px); /* Use variable or fallback */
     /* border: 1px solid var(--current-border-color, #ddd); */ /* Optional */
     /* border-top: none; */ /* Optional */
+    width: 100%;
+    max-width: 1200px; /* Max width similar to main content */
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+/* Specific adjustment for mural content if it's inside another container */
+#content-mural .communication__mural {
+    /* If communication__mural is the direct grid container */
+    /* display: grid; already applied by .card-grid */
+    /* grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); */
+    /* gap: var(--cv-spacing-md); */
+    /* The above is handled by .card-grid. Ensure .communication__mural has .card-grid class or inherits it. */
+    /* If #content-mural itself should be centered, the rule for .cv-tab-content already does that. */
+    /* If .communication__mural is an intermediate container that needs centering or width control: */
+    width: 100%; /* Take full width of parent .cv-tab-content */
+    /* No specific margin needed here if .cv-tab-content handles centering */
 }
 
 /* --- Nested Tabs (Sub-Abas) --- */
@@ -1608,6 +1636,75 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: var(--cv-spacing-md);
 }
+
+/* Styles for .cv-empty-state and .cv-error-state */
+.cv-empty-state,
+.cv-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--cv-spacing-xl) var(--cv-spacing-md);
+    text-align: center;
+    min-height: 300px; /* Ensure it takes some space */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.cv-empty-state__icon,
+.cv-error-state__icon {
+    margin-bottom: var(--cv-spacing-lg);
+}
+.cv-empty-state__icon svg,
+.cv-error-state__icon svg {
+    width: 64px; /* Increased size */
+    height: 64px; /* Increased size */
+    color: var(--current-text-placeholder); /* Subtle color */
+}
+.cv-error-state__icon svg {
+    color: var(--current-semantic-error); /* Error color for error icon */
+}
+
+.cv-empty-state__title,
+.cv-error-state__title {
+    font-size: var(--cv-font-size-h3); /* Larger title */
+    color: var(--current-text-primary);
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-sm);
+    font-weight: 600;
+}
+
+.cv-empty-state__description,
+.cv-error-state__message {
+    font-size: var(--cv-font-size-md);
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-lg);
+    max-width: 450px; /* Limit width for readability */
+    line-height: 1.6;
+}
+
+.cv-empty-state__actions {
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically on small screens */
+    gap: var(--cv-spacing-sm);
+    align-items: center;
+}
+
+@media (min-width: 576px) { /* Or your preferred breakpoint for horizontal buttons */
+    .cv-empty-state__actions {
+        flex-direction: row; /* Buttons side-by-side on larger screens */
+    }
+}
+
+.cv-empty-state__action,
+.cv-error-state__retry-button {
+    /* .cv-button styles are inherited. Add specific overrides if needed. */
+    /* Example: make buttons slightly larger for empty/error states */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-lg);
+    font-size: var(--cv-font-size-md);
+}
+/* End of .cv-empty-state and .cv-error-state styles */
+
 
 .document-list {
     display: grid;
