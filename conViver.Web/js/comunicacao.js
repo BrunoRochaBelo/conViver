@@ -1,6 +1,6 @@
 import apiClient from "./apiClient.js";
 import { requireAuth } from "./auth.js";
-import { showGlobalFeedback, showSkeleton, hideSkeleton } from "./main.js";
+import { showGlobalFeedback, showSkeleton, hideSkeleton, showInlineSpinner } from "./main.js";
 import { initFabMenu } from "./fabMenu.js";
 
 // --- Global state & constants ---
@@ -494,6 +494,8 @@ function setupModalEventListeners() {
     if (formCriarAviso && avisoIdField) {
       formCriarAviso.addEventListener("submit", async (event) => {
         event.preventDefault();
+        const submitBtn = formCriarAviso.querySelector('button[type="submit"]');
+        const hideSpinner = showInlineSpinner(submitBtn);
         const currentAvisoId = avisoIdField.value;
         const formData = new FormData(formCriarAviso);
 
@@ -546,6 +548,8 @@ function setupModalEventListeners() {
               "error"
             );
           }
+        } finally {
+          hideSpinner();
         }
       });
     }
@@ -755,7 +759,9 @@ function setupFeedItemActionButtons() {
         if (
           confirm("Tem certeza que deseja encerrar esta enquete manualmente?")
         ) {
+          const hideSpinner = showInlineSpinner(event.target);
           await handleEndEnquete(itemId);
+          hideSpinner();
         }
       });
     } else {
@@ -1262,7 +1268,9 @@ async function handleFeedItemClick(event) {
   }
   if (clickedElement.classList.contains("js-end-enquete-item")) {
     if (confirm("Tem certeza que deseja encerrar esta enquete manualmente?")) {
+      const hideSpinner = showInlineSpinner(clickedElement);
       await handleEndEnquete(itemId);
+      hideSpinner();
     }
     return;
   }
@@ -1633,6 +1641,8 @@ async function submitChamadoUpdateBySindico(chamadoId) {
   const respostaTextarea = document.getElementById(
     "modal-chamado-resposta-textarea"
   );
+  const updateBtn = document.getElementById("modal-chamado-submit-sindico-update");
+  const hideSpinner = showInlineSpinner(updateBtn);
 
   if (!statusSelect || !respostaTextarea) {
     showGlobalFeedback(
@@ -1667,6 +1677,8 @@ async function submitChamadoUpdateBySindico(chamadoId) {
         "error"
       );
     }
+  } finally {
+    hideSpinner();
   }
 }
 
