@@ -1,6 +1,6 @@
 import apiClient from "./apiClient.js";
 import { requireAuth, getUserInfo } from "./auth.js"; // Importa getUserInfo
-import { showGlobalFeedback, showSkeleton, hideSkeleton, showInlineSpinner } from "./main.js";
+import { showGlobalFeedback, showSkeleton, hideSkeleton, showInlineSpinner, createErrorStateElement, createEmptyStateElement } from "./main.js";
 import { initFabMenu } from "./fabMenu.js";
 import { xhrPost } from './progress.js'; // Importar xhrPost
 
@@ -43,27 +43,8 @@ function hideFeedSkeleton(tabContentId = "content-mural") {
   const tabContentElement = document.getElementById(tabContentId);
   if (!tabContentElement) return;
   hideSkeleton(tabContentElement);
-  // Restore info message if no actual content is loaded for certain tabs
-  if (tabContentId === "content-enquetes" || tabContentId === "content-solicitacoes") {
-    const infoMessage = tabContentElement.querySelector(".cv-info-message");
-    // Check if feed items were loaded into mural (which these tabs might trigger)
-    // For now, we assume the message should reappear if skeleton is hidden and no other specific content for these tabs.
-    // This might need refinement based on whether these tabs get their own direct content later.
-    const muralFeedHasItems = document.querySelector(`${feedContainerSelector} .feed-item`);
-    if (infoMessage && !muralFeedHasItems && tabContentId !== getActiveTabContentId()) {
-        // If the current active tab is mural, don't reshow messages for other tabs.
-        // This logic is tricky because these tabs rely on the mural.
-        // Simplification: If hiding skeleton for these specific tabs, ensure their default message is visible
-        // if they are the active tab AND no items are in the mural (as they point to it).
-    } else if (infoMessage) {
-        // Default state for these tabs is to show their info message.
-        // The skeleton should hide it, and data loading (which is for mural) won't explicitly show it.
-        // So, if we hide skeleton, and this tab is active, show its message.
-        if(getActiveTabContentId() === tabContentId) {
-            infoMessage.style.display = "block";
-        }
-    }
-  }
+  // A lógica de exibir EmptyState para abas específicas será tratada
+  // após o carregamento do feed principal em fetchAndDisplayFeedItems.
 }
 
 function getActiveTabContentId() {
@@ -614,13 +595,13 @@ function setupModalEventListeners() {
               `/api/v1/avisos/syndic/avisos/${currentAvisoId}`,
               avisoDataPayload
             );
-            showGlobalFeedback("Aviso atualizado com sucesso!", "success");
+            showGlobalFeedback("Aviso atualizado com sucesso!", "success", 2500);
           } else {
             await apiClient.post(
               "/api/v1/avisos/syndic/avisos",
               avisoDataPayload
             );
-            showGlobalFeedback("Aviso criado com sucesso!", "success");
+            showGlobalFeedback("Aviso criado com sucesso!", "success", 2500);
           }
           closeCriarAvisoModal();
           await loadInitialFeedItems();
@@ -919,7 +900,7 @@ async function handleDeleteAviso(itemId) {
   if (card) card.style.display = "none";
   try {
     await apiClient.delete(`/api/v1/avisos/syndic/avisos/${itemId}`);
-    showGlobalFeedback("Aviso excluído com sucesso!", "success");
+    showGlobalFeedback("Aviso excluído com sucesso!", "success", 2500);
     fetchedFeedItems = fetchedFeedItems.filter(
       (i) => !(i.id.toString() === itemId.toString() && i.itemType === "Aviso")
     );
@@ -1082,8 +1063,10 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     // Remove old "no items" or "error" messages from muralFeedContainer
     const noItemsMsg = muralFeedContainer.querySelector(".cv-no-items-message");
     if (noItemsMsg) noItemsMsg.remove();
-    const errorMsg = muralFeedContainer.querySelector(".cv-error-message");
-    if (errorMsg) errorMsg.remove();
+    const errorStateElement = muralFeedContainer.querySelector(".cv-error-state");
+    if (errorStateElement) errorStateElement.remove();
+    const emptyStateElement = muralFeedContainer.querySelector(".cv-empty-state");
+    if (emptyStateElement) emptyStateElement.remove();
 
   } else {
     // This is for infinite scroll, show a smaller loading indicator if desired, or rely on skeleton
@@ -1230,15 +1213,47 @@ async function fetchAndDisplayFeedItems(page, append = false) {
       if (page === 1 && !append) { // First page and not appending
         const currentVisibleItems = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)");
         if (currentVisibleItems.length === 0) { // No items at all (including pinned)
-          const noItemsMsgCheck = muralFeedContainer.querySelector(".cv-no-items-message");
-          if (noItemsMsgCheck) noItemsMsgCheck.remove(); // Remove old message if any
+          // Remove mensagens antigas de "no items" ou erro
+          const oldNoItemsMsg = muralFeedContainer.querySelector(".cv-no-items-message");
+          if (oldNoItemsMsg) oldNoItemsMsg.remove();
+          const oldErrorState = muralFeedContainer.querySelector(".cv-error-state");
+          if (oldErrorState) oldErrorState.remove();
+          const oldEmptyState = muralFeedContainer.querySelector(".cv-empty-state");
+          if (oldEmptyState) oldEmptyState.remove();
 
-          const noItemsP = document.createElement("p");
-          noItemsP.className = "cv-no-items-message";
-          noItemsP.textContent = "Nenhum item encontrado para os filtros atuais.";
+          // Verifica se há filtros ativos para personalizar a mensagem
+          const CategoriaFilterValue = document.getElementById("category-filter-modal")?.value?.toLowerCase() || "";
+          const periodoFilterInput = document.getElementById("period-filter-modal")?.value;
+          // Outros filtros específicos de aba poderiam ser verificados aqui também.
+          const hasActiveFilters = CategoriaFilterValue || periodoFilterInput;
+
+          const emptyStateConfig = {
+            iconHTML: `
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+              </svg>`, // Ícone de Lupa
+            title: hasActiveFilters ? "Nenhum Item Encontrado" : "Ainda Não Há Itens",
+            description: hasActiveFilters
+              ? "Tente ajustar seus filtros ou verificar mais tarde."
+              : "Não há comunicados, enquetes ou outras atualizações no momento. Volte mais tarde!",
+            // Opcional: Adicionar um botão para limpar filtros se houver filtros ativos
+            actionButton: hasActiveFilters ? {
+                text: "Limpar Filtros",
+                onClick: () => {
+                    // Lógica para limpar filtros e recarregar - pode chamar a função de clearFiltersModalButton
+                    const clearFiltersBtnModal = document.getElementById("clear-filters-button-modal");
+                    if (clearFiltersBtnModal) clearFiltersBtnModal.click();
+                    // A ação de click no botão de limpar filtros já recarrega o feed.
+                },
+                classes: ["cv-button--secondary"] // Exemplo de classe adicional
+            } : null
+          };
+
+          const emptyStateElement = createEmptyStateElement(emptyStateConfig);
+
           if (sentinelElement)
-            muralFeedContainer.insertBefore(noItemsP, sentinelElement);
-          else muralFeedContainer.appendChild(noItemsP);
+            muralFeedContainer.insertBefore(emptyStateElement, sentinelElement);
+          else muralFeedContainer.appendChild(emptyStateElement);
         }
       }
       noMoreFeedItems = true;
@@ -1256,26 +1271,43 @@ async function fetchAndDisplayFeedItems(page, append = false) {
 
     const currentVisibleItemsOnError = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)");
     if (currentVisibleItemsOnError.length === 0 && !append) { // Only show full page error if not appending and no items visible
-      const errorMsgCheck = muralFeedContainer.querySelector(".cv-error-message");
-      if (errorMsgCheck) errorMsgCheck.remove(); // Remove old one if any
+      // Remove qualquer mensagem antiga de erro ou de lista vazia
+      const oldErrorMsg = muralFeedContainer.querySelector(".cv-error-message"); // Legado
+      if (oldErrorMsg) oldErrorMsg.remove();
+      const oldErrorState = muralFeedContainer.querySelector(".cv-error-state");
+      if (oldErrorState) oldErrorState.remove();
+      const oldEmptyState = muralFeedContainer.querySelector(".cv-empty-state");
+      if (oldEmptyState) oldEmptyState.remove();
+      const oldNoItemsMsg = muralFeedContainer.querySelector(".cv-no-items-message"); // Legado
+      if (oldNoItemsMsg) oldNoItemsMsg.remove();
 
-      const errorP = document.createElement("p");
-      errorP.className = "cv-error-message"; // Use a class that can be styled
-      errorP.textContent = error.message || "Não foi possível carregar o feed. Verifique sua conexão e tente novamente.";
+      const errorState = createErrorStateElement({
+        // iconHTML: "...", // Ícone padrão já é de erro
+        title: "Falha ao Carregar",
+        message: error.message || "Não foi possível carregar o feed. Verifique sua conexão e tente novamente.",
+        retryButton: {
+          text: "Tentar Novamente",
+          onClick: () => {
+            // Limpar o error state antes de tentar novamente
+            const currentErrorState = muralFeedContainer.querySelector(".cv-error-state");
+            if (currentErrorState) currentErrorState.remove();
+            showFeedSkeleton("content-mural"); // Mostrar skeleton ao tentar novamente
+            loadInitialFeedItems(); // Tenta recarregar tudo
+          }
+        }
+      });
 
-      // Clear any "no items" message before adding error message
-      const noItemsMsg = muralFeedContainer.querySelector(".cv-no-items-message");
-      if (noItemsMsg) noItemsMsg.remove();
+      if (sentinelElement) muralFeedContainer.insertBefore(errorState, sentinelElement);
+      else muralFeedContainer.appendChild(errorState);
 
-      if (sentinelElement) muralFeedContainer.insertBefore(errorP, sentinelElement);
-      else muralFeedContainer.appendChild(errorP);
     } else if (append) {
-      // For append errors (infinite scroll), a global toast is acceptable as the main content is still visible.
-      // This is handled by apiClient for non-GET or network errors. If it's an ApiError from GET, it's suppressed by design.
-      // We could add a small inline indicator near the sentinel if desired, but a toast for "load more failed" is common.
-      // For now, if apiClient doesn't show it for GET ApiError, nothing will be shown, which is fine.
-      // If it's a network error, apiClient WILL show a toast.
-      console.warn("Erro ao carregar mais itens (append), feedback global pode já ter sido exibido pelo apiClient para erros de rede.");
+      // Para erros de "append" (infinite scroll), um toast global é aceitável,
+      // pois o conteúdo principal ainda está visível. O apiClient já pode ter mostrado um.
+      // Se não, podemos forçar um aqui se a mensagem de erro não foi "handledByApiClient".
+      if (!error.handledByApiClient && error.message) {
+         showGlobalFeedback(error.message || "Erro ao carregar mais itens.", "error");
+      }
+      console.warn("Erro ao carregar mais itens (append).");
     }
     if (sentinelElement) sentinelElement.style.display = "none"; // Stop trying to load more on error
   } finally {
@@ -1294,13 +1326,71 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     }
 
     // Restore info messages for Enquetes/Solicitações if they are active and mural is empty
-    if ((finalActiveTab === "content-enquetes" || finalActiveTab === "content-solicitacoes")) {
-        const muralItems = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)");
-        const infoMsg = document.querySelector(`#${finalActiveTab} .cv-info-message`);
-        if (muralItems.length === 0 && infoMsg) {
-            infoMsg.style.display = "block";
+    // This is now handled by displaying a specific EmptyState for the tab.
+    const muralIsEmpty = noMoreFeedItems && page === 1 && muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)").length === 0;
+
+    if (muralIsEmpty) {
+        const tabSpecificContentArea = document.getElementById(finalActiveTab);
+        if (tabSpecificContentArea && finalActiveTab !== "content-mural") {
+            // Limpar área de conteúdo da aba específica (exceto o skeleton, se houver)
+            const existingMessages = tabSpecificContentArea.querySelectorAll(".cv-info-message, .cv-no-items-message, .cv-error-message, .cv-empty-state, .cv-error-state");
+            existingMessages.forEach(msg => msg.remove());
+
+            // Esconder o feed principal que estaria dentro dessas abas (se houver)
+            // Essas abas geralmente apenas filtram o mural, então o empty state do mural já é o principal.
+            // Contudo, elas têm seus próprios containers que podem mostrar uma mensagem se o mural estiver vazio E elas são a aba ativa.
+
+            let emptyStateConfig = null;
+            if (finalActiveTab === "content-enquetes") {
+                emptyStateConfig = {
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-5h2v2h-2zm0-8h2v6h-2z"/></svg>`, // Ícone de enquete/info
+                    title: "Nenhuma Enquete Ativa",
+                    description: "Não há enquetes abertas ou correspondentes aos filtros no momento. Crie uma nova ou verifique mais tarde!"
+                };
+            } else if (finalActiveTab === "content-solicitacoes") {
+                emptyStateConfig = {
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 12H5V5h14v9z"/></svg>`, // Ícone de chat/solicitação
+                    title: "Nenhuma Solicitação Encontrada",
+                    description: "Não há solicitações abertas ou correspondentes aos filtros. Se precisar, crie uma nova solicitação."
+                };
+            }
+             else if (finalActiveTab === "content-ocorrencias") {
+                emptyStateConfig = {
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="64px" height="64px"><path d="M12 5.99L19.53 19H4.47L12 5.99M12 2L1 21h22L12 2zm-1 14h2v2h-2v-2zm0-6h2v4h-2v-4z"/></svg>`,
+                    title: "Nenhuma Ocorrência Encontrada",
+                    description: "Não há ocorrências registradas que correspondam aos filtros atuais. Você pode registrar uma nova ocorrência se necessário."
+                };
+            }
+
+
+            if (emptyStateConfig) {
+                // Onde inserir? Diretamente no tabSpecificContentArea, ou num sub-container?
+                // Se o tabSpecificContentArea já tem um '.feed-content' ou similar, usar ele.
+                // Por ora, insere direto, mas garante que não duplique.
+                let targetContainerForEmptyState = tabSpecificContentArea.querySelector('.feed-content'); // Exemplo
+                if (!targetContainerForEmptyState) targetContainerForEmptyState = tabSpecificContentArea;
+
+                // Remove qualquer empty state anterior da aba específica
+                const oldTabEmptyState = targetContainerForEmptyState.querySelector('.cv-empty-state');
+                if(oldTabEmptyState) oldTabEmptyState.remove();
+
+                const emptyStateEl = createEmptyStateElement(emptyStateConfig);
+                targetContainerForEmptyState.appendChild(emptyStateEl);
+            }
+        }
+    } else if (!muralIsEmpty && finalActiveTab !== "content-mural") {
+        // Se o mural NÃO está vazio, mas estávamos numa aba específica,
+        // precisamos garantir que o EmptyState dessa aba (se houver) seja removido,
+        // pois o conteúdo do mural (que é o que essas abas mostram) está visível.
+        const tabSpecificContentArea = document.getElementById(finalActiveTab);
+        if (tabSpecificContentArea) {
+            const oldTabEmptyState = tabSpecificContentArea.querySelector('.cv-empty-state');
+            if(oldTabEmptyState) oldTabEmptyState.remove();
+             const infoMsg = tabSpecificContentArea.querySelector(".cv-info-message"); // Legado
+            if(infoMsg) infoMsg.remove();
         }
     }
+
   }
 }
 
@@ -1535,7 +1625,7 @@ async function handleEnqueteClick(itemId, targetElementOrCard) {
     );
     if (!enquete) {
       modalEnqueteDetalheOpcoesContainer.innerHTML =
-        '<p class="cv-error-message">Enquete não encontrada.</p>';
+        '<p class="cv-error-message">Enquete não encontrada ou acesso não permitido.</p>'; // Mensagem mais genérica
       return;
     }
     modalEnqueteDetalheTitulo.textContent = enquete.titulo;
@@ -1561,14 +1651,18 @@ async function handleEnqueteClick(itemId, targetElementOrCard) {
     }
   } catch (error) {
     console.error("Erro ao buscar detalhes da enquete:", error);
+    // A mensagem de erro agora é mostrada dentro do modal pelo createErrorStateElement (indiretamente)
+    // ou por uma mensagem simples se o componente não for usado aqui.
+    // O importante é que o modal já tem seu próprio feedback de erro.
     modalEnqueteDetalheOpcoesContainer.innerHTML =
-      '<p class="cv-error-message">Erro ao carregar detalhes da enquete. Tente novamente.</p>';
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(
-        error.message || "Falha ao carregar enquete.",
-        "error"
-      );
-    }
+      '<p class="cv-error-message">Erro ao carregar detalhes da enquete. Tente novamente mais tarde.</p>';
+    // Removido showGlobalFeedback daqui para evitar redundância com o feedback no modal.
+    // if (!error.handledByApiClient) {
+    //   showGlobalFeedback(
+    //     error.message || "Falha ao carregar enquete.",
+    //     "error"
+    //   );
+    // }
   }
 }
 
@@ -1776,13 +1870,14 @@ async function handleChamadoClick(
     }
   } catch (error) {
     console.error(`Erro ao buscar detalhes de ${itemType}:`, error);
-    modalChamadoDetalheConteudo.innerHTML = `<p class="cv-error-message">Erro ao carregar detalhes de ${itemType}.</p>`;
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(
-        error.message || `Falha ao carregar ${itemType}.`,
-        "error"
-      );
-    }
+    modalChamadoDetalheConteudo.innerHTML = `<p class="cv-error-message">Erro ao carregar detalhes de ${itemType}. Tente novamente mais tarde.</p>`;
+    // Removido showGlobalFeedback daqui para evitar redundância com o feedback no modal.
+    // if (!error.handledByApiClient) {
+    //   showGlobalFeedback(
+    //     error.message || `Falha ao carregar ${itemType}.`,
+    //     "error"
+    //   );
+    // }
   }
 }
 
@@ -1887,7 +1982,7 @@ async function submitChamadoUpdateBySindico(chamadoId) {
       status: status,
       respostaDoSindico: respostaDoSindico,
     });
-    showGlobalFeedback("Chamado atualizado com sucesso!", "success");
+    showGlobalFeedback("Chamado atualizado com sucesso!", "success", 2500);
     if (modalChamadoDetalhe) modalChamadoDetalhe.style.display = "none";
     await loadInitialFeedItems();
   } catch (error) {
@@ -1988,7 +2083,8 @@ async function handleCreateEnquete(enqueteData) {
     await apiClient.post("/api/v1/votacoes/syndic/votacoes", enqueteData);
     showGlobalFeedback(
       "Nova enquete criada com sucesso! Ela aparecerá no feed.",
-      "success"
+      "success",
+      2500
     );
     await loadInitialFeedItems();
   } catch (error) {
@@ -2018,7 +2114,7 @@ async function handleEndEnquete(enqueteId) {
       `/api/v1/votacoes/syndic/votacoes/${enqueteId}/encerrar`,
       {}
     );
-    showGlobalFeedback("Enquete encerrada com sucesso!", "success");
+    showGlobalFeedback("Enquete encerrada com sucesso!", "success", 2500);
     await loadInitialFeedItems();
   } catch (error) {
     console.error("Erro ao encerrar enquete:", error);
@@ -2122,7 +2218,8 @@ async function handleCreateChamado(chamadoData) {
     await apiClient.post("/api/v1/chamados/app/chamados", dataParaApi);
     showGlobalFeedback(
       "Novo chamado aberto com sucesso! Ele aparecerá no feed.",
-      "success"
+      "success",
+      2500
     );
     await loadInitialFeedItems();
   } catch (error) {
@@ -2241,7 +2338,8 @@ async function handleCreateOcorrencia() {
     if(ocorrenciaProgressBar) ocorrenciaProgressBar.querySelector('.cv-progress__bar').style.width = '100%';
     showGlobalFeedback(
       "Ocorrência criada com sucesso! Ela aparecerá no feed.",
-      "success"
+      "success",
+      2500
     );
     if (criarOcorrenciaModal) {
       criarOcorrenciaModal.style.display = "none";

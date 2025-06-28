@@ -717,3 +717,72 @@ html[data-theme="dark"] {
     to { transform: rotate(360deg); }
 }
 
+/* ==========================================================================
+   Empty State & Error State Components
+   ========================================================================== */
+
+.cv-empty-state,
+.cv-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--cv-spacing-xl, 32px) var(--cv-spacing-md, 16px);
+    margin: var(--cv-spacing-lg, 24px) auto; /* Centraliza e adiciona margem */
+    border: 1px dashed var(--current-border-color, var(--cv-color-gray-light)); /* Borda sutil */
+    border-radius: var(--cv-border-radius-md, 8px);
+    background-color: var(--current-background-alt, var(--cv-color-background-alt)); /* Um fundo levemente diferente */
+    max-width: 600px; /* Limita a largura para melhor leitura */
+    width: calc(100% - 2 * var(--cv-spacing-md, 16px)); /* Ajusta para caber em containers menores */
+    box-sizing: border-box;
+}
+
+.cv-empty-state__icon,
+.cv-error-state__icon {
+    font-size: 3rem; /* Tamanho do ícone */
+    margin-bottom: var(--cv-spacing-md, 16px);
+    color: var(--current-primary-blue, var(--cv-color-primary)); /* Cor primária para ícone de empty state */
+}
+
+.cv-error-state__icon {
+    color: var(--current-danger-color, var(--cv-color-danger)); /* Cor de perigo para ícone de erro */
+}
+
+/* Específico para SVG ou Font Icon, pode precisar de ajuste */
+.cv-empty-state__icon svg,
+.cv-error-state__icon svg,
+.cv-empty-state__icon img, /* Suporte para <img> também */
+.cv-error-state__icon img {
+    width: 3em; /* ou 4em */
+    height: 3em; /* ou 4em */
+    max-width: 80px; /* Limite máximo */
+    max-height: 80px;
+}
+
+
+.cv-empty-state__title,
+.cv-error-state__title {
+    font-size: var(--cv-font-size-lg, 1.25rem);
+    font-weight: var(--cv-font-weight-bold, 600);
+    color: var(--current-text-primary, var(--cv-color-text-primary));
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-sm, 8px);
+}
+
+.cv-empty-state__description,
+.cv-error-state__message {
+    font-size: var(--cv-font-size-md, 1rem);
+    color: var(--current-text-secondary, var(--cv-color-text-secondary));
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-lg, 24px);
+    line-height: 1.6;
+    max-width: 90%; /* Evita que o texto fique muito largo dentro do container */
+}
+
+.cv-empty-state__action,
+.cv-error-state__retry-button {
+    /* Estilos do cv-button já devem ser aplicados se a classe for usada. */
+    /* Adicionar margens ou ajustes específicos, se necessário. */
+    min-width: 150px; /* Para dar um tamanho mínimo ao botão */
+}
