@@ -204,3 +204,108 @@ export function showInlineSpinner(element) {
 // });
 
 console.log('main.js carregado.');
+
+/**
+ * Cria e retorna um elemento HTML para o "Empty State".
+ * @param {object} config - Configuração para o empty state.
+ * @param {string} [config.iconHTML] - HTML para o ícone (ex: SVG string, <img> tag).
+ * @param {string} config.title - O título do empty state.
+ * @param {string} [config.description] - A descrição ou mensagem.
+ * @param {object} [config.actionButton] - Configuração para um botão de ação opcional.
+ * @param {string} config.actionButton.text - Texto do botão.
+ * @param {function} config.actionButton.onClick - Função a ser chamada no clique do botão.
+ * @param {string[]} [config.actionButton.classes] - Classes CSS adicionais para o botão.
+ * @returns {HTMLElement} O elemento do empty state.
+ */
+export function createEmptyStateElement({ iconHTML, title, description, actionButton }) {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'cv-empty-state';
+
+    let iconMarkup = '';
+    if (iconHTML) {
+        iconMarkup = `<div class="cv-empty-state__icon">${iconHTML}</div>`;
+    }
+
+    let descriptionMarkup = '';
+    if (description) {
+        descriptionMarkup = `<p class="cv-empty-state__description">${description}</p>`;
+    }
+
+    let buttonMarkup = '';
+    if (actionButton && actionButton.text && typeof actionButton.onClick === 'function') {
+        const buttonClasses = ['cv-button', 'cv-empty-state__action', ...(actionButton.classes || [])].join(' ');
+        // O ID do botão é gerado para poder adicionar o listener depois
+        // const buttonId = `empty-state-action-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+        buttonMarkup = `<button class="${buttonClasses}">${actionButton.text}</button>`;
+    }
+
+    emptyState.innerHTML = `
+        ${iconMarkup}
+        <h3 class="cv-empty-state__title">${title}</h3>
+        ${descriptionMarkup}
+        ${buttonMarkup}
+    `;
+
+    if (actionButton && actionButton.text && typeof actionButton.onClick === 'function') {
+        const buttonElement = emptyState.querySelector('.cv-empty-state__action');
+        if (buttonElement) {
+            buttonElement.addEventListener('click', actionButton.onClick);
+        }
+    }
+
+    return emptyState;
+}
+
+/**
+ * Cria e retorna um elemento HTML para o "Error State".
+ * @param {object} config - Configuração para o error state.
+ * @param {string} [config.iconHTML] - HTML para o ícone de erro (ex: SVG string, <img> tag).
+ * @param {string} [config.title="Oops! Algo deu errado"] - O título do erro.
+ * @param {string} config.message - A mensagem de erro específica.
+ * @param {object} config.retryButton - Configuração para o botão "Tentar Novamente".
+ * @param {string} [config.retryButton.text="Tentar Novamente"] - Texto do botão.
+ * @param {function} config.retryButton.onClick - Função a ser chamada no clique do botão.
+ * @param {string[]} [config.retryButton.classes] - Classes CSS adicionais para o botão.
+ * @returns {HTMLElement} O elemento do error state.
+ */
+export function createErrorStateElement({ iconHTML, title = "Oops! Algo deu errado", message, retryButton }) {
+    const errorState = document.createElement('div');
+    errorState.className = 'cv-error-state';
+
+    const defaultErrorIcon = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1s1 .45 1 1v4c0 .55-.45 1-1 1zm1-8h-2V7h2v2z"/>
+        </svg>
+    `;
+    // Prioriza iconHTML fornecido, senão usa o SVG padrão de erro
+    const actualIconHTML = iconHTML || defaultErrorIcon;
+
+
+    let iconMarkup = `<div class="cv-error-state__icon">${actualIconHTML}</div>`;
+
+    let buttonMarkup = '';
+    if (retryButton && typeof retryButton.onClick === 'function') {
+        const buttonText = retryButton.text || "Tentar Novamente";
+        const buttonClasses = ['cv-button', 'cv-error-state__retry-button', ...(retryButton.classes || [])].join(' ');
+        buttonMarkup = `<button class="${buttonClasses}">${buttonText}</button>`;
+    }
+
+    errorState.innerHTML = `
+        ${iconMarkup}
+        <h3 class="cv-error-state__title">${title}</h3>
+        <p class="cv-error-state__message">${message}</p>
+        ${buttonMarkup}
+    `;
+
+    if (retryButton && typeof retryButton.onClick === 'function') {
+        const buttonElement = errorState.querySelector('.cv-error-state__retry-button');
+        if (buttonElement) {
+            buttonElement.addEventListener('click', retryButton.onClick);
+        }
+    }
+
+    return errorState;
+}
+
+// Adicionar console.log no final para teste de carregamento do script
+console.log('main.js com helpers de state carregado.');
