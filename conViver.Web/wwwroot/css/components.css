@@ -53,6 +53,26 @@
     box-shadow: none;
 }
 
+.cv-button.icon-button {
+    padding: var(--cv-spacing-xs);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.cv-button.icon-button.has-indicator::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--current-primary-blue);
+}
+
 .cv-button:disabled,
 .cv-button--primary:disabled,
 .cv-button--secondary:disabled {

@@ -787,14 +787,28 @@ main {
 .cv-tabs {
     display: flex;
     align-items: center;
+    margin-top: var(--cv-spacing-lg, 20px);
     margin-bottom: 20px;
+    padding: var(--cv-spacing-xs) 0;
     border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
+}
+.cv-tabs > #open-sort-button,
+.cv-tabs > #open-filter-modal-button {
+    margin-top: var(--cv-spacing-xs);
+    margin-bottom: var(--cv-spacing-xs);
 }
 .cv-tabs > #open-sort-button {
     margin-left: auto;
 }
 .cv-tabs > #open-filter-modal-button {
     margin-left: 10px;
+}
+
+#open-sort-button.rotated svg {
+    transform: rotate(180deg);
+}
+#open-sort-button svg {
+    transition: transform 0.3s ease;
 }
 
 .cv-tab-button {

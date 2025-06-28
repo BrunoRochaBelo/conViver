@@ -363,6 +363,16 @@ function setupFilterModalAndButton() {
       // showGlobalFeedback("Aplicando filtros ao feed...", "info"); // Skeleton provides visual feedback
       loadInitialFeedItems(); // Reloads feed using values from modal's filters
       if (modalFiltros) modalFiltros.style.display = "none"; // Close modal after applying
+
+      if (openFilterButton) {
+        const hasFilters = Array.from(
+          modalFiltros.querySelectorAll("select, input")
+        ).some(
+          (el) => el.value && el.value !== "" && el.value !== "todas"
+        );
+        if (hasFilters) openFilterButton.classList.add("has-indicator");
+        else openFilterButton.classList.remove("has-indicator");
+      }
     });
   }
 }
@@ -378,16 +388,29 @@ function setupSortModalAndButton() {
     openSortButton.addEventListener("click", () => {
       if (sortSelect) sortSelect.value = currentSortOrder;
       sortModal.style.display = "flex";
+      openSortButton.classList.add("rotated");
     });
   }
-  closeSortButtons.forEach((btn) => btn.addEventListener("click", () => (sortModal.style.display = "none")));
+  closeSortButtons.forEach((btn) =>
+    btn.addEventListener("click", () => {
+      sortModal.style.display = "none";
+      openSortButton.classList.remove("rotated");
+    })
+  );
   window.addEventListener("click", (e) => {
-    if (e.target === sortModal) sortModal.style.display = "none";
+    if (e.target === sortModal) {
+      sortModal.style.display = "none";
+      openSortButton.classList.remove("rotated");
+    }
   });
   if (applySortButton && sortSelect) {
     applySortButton.addEventListener("click", () => {
       currentSortOrder = sortSelect.value;
       sortModal.style.display = "none";
+      openSortButton.classList.remove("rotated");
+      if (currentSortOrder !== "desc")
+        openSortButton.classList.add("has-indicator");
+      else openSortButton.classList.remove("has-indicator");
       showFeedSkeleton(getActiveTabContentId());
       loadInitialFeedItems();
     });
