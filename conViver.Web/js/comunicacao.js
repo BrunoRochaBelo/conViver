@@ -781,26 +781,24 @@ function setupFeedItemActionButtons() {
 }
 
 async function handleDeleteAviso(itemId) {
-  showGlobalFeedback("Excluindo aviso...", "info");
+  const card = document.querySelector(
+    `${feedContainerSelector} .cv-card[data-item-id="${itemId}"][data-item-type="Aviso"]`
+  );
+  if (card) card.style.display = "none";
   try {
     await apiClient.delete(`/api/v1/avisos/syndic/avisos/${itemId}`);
     showGlobalFeedback("Aviso excluído com sucesso!", "success");
     fetchedFeedItems = fetchedFeedItems.filter(
       (i) => !(i.id.toString() === itemId.toString() && i.itemType === "Aviso")
     );
-    const cardToRemove = document.querySelector(
-      `${feedContainerSelector} .cv-card[data-item-id="${itemId}"][data-item-type="Aviso"]`
-    );
-    if (cardToRemove) {
-      cardToRemove.remove();
-    } else {
+    if (card) card.remove();
+    else {
       await loadInitialFeedItems();
     }
   } catch (error) {
     console.error("Erro ao excluir aviso:", error);
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(error.message || "Falha ao excluir o aviso.", "error");
-    }
+    if (card) card.style.display = "";
+    showGlobalFeedback("Falha ao remover aviso.", "error");
   }
 }
 
