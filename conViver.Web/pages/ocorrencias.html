@@ -52,39 +52,39 @@
 
     <!-- Modal de Cadastro de Nova Ocorrência -->
     <div id="modalNovaOcorrencia" class="cv-modal" style="display:none;">
-        <div class="cv-modal__content">
-            <span class="cv-modal__close-button" id="closeNovaOcorrenciaModal">&times;</span>
+        <div class="cv-modal-content"> <!-- Padronizado -->
+            <span class="cv-modal-close" id="closeNovaOcorrenciaModal">&times;</span> <!-- Padronizado -->
             <h2>Nova Ocorrência</h2>
             <form id="formNovaOcorrencia" class="cv-form">
-                <div class="cv-form__group">
-                    <label for="ocorrenciaTitulo" class="cv-form__label">Título (obrigatório):</label>
-                    <input type="text" id="ocorrenciaTitulo" name="titulo" class="cv-form__input" required maxlength="100">
+                <div class="cv-form-group"> <!-- Padronizado -->
+                    <label for="ocorrenciaTitulo">Título (obrigatório):</label> <!-- Removido cv-form__label, assumindo estilo global para label dentro de cv-form-group -->
+                    <input type="text" id="ocorrenciaTitulo" name="titulo" class="cv-input" required maxlength="100"> <!-- Padronizado -->
                 </div>
-                <div class="cv-form__group">
-                    <label for="ocorrenciaDescricao" class="cv-form__label">Descrição (obrigatório):</label>
-                    <textarea id="ocorrenciaDescricao" name="descricao" class="cv-form__textarea" rows="5" required maxlength="1000"></textarea>
+                <div class="cv-form-group"> <!-- Padronizado -->
+                    <label for="ocorrenciaDescricao">Descrição (obrigatório):</label>
+                    <textarea id="ocorrenciaDescricao" name="descricao" class="cv-input" rows="5" required maxlength="1000"></textarea> <!-- Padronizado -->
                 </div>
-                <div class="cv-form__group">
-                    <label for="ocorrenciaCategoria" class="cv-form__label">Categoria (obrigatório):</label>
-                    <select id="ocorrenciaCategoria" name="categoria" class="cv-form__select" required>
+                <div class="cv-form-group"> <!-- Padronizado -->
+                    <label for="ocorrenciaCategoria">Categoria (obrigatório):</label>
+                    <select id="ocorrenciaCategoria" name="categoria" class="cv-input" required> <!-- Padronizado -->
                         <option value="">Selecione...</option>
                         <!-- Options serão populadas pelo JS -->
                     </select>
                 </div>
-                <div class="cv-form__group">
-                    <label for="ocorrenciaPrioridade" class="cv-form__label">Prioridade:</label>
-                    <select id="ocorrenciaPrioridade" name="prioridade" class="cv-form__select">
+                <div class="cv-form-group"> <!-- Padronizado -->
+                    <label for="ocorrenciaPrioridade">Prioridade:</label>
+                    <select id="ocorrenciaPrioridade" name="prioridade" class="cv-input"> <!-- Padronizado -->
                         <option value="NORMAL">Normal</option>
                         <option value="URGENTE">Urgente</option>
                     </select>
                 </div>
-                <div class="cv-form__group">
-                    <label for="ocorrenciaAnexos" class="cv-form__label">Anexos (opcional, máx 10MB por arquivo):</label>
-                    <input type="file" id="ocorrenciaAnexos" name="anexos" class="cv-form__input-file" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.aac,.mp3,.wav">
+                <div class="cv-form-group"> <!-- Padronizado -->
+                    <label for="ocorrenciaAnexos">Anexos (opcional, máx 10MB por arquivo):</label>
+                    <input type="file" id="ocorrenciaAnexos" name="anexos" class="cv-input" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.aac,.mp3,.wav"> <!-- Padronizado -->
                     <div id="anexosPreviewContainer" class="anexos-preview"></div>
                 </div>
-                <div id="formNovaOcorrenciaErrors" class="cv-form__errors" style="display:none;"></div>
-                <div class="cv-form__actions">
+                <div id="formNovaOcorrenciaErrors" class="cv-alert cv-alert--error" style="display:none;"></div> <!-- Padronizado para cv-alert -->
+                <div class="cv-form-actions"> <!-- Padronizado -->
                     <button type="submit" class="cv-button cv-button--primary">Enviar Ocorrência</button>
                     <button type="button" id="cancelNovaOcorrencia" class="cv-button cv-button--secondary">Cancelar</button>
                 </div>
@@ -94,8 +94,8 @@
 
     <!-- Modal de Detalhe da Ocorrência -->
     <div id="modalDetalheOcorrencia" class="cv-modal" style="display:none;">
-        <div class="cv-modal__content cv-modal__content--large">
-            <span class="cv-modal__close-button" id="closeDetalheOcorrenciaModal">&times;</span>
+        <div class="cv-modal-content cv-modal-content--large"> <!-- Padronizado, mantendo --large se for uma variação válida -->
+            <span class="cv-modal-close" id="closeDetalheOcorrenciaModal">&times;</span> <!-- Padronizado -->
             <h2 id="detalheTitulo"></h2>
             <div class="ocorrencia-detalhes-grid">
                 <p><strong>Categoria:</strong> <span id="detalheCategoria"></span></p>
@@ -113,9 +113,9 @@
             <div id="detalheAnexosContainer" class="anexos-container">
                 <!-- Anexos serão listados aqui -->
             </div>
-             <div class="cv-form__group">
-                <label for="detalheNovosAnexos" class="cv-form__label">Adicionar mais anexos (opcional):</label>
-                <input type="file" id="detalheNovosAnexos" name="novosAnexos" class="cv-form__input-file" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.aac,.mp3,.wav">
+             <div class="cv-form-group"> <!-- Padronizado -->
+                <label for="detalheNovosAnexos">Adicionar mais anexos (opcional):</label>
+                <input type="file" id="detalheNovosAnexos" name="novosAnexos" class="cv-input" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.aac,.mp3,.wav"> <!-- Padronizado -->
                 <button id="btnAdicionarNovosAnexos" class="cv-button cv-button--secondary cv-button--small">Adicionar Selecionados</button>
                 <div id="novosAnexosPreviewContainer" class="anexos-preview"></div>
             </div>
@@ -132,12 +132,12 @@
 
             <div id="comentarioFormContainer" class="cv-form">
                 <h4>Adicionar Comentário:</h4>
-                <textarea id="novoComentarioTexto" class="cv-form__textarea" rows="3" placeholder="Digite seu comentário..."></textarea>
-                <div id="formComentarioErrors" class="cv-form__errors" style="display:none;"></div>
+                <textarea id="novoComentarioTexto" class="cv-input" rows="3" placeholder="Digite seu comentário..."></textarea> <!-- Padronizado -->
+                <div id="formComentarioErrors" class="cv-alert cv-alert--error" style="display:none;"></div> <!-- Padronizado para cv-alert -->
                 <button id="btnAdicionarComentario" class="cv-button cv-button--primary">Adicionar Comentário</button>
             </div>
 
-            <div class="cv-modal__actions ocorrencia-detalhes__actions">
+            <div class="cv-form-actions ocorrencia-detalhes__actions"> <!-- Padronizado para cv-form-actions -->
                 <button id="btnAlterarStatus" class="cv-button cv-button--secondary" style="display:none;">Alterar Status</button>
                 <button id="btnExcluirOcorrencia" class="cv-button cv-button--danger" style="display:none;">Excluir Ocorrência</button>
             </div>
@@ -146,14 +146,14 @@
 
     <!-- Modal para Alterar Status -->
     <div id="modalAlterarStatus" class="cv-modal" style="display:none;">
-        <div class="cv-modal__content">
-            <span class="cv-modal__close-button" id="closeAlterarStatusModal">&times;</span>
+        <div class="cv-modal-content"> <!-- Padronizado -->
+            <span class="cv-modal-close" id="closeAlterarStatusModal">&times;</span> <!-- Padronizado -->
             <h2>Alterar Status da Ocorrência</h2>
             <form id="formAlterarStatus" class="cv-form">
                 <input type="hidden" id="ocorrenciaIdParaAlterarStatus">
-                <div class="cv-form__group">
-                    <label for="selectNovoStatus" class="cv-form__label">Novo Status:</label>
-                    <select id="selectNovoStatus" class="cv-form__select">
+                <div class="cv-form-group"> <!-- Padronizado -->
+                    <label for="selectNovoStatus">Novo Status:</label>
+                    <select id="selectNovoStatus" class="cv-input"> <!-- Padronizado -->
                         <option value="ABERTA">Aberta</option>
                         <option value="EM_ANALISE">Em Análise</option>
                         <option value="EM_ATENDIMENTO">Em Atendimento</option>
@@ -161,7 +161,7 @@
                         <option value="CANCELADA">Cancelada</option>
                     </select>
                 </div>
-                <div id="formAlterarStatusErrors" class="cv-form__errors" style="display:none;"></div>
+                <div id="formAlterarStatusErrors" class="cv-alert cv-alert--error" style="display:none;"></div> <!-- Padronizado para cv-alert -->
                 <button type="submit" class="cv-button cv-button--primary">Salvar Status</button>
             </form>
         </div>

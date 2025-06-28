@@ -315,6 +315,9 @@ function setupFilterModalAndButton() {
   const applyFiltersModalButton = document.getElementById(
     "apply-filters-button-modal"
   );
+  const clearFiltersModalButton = document.getElementById( // Botão Limpar Filtros
+    "clear-filters-button-modal"
+  );
 
   if (openFilterButton && modalFiltros) {
     openFilterButton.addEventListener("click", () => {
@@ -375,6 +378,45 @@ function setupFilterModalAndButton() {
       }
     });
   }
+
+  // Event listener para o botão Limpar Filtros
+  if (clearFiltersModalButton && modalFiltros) {
+    clearFiltersModalButton.addEventListener("click", () => {
+      // Resetar filtros gerais
+      const categoryFilterModal = document.getElementById("category-filter-modal");
+      if (categoryFilterModal) categoryFilterModal.value = "";
+
+      const periodFilterModal = document.getElementById("period-filter-modal");
+      if (periodFilterModal) periodFilterModal.value = "";
+
+      // Resetar filtros de contexto (enquetes, solicitações, ocorrências)
+      // Enquetes
+      const enqueteAuthorFilter = document.getElementById("enquete-author-filter");
+      if (enqueteAuthorFilter) enqueteAuthorFilter.value = "todas";
+      const enqueteStatusFilter = document.getElementById("enquete-status-filter");
+      if (enqueteStatusFilter) enqueteStatusFilter.value = "";
+      // Solicitações
+      const solicitacaoAuthorFilter = document.getElementById("solicitacao-author-filter");
+      if (solicitacaoAuthorFilter) solicitacaoAuthorFilter.value = "todas";
+      const solicitacaoStatusFilter = document.getElementById("solicitacao-status-filter");
+      if (solicitacaoStatusFilter) solicitacaoStatusFilter.value = "";
+      // Ocorrências
+      const ocorrenciaAuthorFilter = document.getElementById("ocorrencia-author-filter");
+      if (ocorrenciaAuthorFilter) ocorrenciaAuthorFilter.value = "todas";
+      const ocorrenciaStatusFilter = document.getElementById("ocorrencia-status-filter");
+      if (ocorrenciaStatusFilter) ocorrenciaStatusFilter.value = "";
+
+      // Recarregar o feed
+      const activeTabContentId = getActiveTabContentId();
+      showFeedSkeleton("content-mural");
+      if (activeTabContentId !== "content-mural") {
+          showFeedSkeleton(activeTabContentId);
+      }
+      loadInitialFeedItems();
+      if (modalFiltros) modalFiltros.style.display = "none"; // Fechar modal
+      if (openFilterButton) openFilterButton.classList.remove("has-indicator"); // Remover indicador
+    });
+  }
 }
 
 function setupSortModalAndButton() {
@@ -382,6 +424,7 @@ function setupSortModalAndButton() {
   const sortModal = document.getElementById("modal-sort");
   const closeSortButtons = document.querySelectorAll(".js-modal-sort-close");
   const applySortButton = document.getElementById("apply-sort-button");
+  const clearSortButton = document.getElementById("clear-sort-button-modal"); // Botão Limpar Ordenação
   const sortSelect = document.getElementById("sort-order-select");
 
   if (openSortButton && sortModal) {
@@ -411,7 +454,30 @@ function setupSortModalAndButton() {
       if (currentSortOrder !== "desc")
         openSortButton.classList.add("has-indicator");
       else openSortButton.classList.remove("has-indicator");
-      showFeedSkeleton(getActiveTabContentId());
+
+      const activeTabContentId = getActiveTabContentId();
+      showFeedSkeleton("content-mural");
+        if (activeTabContentId !== "content-mural") {
+            showFeedSkeleton(activeTabContentId);
+        }
+      loadInitialFeedItems();
+    });
+  }
+
+  // Event listener para o botão Limpar Ordenação
+  if (clearSortButton && sortSelect && sortModal) {
+    clearSortButton.addEventListener("click", () => {
+      sortSelect.value = "desc"; // Valor padrão
+      currentSortOrder = "desc";
+      sortModal.style.display = "none";
+      openSortButton.classList.remove("rotated");
+      openSortButton.classList.remove("has-indicator"); // Remover indicador
+
+      const activeTabContentId = getActiveTabContentId();
+      showFeedSkeleton("content-mural");
+      if (activeTabContentId !== "content-mural") {
+          showFeedSkeleton(activeTabContentId);
+      }
       loadInitialFeedItems();
     });
   }

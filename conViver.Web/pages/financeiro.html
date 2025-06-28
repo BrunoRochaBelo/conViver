@@ -68,6 +68,7 @@
                     <option value="Atrasado">Atrasado</option>
                     <option value="Cancelado">Cancelado</option>
                 </select>
+                <button id="btnLimparFiltroCobranca" class="cv-button cv-button--secondary" style="margin-left: 8px;">Limpar Filtro</button>
             </div>
             <div class="fin-actions__group">
                 <button id="btnNovaCobranca" class="cv-button cv-button--primary js-btn-nova-cobranca">Emitir Nova Cobrança</button>
@@ -86,10 +87,10 @@
 
         <!-- Modal (inicialmente oculto) -->
         <div id="modalCobranca" class="cv-modal js-modal-cobranca" style="display: none;">
-            <div class="cv-modal__content">
-                <span class="cv-modal__close js-modal-close-cobranca">&times;</span>
-                <h3 id="modalCobrancaTitle" class="cv-modal__title">Nova Cobrança</h3>
-                <div id="modalCobrancaBody" class="cv-modal__body">
+            <div class="cv-modal-content"> <!-- Padronizado de __content para -content -->
+                <span class="cv-modal-close js-modal-close-cobranca">&times;</span> <!-- Padronizado de __close para -close -->
+                <h3 id="modalCobrancaTitle" class="cv-modal-title">Nova Cobrança</h3> <!-- Padronizado de __title para -title (assumindo que existe ou será estilizado) -->
+                <div id="modalCobrancaBody" class="cv-modal-body"> <!-- Padronizado de __body para -body (assumindo que existe ou será estilizado) -->
                     <!-- Formulário ou detalhes aqui -->
                     <p>Conteúdo do modal...</p>
                 </div>
@@ -101,16 +102,19 @@
             <h2>Despesas</h2>
             <canvas id="graficoDespesas" height="320"></canvas>
             <div class="card-grid js-lista-despesas"></div>
+            <!-- Adicionar modal para nova despesa se necessário, seguindo o padrão .cv-modal > .cv-modal-content -->
         </div>
 
         <div class="cv-tab-content" id="content-relatorios" style="display:none;">
             <h2>Relatórios</h2>
             <canvas id="graficoBalancete" height="320"></canvas>
+            <!-- Modais para filtros de relatórios, etc. -->
         </div>
 
         <div class="cv-tab-content" id="content-orcamento" style="display:none;">
             <h2>Orçamento</h2>
             <canvas id="graficoOrcamento" height="320"></canvas>
+            <!-- Modal para adicionar/editar item de orçamento -->
         </div>
 
         <div class="cv-tab-content" id="content-tendencias" style="display:none;">
