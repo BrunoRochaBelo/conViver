@@ -267,17 +267,25 @@
             <span class="cv-modal-close js-modal-criar-enquete-close">&times;</span>
             <h2 id="modal-enquete-title">Nova Enquete</h2>
             <form id="form-criar-enquete" class="cv-form">
+                <input type="hidden" id="enquete-id" name="id">
                 <div class="cv-form-group">
                     <label for="enquete-pergunta">Pergunta:</label>
-                    <input type="text" id="enquete-pergunta" class="cv-input" required>
+                    <input type="text" id="enquete-pergunta" name="pergunta" class="cv-input" required>
                 </div>
                 <div class="cv-form-group">
                     <label for="enquete-opcoes">Opções (uma por linha):</label>
-                    <textarea id="enquete-opcoes" class="cv-input" rows="4" required></textarea>
+                    <textarea id="enquete-opcoes" name="opcoes" class="cv-input" rows="4" required></textarea>
                 </div>
                 <div class="cv-form-group">
                     <label for="enquete-prazo">Prazo Final:</label>
-                    <input type="datetime-local" id="enquete-prazo" class="cv-input">
+                    <input type="datetime-local" id="enquete-prazo" name="prazo" class="cv-input" required>
+                </div>
+                <div class="cv-form-group">
+                    <label for="enquete-tipo">Tipo:</label>
+                    <select id="enquete-tipo" name="tipo" class="cv-input" required>
+                        <option value="informal">Enquete Informal</option>
+                        <option value="formal_assembleia">Votação Formal (Assembleia)</option>
+                    </select>
                 </div>
                 <div class="cv-form-actions">
                     <button type="submit" id="form-enquete-submit-button" class="cv-button primary">Salvar Enquete</button>
