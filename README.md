@@ -215,6 +215,7 @@ O cliente web (`conViver.Web`) utiliza um sistema de feedback visual global para
 - Mensagens de sucesso ou erro são exibidas em um banner (`<div id="global-message-banner">`).
 - Esta funcionalidade é gerenciada automaticamente por `js/apiClient.js`.
 - Para mostrar ou ocultar placeholders de carregamento (skeletons), utilize `showSkeleton()` e `hideSkeleton()` de `js/main.js` nos módulos.
+- Operações de exclusão utilizam **comportamento otimista**: o item é escondido assim que o usuário confirma e a requisição `apiClient.delete` é enviada. Se a remoção falhar (HTTP >= 400), o elemento volta a aparecer e um feedback de erro é exibido.
 
 ### Estrutura de Páginas & Navegação
 As páginas HTML da aplicação web ficam em `conViver.Web/pages`. Crie novos arquivos nesse diretório para adicionar funcionalidades.
