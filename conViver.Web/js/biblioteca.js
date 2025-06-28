@@ -2,6 +2,9 @@ import apiClient from './apiClient.js';
 import { requireAuth, getUserRoles } from './auth.js'; // Supondo que getUserRoles exista ou será criado
 import { showGlobalFeedback } from './main.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
+import { createProgressBar, showProgress, xhrPost } from './progress.js';
+
+let uploadProgressBar;
 
 document.addEventListener('DOMContentLoaded', async () => {
     requireAuth();
@@ -16,6 +19,7 @@ function initializeBibliotecaPage() {
     const uploadDocButton = document.getElementById('uploadDocButton');
     const modalUpload = document.getElementById('modalUploadDocumento');
     const formUpload = document.getElementById('formUploadDocumento');
+    uploadProgressBar = createProgressBar();
     const closeUploadModalButtons = document.querySelectorAll('.js-modal-upload-doc-close');
 
     if (userRoles.includes('Sindico') || userRoles.includes('Administrador')) {
@@ -31,6 +35,7 @@ function initializeBibliotecaPage() {
     }
 
     if (formUpload) {
+        formUpload.appendChild(uploadProgressBar);
         formUpload.addEventListener('submit', handleUploadDocumento);
     }
 
@@ -136,35 +141,20 @@ async function handleUploadDocumento(event) {
     event.preventDefault();
     const form = event.target;
     const formData = new FormData(form);
-
-    // Adicionando log para verificar o conteúdo do FormData
-    for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value instanceof File ? value.name : value}`);
-    }
-
+    showProgress(uploadProgressBar, 0);
+    showGlobalFeedback('Enviando...', 'info', 2000);
 
     try {
-        // O endpoint é /api/v1/syndic/docs
-        const response = await apiClient.post('/api/v1/syndic/docs', formData, true); // true para indicar que é FormData
-
-        if (response) { // apiClient.post deve retornar o DTO do documento criado ou um objeto de sucesso
-            form.reset();
-            document.getElementById('modalUploadDocumento').style.display = 'none';
-            loadDocumentos(); // Recarrega a lista
-        } else {
-            // Se o apiClient.post retornar null ou undefined em caso de erro já tratado por ele
-            // não precisamos mostrar outro feedback de erro aqui.
-            // Caso contrário, se ele lança exceção, o catch abaixo tratará.
-            // Se ele retorna um objeto de erro específico:
-            // showGlobalFeedback(response.message || 'Erro ao enviar documento.', 'error');
-        }
+        await xhrPost('/api/v1/syndic/docs', formData, p => showProgress(uploadProgressBar, p), true);
+        showProgress(uploadProgressBar, 100);
+        form.reset();
+        document.getElementById('modalUploadDocumento').style.display = 'none';
+        loadDocumentos();
+        showGlobalFeedback('Documento enviado!', 'success');
     } catch (error) {
+        uploadProgressBar.style.display = 'none';
         console.error('Erro ao enviar documento:', error);
-        // A mensagem de erro já deve ser exibida pelo showGlobalFeedback dentro do apiClient em caso de falha de rede ou HTTP status >= 400
-        // Apenas para garantir, se o erro não for tratado lá:
-        if (!error.handledByApiClient) { // Supondo que apiClient adicione essa flag
-             showGlobalFeedback(error.message || 'Falha no upload do documento. Verifique os campos e tente novamente.', 'error');
-        }
+        showGlobalFeedback(error.message || 'Falha no upload do documento.', 'error');
     }
 }
 

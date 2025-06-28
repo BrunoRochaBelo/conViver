@@ -2,6 +2,9 @@ import apiClient from './apiClient.js';
 import { requireAuth, getRoles } from './auth.js';
 import { showGlobalFeedback } from './main.js';
 import { initFabMenu } from './fabMenu.js';
+import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
+import { createProgressBar, showProgress, xhrPost } from './progress.js';
+
 
 // --- Função de Badge de Status ---
 function getStatusBadgeHtml(status) {
@@ -178,8 +181,10 @@ function adicionarListenersSaida() {
 const formRegistrarVisitante = document.getElementById('formRegistrarVisitante');
 const registrarVisitanteMsg = document.getElementById('registrarVisitanteMsg');
 const btnValidarQRCode = document.getElementById('btnValidarQRCode');
+const registrarProgressBar = createProgressBar();
 
 if (formRegistrarVisitante && registrarVisitanteMsg) {
+    formRegistrarVisitante.appendChild(registrarProgressBar);
     formRegistrarVisitante.addEventListener('submit', async (event) => {
         event.preventDefault();
         const formData = new FormData(formRegistrarVisitante);
@@ -195,10 +200,12 @@ if (formRegistrarVisitante && registrarVisitanteMsg) {
 
         registrarVisitanteMsg.style.display = 'block';
         registrarVisitanteMsg.className = 'feedback-message info';
-        registrarVisitanteMsg.textContent = 'Registrando entrada...';
+        registrarVisitanteMsg.textContent = 'Enviando...';
+        showProgress(registrarProgressBar, 0);
 
         try {
-            const response = await apiClient.post('/api/v1/visitantes/registrar-entrada', data);
+            const response = await xhrPost('/api/v1/visitantes/registrar-entrada', data, p => showProgress(registrarProgressBar, p));
+            showProgress(registrarProgressBar, 100);
             registrarVisitanteMsg.className = 'feedback-message success';
             registrarVisitanteMsg.textContent = 'Entrada registrada com sucesso! ID: ' + response.id;
             formRegistrarVisitante.reset();
@@ -211,6 +218,7 @@ if (formRegistrarVisitante && registrarVisitanteMsg) {
             const msg = err.response?.data?.message || err.message || 'Erro desconhecido';
             registrarVisitanteMsg.className = 'feedback-message error';
             registrarVisitanteMsg.textContent = 'Falha ao registrar entrada: ' + msg;
+            registrarProgressBar.style.display = 'none';
             showGlobalFeedback('Falha ao registrar entrada: ' + msg, 'error');
         }
     });

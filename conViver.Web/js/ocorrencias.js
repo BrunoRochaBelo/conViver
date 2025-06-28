@@ -1,5 +1,6 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth, getCurrentUser } from './auth.js';
+import { createProgressBar, showProgress, xhrPost } from './progress.js';
 
 // --- DOM Elements ---
 const listaOcorrenciasEl = document.getElementById('listaOcorrencias');
@@ -21,6 +22,7 @@ const ocorrenciaAnexosInput = document.getElementById('ocorrenciaAnexos');
 const anexosPreviewContainer = document.getElementById('anexosPreviewContainer');
 const cancelNovaOcorrenciaBtn = document.getElementById('cancelNovaOcorrencia');
 const formNovaOcorrenciaErrorsEl = document.getElementById('formNovaOcorrenciaErrors');
+const novaOcorrenciaProgress = createProgressBar();
 
 
 // Detalhe Ocorrência Modal
@@ -44,6 +46,7 @@ const formComentarioErrorsEl = document.getElementById('formComentarioErrors');
 const detalheNovosAnexosInput = document.getElementById('detalheNovosAnexos');
 const btnAdicionarNovosAnexos = document.getElementById('btnAdicionarNovosAnexos');
 const novosAnexosPreviewContainer = document.getElementById('novosAnexosPreviewContainer');
+const novosAnexosProgress = createProgressBar();
 
 
 // Detalhe Modal Action Buttons
@@ -111,45 +114,8 @@ function displayFormErrors(element, errors) {
  * This is used for requests involving file uploads.
  * Could be integrated into apiClient.js for reusability.
  */
-async function postWithFiles(path, formData) {
-    const token = localStorage.getItem('authToken');
-    const headers = {};
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-    // Don't set Content-Type for FormData, browser does it with boundary
-
-    try {
-        const response = await fetch(config.API_BASE_URL + path, {
-            method: 'POST',
-            body: formData,
-            headers: headers
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido ao processar resposta.' }));
-            throw new ApiError(errorData.message || `HTTP error! status: ${response.status}`, response.status, errorData);
-        }
-        // Try to parse JSON, but return raw response if it's not (e.g. for 201 CreatedAtAction which might have location but no body for some APIs)
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-            return await response.json();
-        } else {
-            // For 201 Created, location header might be more relevant than body
-            if (response.status === 201 && response.headers.get('Location')) {
-                // Attempt to get ID from location if possible, or just return a success marker
-                const locationUrl = response.headers.get('Location');
-                const id = locationUrl.substring(locationUrl.lastIndexOf('/') + 1);
-                // The API in this project returns the created object, so this path might not be taken if always JSON.
-                return { id: id, location: locationUrl, _isFromLocationHeader: true };
-            }
-            return { success: true, status: response.status }; // Or handle based on status
-        }
-    } catch (error) {
-        if (error instanceof ApiError) throw error;
-        console.error('Fetch error (postWithFiles):', error);
-        throw new ApiError(error.message || 'Falha na comunicação com o servidor (upload).', null, null);
-    }
+async function postWithFiles(path, formData, onProgress) {
+    return xhrPost(path, formData, onProgress, true);
 }
 
 
@@ -186,6 +152,13 @@ async function initOcorrenciasPage() {
     await loadOcorrencias(currentPage, currentFilter);
 
     // Attach Event Listeners
+    if (formNovaOcorrencia) {
+        formNovaOcorrencia.appendChild(novaOcorrenciaProgress);
+    }
+    if (detalheNovosAnexosInput) {
+        const grp = detalheNovosAnexosInput.closest('.cv-form__group') || detalheNovosAnexosInput.parentElement;
+        if (grp) grp.appendChild(novosAnexosProgress);
+    }
     tabsContainer.addEventListener('click', handleTabClick);
     btnNovaOcorrencia.addEventListener('click', openNovaOcorrenciaModal);
     closeNovaOcorrenciaModalBtn.addEventListener('click', closeNovaOcorrenciaModal);
@@ -412,8 +385,10 @@ async function handleNovaOcorrenciaSubmit(event) {
     }
 
     try {
-        // Using the local postWithFiles helper
-        const result = await postWithFiles('/api/ocorrencias', formData);
+        showProgress(novaOcorrenciaProgress, 0);
+        showGlobalFeedback('Enviando...', 'info', 2000);
+        const result = await postWithFiles('/api/ocorrencias', formData, p => showProgress(novaOcorrenciaProgress, p));
+        showProgress(novaOcorrenciaProgress, 100);
         // The API returns the created object directly, no need to check _isFromLocationHeader if it's JSON
         console.log('Nova ocorrência criada:', result);
         closeNovaOcorrenciaModal();
@@ -422,6 +397,7 @@ async function handleNovaOcorrenciaSubmit(event) {
         // For now, just log it.
         showGlobalFeedback('Ocorrência criada com sucesso!', 'success', 4000);
     } catch (error) {
+        novaOcorrenciaProgress.style.display = 'none';
         console.error('Erro ao criar nova ocorrência:', error);
         if (error.errors) { // Validation errors from API
             const errorMessages = error.errors.map(e => `${e.propertyName || ''}: ${e.errorMessage || e.ErrorMessage}`);
@@ -459,7 +435,9 @@ async function handleAdicionarNovosAnexosSubmit() {
     }
 
     try {
-        await postWithFiles(`/api/ocorrencias/${currentOcorrenciaId}/anexos`, formData);
+        showProgress(novosAnexosProgress, 0);
+        await postWithFiles(`/api/ocorrencias/${currentOcorrenciaId}/anexos`, formData, p => showProgress(novosAnexosProgress, p));
+        showProgress(novosAnexosProgress, 100);
         showGlobalFeedback('Novos anexos adicionados com sucesso!', 'success', 4000);
         // Refresh the anexos section in the detail modal
         const updatedOcorrencia = await apiClient.get(`/api/ocorrencias/${currentOcorrenciaId}`);
@@ -467,6 +445,7 @@ async function handleAdicionarNovosAnexosSubmit() {
         detalheNovosAnexosInput.value = ''; // Clear file input
         novosAnexosPreviewContainer.innerHTML = ''; // Clear previews
     } catch (error) {
+        novosAnexosProgress.style.display = 'none';
         console.error('Erro ao adicionar novos anexos:', error);
         showGlobalFeedback(`Erro ao adicionar anexos: ${error.message}`, 'error', 6000);
     } finally {
