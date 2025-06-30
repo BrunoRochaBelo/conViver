@@ -1,4 +1,4 @@
-import { showGlobalFeedback } from "./main.js";
+import { showGlobalFeedback, createErrorStateElement } from "./main.js";
 import { requireAuth, getUserInfo, getRoles } from "./auth.js";
 import apiClient from "./apiClient.js";
 import { initFabMenu } from "./fabMenu.js";
@@ -688,10 +688,28 @@ async function carregarMinhasReservas(page = 1, append = false) {
   } catch (err) {
     console.error("Erro ao carregar 'Minhas Reservas':", err);
     if (!append) {
-      container.innerHTML =
-        '<p class="cv-error-message" style="text-align:center;">Erro ao carregar suas reservas. Tente novamente mais tarde.</p>';
+      // container.innerHTML =
+      //   '<p class="cv-error-message" style="text-align:center;">Erro ao carregar suas reservas. Tente novamente mais tarde.</p>';
+      container.innerHTML = ''; // Limpa o container
+      const errorState = createErrorStateElement({
+        message: err.message || "Não foi possível carregar suas reservas. Verifique sua conexão e tente novamente.",
+        retryButton: {
+          text: "Tentar Novamente",
+          onClick: () => carregarMinhasReservas(1, false) // Recarrega a primeira página
+        }
+      });
+      container.appendChild(errorState);
     } else {
-        showGlobalFeedback("Erro ao carregar mais reservas.", "error");
+        // showGlobalFeedback("Erro ao carregar mais reservas.", "error"); // Removed as per user request
+        // Consider adding a small inline error indicator at the bottom of the list if append fails
+        console.error("Erro ao carregar mais itens para 'Minhas Reservas'.");
+        // Optionally, add a small error message at the end of the list for append failures
+        const appendErrorMsg = document.createElement('p');
+        appendErrorMsg.className = 'cv-info-message cv-info-message--error';
+        appendErrorMsg.textContent = 'Falha ao carregar mais. Tente rolar novamente.';
+        appendErrorMsg.style.textAlign = 'center';
+        container.appendChild(appendErrorMsg);
+
     }
     noMoreItemsMinhasReservas = true;
     if (sentinel) sentinel.style.display = "none";
@@ -812,10 +830,27 @@ async function carregarReservasListView(page, append = false) {
   } catch (err) {
     console.error("Erro ao carregar lista de reservas:", err);
     if (!append) {
-      container.innerHTML =
-        '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas. Tente novamente mais tarde.</p>';
+      // container.innerHTML =
+      //  '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas. Tente novamente mais tarde.</p>';
+      container.innerHTML = ''; // Limpa o container
+      const errorState = createErrorStateElement({
+        message: err.message || "Não foi possível carregar as reservas. Verifique sua conexão e tente novamente.",
+        retryButton: {
+          text: "Tentar Novamente",
+          onClick: () => carregarReservasListView(1, false) // Recarrega a primeira página
+        }
+      });
+      container.appendChild(errorState);
     } else {
-      showGlobalFeedback("Erro ao carregar mais reservas.", "error");
+      // showGlobalFeedback("Erro ao carregar mais reservas.", "error"); // Removed as per user request
+      // Consider adding a small inline error indicator at the bottom of the list if append fails
+      console.error("Erro ao carregar mais itens para 'Lista de Reservas'.");
+      // Optionally, add a small error message at the end of the list for append failures
+      const appendErrorMsg = document.createElement('p');
+      appendErrorMsg.className = 'cv-info-message cv-info-message--error';
+      appendErrorMsg.textContent = 'Falha ao carregar mais. Tente rolar novamente.';
+      appendErrorMsg.style.textAlign = 'center';
+      container.appendChild(appendErrorMsg);
     }
     // Considerar parar o observer em caso de erro para não ficar tentando carregar.
     noMoreItemsListView = true; // Para evitar novas tentativas automáticas

@@ -316,13 +316,32 @@ async function carregarHistoricoVisitantes(filters = {}) {
                 historicoContainer.appendChild(card);
             });
         } else {
-            historicoNoDataMsg.style.display = 'block';
+            // Use createEmptyStateElement if no data and no active filters, otherwise show a "no results for filter" message
+            const hasFilters = Object.values(filters).some(val => val);
+            if (hasFilters) {
+                 historicoContainer.innerHTML = '<p class="cv-info-message" style="text-align:center;">Nenhum visitante encontrado com os filtros aplicados.</p>';
+            } else {
+                const emptyState = createEmptyStateElement({
+                    title: "Histórico Vazio",
+                    description: "Ainda não há registros de entrada ou saída de visitantes."
+                });
+                historicoContainer.appendChild(emptyState);
+            }
+            historicoNoDataMsg.style.display = 'none'; // Hide the old noDataMsg
         }
     } catch (err) {
         console.error('Erro ao listar histórico de visitantes:', err);
         historicoLoadingMsg.style.display = 'none';
-        historicoContainer.innerHTML = '<div class="error-message">Falha ao carregar histórico.</div>';
-        showGlobalFeedback('Erro ao carregar histórico: ' + (err.message || ''), 'error');
+        historicoContainer.innerHTML = ''; // Limpa o container
+        const errorState = createErrorStateElement({
+            message: err.message || "Não foi possível carregar o histórico de visitantes. Verifique sua conexão e tente novamente.",
+            retryButton: {
+                text: "Tentar Novamente",
+                onClick: () => carregarHistoricoVisitantes(filters) // Passa os filtros atuais para a nova tentativa
+            }
+        });
+        historicoContainer.appendChild(errorState);
+        // showGlobalFeedback('Erro ao carregar histórico: ' + (err.message || ''), 'error'); // Removed, inline message is sufficient
     } finally {
         // skeleton handled by apiClient
     }
@@ -409,7 +428,15 @@ async function carregarEncomendas() {
         }
     } catch (err) {
         console.error('Erro ao listar encomendas:', err);
-        container.innerHTML = '<div class="error-message">Falha ao carregar encomendas.</div>';
+        container.innerHTML = ''; // Limpa o container
+        const errorState = createErrorStateElement({
+            message: err.message || "Não foi possível carregar as encomendas. Verifique sua conexão e tente novamente.",
+            retryButton: {
+                text: "Tentar Novamente",
+                onClick: carregarEncomendas
+            }
+        });
+        container.appendChild(errorState);
     } finally {
         // skeleton handled by apiClient
     }
