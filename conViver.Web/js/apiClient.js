@@ -67,7 +67,7 @@ async function request(path, options = {}) {
         skeletonTimer = setTimeout(() => {
             displaySkeleton(skeletonTarget);
             skeletonShown = true;
-        }, 200); // Keep 200ms delay for skeletons
+        }, 350); // Show skeletons only for requests slower than ~350ms
     } else if (elementToSpin && (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')) {
         if (!(method === 'POST' && fetchOptions.body instanceof FormData)) { // Don't use inline spinner for FormData POSTs if progress bar is used
             removeInlineSpinner = showInlineSpinner(elementToSpin);
