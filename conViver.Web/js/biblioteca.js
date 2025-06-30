@@ -71,11 +71,27 @@ async function loadDocumentos() {
         listContainer.innerHTML = ''; // Limpar antes de adicionar conteúdo ou empty state
 
         if (!documentos || documentos.length === 0) {
+            const userRoles = getUserRoles();
+            const isSindico = userRoles.includes('Sindico') || userRoles.includes('Administrador');
+            let actionButton = null;
+            if (isSindico) {
+                actionButton = {
+                    text: "Adicionar Documento",
+                    onClick: () => {
+                        const uploadDocButton = document.getElementById('uploadDocButton');
+                        if (uploadDocButton) uploadDocButton.click();
+                    },
+                    classes: ["cv-button--primary"]
+                };
+            }
+
             const emptyState = createEmptyStateElement({
                 iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 2c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6H6zm8 7h-2V4l4 4h-2z"/></svg>`, // Ícone de Documento
                 title: "Biblioteca Vazia",
-                description: "Ainda não há documentos disponíveis. O síndico pode adicionar atas, regulamentos e outros arquivos importantes aqui.",
-                // actionButton: { text: "Sugerir Documento", onClick: () => { /* ... */ } } // Exemplo de CTA
+                description: isSindico
+                    ? "Ainda não há documentos disponíveis. Adicione atas, regulamentos e outros arquivos importantes aqui."
+                    : "Ainda não há documentos disponíveis na biblioteca.",
+                actionButton: actionButton
             });
             listContainer.appendChild(emptyState);
             return;

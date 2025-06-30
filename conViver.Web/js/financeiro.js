@@ -368,7 +368,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (btnLimparFiltroCobrancaEl) btnLimparFiltroCobrancaEl.click();
                     },
                     classes: ["cv-button--secondary"]
-                } : null
+                } : { // Not filtered, general empty state
+                    text: "Emitir Nova Cobrança",
+                    onClick: () => {
+                        // const btnNovaCobranca = document.querySelector('.js-btn-nova-cobranca'); // Already defined globally
+                        if (btnNovaCobranca) btnNovaCobranca.click();
+                    },
+                    classes: ["cv-button--primary"]
+                }
             });
             tbodyCobrancas.appendChild(emptyState);
             return;
@@ -552,8 +559,17 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 const emptyState = createEmptyStateElement({
                     iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48px" height="48px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"/></svg>`, // Ícone de informação/lista vazia
-                    title: "Sem Despesas",
-                    description: "Nenhuma despesa registrada para este período ou com os filtros aplicados."
+                    title: "Sem Despesas Registradas",
+                    description: "Ainda não há despesas lançadas. Você pode adicionar uma nova despesa.",
+                    actionButton: {
+                        text: "Adicionar Despesa",
+                        onClick: () => {
+                            // Placeholder: Logic to open a modal or navigate to a form for adding expenses
+                            console.log("Botão 'Adicionar Despesa' clicado. Implementar ação.");
+                            showGlobalFeedback("Funcionalidade 'Adicionar Despesa' a ser implementada.", "info");
+                        },
+                        classes: ["cv-button--primary"]
+                    }
                 });
                 despesasTableBody.appendChild(emptyState);
             }
@@ -609,33 +625,35 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 if (graficoBalanceteEl) graficoBalanceteEl.style.display = 'none';
                 if (graficoBalanceteSkeletonEl && graficoBalanceteSkeletonEl.parentNode) {
-                    let msgEl = graficoBalanceteSkeletonEl.parentNode.querySelector('.no-data-message');
-                    if (!msgEl) {
-                        msgEl = document.createElement('p');
-                        msgEl.className = 'no-data-message info-text';
-                        graficoBalanceteSkeletonEl.parentNode.insertBefore(msgEl, graficoBalanceteEl);
-                    }
-                    msgEl.textContent = 'Sem dados suficientes para exibir o gráfico de balancete.';
-                    msgEl.style.display = 'block';
-                    graficoBalanceteSkeletonEl.parentNode.querySelector('.error-data-message')?.remove(); // Remove msg de erro antiga
+                    const chartContainer = graficoBalanceteSkeletonEl.parentNode;
+                    chartContainer.querySelectorAll('.cv-empty-state, .cv-error-state, .no-data-message, .error-data-message').forEach(el => el.remove());
+                    const emptyState = createEmptyStateElement({
+                        title: "Gráfico Indisponível",
+                        description: "Sem dados suficientes para exibir o gráfico de balancete no momento.",
+                        iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="32px" height="32px"><path d="M4 9h4v11H4zm0-5h4v4H4zm6 3h4v8h-4zm0-3h4v2h-4zm6 5h4v6h-4zm0-5h4v4h-4z"/></svg>` // Simple bar chart icon
+                    });
+                    chartContainer.insertBefore(emptyState, graficoBalanceteEl || graficoBalanceteSkeletonEl);
                 }
             }
         } catch (err) {
             console.error('Erro ao obter balancete:', err);
             if (graficoBalanceteEl) graficoBalanceteEl.style.display = 'none';
             // showGlobalFeedback('Erro ao carregar relatório de balancete.', 'error'); // REMOVED
-             if (graficoBalanceteSkeletonEl && graficoBalanceteSkeletonEl.parentNode) {
-                const friendlyMsg = err instanceof ApiError ? getFriendlyApiErrorMessage(err) : getFriendlyNetworkErrorMessage(err.message);
-                let errorMsgEl = graficoBalanceteSkeletonEl.parentNode.querySelector('.error-data-message');
-                 if (!errorMsgEl) {
-                    const p = document.createElement('p');
-                    p.className = 'error-data-message cv-alert cv-alert--error';
-                    p.textContent = `Erro ao carregar gráfico: ${err.message || "Tente novamente."}`;
-                    graficoBalanceteSkeletonEl.parentNode.insertBefore(p, graficoBalanceteEl);
-                } else {
-                    errorMsgEl.textContent = `Erro ao carregar gráfico: ${err.message || "Tente novamente."}`;
-                    errorMsgEl.style.display = 'block';
-                }
+            if (graficoBalanceteSkeletonEl && graficoBalanceteSkeletonEl.parentNode) {
+                const chartContainer = graficoBalanceteSkeletonEl.parentNode;
+                // Limpar mensagens antigas
+                chartContainer.querySelectorAll('.cv-error-state, .no-data-message, .error-data-message').forEach(el => el.remove());
+
+                const errorState = createErrorStateElement({
+                    title: "Erro no Gráfico",
+                    message: err.message || "Não foi possível carregar os dados para o gráfico de balancete.",
+                    retryButton: {
+                        text: "Tentar Novamente",
+                        onClick: fetchAndRenderBalancete
+                    }
+                });
+                // Adicionar o errorState antes do canvas do gráfico ou do skeleton (se o canvas estiver oculto)
+                chartContainer.insertBefore(errorState, graficoBalanceteEl || graficoBalanceteSkeletonEl);
             }
         } finally {
             if (graficoBalanceteSkeletonEl) hideSkeleton(graficoBalanceteSkeletonEl);
@@ -667,15 +685,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 if (graficoOrcamentoEl) graficoOrcamentoEl.style.display = 'none';
                 if (graficoOrcamentoSkeletonEl && graficoOrcamentoSkeletonEl.parentNode) {
-                    let msgEl = graficoOrcamentoSkeletonEl.parentNode.querySelector('.no-data-message');
-                    if (!msgEl) {
-                        msgEl = document.createElement('p');
-                        msgEl.className = 'no-data-message info-text';
-                        graficoOrcamentoSkeletonEl.parentNode.insertBefore(msgEl, graficoOrcamentoEl);
-                    }
-                    msgEl.textContent = 'Sem dados de orçamento para exibir o gráfico.';
-                    msgEl.style.display = 'block';
-                    graficoOrcamentoSkeletonEl.parentNode.querySelector('.error-data-message')?.remove();
+                    const chartContainer = graficoOrcamentoSkeletonEl.parentNode;
+                    chartContainer.querySelectorAll('.cv-empty-state, .cv-error-state, .no-data-message, .error-data-message').forEach(el => el.remove());
+                    const emptyState = createEmptyStateElement({
+                        title: "Gráfico Indisponível",
+                        description: "Sem dados de orçamento para exibir o gráfico no momento.",
+                        iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="32px" height="32px"><path d="M4 9h4v11H4zm0-5h4v4H4zm6 3h4v8h-4zm0-3h4v2h-4zm6 5h4v6h-4zm0-5h4v4h-4z"/></svg>`
+                    });
+                    chartContainer.insertBefore(emptyState, graficoOrcamentoEl || graficoOrcamentoSkeletonEl);
                 }
             }
         } catch (err) {
@@ -683,17 +700,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (graficoOrcamentoEl) graficoOrcamentoEl.style.display = 'none';
             // showGlobalFeedback('Erro ao carregar dados do orçamento.', 'error'); // REMOVED
             if (graficoOrcamentoSkeletonEl && graficoOrcamentoSkeletonEl.parentNode) {
-                const friendlyMsg = err instanceof ApiError ? getFriendlyApiErrorMessage(err) : getFriendlyNetworkErrorMessage(err.message);
-                let errorMsgEl = graficoOrcamentoSkeletonEl.parentNode.querySelector('.error-data-message');
-                 if (!errorMsgEl) {
-                    const p = document.createElement('p');
-                    p.className = 'error-data-message cv-alert cv-alert--error';
-                    p.textContent = `Erro ao carregar gráfico: ${err.message || "Tente novamente."}`;
-                    graficoOrcamentoSkeletonEl.parentNode.insertBefore(p, graficoOrcamentoEl);
-                } else {
-                    errorMsgEl.textContent = `Erro ao carregar gráfico: ${err.message || "Tente novamente."}`;
-                    errorMsgEl.style.display = 'block';
-                }
+                const chartContainer = graficoOrcamentoSkeletonEl.parentNode;
+                chartContainer.querySelectorAll('.cv-error-state, .no-data-message, .error-data-message').forEach(el => el.remove());
+
+                const errorState = createErrorStateElement({
+                    title: "Erro no Gráfico",
+                    message: err.message || "Não foi possível carregar os dados para o gráfico de orçamento.",
+                    retryButton: {
+                        text: "Tentar Novamente",
+                        onClick: fetchAndRenderOrcamento
+                    }
+                });
+                chartContainer.insertBefore(errorState, graficoOrcamentoEl || graficoOrcamentoSkeletonEl);
             }
         } finally {
             if (graficoOrcamentoSkeletonEl) hideSkeleton(graficoOrcamentoSkeletonEl);
@@ -725,15 +743,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 if (graficoTendenciasEl) graficoTendenciasEl.style.display = 'none';
                 if (graficoTendenciasSkeletonEl && graficoTendenciasSkeletonEl.parentNode) {
-                    let msgEl = graficoTendenciasSkeletonEl.parentNode.querySelector('.no-data-message');
-                    if (!msgEl) {
-                        msgEl = document.createElement('p');
-                        msgEl.className = 'no-data-message info-text';
-                        graficoTendenciasSkeletonEl.parentNode.insertBefore(msgEl, graficoTendenciasEl);
-                    }
-                    msgEl.textContent = 'Sem dados de tendências para exibir o gráfico.';
-                    msgEl.style.display = 'block';
-                    graficoTendenciasSkeletonEl.parentNode.querySelector('.error-data-message')?.remove();
+                    const chartContainer = graficoTendenciasSkeletonEl.parentNode;
+                    chartContainer.querySelectorAll('.cv-empty-state, .cv-error-state, .no-data-message, .error-data-message').forEach(el => el.remove());
+                    const emptyState = createEmptyStateElement({
+                        title: "Gráfico Indisponível",
+                        description: "Sem dados de tendências financeiras para exibir o gráfico no momento.",
+                        iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="32px" height="32px"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>` // Simple line chart icon
+                    });
+                    chartContainer.insertBefore(emptyState, graficoTendenciasEl || graficoTendenciasSkeletonEl);
                 }
             }
         } catch (err) {
@@ -741,17 +758,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (graficoTendenciasEl) graficoTendenciasEl.style.display = 'none';
             // showGlobalFeedback('Erro ao carregar dados de tendências.', 'error'); // REMOVED
             if (graficoTendenciasSkeletonEl && graficoTendenciasSkeletonEl.parentNode) {
-                const friendlyMsg = err instanceof ApiError ? getFriendlyApiErrorMessage(err) : getFriendlyNetworkErrorMessage(err.message);
-                let errorMsgEl = graficoTendenciasSkeletonEl.parentNode.querySelector('.error-data-message');
-                if (!errorMsgEl) {
-                    const p = document.createElement('p');
-                    p.className = 'error-data-message cv-alert cv-alert--error';
-                    p.textContent = `Erro ao carregar gráfico: ${err.message || "Tente novamente."}`;
-                    graficoTendenciasSkeletonEl.parentNode.insertBefore(p, graficoTendenciasEl);
-                } else {
-                    errorMsgEl.textContent = `Erro ao carregar gráfico: ${err.message || "Tente novamente."}`;
-                    errorMsgEl.style.display = 'block';
-                }
+                const chartContainer = graficoTendenciasSkeletonEl.parentNode;
+                chartContainer.querySelectorAll('.cv-error-state, .no-data-message, .error-data-message').forEach(el => el.remove());
+
+                const errorState = createErrorStateElement({
+                    title: "Erro no Gráfico",
+                    message: err.message || "Não foi possível carregar os dados para o gráfico de tendências.",
+                    retryButton: {
+                        text: "Tentar Novamente",
+                        onClick: fetchAndRenderTendencias
+                    }
+                });
+                chartContainer.insertBefore(errorState, graficoTendenciasEl || graficoTendenciasSkeletonEl);
             }
         } finally {
             if (graficoTendenciasSkeletonEl) hideSkeleton(graficoTendenciasSkeletonEl);

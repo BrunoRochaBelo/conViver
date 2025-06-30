@@ -1325,17 +1325,23 @@ async function fetchAndDisplayFeedItems(page, append = false) {
           // Outros filtros específicos de aba poderiam ser verificados aqui também.
           const hasActiveFilters = CategoriaFilterValue || periodoFilterInput;
 
-          const emptyStateConfig = {
+          const userRolesForEmptyState = getUserRoles(); // Obter roles para decidir o botão
+          const isSindicoForEmptyState = userRolesForEmptyState.includes("Sindico") || userRolesForEmptyState.includes("Administrador");
+
+          let emptyStateConfig = {
             iconHTML: `
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
               </svg>`, // Ícone de Lupa
-            title: hasActiveFilters ? "Nenhum Item Encontrado" : "Ainda Não Há Itens",
-            description: hasActiveFilters
-              ? "Tente ajustar seus filtros ou verificar mais tarde."
-              : "Não há comunicados, enquetes ou outras atualizações no momento. Volte mais tarde!",
-            // Opcional: Adicionar um botão para limpar filtros se houver filtros ativos
-            actionButton: hasActiveFilters ? {
+            title: "Nenhum Item Encontrado", // Default title
+            description: "Não há comunicados, enquetes ou outras atualizações no momento. Volte mais tarde!",
+            actionButton: null // Default no action button
+          };
+
+          if (hasActiveFilters) {
+            emptyStateConfig.title = "Nenhum Item Encontrado";
+            emptyStateConfig.description = "Tente ajustar seus filtros ou verificar mais tarde.";
+            emptyStateConfig.actionButton = {
                 text: "Limpar Filtros",
                 onClick: () => {
                     // Lógica para limpar filtros e recarregar - pode chamar a função de clearFiltersModalButton
@@ -1343,9 +1349,24 @@ async function fetchAndDisplayFeedItems(page, append = false) {
                     if (clearFiltersBtnModal) clearFiltersBtnModal.click();
                     // A ação de click no botão de limpar filtros já recarrega o feed.
                 },
-                classes: ["cv-button--secondary"] // Exemplo de classe adicional
-            } : null
-          };
+                classes: ["cv-button--secondary"]
+            };
+          } else {
+            // Sem filtros ativos, mural principal vazio
+            emptyStateConfig.title = "Mural Vazio";
+            emptyStateConfig.description = "Ainda não há comunicados, enquetes ou outras atualizações. Que tal criar o primeiro aviso?";
+            if (isSindicoForEmptyState) {
+                emptyStateConfig.actionButton = {
+                    text: "Criar Aviso",
+                    onClick: openCriarAvisoModal, // Função para abrir modal de criar aviso
+                    classes: ["cv-button--primary"]
+                };
+            } else {
+                 // Para não-síndicos, talvez um botão para ver ocorrências ou algo similar, ou nenhum botão.
+                 // Por ora, sem botão se não for síndico e o mural estiver genuinamente vazio.
+                 emptyStateConfig.description = "Ainda não há comunicados, enquetes ou outras atualizações no momento. Volte mais tarde!"
+            }
+          }
 
           const emptyStateElement = createEmptyStateElement(emptyStateConfig);
 
@@ -1744,8 +1765,18 @@ async function handleEnqueteClick(itemId, targetElementOrCard) {
       `/api/v1/votacoes/app/votacoes/${itemId}`
     );
     if (!enquete) {
-      modalEnqueteDetalheOpcoesContainer.innerHTML =
-        '<p class="cv-error-message">Enquete não encontrada ou acesso não permitido.</p>'; // Mensagem mais genérica
+      // modalEnqueteDetalheOpcoesContainer.innerHTML =
+      //   '<p class="cv-error-message">Enquete não encontrada ou acesso não permitido.</p>';
+      const errorState = createErrorStateElement({
+        title: "Enquete não encontrada",
+        message: "A enquete que você está tentando visualizar não foi encontrada ou você não tem permissão para acessá-la.",
+        retryButton: {
+            text: "Tentar Novamente",
+            onClick: () => handleEnqueteClick(itemId, null)
+        }
+      });
+      modalEnqueteDetalheOpcoesContainer.innerHTML = '';
+      modalEnqueteDetalheOpcoesContainer.appendChild(errorState);
       return;
     }
     modalEnqueteDetalheTitulo.textContent = enquete.titulo;
@@ -1774,8 +1805,18 @@ async function handleEnqueteClick(itemId, targetElementOrCard) {
     // A mensagem de erro agora é mostrada dentro do modal pelo createErrorStateElement (indiretamente)
     // ou por uma mensagem simples se o componente não for usado aqui.
     // O importante é que o modal já tem seu próprio feedback de erro.
-    modalEnqueteDetalheOpcoesContainer.innerHTML =
-      '<p class="cv-error-message">Erro ao carregar detalhes da enquete. Tente novamente mais tarde.</p>';
+    // modalEnqueteDetalheOpcoesContainer.innerHTML =
+    //   '<p class="cv-error-message">Erro ao carregar detalhes da enquete. Tente novamente mais tarde.</p>';
+    const errorState = createErrorStateElement({
+        title: "Erro ao Carregar Enquete",
+        message: error.message || "Não foi possível carregar os detalhes da enquete. Verifique sua conexão e tente novamente.",
+        retryButton: {
+            text: "Tentar Novamente",
+            onClick: () => handleEnqueteClick(itemId, null)
+        }
+    });
+    modalEnqueteDetalheOpcoesContainer.innerHTML = '';
+    modalEnqueteDetalheOpcoesContainer.appendChild(errorState);
     // Removido showGlobalFeedback daqui para evitar redundância com o feedback no modal.
     // if (!error.handledByApiClient) {
     //   showGlobalFeedback(
@@ -1959,8 +2000,18 @@ async function handleChamadoClick(
     const itemData = await apiClient.get(endpoint);
 
     if (!itemData) {
-      modalChamadoDetalheConteudo.innerHTML =
-        '<p class="cv-error-message">Item não encontrado ou acesso não permitido.</p>';
+      // modalChamadoDetalheConteudo.innerHTML =
+      //   '<p class="cv-error-message">Item não encontrado ou acesso não permitido.</p>';
+      const errorState = createErrorStateElement({
+        title: "Item não encontrado",
+        message: `O item do tipo '${itemType}' que você está tentando visualizar não foi encontrado ou você não tem permissão para acessá-lo.`,
+        retryButton: {
+            text: "Tentar Novamente",
+            onClick: () => handleChamadoClick(itemId, null, itemType)
+        }
+      });
+      modalChamadoDetalheConteudo.innerHTML = '';
+      modalChamadoDetalheConteudo.appendChild(errorState);
       return;
     }
 
@@ -1998,7 +2049,17 @@ async function handleChamadoClick(
     }
   } catch (error) {
     console.error(`Erro ao buscar detalhes de ${itemType}:`, error);
-    modalChamadoDetalheConteudo.innerHTML = `<p class="cv-error-message">Erro ao carregar detalhes de ${itemType}. Tente novamente mais tarde.</p>`;
+    // modalChamadoDetalheConteudo.innerHTML = `<p class="cv-error-message">Erro ao carregar detalhes de ${itemType}. Tente novamente mais tarde.</p>`;
+    const errorState = createErrorStateElement({
+        title: `Erro ao Carregar ${itemType}`,
+        message: error.message || `Não foi possível carregar os detalhes de ${itemType}. Verifique sua conexão e tente novamente.`,
+        retryButton: {
+            text: "Tentar Novamente",
+            onClick: () => handleChamadoClick(itemId, null, itemType)
+        }
+    });
+    modalChamadoDetalheConteudo.innerHTML = '';
+    modalChamadoDetalheConteudo.appendChild(errorState);
     // Removido showGlobalFeedback daqui para evitar redundância com o feedback no modal.
     // if (!error.handledByApiClient) {
     //   showGlobalFeedback(

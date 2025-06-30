@@ -159,7 +159,12 @@ async function carregarVisitantesAtuais() {
             const emptyState = createEmptyStateElement({
                 iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48px" height="48px"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`, // Ícone de pessoa
                 title: "Nenhum Visitante Presente",
-                description: "Não há visitantes registrados como presentes no condomínio neste momento."
+                description: "Não há visitantes registrados como presentes no condomínio neste momento. Você pode registrar um novo visitante.",
+                actionButton: {
+                    text: "Registrar Visitante",
+                    onClick: () => openSubTab('registrar-visitante'), // Assumes openSubTab switches to the form
+                    classes: ["cv-button--primary"]
+                }
             });
             container.appendChild(emptyState);
         }
@@ -323,7 +328,12 @@ async function carregarHistoricoVisitantes(filters = {}) {
             } else {
                 const emptyState = createEmptyStateElement({
                     title: "Histórico Vazio",
-                    description: "Ainda não há registros de entrada ou saída de visitantes."
+                    description: "Ainda não há registros de entrada ou saída de visitantes. Que tal registrar o primeiro?",
+                    actionButton: {
+                        text: "Registrar Visitante",
+                        onClick: () => openSubTab('registrar-visitante'),
+                        classes: ["cv-button--primary"]
+                    }
                 });
                 historicoContainer.appendChild(emptyState);
             }
@@ -424,7 +434,28 @@ async function carregarEncomendas() {
                 container.appendChild(card);
             });
         } else {
-            noDataMsg.style.display = 'block';
+            // noDataMsg.style.display = 'block'; // Replaced by createEmptyStateElement
+            container.innerHTML = ''; // Clear container before adding empty state
+            const emptyState = createEmptyStateElement({
+                title: "Nenhuma Encomenda Aguardando",
+                description: "Não há encomendas pendentes de retirada no momento.",
+                actionButton: {
+                    text: "Registrar Nova Encomenda",
+                    onClick: () => {
+                        // Assuming formNovaEncomenda is accessible and we can focus its first input or relevant action
+                        const form = document.getElementById('formNovaEncomenda');
+                        if (form) {
+                            // Focus on the first input or a specific button if available
+                            const firstInput = form.querySelector('input, select, textarea');
+                            if (firstInput) firstInput.focus();
+                            // Or, if there's a specific button to trigger the form display (if it's in a modal not yet open)
+                            // document.getElementById('btnAbrirModalNovaEncomenda').click();
+                        }
+                    },
+                    classes: ["cv-button--primary"]
+                }
+            });
+            container.appendChild(emptyState);
         }
     } catch (err) {
         console.error('Erro ao listar encomendas:', err);
