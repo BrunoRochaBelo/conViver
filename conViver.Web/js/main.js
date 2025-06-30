@@ -48,6 +48,22 @@ export function delegateEvent(parentElement, eventType, selector, callback) {
 }
 
 /**
+ * Retorna uma versão "debounced" da função fornecida.
+ * A função original será executada somente após o período de
+ * inatividade definido.
+ * @param {Function} fn Função a ser executada.
+ * @param {number} delay Atraso em milissegundos.
+ * @returns {Function} Função debounced.
+ */
+export function debounce(fn, delay = 300) {
+  let timeoutId;
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+/**
  * Exibe uma mensagem de erro global para o usuário.
  * (Implementação inicial simples, pode ser expandida)
  * @param {string} message A mensagem de erro a ser exibida.
