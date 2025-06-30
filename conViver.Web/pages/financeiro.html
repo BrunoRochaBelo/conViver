@@ -44,14 +44,23 @@
             <div class="db-metrics-grid">
                 <div class="cv-card fin-summary-card">
                     <h4 class="fin-summary-card__title">Inadimplência</h4>
+                    <div class="fin-summary-skeleton js-summary-inadimplencia-skeleton" style="display:none;">
+                        <span class="skeleton-block" style="width: 70px; height: 28px; display: block; margin-top: 5px; background-color: #e0e0e0;"></span>
+                    </div>
                     <p class="fin-summary-card__value js-summary-inadimplencia">--%</p>
                 </div>
                 <div class="cv-card fin-summary-card">
                     <h4 class="fin-summary-card__title">Pix no Mês</h4>
+                    <div class="fin-summary-skeleton js-summary-pix-skeleton" style="display:none;">
+                        <span class="skeleton-block" style="width: 100px; height: 28px; display: block; margin-top: 5px; background-color: #e0e0e0;"></span>
+                    </div>
                     <p class="fin-summary-card__value js-summary-pix">R$ --</p>
                 </div>
                 <div class="cv-card fin-summary-card">
                     <h4 class="fin-summary-card__title">Boletos Pendentes</h4>
+                    <div class="fin-summary-skeleton js-summary-pendentes-skeleton" style="display:none;">
+                        <span class="skeleton-block" style="width: 50px; height: 28px; display: block; margin-top: 5px; background-color: #e0e0e0;"></span>
+                    </div>
                     <p class="fin-summary-card__value js-summary-pendentes">--</p>
                 </div>
             </div>
@@ -100,26 +109,55 @@
 
         <div class="cv-tab-content" id="content-despesas" style="display:none;">
             <h2>Despesas</h2>
-            <canvas id="graficoDespesas" height="320"></canvas>
+            <div class="grafico-container cv-card" style="padding: 16px; margin-bottom: 20px;">
+                <div id="graficoDespesasSkeleton" class="feed-skeleton-container" style="display:none; height: 300px; width:100%; align-items: center; justify-content: center; flex-direction: column; background-color: #f0f0f0; border-radius: 8px;">
+                    <div class="skeleton-block" style="width:80%; height: 20px; margin-bottom:15px; background-color: #e0e0e0;"></div>
+                    <div class="skeleton-block" style="width:60%; height: 20px; margin-bottom:15px; background-color: #e0e0e0;"></div>
+                    <div class="skeleton-block" style="width:70%; height: 20px; background-color: #e0e0e0;"></div>
+                     <p style="margin-top:20px; color: #aaa;">Carregando gráfico de despesas...</p>
+                </div>
+                <canvas id="graficoDespesas" height="300" style="display:none;"></canvas>
+            </div>
             <div class="card-grid js-lista-despesas"></div>
             <!-- Adicionar modal para nova despesa se necessário, seguindo o padrão .cv-modal > .cv-modal-content -->
         </div>
 
         <div class="cv-tab-content" id="content-relatorios" style="display:none;">
             <h2>Relatórios</h2>
-            <canvas id="graficoBalancete" height="320"></canvas>
+            <div class="grafico-container cv-card" style="padding: 16px; margin-bottom: 20px;">
+                <div id="graficoBalanceteSkeleton" class="feed-skeleton-container" style="display:none; height: 300px; width:100%; align-items: center; justify-content: center; flex-direction: column; background-color: #f0f0f0; border-radius: 8px;">
+                    <div class="skeleton-block" style="width:70%; height: 20px; margin-bottom:15px; background-color: #e0e0e0;"></div>
+                    <div class="skeleton-block" style="width:50%; height: 20px; margin-bottom:15px; background-color: #e0e0e0;"></div>
+                    <p style="margin-top:20px; color: #aaa;">Carregando gráfico de balancete...</p>
+                </div>
+                <canvas id="graficoBalancete" height="300" style="display:none;"></canvas>
+            </div>
             <!-- Modais para filtros de relatórios, etc. -->
         </div>
 
         <div class="cv-tab-content" id="content-orcamento" style="display:none;">
             <h2>Orçamento</h2>
-            <canvas id="graficoOrcamento" height="320"></canvas>
+            <div class="grafico-container cv-card" style="padding: 16px; margin-bottom: 20px;">
+                <div id="graficoOrcamentoSkeleton" class="feed-skeleton-container" style="display:none; height: 300px; width:100%; align-items: center; justify-content: center; flex-direction: column; background-color: #f0f0f0; border-radius: 8px;">
+                    <div class="skeleton-block" style="width:75%; height: 20px; margin-bottom:15px; background-color: #e0e0e0;"></div>
+                    <div class="skeleton-block" style="width:65%; height: 20px; margin-bottom:15px; background-color: #e0e0e0;"></div>
+                    <p style="margin-top:20px; color: #aaa;">Carregando gráfico de orçamento...</p>
+                </div>
+                <canvas id="graficoOrcamento" height="300" style="display:none;"></canvas>
+            </div>
             <!-- Modal para adicionar/editar item de orçamento -->
         </div>
 
         <div class="cv-tab-content" id="content-tendencias" style="display:none;">
             <h2>Tendências</h2>
-            <canvas id="graficoTendencias" height="320"></canvas>
+            <div class="grafico-container cv-card" style="padding: 16px; margin-bottom: 20px;">
+                <div id="graficoTendenciasSkeleton" class="feed-skeleton-container" style="display:none; height: 300px; width:100%; align-items: center; justify-content: center; flex-direction: column; background-color: #f0f0f0; border-radius: 8px;">
+                    <div class="skeleton-block" style="width:80%; height: 20px; margin-bottom:15px; background-color: #e0e0e0;"></div>
+                    <div class="skeleton-block" style="width:60%; height: 20px; background-color: #e0e0e0;"></div>
+                    <p style="margin-top:20px; color: #aaa;">Carregando gráfico de tendências...</p>
+                </div>
+                <canvas id="graficoTendencias" height="300" style="display:none;"></canvas>
+            </div>
         </div>
     </main>
     <script type="module" src="../js/nav.js"></script>

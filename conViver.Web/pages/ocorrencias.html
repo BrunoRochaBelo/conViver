@@ -46,8 +46,44 @@
         <div id="listaOcorrencias" class="card-grid ocorrencias-lista">
             <!-- Ocorrência cards serão inseridos aqui via JS -->
         </div>
-        <p id="ocorrenciasLoading" class="loading-text">Carregando ocorrências...</p>
+        <div id="ocorrenciasSkeletonContainer" class="card-grid ocorrencias-lista feed-skeleton-container" style="display:none;">
+            <div class="cv-card ocorrencia-card skeleton-item">
+                <div class="ocorrencia-card__header">
+                    <h3 class="skeleton-block skeleton-title" style="width: 70%; height: 24px; margin-bottom: 8px;"></h3>
+                    <span class="skeleton-block skeleton-tag" style="width: 80px; height: 20px;"></span>
+                </div>
+                <p class="skeleton-block skeleton-line" style="width: 50%; margin-top: 12px;"></p>
+                <p class="skeleton-block skeleton-line" style="width: 60%;"></p>
+                <p class="skeleton-block skeleton-line" style="width: 80%;"></p>
+                <p class="skeleton-block skeleton-line" style="width: 75%;"></p>
+            </div>
+            <div class="cv-card ocorrencia-card skeleton-item">
+                <div class="ocorrencia-card__header">
+                    <h3 class="skeleton-block skeleton-title" style="width: 60%; height: 24px; margin-bottom: 8px;"></h3>
+                    <span class="skeleton-block skeleton-tag" style="width: 70px; height: 20px;"></span>
+                </div>
+                <p class="skeleton-block skeleton-line" style="width: 45%; margin-top: 12px;"></p>
+                <p class="skeleton-block skeleton-line" style="width: 55%;"></p>
+                <p class="skeleton-block skeleton-line" style="width: 70%;"></p>
+                <p class="skeleton-block skeleton-line" style="width: 65%;"></p>
+            </div>
+            <div class="cv-card ocorrencia-card skeleton-item">
+                <div class="ocorrencia-card__header">
+                    <h3 class="skeleton-block skeleton-title" style="width: 75%; height: 24px; margin-bottom: 8px;"></h3>
+                    <span class="skeleton-block skeleton-tag" style="width: 90px; height: 20px;"></span>
+                </div>
+                <p class="skeleton-block skeleton-line" style="width: 55%; margin-top: 12px;"></p>
+                <p class="skeleton-block skeleton-line" style="width: 65%;"></p>
+                <p class="skeleton-block skeleton-line" style="width: 85%;"></p>
+                <p class="skeleton-block skeleton-line" style="width: 70%;"></p>
+            </div>
+        </div>
+        <p id="ocorrenciasLoading" class="loading-text" style="display:none;">Carregando ocorrências...</p> <!-- Hide by default now -->
         <p id="noOcorrenciasMessage" class="info-text" style="display:none;">Nenhuma ocorrência encontrada.</p>
+
+        <div class="ocorrencias-load-more__container" id="loadMoreContainer" style="display:none; text-align: center; margin-top: 20px; margin-bottom: 20px;">
+            <button id="btnCarregarMaisOcorrencias" class="cv-button cv-button--secondary">Carregar Mais</button>
+        </div>
     </main>
 
     <!-- Modal de Cadastro de Nova Ocorrência -->
@@ -96,51 +132,80 @@
     <div id="modalDetalheOcorrencia" class="cv-modal" style="display:none;">
         <div class="cv-modal-content cv-modal-content--large"> <!-- Padronizado, mantendo --large se for uma variação válida -->
             <span class="cv-modal-close" id="closeDetalheOcorrenciaModal">&times;</span> <!-- Padronizado -->
-            <h2 id="detalheTitulo"></h2>
-            <div class="ocorrencia-detalhes-grid">
-                <p><strong>Categoria:</strong> <span id="detalheCategoria"></span></p>
-                <p><strong>Status Atual:</strong> <span id="detalheStatus" class="status-tag"></span></p>
-                <p><strong>Prioridade:</strong> <span id="detalhePrioridade"></span></p>
-                <p><strong>Data de Abertura:</strong> <span id="detalheDataAbertura"></span></p>
-                <p><strong>Última Atualização:</strong> <span id="detalheDataAtualizacao"></span></p>
-                <p><strong>Aberta por:</strong> <span id="detalheUsuarioNome"></span> (<span id="detalheUsuarioUnidade"></span>)</p>
+
+            <div id="detalheOcorrenciaSkeleton" class="feed-skeleton-container" style="display:none; padding-bottom: 20px;">
+                <div class="skeleton-block skeleton-title" style="width: 60%; height: 28px; margin-bottom: 20px;"></div>
+                <div class="ocorrencia-detalhes-grid">
+                    <p><strong class="skeleton-block skeleton-line--short" style="width:80px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:120px; height:1em; display:inline-block;"></span></p>
+                    <p><strong class="skeleton-block skeleton-line--short" style="width:70px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:100px; height:1em; display:inline-block;"></span></p>
+                    <p><strong class="skeleton-block skeleton-line--short" style="width:90px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:80px; height:1em; display:inline-block;"></span></p>
+                    <p><strong class="skeleton-block skeleton-line--short" style="width:100px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:150px; height:1em; display:inline-block;"></span></p>
+                    <p><strong class="skeleton-block skeleton-line--short" style="width:110px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:140px; height:1em; display:inline-block;"></span></p>
+                    <p><strong class="skeleton-block skeleton-line--short" style="width:90px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:160px; height:1em; display:inline-block;"></span></p>
+                </div>
+                <h3 class="skeleton-block skeleton-subtitle" style="width: 30%; margin-top: 20px; height: 20px;"></h3>
+                <p class="skeleton-block skeleton-line" style="margin-top: 8px;"></p>
+                <p class="skeleton-block skeleton-line skeleton-line--long" style="width: 80%;"></p>
+
+                <h3 class="skeleton-block skeleton-subtitle" style="width: 25%; margin-top: 20px; height: 20px;"></h3>
+                <div class="skeleton-block skeleton-line" style="height: 40px; margin-top: 8px;"></div>
+
+                <h3 class="skeleton-block skeleton-subtitle" style="width: 35%; margin-top: 20px; height: 20px;"></h3>
+                <div class="skeleton-block skeleton-line" style="height: 30px; margin-top: 8px;"></div>
+                <div class="skeleton-block skeleton-line" style="height: 30px; margin-top: 8px;"></div>
+
+                <h3 class="skeleton-block skeleton-subtitle" style="width: 30%; margin-top: 20px; height: 20px;"></h3>
+                <div class="skeleton-block skeleton-line" style="height: 30px; margin-top: 8px;"></div>
+                <div class="skeleton-block skeleton-line" style="height: 30px; margin-top: 8px;"></div>
             </div>
 
-            <h3>Descrição:</h3>
-            <p id="detalheDescricao" class="ocorrencia-descricao-detalhe"></p>
+            <div id="detalheOcorrenciaContentLoaded" style="display:none;">
+                <h2 id="detalheTitulo"></h2>
+                <div class="ocorrencia-detalhes-grid">
+                    <p><strong>Categoria:</strong> <span id="detalheCategoria"></span></p>
+                    <p><strong>Status Atual:</strong> <span id="detalheStatus" class="status-tag"></span></p>
+                    <p><strong>Prioridade:</strong> <span id="detalhePrioridade"></span></p>
+                    <p><strong>Data de Abertura:</strong> <span id="detalheDataAbertura"></span></p>
+                    <p><strong>Última Atualização:</strong> <span id="detalheDataAtualizacao"></span></p>
+                    <p><strong>Aberta por:</strong> <span id="detalheUsuarioNome"></span> (<span id="detalheUsuarioUnidade"></span>)</p>
+                </div>
 
-            <h3>Anexos:</h3>
-            <div id="detalheAnexosContainer" class="anexos-container">
-                <!-- Anexos serão listados aqui -->
-            </div>
-             <div class="cv-form-group"> <!-- Padronizado -->
-                <label for="detalheNovosAnexos">Adicionar mais anexos (opcional):</label>
-                <input type="file" id="detalheNovosAnexos" name="novosAnexos" class="cv-input" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.aac,.mp3,.wav"> <!-- Padronizado -->
-                <button id="btnAdicionarNovosAnexos" class="cv-button cv-button--secondary cv-button--small">Adicionar Selecionados</button>
-                <div id="novosAnexosPreviewContainer" class="anexos-preview"></div>
-            </div>
+                <h3>Descrição:</h3>
+                <p id="detalheDescricao" class="ocorrencia-descricao-detalhe"></p>
 
-            <h3>Histórico de Status:</h3>
-            <ul id="detalheHistoricoStatus" class="historico-status-lista">
-                <!-- Histórico será listado aqui -->
-            </ul>
+                <h3>Anexos:</h3>
+                <div id="detalheAnexosContainer" class="anexos-container">
+                    <!-- Anexos serão listados aqui -->
+                </div>
+                 <div class="cv-form-group"> <!-- Padronizado -->
+                    <label for="detalheNovosAnexos">Adicionar mais anexos (opcional):</label>
+                    <input type="file" id="detalheNovosAnexos" name="novosAnexos" class="cv-input" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.aac,.mp3,.wav"> <!-- Padronizado -->
+                    <button id="btnAdicionarNovosAnexos" class="cv-button cv-button--secondary cv-button--small">Adicionar Selecionados</button>
+                    <div id="novosAnexosPreviewContainer" class="anexos-preview"></div>
+                </div>
 
-            <h3>Comentários:</h3>
-            <div id="detalheComentariosContainer" class="comentarios-container">
-                <!-- Comentários serão listados aqui -->
-            </div>
+                <h3>Histórico de Status:</h3>
+                <ul id="detalheHistoricoStatus" class="historico-status-lista">
+                    <!-- Histórico será listado aqui -->
+                </ul>
 
-            <div id="comentarioFormContainer" class="cv-form">
-                <h4>Adicionar Comentário:</h4>
-                <textarea id="novoComentarioTexto" class="cv-input" rows="3" placeholder="Digite seu comentário..."></textarea> <!-- Padronizado -->
-                <div id="formComentarioErrors" class="cv-alert cv-alert--error" style="display:none;"></div> <!-- Padronizado para cv-alert -->
-                <button id="btnAdicionarComentario" class="cv-button cv-button--primary">Adicionar Comentário</button>
-            </div>
+                <h3>Comentários:</h3>
+                <div id="detalheComentariosContainer" class="comentarios-container">
+                    <!-- Comentários serão listados aqui -->
+                </div>
 
-            <div class="cv-form-actions ocorrencia-detalhes__actions"> <!-- Padronizado para cv-form-actions -->
-                <button id="btnAlterarStatus" class="cv-button cv-button--secondary" style="display:none;">Alterar Status</button>
-                <button id="btnExcluirOcorrencia" class="cv-button cv-button--danger" style="display:none;">Excluir Ocorrência</button>
-            </div>
+                <div id="comentarioFormContainer" class="cv-form">
+                    <h4>Adicionar Comentário:</h4>
+                    <textarea id="novoComentarioTexto" class="cv-input" rows="3" placeholder="Digite seu comentário..."></textarea> <!-- Padronizado -->
+                    <div id="formComentarioErrors" class="cv-alert cv-alert--error" style="display:none;"></div> <!-- Padronizado para cv-alert -->
+                    <button id="btnAdicionarComentario" class="cv-button cv-button--primary">Adicionar Comentário</button>
+                </div>
+
+                <div class="cv-form-actions ocorrencia-detalhes__actions"> <!-- Padronizado para cv-form-actions -->
+                    <button id="btnAlterarStatus" class="cv-button cv-button--secondary" style="display:none;">Alterar Status</button>
+                    <button id="btnExcluirOcorrencia" class="cv-button cv-button--danger" style="display:none;">Excluir Ocorrência</button>
+                </div>
+            </div> <!-- Fim de detalheOcorrenciaContentLoaded -->
         </div>
     </div>
 

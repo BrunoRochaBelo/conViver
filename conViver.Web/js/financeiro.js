@@ -30,13 +30,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnLimparFiltroCobrancaEl = document.getElementById('btnLimparFiltroCobranca'); // Botão Limpar Filtro
     const despesasTableBody = document.querySelector('.js-lista-despesas');
     const graficoDespesasEl = document.getElementById('graficoDespesas');
+    const graficoDespesasSkeletonEl = document.getElementById('graficoDespesasSkeleton');
     const graficoBalanceteEl = document.getElementById('graficoBalancete');
+    const graficoBalanceteSkeletonEl = document.getElementById('graficoBalanceteSkeleton');
     const graficoOrcamentoEl = document.getElementById('graficoOrcamento');
+    const graficoOrcamentoSkeletonEl = document.getElementById('graficoOrcamentoSkeleton');
     const graficoTendenciasEl = document.getElementById('graficoTendencias');
+    const graficoTendenciasSkeletonEl = document.getElementById('graficoTendenciasSkeleton');
 
     const summaryInadimplenciaEl = document.querySelector('.js-summary-inadimplencia');
+    const summaryInadimplenciaSkeletonEl = document.querySelector('.js-summary-inadimplencia-skeleton');
     const summaryPixEl = document.querySelector('.js-summary-pix');
+    const summaryPixSkeletonEl = document.querySelector('.js-summary-pix-skeleton');
     const summaryPendentesEl = document.querySelector('.js-summary-pendentes');
+    const summaryPendentesSkeletonEl = document.querySelector('.js-summary-pendentes-skeleton');
 
     const cobrancasSkeleton = document.getElementById('financeiro-skeleton');
     // Modal elements
@@ -189,14 +196,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const novaCobrancaDto = { UnidadeId: unidadeId, Valor: valor, DataVencimento: dataVencimento, Descricao: descricao };
 
         try {
-            await apiClient.post('/financeiro/cobrancas', novaCobrancaDto);
+            const cobrancaCriada = await apiClient.post('/financeiro/cobrancas', novaCobrancaDto);
             closeModal();
-            showGlobalFeedback("Cobrança emitida com sucesso!", "success", 2500); // Toast de sucesso
-            fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
-            fetchAndRenderDashboard();
+            showGlobalFeedback("Cobrança emitida com sucesso!", "success", 2500);
+
+            if (cobrancaCriada && cobrancaCriada.id && tbodyCobrancas) {
+                const emptyStateEl = tbodyCobrancas.querySelector('.cv-empty-state');
+                if (emptyStateEl) {
+                    emptyStateEl.remove();
+                }
+                 // Adiciona o nome do sacado se não vier da API de criação mas estiver disponível de outra forma (improvável aqui)
+                const cardData = { ...cobrancaCriada, nomeSacado: cobrancaCriada.nomeSacado || 'N/A (Nova Cobrança)' };
+                const newCard = createCobrancaCardElement(cardData);
+                tbodyCobrancas.prepend(newCard); // Adiciona no início
+                newCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                newCard.classList.add('cv-card--highlight');
+                setTimeout(() => newCard.classList.remove('cv-card--highlight'), 2000);
+            } else {
+                // Fallback: recarregar se não puder adicionar diretamente
+                fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
+            }
+            fetchAndRenderDashboard(); // Atualizar resumo
         } catch (error) {
             console.error('Erro ao criar cobrança:', error);
-            const errorMessage = error.detalhesValidacao || error.message || 'Ocorreu um erro inesperado ao emitir a cobrança.';
+            let errorMessage = error.message || 'Ocorreu um erro inesperado ao emitir a cobrança.';
+            if (error.validationErrors) {
+                const messages = [];
+                for (const key in error.validationErrors) {
+                    error.validationErrors[key].forEach(msg => {
+                        // Adiciona a chave do campo se ela não for genérica (como '$')
+                        messages.push( (key !== '$' && key !== '') ? `${key}: ${msg}` : msg);
+                    });
+                }
+                if (messages.length > 0) {
+                    errorMessage = messages.join('\n');
+                } else {
+                    errorMessage = error.message || "Erro de validação."; // Fallback se validationErrors estiver vazio
+                }
+            } else if (error.detalhesValidacao) { // Manter suporte ao formato antigo se existir
+                 errorMessage = error.detalhesValidacao;
+            }
             showModalError(modalCobranca, errorMessage);
         } finally {
             submitButton.innerHTML = originalButtonText; // Restaura texto original
@@ -317,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const filtroStatus = filtroStatusEl ? filtroStatusEl.value : '';
             const emptyState = createEmptyStateElement({
                 iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48px" height="48px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-9h4v2h-4v-2zm0-4h4v2h-4V7z"/></svg>`, // Ícone genérico de lista/dinheiro
-                title: filtroStatus ? "Nenhuma Cobrança Encontrada" : "Sem Cobranças",
+                title: filtroStatus ? "Nenhuma Cobrança Encontrada" : "Sem Cobranças Registradas",
                 description: filtroStatus
                     ? "Não há cobranças que correspondam ao filtro de status selecionado."
                     : "Ainda não há cobranças registradas ou todas foram liquidadas.",
@@ -334,31 +373,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         cobrancas.forEach(cobranca => {
-            const card = document.createElement('div');
-            card.className = 'cv-card cobranca-card';
-
-            const statusKey = cobranca.statusCobranca || '';
-            const cancellableStatuses = ["Pendente", "Gerado", "Registrado", "Enviado", "Atrasado"];
-
-            card.innerHTML = `
-                <div class="cobranca-card__header">
-                    <h3>🏠 ${cobranca.unidadeId ? cobranca.unidadeId : 'N/A'}</h3>
-                    ${getStatusBadgeHtml(statusKey)}
-                </div>
-                <p>👤 ${cobranca.nomeSacado || 'N/A'}</p>
-                <p>💵 ${formatCurrency(cobranca.valor)}</p>
-                <p>📅 ${formatDate(new Date(cobranca.dataVencimento))}</p>
-                <div class="cobranca-card__actions">
-                    <button class="cv-button cv-button--small cv-button--info js-btn-detalhes-cobranca" data-id="${cobranca.id}" title="Detalhes">Detalhes</button>
-                    <button class="cv-button cv-button--small js-btn-segunda-via" data-id="${cobranca.id}" title="2ª Via">2ª Via</button>
-                    ${cancellableStatuses.includes(statusKey) ? `<button class="cv-button cv-button--small cv-button--danger js-btn-cancelar-cobranca" data-id="${cobranca.id}" title="Cancelar">Cancelar</button>` : ''}
-                </div>
-            `;
-            tbodyCobrancas.appendChild(card);
+            const cardElement = createCobrancaCardElement(cobranca);
+            tbodyCobrancas.appendChild(cardElement);
         });
     }
 
+    function createCobrancaCardElement(cobranca) {
+        const card = document.createElement('div');
+        card.className = 'cv-card cobranca-card';
+        card.dataset.id = cobranca.id; // Adicionar dataset ID ao card para possível manipulação
+
+        const statusKey = cobranca.statusCobranca || '';
+        const cancellableStatuses = ["Pendente", "Gerado", "Registrado", "Enviado", "Atrasado"];
+
+        card.innerHTML = `
+            <div class="cobranca-card__header">
+                <h3>🏠 ${cobranca.unidadeId ? cobranca.unidadeId : 'N/A'}</h3>
+                ${getStatusBadgeHtml(statusKey)}
+            </div>
+            <p>👤 ${cobranca.nomeSacado || 'N/A'}</p>
+            <p>💵 ${formatCurrency(cobranca.valor)}</p>
+            <p>📅 ${formatDate(new Date(cobranca.dataVencimento))}</p>
+            <div class="cobranca-card__actions">
+                <button class="cv-button cv-button--small cv-button--info js-btn-detalhes-cobranca" data-id="${cobranca.id}" title="Detalhes">Detalhes</button>
+                <button class="cv-button cv-button--small js-btn-segunda-via" data-id="${cobranca.id}" title="2ª Via">2ª Via</button>
+                ${cancellableStatuses.includes(statusKey) ? `<button class="cv-button cv-button--small cv-button--danger js-btn-cancelar-cobranca" data-id="${cobranca.id}" title="Cancelar">Cancelar</button>` : ''}
+            </div>
+        `;
+        return card;
+    }
+
     function renderDashboardFinanceiro(dashboardData) {
+        // Hide skeletons, show text content
+        if (summaryInadimplenciaSkeletonEl) hideSkeleton(summaryInadimplenciaSkeletonEl);
+        if (summaryInadimplenciaEl) summaryInadimplenciaEl.style.display = 'block';
+        if (summaryPixSkeletonEl) hideSkeleton(summaryPixSkeletonEl);
+        if (summaryPixEl) summaryPixEl.style.display = 'block';
+        if (summaryPendentesSkeletonEl) hideSkeleton(summaryPendentesSkeletonEl);
+        if (summaryPendentesEl) summaryPendentesEl.style.display = 'block';
+
         if (!dashboardData) {
             if (summaryInadimplenciaEl) summaryInadimplenciaEl.textContent = '--%';
             if (summaryPixEl) summaryPixEl.textContent = 'R$ --';
@@ -380,8 +433,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Funções de Fetch ---
     async function fetchAndRenderCobrancas(status = '') {
         if (!tbodyCobrancas) return;
-        tbodyCobrancas.innerHTML = '<p>Carregando cobranças...</p>';
+        // tbodyCobrancas.innerHTML = '<p>Carregando cobranças...</p>'; // Removido, skeleton cobre isso
         if (cobrancasSkeleton) showFeedSkeleton(cobrancasSkeleton);
+        tbodyCobrancas.innerHTML = ''; // Limpar qualquer conteúdo anterior (como empty state) antes de mostrar skeleton e carregar
 
         let apiUrl = '/financeiro/cobrancas';
         if (status) {
@@ -412,17 +466,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchAndRenderDashboard() {
-        if (cobrancasSkeleton) showFeedSkeleton(cobrancasSkeleton);
-        if (summaryInadimplenciaEl) summaryInadimplenciaEl.textContent = 'Carregando...';
-        if (summaryPixEl) summaryPixEl.textContent = 'Carregando...';
-        if (summaryPendentesEl) summaryPendentesEl.textContent = 'Carregando...';
+        // Show skeletons, hide text
+        if (summaryInadimplenciaEl) summaryInadimplenciaEl.style.display = 'none';
+        if (summaryInadimplenciaSkeletonEl) showSkeleton(summaryInadimplenciaSkeletonEl);
+        if (summaryPixEl) summaryPixEl.style.display = 'none';
+        if (summaryPixSkeletonEl) showSkeleton(summaryPixSkeletonEl);
+        if (summaryPendentesEl) summaryPendentesEl.style.display = 'none';
+        if (summaryPendentesSkeletonEl) showSkeleton(summaryPendentesSkeletonEl);
+
+        // if (cobrancasSkeleton) showFeedSkeleton(cobrancasSkeleton); // This is for the cobrancas list, not summary
 
         try {
             const dashboardData = await apiClient.get('/financeiro/cobrancas/dashboard');
-            renderDashboardFinanceiro(dashboardData);
+            renderDashboardFinanceiro(dashboardData); // This function now also handles hiding skeletons
         } catch (error) {
             console.error('Erro ao buscar dados do dashboard financeiro:', error);
-            renderDashboardFinanceiro(null);
+            renderDashboardFinanceiro(null); // Render with null to show "--" and hide skeletons
             const defaultMessage = 'Ocorreu um erro inesperado ao buscar dados do dashboard.';
             if (error instanceof ApiError) {
                 showGlobalFeedback(`Erro ao buscar dados do dashboard: ${error.message || defaultMessage}`, 'error');
@@ -430,7 +489,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 showGlobalFeedback(defaultMessage, 'error');
             }
         } finally {
-            if (cobrancasSkeleton) hideFeedSkeleton(cobrancasSkeleton);
+            // Skeletons are hidden inside renderDashboardFinanceiro, or if error, by calling it with null.
+            // if (cobrancasSkeleton) hideFeedSkeleton(cobrancasSkeleton); // This is for the cobrancas list
         }
     }
 
@@ -453,27 +513,34 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchAndRenderDespesas() {
         if (!despesasTableBody) return;
 
-        const despesasSkeletonId = 'despesas-skeleton'; // ID para o skeleton de despesas
-        let skeletonElement = document.getElementById(despesasSkeletonId);
-        if (!skeletonElement && despesasTableBody.parentNode) { // Cria skeleton se não existir
-            skeletonElement = document.createElement('div');
-            skeletonElement.id = despesasSkeletonId;
-            skeletonElement.className = 'feed-skeleton-container'; // Reutilizar estilo de skeleton
-            skeletonElement.innerHTML = `
-                <div class="feed-skeleton-item"><div class="skeleton-block skeleton-title" style="width: 40%; height: 20px;"></div><div class="skeleton-block skeleton-line"></div><div class="skeleton-block skeleton-line--short"></div></div>
-                <div class="feed-skeleton-item"><div class="skeleton-block skeleton-title" style="width: 50%; height: 20px;"></div><div class="skeleton-block skeleton-line"></div><div class="skeleton-block skeleton-line--short"></div></div>
-            `; // Skeleton simples para 2 cards
-            despesasTableBody.parentNode.insertBefore(skeletonElement, despesasTableBody);
+        // Skeleton para a lista de despesas (cards)
+        const listaDespesasSkeletonId = 'despesas-lista-skeleton'; // ID para o skeleton da lista
+        let listaSkeletonElement = document.getElementById(listaDespesasSkeletonId);
+        if (!listaSkeletonElement && despesasTableBody.parentNode) {
+            listaSkeletonElement = document.createElement('div');
+            listaSkeletonElement.id = listaDespesasSkeletonId;
+            listaSkeletonElement.className = 'feed-skeleton-container card-grid'; // Adiciona card-grid para manter layout
+            listaSkeletonElement.innerHTML = `
+                <div class="cv-card feed-skeleton-item"><div class="skeleton-block skeleton-title" style="width: 40%; height: 20px;"></div><div class="skeleton-block skeleton-line"></div><div class="skeleton-block skeleton-line--short"></div></div>
+                <div class="cv-card feed-skeleton-item"><div class="skeleton-block skeleton-title" style="width: 50%; height: 20px;"></div><div class="skeleton-block skeleton-line"></div><div class="skeleton-block skeleton-line--short"></div></div>
+            `;
+            despesasTableBody.parentNode.insertBefore(listaSkeletonElement, despesasTableBody);
         }
+        if (listaSkeletonElement) showSkeleton(listaSkeletonElement);
 
-        if (skeletonElement) showSkeleton(skeletonElement);
-        despesasTableBody.innerHTML = ''; // Limpa conteúdo antigo
+        // Skeleton para o gráfico de despesas
+        if (graficoDespesasSkeletonEl) showSkeleton(graficoDespesasSkeletonEl);
+        if (graficoDespesasEl) graficoDespesasEl.style.display = 'none';
+
+        despesasTableBody.innerHTML = ''; // Limpa conteúdo antigo da lista
 
         try {
             const despesas = await apiClient.get('/financeiro/despesas');
-            despesasTableBody.innerHTML = ''; // Limpa novamente caso o skeleton tenha sido inserido no mesmo container
+            despesasTableBody.innerHTML = '';
 
             if (despesas && despesas.length) {
+                if (graficoDespesasEl) graficoDespesasEl.style.display = 'block'; // Mostrar canvas se houver dados
+                renderDespesasChart(despesas); // Renderiza o gráfico antes da lista
                 despesas.forEach(d => {
                     const card = document.createElement('div');
                     card.className = 'cv-card despesa-card'; // Manter card para estilo
@@ -495,10 +562,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 despesasTableBody.appendChild(emptyState);
             }
-            renderDespesasChart(despesas || []);
+            // renderDespesasChart(despesas || []); // Movido para dentro do if (despesas && despesas.length)
+            if (!(despesas && despesas.length) && graficoDespesasEl) { // Se não há despesas, não mostra o gráfico
+                 graficoDespesasEl.style.display = 'none';
+            }
         } catch (err) {
             console.error('Erro ao buscar despesas:', err);
             despesasTableBody.innerHTML = ''; // Limpa
+            if (graficoDespesasEl) graficoDespesasEl.style.display = 'none'; // Esconde gráfico em caso de erro
             const errorState = createErrorStateElement({
                 title: "Erro ao Carregar Despesas",
                 message: err.message || "Não foi possível buscar as despesas. Tente novamente.",
@@ -510,7 +581,8 @@ document.addEventListener('DOMContentLoaded', () => {
             despesasTableBody.appendChild(errorState);
             // showGlobalFeedback foi removido
         } finally {
-            if (skeletonElement) hideSkeleton(skeletonElement);
+            if (listaSkeletonElement) hideSkeleton(listaSkeletonElement);
+            if (graficoDespesasSkeletonEl) hideSkeleton(graficoDespesasSkeletonEl);
         }
     }
 
@@ -525,14 +597,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchAndRenderBalancete() {
+        if (graficoBalanceteSkeletonEl) showSkeleton(graficoBalanceteSkeletonEl);
+        if (graficoBalanceteEl) graficoBalanceteEl.style.display = 'none';
+
         try {
             const dataInicio = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
             const dataFim = new Date().toISOString().split('T')[0];
             const balancete = await apiClient.get(`/financeiro/relatorios/balancete?dataInicio=${dataInicio}&dataFim=${dataFim}`);
-            renderBalanceteChart(balancete);
+            if (balancete && (balancete.totalReceitas > 0 || balancete.totalDespesas > 0)) {
+                if (graficoBalanceteEl) graficoBalanceteEl.style.display = 'block';
+                renderBalanceteChart(balancete);
+            } else {
+                if (graficoBalanceteEl) graficoBalanceteEl.style.display = 'none';
+                // Opcional: Mostrar mensagem de "sem dados para o gráfico" no lugar do skeleton/canvas
+                if (graficoBalanceteSkeletonEl && graficoBalanceteSkeletonEl.parentNode) {
+                    const noDataMsg = graficoBalanceteSkeletonEl.parentNode.querySelector('.no-data-message');
+                    if (!noDataMsg) {
+                        const p = document.createElement('p');
+                        p.className = 'no-data-message info-text';
+                        p.textContent = 'Sem dados suficientes para exibir o gráfico de balancete.';
+                        graficoBalanceteSkeletonEl.parentNode.insertBefore(p, graficoBalanceteEl);
+                    } else {
+                        noDataMsg.style.display = 'block';
+                    }
+                }
+            }
         } catch (err) {
             console.error('Erro ao obter balancete:', err);
-            showGlobalFeedback('Erro ao carregar relatório', 'error');
+            if (graficoBalanceteEl) graficoBalanceteEl.style.display = 'none';
+            showGlobalFeedback('Erro ao carregar relatório de balancete.', 'error');
+             if (graficoBalanceteSkeletonEl && graficoBalanceteSkeletonEl.parentNode) {
+                const errorMsgEl = graficoBalanceteSkeletonEl.parentNode.querySelector('.error-data-message');
+                 if (!errorMsgEl) {
+                    const p = document.createElement('p');
+                    p.className = 'error-data-message cv-alert cv-alert--error';
+                    p.textContent = `Erro ao carregar gráfico: ${err.message || "Tente novamente."}`;
+                    graficoBalanceteSkeletonEl.parentNode.insertBefore(p, graficoBalanceteEl);
+                } else {
+                    errorMsgEl.textContent = `Erro ao carregar gráfico: ${err.message || "Tente novamente."}`;
+                    errorMsgEl.style.display = 'block';
+                }
+            }
+        } finally {
+            if (graficoBalanceteSkeletonEl) hideSkeleton(graficoBalanceteSkeletonEl);
         }
     }
 
@@ -547,12 +654,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchAndRenderOrcamento() {
+        if (graficoOrcamentoSkeletonEl) showSkeleton(graficoOrcamentoSkeletonEl);
+        if (graficoOrcamentoEl) graficoOrcamentoEl.style.display = 'none';
+
         try {
             const resumo = await apiClient.get('/financeiro/orcamento');
-            renderOrcamentoChart(resumo);
+            if (resumo && resumo.itens && resumo.itens.length > 0) {
+                if (graficoOrcamentoEl) graficoOrcamentoEl.style.display = 'block';
+                renderOrcamentoChart(resumo);
+            } else {
+                if (graficoOrcamentoEl) graficoOrcamentoEl.style.display = 'none';
+                if (graficoOrcamentoSkeletonEl && graficoOrcamentoSkeletonEl.parentNode) {
+                    const noDataMsg = graficoOrcamentoSkeletonEl.parentNode.querySelector('.no-data-message');
+                    if (!noDataMsg) {
+                        const p = document.createElement('p');
+                        p.className = 'no-data-message info-text';
+                        p.textContent = 'Sem dados de orçamento para exibir o gráfico.';
+                        graficoOrcamentoSkeletonEl.parentNode.insertBefore(p, graficoOrcamentoEl);
+                    } else {
+                        noDataMsg.style.display = 'block';
+                    }
+                }
+            }
         } catch (err) {
             console.error('Erro ao obter orçamento:', err);
-            showGlobalFeedback('Erro ao carregar orçamento', 'error');
+            if (graficoOrcamentoEl) graficoOrcamentoEl.style.display = 'none';
+            showGlobalFeedback('Erro ao carregar dados do orçamento.', 'error');
+            if (graficoOrcamentoSkeletonEl && graficoOrcamentoSkeletonEl.parentNode) {
+                const errorMsgEl = graficoOrcamentoSkeletonEl.parentNode.querySelector('.error-data-message');
+                 if (!errorMsgEl) {
+                    const p = document.createElement('p');
+                    p.className = 'error-data-message cv-alert cv-alert--error';
+                    p.textContent = `Erro ao carregar gráfico: ${err.message || "Tente novamente."}`;
+                    graficoOrcamentoSkeletonEl.parentNode.insertBefore(p, graficoOrcamentoEl);
+                } else {
+                    errorMsgEl.textContent = `Erro ao carregar gráfico: ${err.message || "Tente novamente."}`;
+                    errorMsgEl.style.display = 'block';
+                }
+            }
+        } finally {
+            if (graficoOrcamentoSkeletonEl) hideSkeleton(graficoOrcamentoSkeletonEl);
         }
     }
 
@@ -567,12 +708,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchAndRenderTendencias() {
+        if (graficoTendenciasSkeletonEl) showSkeleton(graficoTendenciasSkeletonEl);
+        if (graficoTendenciasEl) graficoTendenciasEl.style.display = 'none';
+
         try {
             const dados = await apiClient.get('/financeiro/tendencias');
-            renderTendenciasChart(dados);
+            if (dados && dados.length > 0) {
+                if (graficoTendenciasEl) graficoTendenciasEl.style.display = 'block';
+                renderTendenciasChart(dados);
+            } else {
+                if (graficoTendenciasEl) graficoTendenciasEl.style.display = 'none';
+                if (graficoTendenciasSkeletonEl && graficoTendenciasSkeletonEl.parentNode) {
+                    const noDataMsg = graficoTendenciasSkeletonEl.parentNode.querySelector('.no-data-message');
+                    if (!noDataMsg) {
+                        const p = document.createElement('p');
+                        p.className = 'no-data-message info-text';
+                        p.textContent = 'Sem dados de tendências para exibir o gráfico.';
+                        graficoTendenciasSkeletonEl.parentNode.insertBefore(p, graficoTendenciasEl);
+                    } else {
+                        noDataMsg.style.display = 'block';
+                    }
+                }
+            }
         } catch (err) {
             console.error('Erro ao obter tendencias:', err);
-            showGlobalFeedback('Erro ao carregar tendencias', 'error');
+            if (graficoTendenciasEl) graficoTendenciasEl.style.display = 'none';
+            showGlobalFeedback('Erro ao carregar dados de tendências.', 'error');
+            if (graficoTendenciasSkeletonEl && graficoTendenciasSkeletonEl.parentNode) {
+                const errorMsgEl = graficoTendenciasSkeletonEl.parentNode.querySelector('.error-data-message');
+                if (!errorMsgEl) {
+                    const p = document.createElement('p');
+                    p.className = 'error-data-message cv-alert cv-alert--error';
+                    p.textContent = `Erro ao carregar gráfico: ${err.message || "Tente novamente."}`;
+                    graficoTendenciasSkeletonEl.parentNode.insertBefore(p, graficoTendenciasEl);
+                } else {
+                    errorMsgEl.textContent = `Erro ao carregar gráfico: ${err.message || "Tente novamente."}`;
+                    errorMsgEl.style.display = 'block';
+                }
+            }
+        } finally {
+            if (graficoTendenciasSkeletonEl) hideSkeleton(graficoTendenciasSkeletonEl);
         }
     }
 
