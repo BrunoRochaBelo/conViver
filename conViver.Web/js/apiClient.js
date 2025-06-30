@@ -32,6 +32,36 @@ export function setToken(token) {
     localStorage.setItem('cv_token', token);
 }
 
+// Simple ETag cache using both in-memory Map and localStorage
+const memoryCache = new Map();
+
+function getCachedEntry(key) {
+    if (memoryCache.has(key)) {
+        return memoryCache.get(key);
+    }
+    const raw = localStorage.getItem('cv_cache_' + key);
+    if (raw) {
+        try {
+            const parsed = JSON.parse(raw);
+            memoryCache.set(key, parsed);
+            return parsed;
+        } catch (e) {
+            localStorage.removeItem('cv_cache_' + key);
+        }
+    }
+    return null;
+}
+
+function setCachedEntry(key, etag, data) {
+    const entry = { etag, data };
+    memoryCache.set(key, entry);
+    try {
+        localStorage.setItem('cv_cache_' + key, JSON.stringify(entry));
+    } catch (e) {
+        // Ignore quota errors
+    }
+}
+
 async function request(path, options = {}) {
     const {
         showSkeleton: skeletonTarget,
@@ -62,6 +92,8 @@ async function request(path, options = {}) {
     let skeletonShown = false;
     let removeInlineSpinner = null;
     let progressBar; // Declare progress bar variable
+    let cacheKey;
+    let cachedEntry;
 
     if (method === 'GET' && skeletonTarget) {
         skeletonTimer = setTimeout(() => {
@@ -81,6 +113,14 @@ async function request(path, options = {}) {
     const token = getToken();
     if (token) {
         opts.headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    if (method === 'GET') {
+        cacheKey = url;
+        cachedEntry = getCachedEntry(cacheKey);
+        if (cachedEntry && cachedEntry.etag) {
+            opts.headers['If-None-Match'] = cachedEntry.etag;
+        }
     }
 
     // Special handling for FormData vs JSON body
@@ -123,7 +163,10 @@ async function request(path, options = {}) {
         } else {
             const res = await fetch(url, opts);
 
-            if (!res.ok) {
+            if (res.status === 304 && method === 'GET') {
+                // Use cached data on 304
+                resData = cachedEntry ? cachedEntry.data : null;
+            } else if (!res.ok) {
                 let errorMessage = res.statusText || `Request failed with status ${res.status}`;
                 try {
                     const errorBody = await res.json();
@@ -146,12 +189,18 @@ async function request(path, options = {}) {
                     showGlobalFeedback(errorMessage, 'error');
                 }
                 throw new ApiError(errorMessage, res.status, url, loggedOptions);
-            }
-
-            if (res.status === 204) { // No Content
-                resData = null;
             } else {
-                resData = await res.json();
+                if (res.status === 204) { // No Content
+                    resData = null;
+                } else {
+                    resData = await res.json();
+                }
+                if (method === 'GET') {
+                    const newEtag = res.headers.get('etag');
+                    if (newEtag) {
+                        setCachedEntry(cacheKey, newEtag, resData);
+                    }
+                }
             }
         }
 

@@ -8,6 +8,8 @@
 Alguns endpoints de leitura enviam cabeçalho `ETag`. Se o cliente reenviar
 `If-None-Match` com o valor fornecido e nada mudou, a API responde `304 Not Modified`.
 Isso reduz o tráfego e acelera apps que armazenam a última resposta.
+O cliente web (apiClient.js) utiliza esse mecanismo: ao receber `304` em uma
+requisição GET, ele retorna o corpo previamente salvo em `localStorage`.
 
 ---
 
