@@ -216,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             btnGerarLote.disabled = true;
+            const hideSpinner = showInlineSpinner(btnGerarLote);
 
             const hoje = new Date();
             const requestBody = {
@@ -242,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } finally {
                 btnGerarLote.disabled = false;
+                hideSpinner();
             }
         });
     }

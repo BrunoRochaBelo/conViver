@@ -1,6 +1,6 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth } from './auth.js';
-import { formatCurrency, formatDate, showGlobalFeedback } from './main.js';
+import { formatCurrency, formatDate, showGlobalFeedback, showInlineSpinner } from './main.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
 function getStatusBadgeHtml(status) {
@@ -201,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             btnGerarLote.disabled = true;
+            const hideSpinner = showInlineSpinner(btnGerarLote);
 
             const hoje = new Date();
             const requestBody = {
@@ -226,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } finally {
                 btnGerarLote.disabled = false;
+                hideSpinner();
             }
         });
     }
