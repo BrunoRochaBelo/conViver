@@ -1,0 +1,112 @@
+/* Styles specific to the Ocorrências page */
+.ocorrencias-main {
+    margin-top: var(--cv-spacing-lg, 20px);
+}
+.ocorrencias-main__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cv-spacing-md, 15px);
+}
+.ocorrencias-main__nova-button {
+    white-space: nowrap;
+}
+.ocorrencias-lista .ocorrencia-card {
+    margin-bottom: var(--cv-spacing-md, 15px);
+    padding: var(--cv-spacing-md, 15px);
+    background-color: var(--current-bg-white, #fff);
+    border-radius: var(--cv-border-radius-md, 8px);
+    box-shadow: var(--current-shadow-sm, 0 2px 4px rgba(0,0,0,0.1));
+    cursor: pointer;
+    transition: box-shadow 0.2s ease-in-out;
+}
+.ocorrencias-lista .ocorrencia-card:hover {
+    box-shadow: var(--current-shadow-md, 0 4px 8px rgba(0,0,0,0.15));
+}
+.ocorrencia-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cv-spacing-xs, 5px);
+}
+.ocorrencia-card__titulo {
+    font-size: var(--cv-font-size-lg, 1.1rem);
+    color: var(--current-text-primary);
+    margin: 0;
+}
+.ocorrencia-card__categoria,
+.ocorrencia-card__status,
+.ocorrencia-card__data-abertura,
+.ocorrencia-card__data-atualizacao,
+.ocorrencia-card__aberta-por {
+    font-size: 0.9em;
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-xs, 4px);
+}
+.status-tag {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    color: #fff;
+}
+.status-tag--aberta { background-color: var(--current-semantic-warning, #f0ad4e); }
+.status-tag--em-analise { background-color: var(--current-semantic-info, #17a2b8); }
+.status-tag--em-atendimento { background-color: var(--current-semantic-info, #17a2b8); }
+.status-tag--resolvida { background-color: var(--current-semantic-success, #28a745); }
+.status-tag--cancelada { background-color: var(--current-semantic-danger, #dc3545); }
+.ocorrencia-card__prioridade {
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    color: #fff;
+    margin-left: var(--cv-spacing-xs, 5px);
+}
+.ocorrencia-card__prioridade--urgente {
+    background-color: var(--current-semantic-danger, #dc3545);
+}
+
+/* Optimistic UI and Highlight */
+.ocorrencias-lista .ocorrencia-card {
+    /* Existing styles from above */
+    margin-bottom: var(--cv-spacing-md, 15px);
+    padding: var(--cv-spacing-md, 15px);
+    background-color: var(--current-bg-white, #fff);
+    border-radius: var(--cv-border-radius-md, 8px);
+    box-shadow: var(--current-shadow-sm, 0 2px 4px rgba(0,0,0,0.1));
+    cursor: pointer;
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out, max-height 0.3s ease-out, box-shadow 0.2s ease-in-out;
+    will-change: opacity, transform, max-height;
+    overflow: hidden; /* Para a animação de max-height funcionar bem */
+}
+
+.ocorrencias-lista .ocorrencia-card.cv-card--deleting {
+    opacity: 0;
+    transform: scale(0.95);
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    border-width: 0 !important;
+    /* A transição para max-height precisa de um tempo um pouco maior para ser suave */
+    /* transition-duration: 0.3s, 0.3s, 0.5s;  -- Adjust if needed via individual properties */
+}
+
+.cv-card--highlight {
+    animation: highlight-animation 2s ease-out;
+}
+
+@keyframes highlight-animation {
+    0% {
+        box-shadow: 0 0 0 0 var(--current-color-primary-transparent, rgba(52, 152, 219, 0.2));
+        transform: scale(1);
+    }
+    25% {
+        box-shadow: 0 0 10px 5px var(--current-color-primary-transparent, rgba(52, 152, 219, 0.2));
+        transform: scale(1.01);
+    }
+    100% {
+        box-shadow: 0 0 0 0 var(--current-color-primary-transparent, rgba(52, 152, 219, 0.2));
+        transform: scale(1);
+    }
+}

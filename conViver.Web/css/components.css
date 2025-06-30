@@ -1,21 +1,14 @@
 .cv-button {
+    /* ... existing display, text-align, etc. ... */
     font-family: var(--cv-font-family-sans-serif);
-    font-weight: 600; /* Semibold */
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
-    border-radius: var(--cv-border-radius-md);
+    font-weight: 600;
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* e.g., 8px 16px */
+    border-radius: var(--cv-border-radius-md); /* e.g., 8px */
     border: var(--cv-border-width) solid transparent;
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
-    text-align: center; /* Ensure text is centered */
-    line-height: 1.5; /* Ensure text is vertically centered if button has fixed height */
-    display: inline-flex; /* Allows aligning icon + text */
-    align-items: center;
-    justify-content: center;
-    gap: var(--cv-spacing-xs); /* Space between icon and text */
-
-    /* Default button styles */
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.15s ease-in-out;
     background-color: var(--current-button-default-bg);
-    color: var(--current-button-default-text);
+    color: var(--current-text-primary);
 }
 .cv-button:hover {
     background-color: var(--current-button-default-hover-bg);
@@ -25,29 +18,28 @@
     transform: scale(0.97);
     box-shadow: none;
 }
-
-/* Primary Button */
 .cv-button--primary {
-    background-color: var(--current-button-primary-bg);
-    color: var(--current-button-primary-text);
-    border-color: var(--current-button-primary-bg); /* Keep border same color as bg for solid feel */
+    background-color: var(--current-primary-blue);
+    color: var(--current-text-on-primary);
+    border-color: var(--current-primary-blue);
 }
 .cv-button--primary:hover {
-    background-color: var(--current-button-primary-hover-bg);
-    border-color: var(--current-button-primary-hover-bg);
+    /* For hover on primary, typically a slightly darker shade of its current color.
+       This requires either predefined darker shades for both light/dark primary blue,
+       or using filter: brightness(90%); which is simpler. Let's try filter. */
+    filter: brightness(90%);
     box-shadow: var(--current-shadow-sm);
 }
 .cv-button--primary:active {
-    background-color: var(--current-button-primary-active-bg);
-    border-color: var(--current-button-primary-active-bg);
+    filter: brightness(80%); /* Even darker for active */
     transform: scale(0.97);
-    box-shadow: none;
+    box-shadow: none; /* Keep box-shadow none for primary active */
 }
-
-/* Secondary Button */
+/* Add similar updates for --secondary, --danger, --info, :disabled states */
+/* Example for a generic secondary button, if it exists, or other variants */
 .cv-button--secondary {
     background-color: var(--current-button-secondary-bg);
-    color: var(--current-button-secondary-text);
+    color: var(--current-text-on-primary); /* Assuming secondary buttons also have light text */
     border-color: var(--current-button-secondary-bg);
 }
 .cv-button--secondary:hover {
@@ -56,43 +48,21 @@
     box-shadow: var(--current-shadow-sm);
 }
 .cv-button--secondary:active {
-    background-color: var(--current-button-secondary-active-bg);
-    border-color: var(--current-button-secondary-active-bg);
+    filter: brightness(90%); /* Similar to primary, slightly darker on active */
     transform: scale(0.97);
     box-shadow: none;
 }
 
-/* Danger Button */
-.cv-button--danger {
-    background-color: var(--current-button-danger-bg);
-    color: var(--current-button-danger-text);
-    border-color: var(--current-button-danger-bg);
-}
-.cv-button--danger:hover {
-    background-color: var(--current-button-danger-hover-bg);
-    border-color: var(--current-button-danger-hover-bg);
-    box-shadow: var(--current-shadow-sm);
-}
-.cv-button--danger:active {
-    background-color: var(--current-button-danger-active-bg);
-    border-color: var(--current-button-danger-active-bg);
-    transform: scale(0.97);
-    box-shadow: none;
-}
-
-
-/* Icon Button Variant */
-.cv-button--icon { /* Renamed from .cv-button.icon-button for consistency */
-    padding: var(--cv-spacing-sm); /* Adjusted padding for icon buttons */
-    width: auto; /* Allow width to be determined by content or specific sizing */
-    min-width: 40px; /* Ensure a minimum touch target size */
-    height: 40px; /* Consistent height */
+.cv-button.icon-button {
+    padding: var(--cv-spacing-xs);
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
 }
-.cv-button--icon.has-indicator::after { /* Updated selector */
+.cv-button.icon-button.has-indicator::after {
     content: "";
     position: absolute;
     top: 4px;
@@ -100,35 +70,33 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: var(--current-primary-blue); /* Or a specific indicator color variable */
+    background-color: var(--current-primary-blue);
 }
 
-/* Disabled state for ALL button variants */
 .cv-button:disabled,
-.cv-button[disabled] { /* Cover both attribute and class if used interchangeably */
-    background-color: var(--current-button-disabled-bg) !important; /* Use important to override specifics */
-    color: var(--current-button-disabled-text) !important;
-    border-color: var(--current-button-disabled-border) !important;
-    cursor: not-allowed !important;
-    box-shadow: none !important;
-    filter: none !important; /* Remove any filters like brightness */
-    transform: none !important; /* Prevent active/hover transforms */
+.cv-button--primary:disabled,
+.cv-button--secondary:disabled {
+    background-color: var(--current-button-disabled-bg);
+    color: var(--current-button-disabled-text);
+    cursor: not-allowed;
+    border-color: var(--current-button-disabled-border);
+    box-shadow: none;
+    filter: none; /* Ensure no brightness filter on disabled state */
 }
-
 
 .cv-card {
-    background-color: var(--current-card-bg); /* Use themed card background */
-    border: var(--cv-border-width) solid var(--current-card-border); /* Use themed card border */
+    background-color: var(--current-bg-white);
+    border: var(--cv-border-width) solid var(--current-border-color);
     border-radius: var(--cv-border-radius-lg);
     padding: var(--cv-spacing-md);
     margin-bottom: var(--cv-spacing-md);
-    box-shadow: var(--current-card-shadow); /* Use themed card shadow */
+    box-shadow: var(--current-shadow-md);
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 
 .cv-card--clickable:hover {
     transform: translateY(-2px);
-    box-shadow: var(--current-card-hover-shadow); /* Use themed hover shadow */
+    box-shadow: var(--current-shadow-lg);
 }
 
 .cv-card__title {
@@ -158,11 +126,11 @@
     border-radius: var(--cv-border-radius-md);
     font-size: 1rem;
     line-height: 1.5;
-    background-color: var(--current-bg-element); /* Use themed element background */
+    background-color: var(--current-bg-white);
     color: var(--current-text-primary);
     width: 100%;
     box-sizing: border-box;
-    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.2s ease;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 .cv-input::placeholder {
     color: var(--current-text-placeholder);
@@ -171,26 +139,25 @@
     border-color: var(--current-primary-blue);
     outline: 0;
     box-shadow: 0 0 0 3px var(--current-input-focus-shadow);
-    background-color: var(--current-bg-element); /* Ensure background doesn't change on focus unless intended */
 }
 
 .cv-input--error {
     border-color: var(--current-semantic-error);
-    background-color: var(--current-semantic-error-bg); /* Use themed error background */
+    background-color: var(--current-color-error-bg);
 }
 .cv-input--error:focus {
     border-color: var(--current-semantic-error);
-    box-shadow: 0 0 0 3px var(--current-input-error-focus-shadow); /* Use error focus shadow */
-    background-color: var(--current-semantic-error-bg); /* Keep error bg on focus */
+    /* Assuming --current-input-focus-shadow is adaptable or we need a semantic error focus shadow */
+    box-shadow: 0 0 0 3px var(--current-input-focus-shadow); /* This might need adjustment if focus shadow is always blue */
 }
 .cv-input--success {
     border-color: var(--current-semantic-success);
-    background-color: var(--current-semantic-success-bg); /* Use themed success background */
+    background-color: var(--current-color-success-bg);
 }
 .cv-input--success:focus {
     border-color: var(--current-semantic-success);
-    box-shadow: 0 0 0 3px var(--current-input-success-focus-shadow); /* Use success focus shadow */
-    background-color: var(--current-semantic-success-bg); /* Keep success bg on focus */
+    /* Assuming --current-input-focus-shadow is adaptable or we need a semantic success focus shadow */
+    box-shadow: 0 0 0 3px var(--current-input-focus-shadow); /* This might need adjustment */
 }
 
 /* REMOVED .cv-modal__content from components.css to rely on .cv-modal-content in styles.css for consistency */
@@ -219,21 +186,21 @@
 /* === Global Feedback Toast Styles === */
 .global-feedback-container {
     position: fixed;
-    top: var(--cv-spacing-md);
-    right: var(--cv-spacing-md);
-    z-index: 1050;
+    top: var(--cv-spacing-md, 16px); /* Use CSS variable or fallback */
+    right: var(--cv-spacing-md, 16px);
+    z-index: 1050; /* Ensure it's above most other content */
     display: flex;
     flex-direction: column;
-    gap: var(--cv-spacing-sm);
-    max-width: 350px;
+    gap: var(--cv-spacing-sm, 8px);
+    max-width: 350px; /* Or whatever width is desired */
 }
 
 .global-feedback-toast {
-    background-color: var(--current-toast-bg); /* Use themed toast background */
-    color: var(--current-text-primary);
-    padding: var(--cv-spacing-md);
-    border-radius: var(--cv-border-radius-md);
-    box-shadow: var(--current-toast-shadow); /* Use themed toast shadow */
+    background-color: var(--current-bg-white, #fff);
+    color: var(--current-text-primary, #333);
+    padding: var(--cv-spacing-md, 16px);
+    border-radius: var(--cv-border-radius-md, 8px);
+    box-shadow: var(--current-shadow-lg, 0 4px 12px rgba(0,0,0,0.15));
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -257,66 +224,77 @@
 .global-feedback-toast__close-btn {
     background: none;
     border: none;
-    color: var(--current-toast-close-text); /* Use themed text color */
+    color: var(--current-text-secondary, #777);
     font-size: 1.5rem;
     line-height: 1;
-    padding: 0 var(--cv-spacing-xs);
-    margin-left: var(--cv-spacing-md);
+    padding: 0 var(--cv-spacing-xs, 4px);
+    margin-left: var(--cv-spacing-md, 16px);
     cursor: pointer;
     transition: color 0.2s ease;
 }
 
 .global-feedback-toast__close-btn:hover {
-    color: var(--current-toast-close-hover-text); /* Use themed hover text color */
+    color: var(--current-text-primary, #333);
 }
 
 /* Type-specific styles */
+/* Using existing semantic color variables where appropriate */
 .global-feedback-toast--success {
-    border-left-color: var(--current-semantic-success);
+    border-left-color: var(--current-semantic-success, green);
+    /* background-color: var(--current-color-success-bg, #e6fffa); */ /* Optional: subtle background */
 }
+.global-feedback-toast--success .global-feedback-toast__close-btn {
+    /* color: var(--current-semantic-success, green); */ /* Optional: themed close button */
+}
+
 .global-feedback-toast--error {
-    border-left-color: var(--current-semantic-error);
+    border-left-color: var(--current-semantic-error, red);
+    /* background-color: var(--current-color-error-bg, #ffe6e6); */
 }
+
 .global-feedback-toast--warning {
-    border-left-color: var(--current-semantic-warning);
+    border-left-color: var(--current-semantic-warning, orange);
+    /* background-color: var(--current-color-warning-bg, #fff0e6); */
 }
+
 .global-feedback-toast--info {
-    border-left-color: var(--current-semantic-info);
+    border-left-color: var(--current-semantic-info, blue);
+    /* background-color: var(--current-color-info-bg, #e6f7ff); */
 }
 /* === End Global Feedback Toast Styles === */
 
 /* === Alert Component Styles === */
 .cv-alert {
-    padding: var(--cv-spacing-md);
-    margin-bottom: var(--cv-spacing-md);
+    padding: var(--cv-spacing-md); /* 16px */
+    margin-bottom: var(--cv-spacing-md); /* 16px */
     border: var(--cv-border-width) solid transparent;
-    border-radius: var(--cv-border-radius-md);
+    border-radius: var(--cv-border-radius-md); /* 8px */
     font-size: 0.9rem;
-    text-align: left;
+    text-align: left; /* Default to left, can be overridden */
 }
 
 .cv-alert--error {
-    color: var(--current-alert-error-text);
-    background-color: var(--current-alert-error-bg);
-    border-color: var(--current-alert-error-text); /* Border usually matches text color for stronger emphasis */
+    color: var(--current-semantic-error);
+    background-color: var(--current-color-error-bg);
+    border-color: var(--current-semantic-error);
 }
 
 .cv-alert--success {
-    color: var(--current-alert-success-text);
-    background-color: var(--current-alert-success-bg);
-    border-color: var(--current-alert-success-text);
+    color: var(--current-semantic-success);
+    background-color: var(--current-color-success-bg);
+    border-color: var(--current-semantic-success);
 }
 
 .cv-alert--warning {
-    color: var(--current-alert-warning-text);
-    background-color: var(--current-alert-warning-bg);
-    border-color: var(--current-alert-warning-text);
+    color: var(--current-semantic-warning);
+    background-color: var(--current-color-warning-bg);
+    border-color: var(--current-semantic-warning);
 }
 
 .cv-alert--info {
-    color: var(--current-alert-info-text);
-    background-color: var(--current-alert-info-bg);
-    border-color: var(--current-alert-info-text);
+    color: var(--current-semantic-info);
+    background-color: var(--current-color-info-bg);
+    border-color: var(--current-semantic-info);
 }
 
 /* Utility class to hide alerts when needed */
@@ -346,7 +324,8 @@
 }
 
 .cv-header {
-    background-color: var(--current-header-bg); /* Use themed header background */
+    /* Apple-inspired styling */
+    background-color: rgba(242, 242, 247, 0.8); /* Light mode translucent background (System Gray 6 with alpha) */
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     backdrop-filter: blur(20px) saturate(180%);
     color: var(--current-text-primary);
@@ -355,10 +334,10 @@
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--current-header-border); /* Use themed header border */
-    position: sticky;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* Subtle border for light mode */
+    position: sticky; /* Make header sticky */
     top: 0;
-    z-index: 1020;
+    z-index: 1020; /* Ensure it's above other content but below modals */
 }
 .cv-header__container {
     display: flex;
@@ -367,22 +346,25 @@
     width: 100%;
 }
 
-/* Dark theme for header is handled by --current-header-bg and --current-header-border */
+html[data-theme="dark"] .cv-header {
+    background-color: rgba(44, 44, 46, 0.75); /* Dark mode translucent background (System Gray 2 Dark with alpha) */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Subtle border for dark mode */
+}
 
 @media (min-width: 768px) {
     .cv-header {
-        padding: var(--cv-spacing-md) var(--cv-spacing-lg);
+        padding: var(--cv-spacing-md) var(--cv-spacing-lg); /* Desktop padding */
         flex-wrap: nowrap;
     }
 }
 .cv-header__title {
     margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.25rem; /* Adjusted for a more Apple-like feel */
+    font-weight: 600; /* Open Sans Semibold */
 }
 @media (min-width: 768px) {
     .cv-header__title {
-        font-size: 1.5rem;
+        font-size: 1.5rem; /* Desktop title size */
     }
 }
 
@@ -392,12 +374,15 @@
     align-items: flex-start;
     width: 100%;
     gap: var(--cv-spacing-xs);
-    background-color: var(--current-nav-bg); /* Use themed nav background */
-    -webkit-backdrop-filter: blur(18px) saturate(170%); /* Keep blur if desired, or remove if nav is opaque */
+    /* Apple-inspired styling for nav - similar to header but can be slightly different */
+    background-color: rgba(248, 248, 250, 0.85); /* Slightly different from header, or could be same */
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
     backdrop-filter: blur(18px) saturate(170%);
     padding: var(--cv-spacing-sm) var(--cv-spacing-md);
-    border-bottom: 1px solid var(--current-border-subtle); /* Use themed border */
-    /* position: sticky; ... z-index: 1010; */ /* Keep if nav is sticky */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08); /* Subtle border for light mode */
+    /* position: sticky; /* If nav should also stick below header */
+    /* top: YOUR_HEADER_HEIGHT; /* Calculate or set fixed header height */
+    /* z-index: 1010; */
 }
 .cv-nav__list {
     list-style: none;
@@ -407,19 +392,23 @@
     gap: var(--cv-spacing-sm);
 }
 
-/* Dark theme for nav is handled by --current-nav-bg and --current-border-subtle */
+html[data-theme="dark"] .cv-nav {
+    background-color: rgba(50, 50, 52, 0.8); /* Dark mode nav bg */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
 
 .cv-nav__link {
-    color: var(--current-text-primary);
+    color: var(--current-text-primary); /* Changed from text-link for a more subdued default state */
     text-decoration: none;
-    font-weight: 500; /* Normal to 500 for slightly more emphasis */
-    display: flex;
+    font-weight: normal;
+    display: flex; /* Support icon and label */
     align-items: center;
     width: 100%;
     text-align: left;
     padding: var(--cv-spacing-sm);
     border-radius: var(--cv-border-radius-md);
-    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.1s ease-in-out;
+    font-weight: 500;
     gap: var(--cv-spacing-xs);
 }
 .cv-nav__icon {
@@ -427,8 +416,6 @@
     height: 20px;
     display: inline-block;
     vertical-align: middle;
-    /* Add fill/stroke: currentColor if using SVGs that should inherit text color */
-    /* fill: currentColor; */
 }
 .cv-nav__label {
     line-height: 1;
@@ -437,32 +424,41 @@
     .cv-nav {
         flex-direction: row;
         align-items: center;
-        width: auto;
-        gap: var(--cv-spacing-sm);
-        /* border-bottom: none; */ /* Optional: remove border on desktop if header has one */
+        width: auto; /* Revert to auto width for desktop */
+        gap: var(--cv-spacing-sm); /* Restore original gap */
+        /* padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Ensure this is suitable or adjust */
+        /* Consider removing bottom border for desktop if header has one and they are visually connected */
+        /* border-bottom: none; */
+    }
+    html[data-theme="dark"] .cv-nav {
+        /* border-bottom: none; */ /* Example for dark theme desktop */
     }
     .cv-nav__link {
-        display: inline-block;
+        display: inline-block; /* Revert for desktop */
         width: auto;
-        text-align: center;
-        padding: var(--cv-spacing-sm) var(--cv-spacing-md);
+        text-align: center; /* Or left, depending on design */
+        padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Adjusted padding for desktop */
     }
 }
 .cv-nav__link:hover {
-    background-color: var(--current-nav-item-hover-bg); /* Use themed hover background */
-    color: var(--current-primary-blue); /* Keep link color change on hover */
+    background-color: rgba(0, 0, 0, 0.05); /* Subtle hover for light mode */
+    color: var(--current-primary-blue);
+    /* transform: translateY(-1px); /* Optional: subtle lift */
+}
+html[data-theme="dark"] .cv-nav__link:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Subtle hover for dark mode */
 }
 
 .cv-nav__link--active {
-    background-color: var(--current-nav-item-active-bg); /* Use themed active background */
-    color: var(--current-nav-item-active-text) !important; /* Use themed active text color */
-    font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Generic shadow, theming might be complex here */
+    background-color: var(--current-primary-blue);
+    color: var(--current-text-on-primary) !important; /* Ensure text color overrides default */
+    font-weight: 600; /* Semibold for active link */
+    box-shadow: 0 1px 3px rgba(0, 122, 255, 0.2); /* Subtle shadow for active link */
 }
 .cv-nav__link--active:hover {
-    background-color: var(--current-nav-item-active-bg); /* Keep active background */
-    filter: brightness(95%); /* Slightly darken active item on hover */
-    color: var(--current-nav-item-active-text) !important; /* Keep active text color */
+    background-color: var(--current-primary-blue); /* Keep background color */
+    filter: brightness(90%); /* Similar to primary button hover */
+    color: var(--current-text-on-primary); /* Keep text color */
 }
 
 /* Responsive Table Wrapper */
@@ -476,28 +472,29 @@
 .cv-table {
     width: 100%; /* Default to full width within its container */
     border-collapse: collapse; /* Common practice */
-    /* min-width: 600px; */ /* Example: if table content is wide, forces scrollbar. */
+    /* min-width: 600px; */ /* Example: if table content is wide, forces scrollbar.
+                              This should be set based on table content, or on specific table instances.
+                              Avoid setting a global min-width here unless all tables are complex. */
 }
 
 /* Utility Classes for Responsiveness */
 .hide-on-mobile {
-    display: none !important;
+    display: none !important; /* Use !important to ensure override if needed, use sparingly */
 }
-@media (min-width: 768px) {
+@media (min-width: 768px) { /* Tablet and up */
     .hide-on-mobile {
-        display: block !important; /* Or appropriate display type */
+        display: block !important; /* Or flex, inline, etc., as appropriate to restore */
     }
 }
 
 .hide-on-desktop {
-    display: block !important; /* Or appropriate display type */
+    display: block !important; /* Or flex, etc. */
 }
-@media (min-width: 768px) {
+@media (min-width: 768px) { /* Tablet and up */
     .hide-on-desktop {
         display: none !important;
     }
 }
-
 /* User avatar button */
 .user-avatar {
     display: flex;
@@ -506,31 +503,30 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background-color: var(--current-button-primary-bg); /* Use themed button background */
-    color: var(--current-button-primary-text); /* Use themed button text color */
+    background-color: var(--current-primary-blue);
+    color: var(--current-text-on-primary);
     font-weight: 600;
     text-transform: uppercase;
     overflow: hidden;
-    border: 1.5px solid var(--current-button-primary-bg); /* Match background for solid feel */
+    border: 1.5px solid var(--current-primary-blue); /* Subtle border, themed */
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 .user-avatar:hover {
     transform: scale(1.1);
-    box-shadow: 0 0 8px var(--current-input-focus-shadow); /* Use themed focus shadow for glow */
+    box-shadow: 0 0 8px rgba(0, 122, 255, 0.5); /* Subtle glow effect */
 }
 .user-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 50%; /* Ensure image inside is also rounded if not already */
+    border-radius: 50%;
 }
-
 /* User menu modal overrides */
 .user-menu-modal .cv-modal-content {
     padding: var(--cv-spacing-md);
-    max-width: 300px;
-    /* Animation and shadow are inherited from .cv-modal-content in styles.css */
+    max-width: 300px; /* Smaller max-width for user menu modal */
+    /* Ensure it still gets the primary modal animation and shadow from styles.css */
 }
 .user-menu-list {
     list-style: none;
@@ -540,76 +536,81 @@
     flex-direction: column;
     gap: var(--cv-spacing-sm);
 }
-.user-menu-list button.cv-button { /* Ensure specificity if needed */
+.user-menu-list button {
     width: 100%;
-    justify-content: flex-start; /* Align text to left for menu items */
 }
 
 /* Skeleton Screen Components */
 .feed-skeleton-container {
-    /* JS managed */
+    /* This container is managed by JS (display: block/none) */
 }
 
 .feed-skeleton-item {
-    background-color: var(--current-card-bg); /* Use themed card background */
-    border: var(--cv-border-width) solid var(--current-card-border); /* Use themed card border */
-    border-radius: var(--cv-border-radius-lg);
+    background-color: var(--current-bg-white); /* Match card background */
+    border: var(--cv-border-width) solid var(--current-border-color); /* Match card border */
+    border-radius: var(--cv-border-radius-lg); /* Match card radius */
     padding: var(--cv-spacing-md);
     margin-bottom: var(--cv-spacing-md);
-    box-shadow: var(--current-card-shadow); /* Use themed card shadow */
+    box-shadow: var(--current-shadow-md); /* Match card shadow */
     position: relative;
-    overflow: hidden;
+    overflow: hidden; /* Important for shimmer effect */
 }
 
+/* Base for skeleton placeholder elements */
 .skeleton-block {
-    background-color: var(--current-skeleton-bg);
-    border-radius: var(--cv-border-radius-sm);
-    margin-bottom: var(--cv-spacing-sm);
+    background-color: var(--current-skeleton-bg, var(--cv-gray-200));
+    border-radius: var(--cv-border-radius-sm); /* Consistent 4px radius */
+    margin-bottom: var(--cv-spacing-sm); /* 8px */
 }
 .skeleton-block:last-child {
     margin-bottom: 0;
 }
 
+/* Specifics for title placeholder */
 .skeleton-title {
     width: 60%;
-    height: 1.25rem;
-    margin-bottom: var(--cv-spacing-md);
+    height: 1.25rem; /* Approx 20px, aligns with --cv-font-size-xl */
+    margin-bottom: var(--cv-spacing-md); /* 16px, more space after a title */
 }
 
+/* Specifics for text line placeholders */
 .skeleton-line {
     width: 100%;
-    height: 0.875rem;
+    height: 0.875rem; /* Approx 14px, aligns with --cv-font-size-base or md */
 }
-.skeleton-line--short {
+.skeleton-line--short { /* More descriptive class name */
     width: 75%;
 }
 .skeleton-line--medium {
     width: 90%;
 }
-.skeleton-line--long {
+.skeleton-line--long { /* Explicitly full width if needed, otherwise default is 100% */
     width: 100%;
 }
 
+
+/* For simulating an image placeholder */
 .skeleton-image {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 16 / 9; /* Or common image aspect ratio */
     margin-bottom: var(--cv-spacing-sm);
 }
 
+/* For simulating an avatar placeholder */
 .skeleton-avatar {
-    width: 40px;
+    width: 40px; /* Example size */
     height: 40px;
-    border-radius: 50%;
+    border-radius: 50%; /* Circular */
     margin-right: var(--cv-spacing-sm);
-    float: left; /* Or use flexbox for layout */
+    float: left; /* Example layout */
 }
-.skeleton-block-group { /* For grouping avatar and text lines */
+.skeleton-block-group {
     display: flex;
     flex-direction: column;
-    /* If used with avatar: display: flex; align-items: center; then nested div for text lines */
 }
 
-/* Shimmer Animation */
+
+/* Shimmer Animation - remains the same */
 .feed-skeleton-item::after {
     content: '';
     position: absolute;
@@ -620,7 +621,7 @@
     background: linear-gradient(
         90deg,
         transparent,
-        var(--current-skeleton-shimmer-color),
+        var(--current-skeleton-shimmer-color, rgba(255, 255, 255, 0.5)),
         transparent
     );
     transform: translateX(-100%);
@@ -630,77 +631,85 @@
 @keyframes skeleton-shimmer {
     0% { transform: translateX(-100%); }
     50% { transform: translateX(100%); }
-    100% { transform: translateX(100%); } /* Hold at end for a moment if desired, or loop back to -100% */
+    100% { transform: translateX(100%); }
 }
+
+/* Theme variables for skeleton (ensure these are in :root and html[data-theme="dark"]) */
+/* :root {
+    --current-skeleton-bg: var(--cv-gray-200);
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.5);
+}
+html[data-theme="dark"] {
+    --current-skeleton-bg: var(--cv-dark-gray-300); // Adjusted for dark theme
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.1);
+} */
+
 
 /* === Status Badge Utility Classes === */
 .status-badge {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.75rem; /* Slightly smaller */
-    font-weight: 600; /* Semibold */
-    padding: 3px 8px; /* Adjusted padding */
-    border-radius: var(--cv-border-radius-md); /* More rounded, consistent with buttons */
-    line-height: 1.2; /* Ensure text fits well */
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: var(--cv-border-radius-sm, 4px);
 }
-.status-icon { /* If using actual icons (SVG, font icon) */
-    font-size: 0.9em; /* Relative to badge font size */
+.status-icon {
+    font-size: 0.8em;
     line-height: 1;
 }
-/* Using text emojis as icons for simplicity, ensure they render well */
-.status-icon.icon-success::before { content: "✓"; margin-right: 2px; } /* Simpler checkmark */
-.status-icon.icon-warning::before { content: "!";  margin-right: 2px; } /* Simpler warning */
-.status-icon.icon-danger::before { content: "✕";  margin-right: 2px; } /* Simpler cross */
-
+.status-icon.icon-success::before { content: "✅"; }
+.status-icon.icon-warning::before { content: "⚠️"; }
+.status-icon.icon-danger::before { content: "❌"; }
 .status-badge--success {
-    background-color: var(--current-semantic-success-bg);
+    background-color: var(--current-color-success-bg);
     color: var(--current-semantic-success);
 }
 .status-badge--warning {
-    background-color: var(--current-semantic-warning-bg);
+    background-color: var(--current-color-warning-bg);
     color: var(--current-semantic-warning);
 }
 .status-badge--danger {
-    background-color: var(--current-semantic-error-bg);
+    background-color: var(--current-color-error-bg);
     color: var(--current-semantic-error);
-}
-/* === End Status Badge Utility Classes === */
+}/* === End Status Badge Utility Classes === */
 
 /* === Progress Bar Component === */
 .cv-progress {
     width: 100%;
-    height: 12px;
-    background-color: var(--current-border-subtle);
-    border-radius: var(--cv-border-radius-lg);
+    height: 12px; /* Aumentar a altura para melhor visibilidade */
+    background-color: var(--current-border-subtle); /* Usar uma cor de fundo mais sutil */
+    border-radius: var(--cv-border-radius-lg); /* Raio de borda maior, mais Apple-like */
     overflow: hidden;
-    display: none;
-    margin-top: var(--cv-spacing-md);
+    display: none; /* Controlado por JS */
+    margin-top: var(--cv-spacing-md); /* Aumentar margem superior para espaçamento */
     margin-bottom: var(--cv-spacing-sm);
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.075);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.075); /* Sombra interna sutil */
 }
 
 .cv-progress__bar {
     height: 100%;
     width: 0%;
     background-color: var(--current-primary-blue);
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: var(--cv-border-radius-lg); /* Match parent for consistent rounding */
-    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transição mais suave */
+    border-radius: var(--cv-border-radius-lg); /* Garante que a barra interna também tenha cantos arredondados */
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1); /* Efeito de profundidade sutil */
 }
+
 /* === End Progress Bar Component === */
 
 /* === Inline Spinner Utility === */
 .inline-spinner {
     display: inline-block;
-    width: 1em; /* Relative to parent font size */
+    width: 1em;
     height: 1em;
-    border: 0.15em solid currentColor; /* Thinner border relative to size */
+    border: 2px solid currentColor;
     border-right-color: transparent;
     border-radius: 50%;
     animation: cv-inline-spin 0.75s linear infinite;
-    margin-left: 0.3em; /* Adjusted spacing */
-    vertical-align: -0.125em; /* Fine-tune vertical alignment */
+    margin-left: 4px;
+    vertical-align: middle;
 }
 
 @keyframes cv-inline-spin {
@@ -709,19 +718,71 @@
 }
 
 /* ==========================================================================
-   Empty State & Error State Components (Already in styles.css, ensure consistency)
-   Moved from components.css to styles.css to be alongside other page-level structures.
-   If these are truly global components, components.css is fine.
-   The existing definitions in styles.css are more detailed and should be preferred.
-   Ensure variable usage is consistent:
-   e.g., var(--current-border-color) vs var(--current-border-subtle) for the dashed border.
-   e.g., var(--current-bg-element) vs var(--current-background-alt) for background.
+   Empty State & Error State Components
    ========================================================================== */
 
-/*
 .cv-empty-state,
 .cv-error-state {
-    ...
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--cv-spacing-xl, 32px) var(--cv-spacing-md, 16px);
+    margin: var(--cv-spacing-lg, 24px) auto; /* Centraliza e adiciona margem */
+    border: 1px dashed var(--current-border-color, var(--cv-color-gray-light)); /* Borda sutil */
+    border-radius: var(--cv-border-radius-md, 8px);
+    background-color: var(--current-background-alt, var(--cv-color-background-alt)); /* Um fundo levemente diferente */
+    max-width: 600px; /* Limita a largura para melhor leitura */
+    width: calc(100% - 2 * var(--cv-spacing-md, 16px)); /* Ajusta para caber em containers menores */
+    box-sizing: border-box;
 }
-*/
-/* Styles for these are now primarily in styles.css, ensure they use the latest current-theme variables */
+
+.cv-empty-state__icon,
+.cv-error-state__icon {
+    font-size: 3rem; /* Tamanho do ícone */
+    margin-bottom: var(--cv-spacing-md, 16px);
+    color: var(--current-primary-blue, var(--cv-color-primary)); /* Cor primária para ícone de empty state */
+}
+
+.cv-error-state__icon {
+    color: var(--current-danger-color, var(--cv-color-danger)); /* Cor de perigo para ícone de erro */
+}
+
+/* Específico para SVG ou Font Icon, pode precisar de ajuste */
+.cv-empty-state__icon svg,
+.cv-error-state__icon svg,
+.cv-empty-state__icon img, /* Suporte para <img> também */
+.cv-error-state__icon img {
+    width: 3em; /* ou 4em */
+    height: 3em; /* ou 4em */
+    max-width: 80px; /* Limite máximo */
+    max-height: 80px;
+}
+
+
+.cv-empty-state__title,
+.cv-error-state__title {
+    font-size: var(--cv-font-size-lg, 1.25rem);
+    font-weight: var(--cv-font-weight-bold, 600);
+    color: var(--current-text-primary, var(--cv-color-text-primary));
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-sm, 8px);
+}
+
+.cv-empty-state__description,
+.cv-error-state__message {
+    font-size: var(--cv-font-size-md, 1rem);
+    color: var(--current-text-secondary, var(--cv-color-text-secondary));
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-lg, 24px);
+    line-height: 1.6;
+    max-width: 90%; /* Evita que o texto fique muito largo dentro do container */
+}
+
+.cv-empty-state__action,
+.cv-error-state__retry-button {
+    /* Estilos do cv-button já devem ser aplicados se a classe for usada. */
+    /* Adicionar margens ou ajustes específicos, se necessário. */
+    min-width: 150px; /* Para dar um tamanho mínimo ao botão */
+}
