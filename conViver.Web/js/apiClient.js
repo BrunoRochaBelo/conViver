@@ -144,6 +144,7 @@ async function request(path, options = {}) {
 
     try {
         let resData;
+        let responseStatus;
         if (method === 'POST' && opts.body instanceof FormData) {
             // Use xhrPost for FormData to get progress
             if (progressBarTarget) {
@@ -162,6 +163,7 @@ async function request(path, options = {}) {
 
         } else {
             const res = await fetch(url, opts);
+            responseStatus = res.status;
 
             if (res.status === 304 && method === 'GET') {
                 // Use cached data on 304
@@ -190,7 +192,9 @@ async function request(path, options = {}) {
                 }
                 throw new ApiError(errorMessage, res.status, url, loggedOptions);
             } else {
-                if (res.status === 204) { // No Content
+                if (res.status === 202) {
+                    resData = { accepted: true };
+                } else if (res.status === 204) { // No Content
                     resData = null;
                 } else {
                     resData = await res.json();
@@ -204,8 +208,10 @@ async function request(path, options = {}) {
             }
         }
 
-        // Handle success feedback (only for non-GET requests or if explicitly requested)
-        if (method !== 'GET' || successMessage) {
+        // Handle success feedback
+        if (responseStatus === 202) {
+            showGlobalFeedback('processamento iniciado', 'info');
+        } else if (method !== 'GET' || successMessage) {
             if (successMessage) {
                 showGlobalFeedback(successMessage, 'success');
             } else {
