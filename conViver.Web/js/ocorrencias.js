@@ -283,10 +283,22 @@ function renderOcorrencias(ocorrencias, paginationInfo, append = false) {
             description = `Não foram encontradas ocorrências para esta categoria.`;
         }
 
+        let actionButton = null;
+        // Only show "Registrar Nova Ocorrência" if the user can create them and no specific category filter is active
+        // or if the "minhas" filter is active (implying they might want to add one of their own).
+        if (canCreateOcorrencia() && (currentFilter === 'minhas' || currentFilter === 'abertas' || currentFilter === 'todas')) {
+            actionButton = {
+                text: "Registrar Nova Ocorrência",
+                onClick: openNovaOcorrenciaModal,
+                classes: ["cv-button--primary"]
+            };
+        }
+
         const emptyState = createEmptyStateElement({
             iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48px" height="48px"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 13h-2v-2h2v2zm0-4h-2V7h2v4z"/></svg>`, // Ícone de documento com exclamação
             title: title,
-            description: description
+            description: description,
+            actionButton: actionButton
         });
         listaOcorrenciasEl.appendChild(emptyState);
         return;
@@ -687,7 +699,13 @@ function renderAnexosDetalhe(anexos) {
         });
         detalheAnexosContainerEl.appendChild(ul);
     } else {
-        detalheAnexosContainerEl.innerHTML = '<p>Nenhum anexo encontrado.</p>';
+        // detalheAnexosContainerEl.innerHTML = '<p>Nenhum anexo encontrado.</p>';
+        const emptyState = createEmptyStateElement({
+            title: "Sem Anexos",
+            description: "Nenhum arquivo foi anexado a esta ocorrência.",
+            // No action button here as adding anexos is via a separate form input below the list
+        });
+        detalheAnexosContainerEl.appendChild(emptyState);
     }
 }
 
@@ -700,7 +718,13 @@ function renderHistoricoStatusDetalhe(historico) {
             detalheHistoricoStatusEl.appendChild(li);
         });
     } else {
-        detalheHistoricoStatusEl.innerHTML = '<li>Nenhum histórico de status encontrado.</li>';
+        // detalheHistoricoStatusEl.innerHTML = '<li>Nenhum histórico de status encontrado.</li>';
+        // For history, a simple message might be better than a full empty state component.
+        // Or, use a very minimal empty state.
+        const p = document.createElement('p');
+        p.textContent = "Sem histórico de alterações de status.";
+        p.className = "cv-info-message--small"; // Assuming a smaller variant for modals if needed
+        detalheHistoricoStatusEl.appendChild(p);
     }
 }
 
@@ -717,7 +741,13 @@ function renderComentariosDetalhe(comentarios) {
             detalheComentariosContainerEl.appendChild(div);
         });
     } else {
-        detalheComentariosContainerEl.innerHTML = '<p>Nenhum comentário ainda.</p>';
+        // detalheComentariosContainerEl.innerHTML = '<p>Nenhum comentário ainda.</p>';
+        const emptyState = createEmptyStateElement({
+            title: "Sem Comentários",
+            description: "Ainda não há comentários para esta ocorrência. Seja o primeiro a comentar usando o formulário abaixo.",
+            // No action button here as the comment form is typically visible below.
+        });
+        detalheComentariosContainerEl.appendChild(emptyState);
     }
 }
 
@@ -779,26 +809,27 @@ async function openDetalheOcorrenciaModal(ocorrenciaId) {
         }
 
         if (detalheOcorrenciaContentLoadedEl) detalheOcorrenciaContentLoadedEl.style.display = 'block'; // Show content
-        // modalDetalheOcorrencia.style.display = 'flex'; // Already visible
+
     } catch (error) {
         console.error(`Erro ao carregar detalhes da ocorrência ${ocorrenciaId}:`, error);
-        // Não fechar o modal, mas talvez mostrar um erro dentro dele ou usar o global feedback
-        // closeDetalheOcorrenciaModal(); // Comentado para manter o modal aberto em caso de erro e mostrar feedback
-        showGlobalFeedback(`Erro ao carregar detalhes da ocorrência: ${error.message || 'Tente novamente.'}`, 'error', 6000);
         currentOcorrenciaId = null; // Reset current ID
-        // Se o erro ocorreu, o skeleton ainda está visível e o conteúdo escondido.
-        // Poderia adicionar um error state dentro do modal aqui. Por ora, o global feedback é o principal.
-        // Para garantir que o skeleton não fique preso, escondê-lo no catch também se o conteúdo não for mostrado.
-        // No entanto, se o conteúdo nunca for mostrado, o skeleton já está visível.
-        // O ideal é: se erro, esconder skeleton, mostrar mensagem de erro no lugar do conteúdo.
-        // Por enquanto, o global feedback é o principal indicador. O modal permanece aberto.
+        if (detalheOcorrenciaContentLoadedEl) { // Ensure content area is clean for error state
+            detalheOcorrenciaContentLoadedEl.innerHTML = ''; // Clear any partial content
+            const errorState = createErrorStateElement({
+                title: "Erro ao Carregar Detalhes",
+                message: error.message || "Não foi possível carregar os detalhes da ocorrência. Verifique sua conexão e tente novamente.",
+                retryButton: {
+                    text: "Tentar Novamente",
+                    onClick: () => openDetalheOcorrenciaModal(ocorrenciaId) // Pass the original ID for retry
+                }
+            });
+            detalheOcorrenciaContentLoadedEl.appendChild(errorState);
+            detalheOcorrenciaContentLoadedEl.style.display = 'block'; // Make sure this container is visible
+        }
+        // showGlobalFeedback(`Erro ao carregar detalhes da ocorrência: ${error.message || 'Tente novamente.'}`, 'error', 6000); // Removed
     } finally {
         isLoading = false;
-        // Esconder o skeleton independentemente de sucesso ou falha,
-        // pois ou o conteúdo foi carregado, ou um erro global foi mostrado.
         if (detalheOcorrenciaSkeletonEl) hideSkeleton(detalheOcorrenciaSkeletonEl);
-        // Se houver erro e o conteúdo não foi carregado, detalheOcorrenciaContentLoadedEl ainda estará display:none
-        // Se sucesso, já foi tornado block.
     }
 }
 

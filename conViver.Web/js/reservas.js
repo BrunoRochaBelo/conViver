@@ -1,4 +1,4 @@
-import { showGlobalFeedback, createErrorStateElement } from "./main.js";
+import { showGlobalFeedback, createErrorStateElement, createEmptyStateElement } from "./main.js";
 import { requireAuth, getUserInfo, getRoles } from "./auth.js";
 import apiClient from "./apiClient.js";
 import { initFabMenu } from "./fabMenu.js";
@@ -488,7 +488,29 @@ async function carregarEspacosComuns() {
       }
     });
     if (adminEspacosSection && adminEspacosSection.style.display !== "none") {
-      renderAdminEspacos();
+      if (espacosComunsList && espacosComunsList.length > 0) {
+        renderAdminEspacos();
+      } else {
+        // Limpar o grid e mostrar empty state
+        if (adminEspacosGrid) {
+          adminEspacosGrid.innerHTML = '';
+          const emptyState = createEmptyStateElement({
+            title: "Nenhum Espaço Comum Cadastrado",
+            description: "Adicione o primeiro espaço comum para começar a gerenciar as reservas.",
+            actionButton: {
+              text: "Adicionar Espaço",
+              onClick: () => {
+                // Acionar o modal de criação de espaço comum
+                // Assumindo que existe um botão/função para isso, ex:
+                const btnAdd = document.getElementById("btn-adicionar-espaco"); // ou similar
+                if (btnAdd) btnAdd.click();
+              },
+              classes: ["cv-button--primary"]
+            }
+          });
+          adminEspacosGrid.appendChild(emptyState);
+        }
+      }
     }
   } catch (err) {
     console.error("Erro ao carregar espaços comuns:", err);
@@ -670,8 +692,25 @@ async function carregarMinhasReservas(page = 1, append = false) {
         }
       }
     } else if (!append) { // No items on first load for these filters
-      container.innerHTML =
-        '<p class="cv-info-message" style="text-align:center;">Nenhuma reserva encontrada com os filtros aplicados.</p>';
+      // container.innerHTML =
+      //   '<p class="cv-info-message" style="text-align:center;">Nenhuma reserva encontrada com os filtros aplicados.</p>';
+      container.innerHTML = ''; // Limpa o container
+      const filtersActive = filtroMinhasEspaco.value || filtroMinhasStatus.value || filtroMinhasPeriodo.value;
+      const emptyState = createEmptyStateElement({
+        title: filtersActive ? "Nenhuma Reserva Encontrada" : "Você Ainda Não Tem Reservas",
+        description: filtersActive
+          ? "Não encontramos reservas que correspondam aos seus filtros. Tente ajustá-los."
+          : "Que tal fazer sua primeira reserva? Explore os espaços comuns disponíveis!",
+        actionButton: {
+          text: "Nova Reserva",
+          onClick: () => {
+            const fabNovaReserva = document.getElementById("fab-nova-reserva");
+            if (fabNovaReserva) fabNovaReserva.click();
+          },
+          classes: ["cv-button--primary"]
+        }
+      });
+      container.appendChild(emptyState);
       noMoreItemsMinhasReservas = true;
       if (sentinel) sentinel.style.display = "none";
     } else { // No more items when appending
@@ -812,8 +851,25 @@ async function carregarReservasListView(page, append = false) {
         }
       }
     } else if (!append) { // Nenhuma reserva encontrada na primeira busca com os filtros
-      container.innerHTML =
-        '<p class="cv-info-message" style="text-align:center;">Nenhuma reserva encontrada para os filtros aplicados.</p>';
+      // container.innerHTML =
+      //   '<p class="cv-info-message" style="text-align:center;">Nenhuma reserva encontrada para os filtros aplicados.</p>';
+      container.innerHTML = ''; // Limpa o container
+      const filtersActive = filtroEspacoLista.value || filtroStatusLista.value || filtroPeriodoLista.value;
+      const emptyState = createEmptyStateElement({
+        title: filtersActive ? "Nenhuma Reserva Encontrada" : "Sem Reservas na Agenda",
+        description: filtersActive
+          ? "Não encontramos reservas que correspondam aos filtros aplicados para esta visualização."
+          : "Ainda não há reservas agendadas. Você pode ser o primeiro a reservar um espaço!",
+        actionButton: {
+          text: "Nova Reserva",
+          onClick: () => {
+            const fabNovaReserva = document.getElementById("fab-nova-reserva");
+            if (fabNovaReserva) fabNovaReserva.click();
+          },
+          classes: ["cv-button--primary"]
+        }
+      });
+      container.appendChild(emptyState);
       noMoreItemsListView = true;
       if (sentinel) sentinel.style.display = "none";
     } else { // Nenhuma reserva encontrada em uma página subsequente (append = true)
@@ -1311,11 +1367,42 @@ async function carregarReservasDia(dataStr) {
     if (items.length > 0) {
       items.forEach((r) => agendaDiaListContainer.appendChild(renderCardReservaListView(r)));
     } else {
-      agendaDiaListContainer.innerHTML = '<p class="cv-info-message" style="text-align:center;">Nenhuma reserva para o dia selecionado.</p>';
+      // agendaDiaListContainer.innerHTML = '<p class="cv-info-message" style="text-align:center;">Nenhuma reserva para o dia selecionado.</p>';
+      agendaDiaListContainer.innerHTML = ''; // Limpa
+      const emptyState = createEmptyStateElement({
+        title: "Sem Reservas Neste Dia",
+        description: "Não há reservas agendadas para o dia selecionado. Que tal fazer uma?",
+        actionButton: {
+          text: "Nova Reserva",
+          onClick: () => {
+            // Idealmente, pré-preencher a data no modal de nova reserva com 'dataStr'
+            const fabNovaReserva = document.getElementById("fab-nova-reserva");
+            if (fabNovaReserva) fabNovaReserva.click();
+            // Adicional: tentar pré-preencher a data no modal que será aberto.
+            // Isso pode ser feito setando um valor global ou passando para a função que abre o modal.
+            // Por exemplo, se openNovaReservaModal() pudesse aceitar uma data: openNovaReservaModal(dataStr);
+            // Ou, mais diretamente se o modal já está no DOM:
+            const modalDataInput = document.getElementById("modal-reserva-data");
+            if(modalDataInput) modalDataInput.value = dataStr;
+
+          },
+          classes: ["cv-button--primary"]
+        }
+      });
+      agendaDiaListContainer.appendChild(emptyState);
     }
   } catch (err) {
     console.error("Erro ao carregar reservas do dia:", err);
-    agendaDiaListContainer.innerHTML = '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas.</p>';
+    // agendaDiaListContainer.innerHTML = '<p class="cv-error-message" style="text-align:center;">Erro ao carregar reservas.</p>';
+    agendaDiaListContainer.innerHTML = ''; // Limpa o container
+    const errorState = createErrorStateElement({
+        message: err.message || "Não foi possível carregar as reservas para este dia. Verifique sua conexão e tente novamente.",
+        retryButton: {
+            text: "Tentar Novamente",
+            onClick: () => carregarReservasDia(dataStr) // Recarrega para o mesmo dia
+        }
+    });
+    agendaDiaListContainer.appendChild(errorState);
   } finally {
     if (agendaDiaLoading) agendaDiaLoading.style.display = "none";
   }
