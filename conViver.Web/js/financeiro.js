@@ -602,27 +602,31 @@ document.addEventListener('DOMContentLoaded', () => {
             if (balancete && (balancete.totalReceitas > 0 || balancete.totalDespesas > 0)) {
                 if (graficoBalanceteEl) graficoBalanceteEl.style.display = 'block';
                 renderBalanceteChart(balancete);
+                 // Limpar mensagens de erro/sem dados se o gráfico for renderizado
+                const parent = graficoBalanceteSkeletonEl?.parentNode;
+                parent?.querySelector('.no-data-message')?.remove();
+                parent?.querySelector('.error-data-message')?.remove();
             } else {
                 if (graficoBalanceteEl) graficoBalanceteEl.style.display = 'none';
-                // Opcional: Mostrar mensagem de "sem dados para o gráfico" no lugar do skeleton/canvas
                 if (graficoBalanceteSkeletonEl && graficoBalanceteSkeletonEl.parentNode) {
-                    const noDataMsg = graficoBalanceteSkeletonEl.parentNode.querySelector('.no-data-message');
-                    if (!noDataMsg) {
-                        const p = document.createElement('p');
-                        p.className = 'no-data-message info-text';
-                        p.textContent = 'Sem dados suficientes para exibir o gráfico de balancete.';
-                        graficoBalanceteSkeletonEl.parentNode.insertBefore(p, graficoBalanceteEl);
-                    } else {
-                        noDataMsg.style.display = 'block';
+                    let msgEl = graficoBalanceteSkeletonEl.parentNode.querySelector('.no-data-message');
+                    if (!msgEl) {
+                        msgEl = document.createElement('p');
+                        msgEl.className = 'no-data-message info-text';
+                        graficoBalanceteSkeletonEl.parentNode.insertBefore(msgEl, graficoBalanceteEl);
                     }
+                    msgEl.textContent = 'Sem dados suficientes para exibir o gráfico de balancete.';
+                    msgEl.style.display = 'block';
+                    graficoBalanceteSkeletonEl.parentNode.querySelector('.error-data-message')?.remove(); // Remove msg de erro antiga
                 }
             }
         } catch (err) {
             console.error('Erro ao obter balancete:', err);
             if (graficoBalanceteEl) graficoBalanceteEl.style.display = 'none';
-            showGlobalFeedback('Erro ao carregar relatório de balancete.', 'error');
+            // showGlobalFeedback('Erro ao carregar relatório de balancete.', 'error'); // REMOVED
              if (graficoBalanceteSkeletonEl && graficoBalanceteSkeletonEl.parentNode) {
-                const errorMsgEl = graficoBalanceteSkeletonEl.parentNode.querySelector('.error-data-message');
+                const friendlyMsg = err instanceof ApiError ? getFriendlyApiErrorMessage(err) : getFriendlyNetworkErrorMessage(err.message);
+                let errorMsgEl = graficoBalanceteSkeletonEl.parentNode.querySelector('.error-data-message');
                  if (!errorMsgEl) {
                     const p = document.createElement('p');
                     p.className = 'error-data-message cv-alert cv-alert--error';
@@ -657,26 +661,30 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resumo && resumo.itens && resumo.itens.length > 0) {
                 if (graficoOrcamentoEl) graficoOrcamentoEl.style.display = 'block';
                 renderOrcamentoChart(resumo);
+                const parent = graficoOrcamentoSkeletonEl?.parentNode;
+                parent?.querySelector('.no-data-message')?.remove();
+                parent?.querySelector('.error-data-message')?.remove();
             } else {
                 if (graficoOrcamentoEl) graficoOrcamentoEl.style.display = 'none';
                 if (graficoOrcamentoSkeletonEl && graficoOrcamentoSkeletonEl.parentNode) {
-                    const noDataMsg = graficoOrcamentoSkeletonEl.parentNode.querySelector('.no-data-message');
-                    if (!noDataMsg) {
-                        const p = document.createElement('p');
-                        p.className = 'no-data-message info-text';
-                        p.textContent = 'Sem dados de orçamento para exibir o gráfico.';
-                        graficoOrcamentoSkeletonEl.parentNode.insertBefore(p, graficoOrcamentoEl);
-                    } else {
-                        noDataMsg.style.display = 'block';
+                    let msgEl = graficoOrcamentoSkeletonEl.parentNode.querySelector('.no-data-message');
+                    if (!msgEl) {
+                        msgEl = document.createElement('p');
+                        msgEl.className = 'no-data-message info-text';
+                        graficoOrcamentoSkeletonEl.parentNode.insertBefore(msgEl, graficoOrcamentoEl);
                     }
+                    msgEl.textContent = 'Sem dados de orçamento para exibir o gráfico.';
+                    msgEl.style.display = 'block';
+                    graficoOrcamentoSkeletonEl.parentNode.querySelector('.error-data-message')?.remove();
                 }
             }
         } catch (err) {
             console.error('Erro ao obter orçamento:', err);
             if (graficoOrcamentoEl) graficoOrcamentoEl.style.display = 'none';
-            showGlobalFeedback('Erro ao carregar dados do orçamento.', 'error');
+            // showGlobalFeedback('Erro ao carregar dados do orçamento.', 'error'); // REMOVED
             if (graficoOrcamentoSkeletonEl && graficoOrcamentoSkeletonEl.parentNode) {
-                const errorMsgEl = graficoOrcamentoSkeletonEl.parentNode.querySelector('.error-data-message');
+                const friendlyMsg = err instanceof ApiError ? getFriendlyApiErrorMessage(err) : getFriendlyNetworkErrorMessage(err.message);
+                let errorMsgEl = graficoOrcamentoSkeletonEl.parentNode.querySelector('.error-data-message');
                  if (!errorMsgEl) {
                     const p = document.createElement('p');
                     p.className = 'error-data-message cv-alert cv-alert--error';
@@ -711,26 +719,30 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dados && dados.length > 0) {
                 if (graficoTendenciasEl) graficoTendenciasEl.style.display = 'block';
                 renderTendenciasChart(dados);
+                const parent = graficoTendenciasSkeletonEl?.parentNode;
+                parent?.querySelector('.no-data-message')?.remove();
+                parent?.querySelector('.error-data-message')?.remove();
             } else {
                 if (graficoTendenciasEl) graficoTendenciasEl.style.display = 'none';
                 if (graficoTendenciasSkeletonEl && graficoTendenciasSkeletonEl.parentNode) {
-                    const noDataMsg = graficoTendenciasSkeletonEl.parentNode.querySelector('.no-data-message');
-                    if (!noDataMsg) {
-                        const p = document.createElement('p');
-                        p.className = 'no-data-message info-text';
-                        p.textContent = 'Sem dados de tendências para exibir o gráfico.';
-                        graficoTendenciasSkeletonEl.parentNode.insertBefore(p, graficoTendenciasEl);
-                    } else {
-                        noDataMsg.style.display = 'block';
+                    let msgEl = graficoTendenciasSkeletonEl.parentNode.querySelector('.no-data-message');
+                    if (!msgEl) {
+                        msgEl = document.createElement('p');
+                        msgEl.className = 'no-data-message info-text';
+                        graficoTendenciasSkeletonEl.parentNode.insertBefore(msgEl, graficoTendenciasEl);
                     }
+                    msgEl.textContent = 'Sem dados de tendências para exibir o gráfico.';
+                    msgEl.style.display = 'block';
+                    graficoTendenciasSkeletonEl.parentNode.querySelector('.error-data-message')?.remove();
                 }
             }
         } catch (err) {
             console.error('Erro ao obter tendencias:', err);
             if (graficoTendenciasEl) graficoTendenciasEl.style.display = 'none';
-            showGlobalFeedback('Erro ao carregar dados de tendências.', 'error');
+            // showGlobalFeedback('Erro ao carregar dados de tendências.', 'error'); // REMOVED
             if (graficoTendenciasSkeletonEl && graficoTendenciasSkeletonEl.parentNode) {
-                const errorMsgEl = graficoTendenciasSkeletonEl.parentNode.querySelector('.error-data-message');
+                const friendlyMsg = err instanceof ApiError ? getFriendlyApiErrorMessage(err) : getFriendlyNetworkErrorMessage(err.message);
+                let errorMsgEl = graficoTendenciasSkeletonEl.parentNode.querySelector('.error-data-message');
                 if (!errorMsgEl) {
                     const p = document.createElement('p');
                     p.className = 'error-data-message cv-alert cv-alert--error';
