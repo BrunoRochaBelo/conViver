@@ -14,9 +14,12 @@ import {
 // --- DOM Elements ---
 const listaOcorrenciasEl = document.getElementById('listaOcorrencias');
 const ocorrenciasLoadingEl = document.getElementById('ocorrenciasLoading');
+const ocorrenciasSkeletonContainerEl = document.getElementById('ocorrenciasSkeletonContainer');
 const noOcorrenciasMessageEl = document.getElementById('noOcorrenciasMessage');
 const tabsContainer = document.querySelector('.ocorrencias-tabs');
 const tabTodasOcorrencias = document.getElementById('tabTodasOcorrencias');
+const loadMoreContainerEl = document.getElementById('loadMoreContainer'); // Added
+const btnCarregarMaisOcorrenciasEl = document.getElementById('btnCarregarMaisOcorrencias'); // Added
 
 // Nova Ocorrência Modal
 const btnNovaOcorrencia = document.getElementById('btnNovaOcorrencia');
@@ -37,6 +40,8 @@ const novaOcorrenciaProgress = createProgressBar();
 // Detalhe Ocorrência Modal
 const modalDetalheOcorrencia = document.getElementById('modalDetalheOcorrencia');
 const closeDetalheOcorrenciaModalBtn = document.getElementById('closeDetalheOcorrenciaModal');
+const detalheOcorrenciaSkeletonEl = document.getElementById('detalheOcorrenciaSkeleton'); // Added
+const detalheOcorrenciaContentLoadedEl = document.getElementById('detalheOcorrenciaContentLoaded'); // Added
 const detalheTituloEl = document.getElementById('detalheTitulo');
 const detalheCategoriaEl = document.getElementById('detalheCategoria');
 const detalheStatusEl = document.getElementById('detalheStatus');
@@ -194,6 +199,16 @@ async function initOcorrenciasPage() {
             openDetalheOcorrenciaModal(card.dataset.ocorrenciaId);
         }
     });
+
+    if (btnCarregarMaisOcorrenciasEl) {
+        btnCarregarMaisOcorrenciasEl.addEventListener('click', handleLoadMoreOcorrencias);
+    }
+}
+
+function handleLoadMoreOcorrencias() {
+    if (isLoading) return;
+    currentPage++;
+    loadOcorrencias(currentPage, currentFilter, true); // true for append
 }
 
 // Placeholder - needs actual implementation via API call
@@ -244,11 +259,13 @@ async function loadCategorias() {
     }
 }
 
-function renderOcorrencias(ocorrencias, paginationInfo) { // paginationInfo is not used yet
-    listaOcorrenciasEl.innerHTML = ''; // Clear previous list (skeletons, errors, or old items)
-    if (noOcorrenciasMessageEl) noOcorrenciasMessageEl.style.display = 'none'; // Esconde a mensagem de texto antiga
+function renderOcorrencias(ocorrencias, paginationInfo, append = false) {
+    if (!append) {
+        listaOcorrenciasEl.innerHTML = ''; // Clear previous list only if not appending
+        if (noOcorrenciasMessageEl) noOcorrenciasMessageEl.style.display = 'none';
+    }
 
-    if (!ocorrencias || ocorrencias.length === 0) {
+    if ((!ocorrencias || ocorrencias.length === 0) && !append) { // Show empty state only if not appending and list is empty
         let title = "Nenhuma Ocorrência";
         let description = "Ainda não há ocorrências registradas.";
         // Personalizar mensagem com base no filtro atual (currentFilter)
@@ -276,59 +293,92 @@ function renderOcorrencias(ocorrencias, paginationInfo) { // paginationInfo is n
     }
     // noOcorrenciasMessageEl.style.display = 'none'; // Já tratado acima
 
-    ocorrencias.forEach(ocorrencia => {
-        const card = document.createElement('div');
-        card.className = 'cv-card ocorrencia-card';
-        card.dataset.ocorrenciaId = ocorrencia.id;
+    if (ocorrencias && ocorrencias.length > 0) {
+        ocorrencias.forEach(ocorrencia => {
+            const cardElement = createOcorrenciaCardElement(ocorrencia);
+            listaOcorrenciasEl.appendChild(cardElement);
+        });
+    }
 
-        // Categoria text might need mapping if API returns enum string and you want display text
-        const categoriaDisplay = allCategories.find(c => c === ocorrencia.categoria) || ocorrencia.categoria;
-        // Similar for status and prioridade if API returns keys but DTO has text
 
-        card.innerHTML = `
-            <div class="ocorrencia-card__header">
-                <h3 class="ocorrencia-card__titulo">${ocorrencia.titulo}</h3>
-                ${renderPrioridadeTag(ocorrencia.prioridade, ocorrencia.prioridade)}
-            </div>
-            <p class="ocorrencia-card__categoria"><i class="ocorrencia-card__categoria-icone">🔧</i> ${categoriaDisplay.replace(/_/g, ' ')}</p>
-            <p class="ocorrencia-card__status">Status: ${renderStatusTag(ocorrencia.status, ocorrencia.status.replace(/_/g, ' '))}</p>
-            <p class="ocorrencia-card__data-abertura">Abertura: ${formatDate(ocorrencia.dataAbertura)}</p>
-            <p class="ocorrencia-card__data-atualizacao">Última atualização: ${formatDate(ocorrencia.dataAtualizacao)}</p>
-            <p class="ocorrencia-card__aberta-por">Aberta por: ${ocorrencia.nomeUsuario || 'N/A'}</p>
-        `;
-        listaOcorrenciasEl.appendChild(card);
-    });
-
-    // TODO: Implement pagination controls if paginationInfo is provided and used
+    // Manage "Load More" button visibility
+    if (loadMoreContainerEl && btnCarregarMaisOcorrenciasEl) {
+        // Ensure paginationInfo and its properties are valid before using them
+        if (paginationInfo && typeof paginationInfo.totalCount === 'number' && typeof paginationInfo.pageNumber === 'number' && PAGE_SIZE > 0) {
+            const totalPages = Math.ceil(paginationInfo.totalCount / PAGE_SIZE);
+            if (paginationInfo.pageNumber < totalPages) {
+                loadMoreContainerEl.style.display = 'block';
+                btnCarregarMaisOcorrenciasEl.disabled = false;
+                // Restore original text if it was changed to "Carregando..."
+                btnCarregarMaisOcorrenciasEl.innerHTML = btnCarregarMaisOcorrenciasEl.dataset.originalText || 'Carregar Mais';
+            } else {
+                loadMoreContainerEl.style.display = 'none';
+            }
+        } else {
+            // If paginationInfo is incomplete or invalid, hide the button to be safe
+            loadMoreContainerEl.style.display = 'none';
+        }
+    } else if (loadMoreContainerEl) { // If button elements are not found, ensure container is hidden
+        loadMoreContainerEl.style.display = 'none';
+    }
 }
 
-async function loadOcorrencias(page = 1, filter = currentFilter) {
+function createOcorrenciaCardElement(ocorrencia) {
+    const card = document.createElement('div');
+    card.className = 'cv-card ocorrencia-card';
+    card.dataset.ocorrenciaId = ocorrencia.id;
+
+    // Categoria text might need mapping if API returns enum string and you want display text
+    const categoriaDisplay = allCategories.find(c => c === ocorrencia.categoria) || ocorrencia.categoria;
+    // Similar for status and prioridade if API returns keys but DTO has text
+
+    card.innerHTML = `
+        <div class="ocorrencia-card__header">
+            <h3 class="ocorrencia-card__titulo">${ocorrencia.titulo}</h3>
+            ${renderPrioridadeTag(ocorrencia.prioridade, ocorrencia.prioridade)}
+        </div>
+        <p class="ocorrencia-card__categoria"><i class="ocorrencia-card__categoria-icone">🔧</i> ${categoriaDisplay.replace(/_/g, ' ')}</p>
+        <p class="ocorrencia-card__status">Status: ${renderStatusTag(ocorrencia.status, ocorrencia.status.replace(/_/g, ' '))}</p>
+        <p class="ocorrencia-card__data-abertura">Abertura: ${formatDate(ocorrencia.dataAbertura)}</p>
+        <p class="ocorrencia-card__data-atualizacao">Última atualização: ${formatDate(ocorrencia.dataAtualizacao)}</p>
+        <p class="ocorrencia-card__aberta-por">Aberta por: ${ocorrencia.nomeUsuario || 'N/A'}</p>
+    `;
+    return card;
+}
+
+async function loadOcorrencias(page = 1, filter = currentFilter, append = false) {
     if (isLoading) return;
     isLoading = true;
 
-    // Skeleton Logic:
-    // Assumindo que listaOcorrenciasEl é o container onde os cards ou o skeleton devem aparecer.
-    // Se não houver um elemento de skeleton dedicado no HTML, podemos criar um temporário
-    // ou aplicar uma classe de skeleton ao próprio listaOcorrenciasEl.
-    // Por simplicidade, vamos limpar e mostrar um texto de "Carregando..." se não houver skeleton global.
-    // O ideal é ter um .feed-skeleton-container dentro ou em volta de listaOcorrenciasEl.
-    // Para esta refatoração, vamos focar no ErrorState e EmptyState.
-    // A mensagem de loading textual já existe (ocorrenciasLoadingEl).
-    if (ocorrenciasLoadingEl) ocorrenciasLoadingEl.style.display = 'block';
-    if (noOcorrenciasMessageEl) noOcorrenciasMessageEl.style.display = 'none'; // Esconde msg de 'sem ocorrências' ou erro antigo
-    listaOcorrenciasEl.innerHTML = ''; // Limpa a lista para novos itens ou estado de erro/vazio
+    // Store original text for the "Load More" button before changing it
+    if (append && btnCarregarMaisOcorrenciasEl && !btnCarregarMaisOcorrenciasEl.dataset.originalText) {
+        btnCarregarMaisOcorrenciasEl.dataset.originalText = btnCarregarMaisOcorrenciasEl.innerHTML;
+    }
 
-    // Remover ErrorState anterior, se houver
-    const existingErrorState = listaOcorrenciasEl.querySelector('.cv-error-state');
-    if (existingErrorState) existingErrorState.remove();
-    const existingEmptyState = listaOcorrenciasEl.querySelector('.cv-empty-state');
-    if (existingEmptyState) existingEmptyState.remove();
+    if (append && btnCarregarMaisOcorrenciasEl) {
+        btnCarregarMaisOcorrenciasEl.disabled = true;
+        btnCarregarMaisOcorrenciasEl.innerHTML = 'Carregando... <span class="inline-spinner"></span>';
+    } else if (!append) { // Full load
+        if (ocorrenciasSkeletonContainerEl) showSkeleton(ocorrenciasSkeletonContainerEl);
+        if (ocorrenciasLoadingEl) ocorrenciasLoadingEl.style.display = 'none';
+        if (noOcorrenciasMessageEl) noOcorrenciasMessageEl.style.display = 'none';
+        listaOcorrenciasEl.innerHTML = ''; // Clear list only for full loads
 
+        const existingErrorState = listaOcorrenciasEl.querySelector('.cv-error-state');
+        if (existingErrorState) existingErrorState.remove();
+        const existingEmptyState = listaOcorrenciasEl.querySelector('.cv-empty-state');
+        if (existingEmptyState) existingEmptyState.remove();
+        if (loadMoreContainerEl) loadMoreContainerEl.style.display = 'none';
+    }
 
+    // Update currentPage state when a new page is explicitly requested (not just filter change)
+    // Filter changes should reset to page 1, handled by handleTabClick.
+    // When loadOcorrencias is called directly with a page number (like from handleLoadMore),
+    // it uses that page number.
     currentPage = page;
     currentFilter = filter;
 
-    let queryParams = `pagina=${currentPage}&tamanhoPagina=${PAGE_SIZE}`;
+    let queryParams = `pagina=${page}&tamanhoPagina=${PAGE_SIZE}`;
 
     // Status mapping based on filter tabs (adjust if API expects enum keys directly)
     // The API /api/ocorrencias endpoint uses OcorrenciaQueryParametersDto which has nullable OcorrenciaStatus and OcorrenciaCategoria.
@@ -362,11 +412,15 @@ async function loadOcorrencias(page = 1, filter = currentFilter) {
 
     try {
         const result = await apiClient.get(`/api/ocorrencias?${queryParams}`);
-        // renderOcorrencias agora lida com o caso de result.items ser vazio/nulo
-        renderOcorrencias(result.items, { totalCount: result.totalCount, pageNumber: result.pageNumber, pageSize: result.pageSize });
+        renderOcorrencias(result.items, {
+            totalCount: result.totalCount,
+            pageNumber: result.pageNumber,
+            pageSize: result.pageSize
+        }, append); // Pass append flag to renderOcorrencias
     } catch (error) {
         console.error(`Erro ao carregar ocorrências (${filter}):`, error.message);
-        listaOcorrenciasEl.innerHTML = ''; // Limpa qualquer resquício
+        if (!append) { // Only show full error state if not appending
+            listaOcorrenciasEl.innerHTML = ''; // Limpa qualquer resquício
         const errorState = createErrorStateElement({
             title: "Erro ao Carregar Ocorrências",
             message: error.message || "Não foi possível buscar as ocorrências. Verifique sua conexão e tente novamente.",
@@ -379,9 +433,14 @@ async function loadOcorrencias(page = 1, filter = currentFilter) {
         // noOcorrenciasMessageEl não é mais usado para erros
     } finally {
         isLoading = false;
-        if (ocorrenciasLoadingEl) ocorrenciasLoadingEl.style.display = 'none';
-        // Se usássemos um skeleton wrapper, o esconderíamos aqui:
-        // if (document.getElementById('ocorrencias-skeleton-wrapper')) hideSkeleton(document.getElementById('ocorrencias-skeleton-wrapper'));
+        if (!append) { // Only hide main skeleton on full loads
+            if (ocorrenciasLoadingEl) ocorrenciasLoadingEl.style.display = 'none';
+            if (ocorrenciasSkeletonContainerEl) hideSkeleton(ocorrenciasSkeletonContainerEl);
+        } else if (btnCarregarMaisOcorrenciasEl) { // Reset "Load More" button state if it was an append operation
+            btnCarregarMaisOcorrenciasEl.disabled = false;
+            btnCarregarMaisOcorrenciasEl.innerHTML = btnCarregarMaisOcorrenciasEl.dataset.originalText || 'Carregar Mais';
+            // Visibility of the button itself is handled by renderOcorrencias based on totalPages
+        }
     }
 }
 
@@ -427,8 +486,13 @@ function closeNovaOcorrenciaModal() { modalNovaOcorrencia.style.display = 'none'
 
 async function handleNovaOcorrenciaSubmit(event) {
     event.preventDefault();
+    const submitButton = formNovaOcorrencia.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.textContent;
+
     if (isLoading) return;
     isLoading = true;
+    submitButton.disabled = true;
+    submitButton.innerHTML = 'Enviando... <span class="inline-spinner"></span>';
     displayFormErrors(formNovaOcorrenciaErrorsEl, []); // Clear previous errors
 
     const formData = new FormData();
@@ -449,17 +513,64 @@ async function handleNovaOcorrenciaSubmit(event) {
         showGlobalFeedback('Enviando...', 'info', 2000);
         const result = await postWithFiles('/api/ocorrencias', formData, p => showProgress(novaOcorrenciaProgress, p));
         showProgress(novaOcorrenciaProgress, 100);
-        // The API returns the created object directly, no need to check _isFromLocationHeader if it's JSON
+
         console.log('Nova ocorrência criada:', result);
         closeNovaOcorrenciaModal();
-        await loadOcorrencias(1, 'minhas'); // Refresh list to 'minhas' and go to first page
-        // TODO: Show success message (e.g., using a global banner)
-        // For now, just log it.
+
+        // Optimistic UI: Add the new card directly
+        if (result && result.id) {
+            // Ensure 'minhas' tab is active if we are adding to it
+            if (tabsContainer.querySelector('.cv-tabs__button--active').dataset.tabFilter !== 'minhas') {
+                // Simulate click on 'minhas' tab to make it active
+                tabsContainer.querySelector('[data-tab-filter="minhas"]').click();
+                // Note: clicking tab will trigger loadOcorrencias.
+                // For pure optimistic, we might need to prevent this load or handle it.
+                // For now, this ensures the 'minhas' tab is selected, then we add.
+                // A better approach might be to check if 'minhas' is active, if not, just load.
+                // If it is active, then prepend.
+            }
+
+            // Remove empty state if present
+            const emptyStateEl = listaOcorrenciasEl.querySelector('.cv-empty-state');
+            if (emptyStateEl) {
+                emptyStateEl.remove();
+            }
+            // Also hide the old text-based noOcorrenciasMessageEl if it was somehow still there
+            if (noOcorrenciasMessageEl && noOcorrenciasMessageEl.style.display !== 'none') {
+                noOcorrenciasMessageEl.style.display = 'none';
+            }
+
+            const newCard = createOcorrenciaCardElement(result);
+            // Prepend to show at the top, assuming chronological order with newest first
+            // or if the current filter is 'minhas', it should appear.
+            listaOcorrenciasEl.prepend(newCard);
+            newCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+             // Highlight briefly
+            newCard.classList.add('cv-card--highlight');
+            setTimeout(() => newCard.classList.remove('cv-card--highlight'), 2000);
+
+        } else {
+            // Fallback if result is not as expected, refresh the current list
+            await loadOcorrencias(currentPage, currentFilter);
+        }
+
         showGlobalFeedback('Ocorrência criada com sucesso!', 'success', 4000);
     } catch (error) {
-        novaOcorrenciaProgress.style.display = 'none';
+        // Ensure progress bar is hidden on error if not already handled by apiClient's finally
+        if (novaOcorrenciaProgress && novaOcorrenciaProgress.style.display !== 'none' && novaOcorrenciaProgress.querySelector('.cv-progress__bar').style.width !== '100%') {
+           setTimeout(() => { if(novaOcorrenciaProgress.parentElement) novaOcorrenciaProgress.style.display = 'none'; }, 1000);
+        }
         console.error('Erro ao criar nova ocorrência:', error);
-        if (error.errors) { // Validation errors from API
+        if (error.validationErrors) {
+            // Convert ASP.NET Core ValidationProblemDetails errors object to a flat list of strings
+            const messages = [];
+            for (const key in error.validationErrors) {
+                error.validationErrors[key].forEach(msg => {
+                    messages.push(`${key}: ${msg}`); // Or just msg if key is not needed
+                });
+            }
+            displayFormErrors(formNovaOcorrenciaErrorsEl, messages.length > 0 ? messages : [error.message]);
+        } else if (error.errors) { // Fallback for older error format if any
             const errorMessages = error.errors.map(e => `${e.propertyName || ''}: ${e.errorMessage || e.ErrorMessage}`);
             displayFormErrors(formNovaOcorrenciaErrorsEl, errorMessages);
         } else {
@@ -467,6 +578,12 @@ async function handleNovaOcorrenciaSubmit(event) {
         }
     } finally {
         isLoading = false;
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
+        // Ensure progress bar is hidden if it was shown and an error occurred before 100%
+        if (novaOcorrenciaProgress.style.display !== 'none' && novaOcorrenciaProgress.querySelector('.cv-progress__bar').style.width !== '100%') {
+            setTimeout(() => { novaOcorrenciaProgress.style.display = 'none'; }, 1000);
+        }
     }
 }
 
@@ -499,6 +616,10 @@ async function handleAdicionarNovosAnexosSubmit() {
     }
 
     isLoading = true;
+    const originalButtonText = btnAdicionarNovosAnexos.textContent;
+    btnAdicionarNovosAnexos.disabled = true;
+    btnAdicionarNovosAnexos.innerHTML = 'Enviando... <span class="inline-spinner"></span>';
+
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
         formData.append('anexos', files[i]);
@@ -507,7 +628,7 @@ async function handleAdicionarNovosAnexosSubmit() {
     try {
         showProgress(novosAnexosProgress, 0);
         await postWithFiles(`/api/ocorrencias/${currentOcorrenciaId}/anexos`, formData, p => showProgress(novosAnexosProgress, p));
-        showProgress(novosAnexosProgress, 100);
+        showProgress(novosAnexosProgress, 100); // Ensure it hits 100% on success
         showGlobalFeedback('Novos anexos adicionados com sucesso!', 'success', 4000);
         // Refresh the anexos section in the detail modal
         const updatedOcorrencia = await apiClient.get(`/api/ocorrencias/${currentOcorrenciaId}`);
@@ -515,7 +636,10 @@ async function handleAdicionarNovosAnexosSubmit() {
         detalheNovosAnexosInput.value = ''; // Clear file input
         novosAnexosPreviewContainer.innerHTML = ''; // Clear previews
     } catch (error) {
-        novosAnexosProgress.style.display = 'none';
+        // Ensure progress bar is hidden on error if not already handled by apiClient's finally
+        if (novosAnexosProgress && novosAnexosProgress.style.display !== 'none') {
+             setTimeout(() => { if(novosAnexosProgress.parentElement) novosAnexosProgress.style.display = 'none'; }, 1000);
+        }
         console.error('Erro ao adicionar novos anexos:', error);
         const errorMessage = error.message || "Falha ao adicionar anexos.";
         if (modalDetalheOcorrencia) {
@@ -525,6 +649,8 @@ async function handleAdicionarNovosAnexosSubmit() {
         }
     } finally {
         isLoading = false;
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
     }
 }
 
@@ -597,11 +723,16 @@ async function openDetalheOcorrenciaModal(ocorrenciaId) {
     isLoading = true;
     currentOcorrenciaId = ocorrenciaId; // Set for context (comments, status change)
 
+    if (detalheOcorrenciaSkeletonEl) showSkeleton(detalheOcorrenciaSkeletonEl);
+    if (detalheOcorrenciaContentLoadedEl) detalheOcorrenciaContentLoadedEl.style.display = 'none';
+    modalDetalheOcorrencia.style.display = 'flex'; // Show modal first, then load content
+
     try {
         const ocorrencia = await apiClient.get(`/api/ocorrencias/${ocorrenciaId}`);
 
-        detalheTituloEl.textContent = ocorrencia.titulo;
-        detalheCategoriaEl.textContent = ocorrencia.categoria.replace(/_/g, ' ');
+        // Ensure elements are found before setting textContent
+        if (detalheTituloEl) detalheTituloEl.textContent = ocorrencia.titulo;
+        if (detalheCategoriaEl) detalheCategoriaEl.textContent = ocorrencia.categoria.replace(/_/g, ' ');
         detalheStatusEl.innerHTML = renderStatusTag(ocorrencia.status, ocorrencia.status.replace(/_/g, ' '));
         detalhePrioridadeEl.innerHTML = renderPrioridadeTag(ocorrencia.prioridade, ocorrencia.prioridade) || 'Normal';
         detalheDataAberturaEl.textContent = formatDate(ocorrencia.dataAbertura);
@@ -643,24 +774,27 @@ async function openDetalheOcorrenciaModal(ocorrenciaId) {
             detalheNovosAnexosFormGroup.style.display = (isResolvidaOuCancelada && !canUserManageOcorrencia(ocorrencia)) ? 'none' : 'block';
         }
 
-
-        modalDetalheOcorrencia.style.display = 'flex';
+        if (detalheOcorrenciaContentLoadedEl) detalheOcorrenciaContentLoadedEl.style.display = 'block'; // Show content
+        // modalDetalheOcorrencia.style.display = 'flex'; // Already visible
     } catch (error) {
         console.error(`Erro ao carregar detalhes da ocorrência ${ocorrenciaId}:`, error);
-        // Limpar e esconder o modal em caso de erro grave ao carregar
-        closeDetalheOcorrenciaModal();
+        // Não fechar o modal, mas talvez mostrar um erro dentro dele ou usar o global feedback
+        // closeDetalheOcorrenciaModal(); // Comentado para manter o modal aberto em caso de erro e mostrar feedback
         showGlobalFeedback(`Erro ao carregar detalhes da ocorrência: ${error.message || 'Tente novamente.'}`, 'error', 6000);
-        currentOcorrenciaId = null;
-        // Poderia, alternativamente, mostrar um ErrorState dentro do modal se a estrutura HTML do modal fosse preparada para isso.
-        // Ex: const modalBody = modalDetalheOcorrencia.querySelector('.cv-modal-body');
-        // if(modalBody) {
-        //   modalBody.innerHTML = ''; // Limpa
-        //   const errState = createErrorStateElement({ title: "Erro", message: `Falha ao carregar dados da ocorrência. ${error.message}`});
-        //   modalBody.appendChild(errState);
-        //   modalDetalheOcorrencia.style.display = 'flex'; // Garante que o modal com o erro seja visível
-        // }
+        currentOcorrenciaId = null; // Reset current ID
+        // Se o erro ocorreu, o skeleton ainda está visível e o conteúdo escondido.
+        // Poderia adicionar um error state dentro do modal aqui. Por ora, o global feedback é o principal.
+        // Para garantir que o skeleton não fique preso, escondê-lo no catch também se o conteúdo não for mostrado.
+        // No entanto, se o conteúdo nunca for mostrado, o skeleton já está visível.
+        // O ideal é: se erro, esconder skeleton, mostrar mensagem de erro no lugar do conteúdo.
+        // Por enquanto, o global feedback é o principal indicador. O modal permanece aberto.
     } finally {
         isLoading = false;
+        // Esconder o skeleton independentemente de sucesso ou falha,
+        // pois ou o conteúdo foi carregado, ou um erro global foi mostrado.
+        if (detalheOcorrenciaSkeletonEl) hideSkeleton(detalheOcorrenciaSkeletonEl);
+        // Se houver erro e o conteúdo não foi carregado, detalheOcorrenciaContentLoadedEl ainda estará display:none
+        // Se sucesso, já foi tornado block.
     }
 }
 
@@ -680,6 +814,10 @@ async function handleAddComentario() {
         return;
     }
     displayFormErrors(formComentarioErrorsEl, []);
+
+    const originalButtonText = btnAdicionarComentario.textContent;
+    btnAdicionarComentario.disabled = true;
+    btnAdicionarComentario.innerHTML = 'Adicionando... <span class="inline-spinner"></span>';
     isLoading = true;
 
     try {
@@ -688,12 +826,24 @@ async function handleAddComentario() {
         // Refresh comments section
         const updatedOcorrencia = await apiClient.get(`/api/ocorrencias/${currentOcorrenciaId}`);
         renderComentariosDetalhe(updatedOcorrencia.comentarios || []);
-        detalheDataAtualizacaoEl.textContent = formatDate(updatedOcorrencia.dataAtualizacao); // Update last updated time
+        if (detalheDataAtualizacaoEl) detalheDataAtualizacaoEl.textContent = formatDate(updatedOcorrencia.dataAtualizacao); // Update last updated time
     } catch (error) {
         console.error('Erro ao adicionar comentário:', error);
-        displayFormErrors(formComentarioErrorsEl, [error.message || 'Erro desconhecido.']);
+        if (error.validationErrors) {
+            const messages = [];
+            for (const key in error.validationErrors) {
+                error.validationErrors[key].forEach(msg => {
+                    messages.push(`${key}: ${msg}`);
+                });
+            }
+            displayFormErrors(formComentarioErrorsEl, messages.length > 0 ? messages : [error.message]);
+        } else { // Assume error.message for other cases or older error formats
+            displayFormErrors(formComentarioErrorsEl, [error.message || 'Erro desconhecido ao adicionar comentário.']);
+        }
     } finally {
         isLoading = false;
+        btnAdicionarComentario.disabled = false;
+        btnAdicionarComentario.innerHTML = originalButtonText;
     }
 }
 
@@ -743,6 +893,11 @@ async function handleAlterarStatusSubmit(event) {
         return;
     }
     displayFormErrors(formAlterarStatusErrorsEl, []);
+
+    const submitButton = formAlterarStatus.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.textContent;
+    submitButton.disabled = true;
+    submitButton.innerHTML = 'Salvando... <span class="inline-spinner"></span>';
     isLoading = true;
 
     try {
@@ -750,8 +905,8 @@ async function handleAlterarStatusSubmit(event) {
         closeAlterarStatusModal();
         // Refresh detail modal and main list
         const updatedOcorrencia = await apiClient.get(`/api/ocorrencias/${currentOcorrenciaId}`);
-        detalheStatusEl.innerHTML = renderStatusTag(updatedOcorrencia.status, updatedOcorrencia.status.replace(/_/g, ' '));
-        detalheDataAtualizacaoEl.textContent = formatDate(updatedOcorrencia.dataAtualizacao);
+        if (detalheStatusEl) detalheStatusEl.innerHTML = renderStatusTag(updatedOcorrencia.status, updatedOcorrencia.status.replace(/_/g, ' '));
+        if (detalheDataAtualizacaoEl) detalheDataAtualizacaoEl.textContent = formatDate(updatedOcorrencia.dataAtualizacao);
         renderHistoricoStatusDetalhe(updatedOcorrencia.historicoStatus || []); // Refresh history
 
         // Check if comment/anexo forms should be hidden due to new status
@@ -771,7 +926,15 @@ async function handleAlterarStatusSubmit(event) {
 
     } catch (error) {
         console.error('Erro ao alterar status:', error);
-         if (error.errors) {
+        if (error.validationErrors) {
+            const messages = [];
+            for (const key in error.validationErrors) {
+                error.validationErrors[key].forEach(msg => {
+                    messages.push(`${key}: ${msg}`);
+                });
+            }
+            displayFormErrors(formAlterarStatusErrorsEl, messages.length > 0 ? messages : [error.message]);
+        } else if (error.errors) { // Fallback for older error format
             const errorMessages = error.errors.map(e => `${e.propertyName || ''}: ${e.errorMessage || e.ErrorMessage}`);
             displayFormErrors(formAlterarStatusErrorsEl, errorMessages);
         } else {
@@ -779,6 +942,12 @@ async function handleAlterarStatusSubmit(event) {
         }
     } finally {
         isLoading = false;
+        btnAdicionarNovosAnexos.disabled = false;
+        btnAdicionarNovosAnexos.innerHTML = originalButtonText;
+         // Hide progress bar after a short delay (also done in apiClient, but good for robustness)
+        if (novosAnexosProgress && novosAnexosProgress.style.display !== 'none') {
+             setTimeout(() => { if(novosAnexosProgress.parentElement) novosAnexosProgress.remove(); }, 1000);
+        }
     }
 }
 
@@ -789,21 +958,48 @@ async function handleDeleteOcorrencia() {
         return;
     }
     const card = document.querySelector(`.ocorrencia-card[data-ocorrencia-id="${currentOcorrenciaId}"]`);
-    if (card) card.style.display = 'none';
+
+    if (card) {
+        card.classList.add('cv-card--deleting');
+    }
+    // Adiciona um pequeno delay para a animação CSS ser percebida antes do alerta de sucesso/erro
+    // e antes da remoção efetiva do DOM ou reversão da classe.
+    const animationDelay = 350; // ms, deve ser igual ou maior que a transição de max-height
+
     isLoading = true;
+    // Removido o showInlineSpinner aqui, pois a UI do card já muda.
 
     try {
         await apiClient.delete(`/api/ocorrencias/${currentOcorrenciaId}`);
-        if (card) card.remove();
-        closeDetalheOcorrenciaModal();
-        await loadOcorrencias(1, currentFilter); // Refresh list, go to first page
+
+        setTimeout(() => {
+            if (card) card.remove();
+            // Verifica se a lista está vazia após a remoção para mostrar empty state
+            if (listaOcorrenciasEl.children.length === 0) {
+                loadOcorrencias(1, currentFilter); // Recarrega para mostrar empty state corretamente.
+            }
+        }, animationDelay);
+
+        closeDetalheOcorrenciaModal(); // Fechar o modal de detalhes se estiver aberto
         showGlobalFeedback('Ocorrência excluída com sucesso!', 'success', 4000);
+        // Não é mais necessário recarregar a lista inteira aqui se a remoção do DOM for suficiente
+        // await loadOcorrencias(1, currentFilter);
     } catch (error) {
         console.error('Erro ao excluir ocorrência:', error);
-        if (card) card.style.display = '';
-        showGlobalFeedback('Falha ao remover ocorrência.', 'error');
+        if (card) {
+            setTimeout(() => {
+                card.classList.remove('cv-card--deleting');
+                // Forçar reflow para garantir que a transição de volta funcione, se necessário
+                // void card.offsetWidth;
+            }, animationDelay / 2); // Reverter um pouco antes para garantir que não desapareceu
+        }
+        showGlobalFeedback('Falha ao remover ocorrência. Tente novamente.', 'error');
     } finally {
-        isLoading = false;
+        // O isLoading é resetado após o delay para garantir que a UI não permita cliques rápidos
+        // que poderiam interferir com a animação/remoção.
+        setTimeout(() => {
+            isLoading = false;
+        }, animationDelay);
     }
 }
 

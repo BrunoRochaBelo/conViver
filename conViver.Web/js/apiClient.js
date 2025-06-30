@@ -12,12 +12,13 @@ import { xhrPost, createProgressBar, showProgress } from './progress.js';
  * Contains information about the HTTP status and the error message.
  */
 class ApiError extends Error {
-    constructor(message, status, url = null, requestOptions = null) {
+    constructor(message, status, url = null, requestOptions = null, validationErrors = null) {
         super(message);
         this.name = 'ApiError';
         this.status = status;
         this.url = url;
-        this.requestOptions = requestOptions; // Could be used for more detailed debugging
+        this.requestOptions = requestOptions;
+        this.validationErrors = validationErrors; // Store validation errors
 
         // Adjust prototype chain for ES5 compatibility if needed, not strictly necessary in modern JS
         // Object.setPrototypeOf(this, ApiError.prototype);
@@ -30,6 +31,50 @@ export function getToken() {
 
 export function setToken(token) {
     localStorage.setItem('cv_token', token);
+}
+
+// --- Friendly Error Message Helpers ---
+function getFriendlyNetworkErrorMessage(rawMessage) {
+    if (rawMessage && typeof rawMessage === 'string' && rawMessage.toLowerCase().includes('failed to fetch')) {
+        return 'Falha na comunicação com o servidor. Verifique sua conexão com a internet e tente novamente.';
+    }
+    return 'Ocorreu um erro de comunicação. Por favor, tente mais tarde.';
+}
+
+function getFriendlyApiErrorMessage(apiError) {
+    if (!apiError || apiError.status === null) { // Should be a network error if status is null
+        return getFriendlyNetworkErrorMessage(apiError ? apiError.message : '');
+    }
+
+    if (apiError.validationErrors) {
+        // This case should ideally be handled by form-specific displays,
+        // but if it reaches global feedback, provide a summary.
+        return apiError.message || "Um ou mais erros de validação ocorreram.";
+    }
+
+    switch (apiError.status) {
+        case 400: // Bad Request, not validation specific (those have validationErrors)
+            return apiError.message || 'Requisição inválida. Verifique os dados enviados.';
+        case 401:
+            return 'Sessão expirada ou inválida. Por favor, faça login novamente.';
+        case 403:
+            return 'Você não tem permissão para realizar esta ação.';
+        case 404:
+            return apiError.message || 'O recurso solicitado não foi encontrado.'; // API might provide a more specific 404 message
+        case 409: // Conflict
+            return apiError.message || 'Não foi possível completar a ação devido a um conflito de dados.';
+        case 500:
+        case 502:
+        case 503:
+        case 504:
+            return 'O servidor está enfrentando problemas ou está temporariamente indisponível. Por favor, tente novamente em alguns instantes.';
+        default:
+            // Prioritize API message if it's concise and seems user-friendly
+            if (apiError.message && apiError.message.length > 0 && apiError.message.length < 150 && !apiError.message.toLowerCase().includes('html')) {
+                return apiError.message;
+            }
+            return 'Ocorreu um erro inesperado. Por favor, tente novamente.';
+    }
 }
 
 // Simple ETag cache using both in-memory Map and localStorage
@@ -170,12 +215,20 @@ async function request(path, options = {}) {
                 resData = cachedEntry ? cachedEntry.data : null;
             } else if (!res.ok) {
                 let errorMessage = res.statusText || `Request failed with status ${res.status}`;
+                let validationErrors = null;
                 try {
                     const errorBody = await res.json();
-                    if (errorBody && errorBody.message) {
-                        errorMessage = errorBody.message;
-                    } else if (errorBody && errorBody.title) { // ASP.NET Core specific problem details
-                        errorMessage = errorBody.title;
+                    if (errorBody) {
+                        if (res.status === 400 && errorBody.errors) {
+                            // ASP.NET Core ValidationProblemDetails
+                            validationErrors = errorBody.errors;
+                            // Construct a summary message, or let the caller handle individual errors
+                            errorMessage = errorBody.title || "Um ou mais erros de validação ocorreram.";
+                        } else if (errorBody.message) {
+                            errorMessage = errorBody.message;
+                        } else if (errorBody.title) {
+                            errorMessage = errorBody.title;
+                        }
                     }
                 } catch (e) {
                     // Ignore JSON parsing error, use statusText as fallback
@@ -183,14 +236,19 @@ async function request(path, options = {}) {
 
                 console.error(
                     `API Error: ${method} ${url} responded with ${res.status} ${res.statusText}. Message: "${errorMessage}"`,
-                    { url, requestOptions: loggedOptions, status: res.status, responseBodyAttempt: res.bodyUsed ? '[consumed]' : 'available' }
+                    { url, requestOptions: loggedOptions, status: res.status, responseBodyAttempt: res.bodyUsed ? '[consumed]' : 'available', validationErrors }
                 );
+
                 // For GET requests, just throw the error. The caller will handle UI feedback.
-                // For other methods (POST, PUT, DELETE, PATCH), show global feedback.
-                if (method !== 'GET') {
-                    showGlobalFeedback(errorMessage, 'error');
+                // For other methods (POST, PUT, DELETE, PATCH), show global feedback IF NOT a validation error
+                // that should be handled by form-specific error displays.
+                const friendlyMsg = getFriendlyApiErrorMessage({ message: errorMessage, status: res.status, validationErrors });
+                if (method !== 'GET' && !validationErrors) {
+                    showGlobalFeedback(friendlyMsg, 'error');
                 }
-                throw new ApiError(errorMessage, res.status, url, loggedOptions);
+                // Throw ApiError with the original errorMessage from API if specific, but friendlyMsg could also be used.
+                // Let's keep original errorMessage for ApiError object, friendlyMsg for display.
+                throw new ApiError(errorMessage, res.status, url, loggedOptions, validationErrors);
             } else {
                 if (res.status === 202) {
                     resData = { accepted: true };
@@ -228,19 +286,20 @@ async function request(path, options = {}) {
         // This catch block now primarily handles network errors or other unexpected errors,
         // or ApiErrors from GET requests that haven't shown feedback yet.
         if (error instanceof ApiError) {
-            if (method === 'GET') { // Only show feedback here for GET errors or if not already shown
-                 // No global feedback for GET errors here; let the caller handle it.
-            }
+            // ApiErrors from GET or with validationErrors often have UI handled by the caller (e.g. ErrorStateElement or form errors).
+            // If a global toast is desired for *some* ApiErrors caught here (e.g. a GET error not handled by caller),
+            // it could be added, but care is needed not to duplicate messages.
+            // Example: if (method === 'GET' && !error.validationErrors) showGlobalFeedback(getFriendlyApiErrorMessage(error), 'error');
             throw error; // Re-throw ApiError instances directly
         } else {
-            // Catch network errors or other unexpected errors for all methods
-            const displayErrorMessage = error.message || "Ocorreu um erro de rede ou inesperado. Tente novamente.";
+            // Catch network errors or other unexpected errors not already wrapped in ApiError
+            const displayErrorMessage = getFriendlyNetworkErrorMessage(error.message); // Use helper for network errors
             console.error(
                 `Network or unexpected error during API Request: ${method} ${url}. Error: ${error.message}`,
                 { url, requestOptions: loggedOptions, originalError: error }
             );
-            showGlobalFeedback(displayErrorMessage, 'error'); // Show global feedback for these types of errors
-            throw new ApiError(displayErrorMessage, null, url, loggedOptions);
+            showGlobalFeedback(displayErrorMessage, 'error');
+            throw new ApiError(displayErrorMessage, null, url, loggedOptions, null); // Wrap in ApiError
         }
     } finally {
         if (skeletonTimer) clearTimeout(skeletonTimer);
