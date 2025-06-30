@@ -11,6 +11,8 @@ Isso reduz o tráfego e acelera apps que armazenam a última resposta.
 O cliente web (apiClient.js) utiliza esse mecanismo: ao receber `304` em uma
 requisição GET, ele retorna o corpo previamente salvo em `localStorage`.
 
+*Nota: Quando a API responde `202 Accepted`, o `apiClient` resolve a chamada com `{ accepted: true }` e exibe um toast informando "processamento iniciado".*
+
 ---
 
 ## 1. Autenticação & Gerenciamento de Usuários
