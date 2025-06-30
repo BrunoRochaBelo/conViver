@@ -1,4 +1,4 @@
-import apiClient, { ApiError } from './apiClient.js';
+import apiClient, { ApiError, getFriendlyApiErrorMessage, getFriendlyNetworkErrorMessage } from './apiClient.js';
 import { requireAuth } from './auth.js';
 import {
     formatCurrency,
@@ -274,12 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) {
                 console.error('Erro ao gerar lote:', error);
-                const defaultMessage = 'Ocorreu um erro inesperado ao gerar o lote de cobranças.';
-                if (error instanceof ApiError) {
-                    showGlobalFeedback(`Erro da API ao gerar lote: ${error.message || defaultMessage}`, 'error');
-                } else {
-                    showGlobalFeedback(defaultMessage, 'error');
-                }
+                const friendlyMsg = error instanceof ApiError ? getFriendlyApiErrorMessage(error) : getFriendlyNetworkErrorMessage(error.message);
+                showGlobalFeedback(friendlyMsg, 'error');
             } finally {
                 btnGerarLote.disabled = false;
                 hideSpinner();
@@ -311,7 +307,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } catch (error) {
                     console.error('Erro ao obter 2ª via:', error);
-                    showGlobalFeedback(`Erro ao obter 2ª via: ${error.message || 'Tente novamente.'}`, 'error');
+                    const friendlyMsg = error instanceof ApiError ? getFriendlyApiErrorMessage(error) : getFriendlyNetworkErrorMessage(error.message);
+                    showGlobalFeedback(friendlyMsg, 'error');
                 } finally {
                     target.disabled = false;
                 }
@@ -323,19 +320,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     const resultado = await apiClient.put(`/financeiro/cobrancas/${cobrancaId}/cancelar`, {});
                     if (resultado && resultado.sucesso) {
                         showGlobalFeedback(resultado.mensagem || "Cobrança cancelada com sucesso!", "success", 2500);
-                        fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
+                        // Optimistic UI: Remove/update card directly instead of full fetch
+                        const cardToRemove = tbodyCobrancas.querySelector(`.cobranca-card[data-id="${cobrancaId}"]`);
+                        if (cardToRemove) {
+                            // cardToRemove.remove(); // Or update its status badge
+                            // For now, simple refresh is fine as per existing logic, but could be optimized.
+                             fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
+                        } else {
+                             fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
+                        }
                         fetchAndRenderDashboard();
                     } else {
+                         // If API returns { sucesso: false, mensagem: "..." }, use that message
                         showGlobalFeedback(resultado.mensagem || 'Falha ao cancelar cobrança.', 'error');
                     }
                 } catch (error) {
                     console.error('Erro ao cancelar cobrança:', error);
-                    const defaultMessage = 'Ocorreu um erro inesperado ao cancelar a cobrança.';
-                    if (error instanceof ApiError) {
-                        showGlobalFeedback(`Erro ao cancelar cobrança: ${error.message || defaultMessage}`, 'error');
-                    } else {
-                        showGlobalFeedback(defaultMessage, 'error');
-                    }
+                    const friendlyMsg = error instanceof ApiError ? getFriendlyApiErrorMessage(error) : getFriendlyNetworkErrorMessage(error.message);
+                    showGlobalFeedback(friendlyMsg, 'error');
                 } finally {
                     target.disabled = false;
                     hideSpinner();
@@ -448,10 +450,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Erro ao buscar cobranças:', error);
             if (tbodyCobrancas) { // Garante que o container existe
-                tbodyCobrancas.innerHTML = ''; // Limpa mensagens de carregamento ou conteúdo antigo
+                tbodyCobrancas.innerHTML = '';
+                const friendlyMsg = error instanceof ApiError ? getFriendlyApiErrorMessage(error) : getFriendlyNetworkErrorMessage(error.message);
                 const errorState = createErrorStateElement({
                     title: "Erro ao Carregar Cobranças",
-                    message: error.message || "Não foi possível buscar as cobranças. Verifique sua conexão e tente novamente.",
+                    message: friendlyMsg,
                     retryButton: {
                         text: "Tentar Novamente",
                         onClick: () => fetchAndRenderCobrancas(status)
@@ -459,7 +462,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 tbodyCobrancas.appendChild(errorState);
             }
-            // O showGlobalFeedback foi removido pois o ErrorState é o feedback principal.
         } finally {
             if (cobrancasSkeleton) hideFeedSkeleton(cobrancasSkeleton);
         }
@@ -474,23 +476,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (summaryPendentesEl) summaryPendentesEl.style.display = 'none';
         if (summaryPendentesSkeletonEl) showSkeleton(summaryPendentesSkeletonEl);
 
-        // if (cobrancasSkeleton) showFeedSkeleton(cobrancasSkeleton); // This is for the cobrancas list, not summary
-
         try {
             const dashboardData = await apiClient.get('/financeiro/cobrancas/dashboard');
-            renderDashboardFinanceiro(dashboardData); // This function now also handles hiding skeletons
+            renderDashboardFinanceiro(dashboardData);
         } catch (error) {
             console.error('Erro ao buscar dados do dashboard financeiro:', error);
-            renderDashboardFinanceiro(null); // Render with null to show "--" and hide skeletons
-            const defaultMessage = 'Ocorreu um erro inesperado ao buscar dados do dashboard.';
-            if (error instanceof ApiError) {
-                showGlobalFeedback(`Erro ao buscar dados do dashboard: ${error.message || defaultMessage}`, 'error');
-            } else {
-                showGlobalFeedback(defaultMessage, 'error');
-            }
+            renderDashboardFinanceiro(null);
+            const friendlyMsg = error instanceof ApiError ? getFriendlyApiErrorMessage(error) : getFriendlyNetworkErrorMessage(error.message);
+            showGlobalFeedback(friendlyMsg, 'error');
         } finally {
-            // Skeletons are hidden inside renderDashboardFinanceiro, or if error, by calling it with null.
-            // if (cobrancasSkeleton) hideFeedSkeleton(cobrancasSkeleton); // This is for the cobrancas list
+            // Skeletons are hidden inside renderDashboardFinanceiro
         }
     }
 
