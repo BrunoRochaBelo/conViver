@@ -1,4 +1,4 @@
-import apiClient, { ApiError } from './apiClient.js';
+import apiClient, { ApiError, getFriendlyApiErrorMessage, getFriendlyNetworkErrorMessage } from './apiClient.js';
 import { requireAuth, getCurrentUser } from './auth.js';
 import { createProgressBar, showProgress, xhrPost } from './progress.js';
 import {
@@ -574,7 +574,9 @@ async function handleNovaOcorrenciaSubmit(event) {
             const errorMessages = error.errors.map(e => `${e.propertyName || ''}: ${e.errorMessage || e.ErrorMessage}`);
             displayFormErrors(formNovaOcorrenciaErrorsEl, errorMessages);
         } else {
-            displayFormErrors(formNovaOcorrenciaErrorsEl, [error.message || 'Erro desconhecido ao criar ocorrência.']);
+            // Non-validation error, display a friendly message in the form error area
+            const friendlyMsg = error instanceof ApiError ? getFriendlyApiErrorMessage(error) : getFriendlyNetworkErrorMessage(error.message);
+            displayFormErrors(formNovaOcorrenciaErrorsEl, [friendlyMsg]);
         }
     } finally {
         isLoading = false;
@@ -641,11 +643,13 @@ async function handleAdicionarNovosAnexosSubmit() {
              setTimeout(() => { if(novosAnexosProgress.parentElement) novosAnexosProgress.style.display = 'none'; }, 1000);
         }
         console.error('Erro ao adicionar novos anexos:', error);
-        const errorMessage = error.message || "Falha ao adicionar anexos.";
+        const friendlyErrorMessage = error instanceof ApiError ? getFriendlyApiErrorMessage(error) : getFriendlyNetworkErrorMessage(error.message);
         if (modalDetalheOcorrencia) {
-            showModalError(modalDetalheOcorrencia, errorMessage);
+            // If it's a validation error, it might be better to show it in a dedicated validation summary area
+            // For now, showModalError will display the (potentially multi-line) friendly message.
+            showModalError(modalDetalheOcorrencia, friendlyErrorMessage);
         } else {
-            showGlobalFeedback(errorMessage, 'error', 6000); // Fallback
+            showGlobalFeedback(friendlyErrorMessage, 'error', 6000); // Fallback
         }
     } finally {
         isLoading = false;
@@ -837,8 +841,9 @@ async function handleAddComentario() {
                 });
             }
             displayFormErrors(formComentarioErrorsEl, messages.length > 0 ? messages : [error.message]);
-        } else { // Assume error.message for other cases or older error formats
-            displayFormErrors(formComentarioErrorsEl, [error.message || 'Erro desconhecido ao adicionar comentário.']);
+        } else {
+            const friendlyMsg = error instanceof ApiError ? getFriendlyApiErrorMessage(error) : getFriendlyNetworkErrorMessage(error.message);
+            displayFormErrors(formComentarioErrorsEl, [friendlyMsg]);
         }
     } finally {
         isLoading = false;
@@ -938,7 +943,8 @@ async function handleAlterarStatusSubmit(event) {
             const errorMessages = error.errors.map(e => `${e.propertyName || ''}: ${e.errorMessage || e.ErrorMessage}`);
             displayFormErrors(formAlterarStatusErrorsEl, errorMessages);
         } else {
-            displayFormErrors(formAlterarStatusErrorsEl, [error.message || 'Erro desconhecido ao alterar status.']);
+            const friendlyMsg = error instanceof ApiError ? getFriendlyApiErrorMessage(error) : getFriendlyNetworkErrorMessage(error.message);
+            displayFormErrors(formAlterarStatusErrorsEl, [friendlyMsg]);
         }
     } finally {
         isLoading = false;
@@ -993,7 +999,8 @@ async function handleDeleteOcorrencia() {
                 // void card.offsetWidth;
             }, animationDelay / 2); // Reverter um pouco antes para garantir que não desapareceu
         }
-        showGlobalFeedback('Falha ao remover ocorrência. Tente novamente.', 'error');
+        const friendlyMsg = error instanceof ApiError ? getFriendlyApiErrorMessage(error) : getFriendlyNetworkErrorMessage(error.message);
+        showGlobalFeedback(friendlyMsg, 'error');
     } finally {
         // O isLoading é resetado após o delay para garantir que a UI não permita cliques rápidos
         // que poderiam interferir com a animação/remoção.
