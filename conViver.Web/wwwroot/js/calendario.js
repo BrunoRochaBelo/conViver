@@ -166,7 +166,8 @@ export async function initialize() {
       if (agendaTabActive && filtrosAgendaContent) {
         filtrosAgendaContent.style.display = "block";
         // Pre-fill modal filters from current page filters for Agenda
-        if (filtroEspacoModalAgenda) filtroEspacoModalAgenda.value = document.getElementById("select-espaco-comum-calendario").value;
+        var selDisplay = document.getElementById("select-espaco-comum-calendario");
+        if (filtroEspacoModalAgenda && selDisplay) filtroEspacoModalAgenda.value = selDisplay.value;
         if (filtroDataModalAgenda) filtroDataModalAgenda.value = filtroPeriodoLista.value; // Assuming YYYY-MM format
       } else {
         if (filtrosAgendaContent) filtrosAgendaContent.style.display = "none";
@@ -207,7 +208,8 @@ export async function initialize() {
       const dataSelecionadaModal = filtroDataModalAgenda.value; // YYYY-MM
 
       // Atualizar filtros da página principal (Agenda e Disponibilidade)
-      document.getElementById("select-espaco-comum-calendario").value = espacoSelecionadoModal;
+      var selDisplay = document.getElementById("select-espaco-comum-calendario");
+      if (selDisplay) selDisplay.value = espacoSelecionadoModal;
       filtroEspacoLista.value = espacoSelecionadoModal; // Para a visualização em lista
 
       // Para o filtro de período da lista, que é type="month"
@@ -369,7 +371,7 @@ async function initReservasPage() {
 
     // Pré-seleciona o espaço
     let esp = "";
-    if (calendarioViewContainer.style.display !== "none")
+    if (calendarioViewContainer.style.display !== "none" && selectEspacoComumCalendario)
       esp = selectEspacoComumCalendario.value;
     else esp = filtroEspacoLista.value;
     modalSelectEspaco.value = esp;
@@ -430,10 +432,11 @@ async function initReservasPage() {
     );
 
   // Atualiza seleção de espaço no calendário
-  if (selectEspacoComumCalendario) selectEspacoComumCalendario.addEventListener("change", () => {
-    exibirInfoEspacoSelecionadoCalendario(selectEspacoComumCalendario.value);
-    calendarioReservas && calendarioReservas.refetchEvents();
-  });
+  if (selectEspacoComumCalendario)
+    selectEspacoComumCalendario.addEventListener("change", () => {
+      exibirInfoEspacoSelecionadoCalendario(selectEspacoComumCalendario.value);
+      calendarioReservas && calendarioReservas.refetchEvents();
+    });
 
   // Carrega dados e inicializa componentes
   await carregarEspacosComuns();
@@ -492,7 +495,6 @@ async function carregarEspacosComuns() {
     }
   } catch (err) {
     console.error("Erro ao carregar espaços comuns:", err);
-    showGlobalFeedback("Falha ao carregar espaços comuns.", "error");
     selects.forEach((sel) => {
       if (sel) sel.innerHTML = "<option>Erro ao carregar</option>";
     });
@@ -1162,9 +1164,8 @@ function initializeFullCalendar() {
       try {
         const mesAno = new Date(fetchInfo.start).toISOString().slice(0, 7);
         const params = { mesAno };
-        const sel = document.getElementById(
-          "select-espaco-comum-calendario"
-        ).value;
+        const selEl = document.getElementById("select-espaco-comum-calendario");
+        const sel = selEl ? selEl.value : null;
         if (sel) params.espacoComumId = sel;
 
         const statEl = document.getElementById(
@@ -1238,9 +1239,8 @@ function initializeFullCalendar() {
         info.dateStr.includes("T")
           ? info.dateStr.split("T")[1].substring(0, 5)
           : "";
-      const sel = document.getElementById(
-        "select-espaco-comum-calendario"
-      ).value;
+      var selEl = document.getElementById("select-espaco-comum-calendario");
+      const sel = selEl ? selEl.value : null;
       const msel = document.getElementById("modal-reserva-espaco");
       if (sel) {
         msel.value = sel;
@@ -1275,7 +1275,10 @@ async function carregarReservasDia(dataStr) {
     const params = {
       pageNumber: 1,
       pageSize: 50,
-      espacoComumId: document.getElementById("select-espaco-comum-calendario").value || null,
+      espacoComumId: (function(){
+        var el = document.getElementById("select-espaco-comum-calendario");
+        return el ? el.value : null;
+      })(),
       periodoInicio: new Date(`${dataStr}T00:00:00`).toISOString(),
       periodoFim: new Date(`${dataStr}T23:59:59`).toISOString(),
     };
