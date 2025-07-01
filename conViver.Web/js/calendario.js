@@ -90,12 +90,14 @@ export async function initialize() {
   setupListViewObserver();    // Para scroll infinito da Lista da Agenda
   setupMinhasReservasObserver(); // Para scroll infinito de Minhas Reservas
 
-  // Configurar o FAB
-  const fabActions = [{ label: "Solicitar Reserva", onClick: abrirModalNovaReserva }];
+  // Configurar o FAB apenas para perfis com permissão de gerenciamento
   if (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador")) {
-    fabActions.push({ label: "Adicionar Espaço", onClick: abrirModalAdicionarEspacoAdmin });
+    const fabActions = [
+      { label: "Solicitar Reserva", onClick: abrirModalNovaReserva },
+      { label: "Adicionar Espaço", onClick: abrirModalAdicionarEspacoAdmin },
+    ];
+    initFabMenu(fabActions);
   }
-  initFabMenu(fabActions);
 
   // Estado inicial da visualização da Agenda
   toggleAgendaView(viewToggleSwitch.checked); // Checked = Calendário
