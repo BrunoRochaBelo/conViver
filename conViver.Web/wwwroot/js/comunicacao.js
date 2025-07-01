@@ -1,7 +1,18 @@
 import apiClient from "./apiClient.js";
-import { requireAuth } from "./auth.js";
-import { showGlobalFeedback, showSkeleton, hideSkeleton } from "./main.js";
+import { requireAuth, getUserInfo } from "./auth.js"; // Importa getUserInfo
+import {
+    showGlobalFeedback,
+    showSkeleton,
+    hideSkeleton,
+    showInlineSpinner,
+    createErrorStateElement,
+    createEmptyStateElement,
+    showModalError, // Importar de main.js
+    clearModalError // Importar de main.js
+} from "./main.js";
 import { initFabMenu } from "./fabMenu.js";
+import { xhrPost } from './progress.js'; // Importar xhrPost
+
 
 // --- Global state & constants ---
 let currentFeedPage = 1;
@@ -42,27 +53,8 @@ function hideFeedSkeleton(tabContentId = "content-mural") {
   const tabContentElement = document.getElementById(tabContentId);
   if (!tabContentElement) return;
   hideSkeleton(tabContentElement);
-  // Restore info message if no actual content is loaded for certain tabs
-  if (tabContentId === "content-enquetes" || tabContentId === "content-solicitacoes") {
-    const infoMessage = tabContentElement.querySelector(".cv-info-message");
-    // Check if feed items were loaded into mural (which these tabs might trigger)
-    // For now, we assume the message should reappear if skeleton is hidden and no other specific content for these tabs.
-    // This might need refinement based on whether these tabs get their own direct content later.
-    const muralFeedHasItems = document.querySelector(`${feedContainerSelector} .feed-item`);
-    if (infoMessage && !muralFeedHasItems && tabContentId !== getActiveTabContentId()) {
-        // If the current active tab is mural, don't reshow messages for other tabs.
-        // This logic is tricky because these tabs rely on the mural.
-        // Simplification: If hiding skeleton for these specific tabs, ensure their default message is visible
-        // if they are the active tab AND no items are in the mural (as they point to it).
-    } else if (infoMessage) {
-        // Default state for these tabs is to show their info message.
-        // The skeleton should hide it, and data loading (which is for mural) won't explicitly show it.
-        // So, if we hide skeleton, and this tab is active, show its message.
-        if(getActiveTabContentId() === tabContentId) {
-            infoMessage.style.display = "block";
-        }
-    }
-  }
+  // A lógica de exibir EmptyState para abas específicas será tratada
+  // após o carregamento do feed principal em fetchAndDisplayFeedItems.
 }
 
 function getActiveTabContentId() {
@@ -197,9 +189,10 @@ export async function initialize() {
   setupFeedObserver();
   setupFeedContainerClickListener();
   setupFabMenu();
-  setupFilterModalAndButton(); // Setup filter modal and its trigger
+  setupFilterModalAndButton();
   setupSortModalAndButton();
-  setupModalEventListeners(); // Setup generic close/submit for other modals
+  setupModalEventListeners();
+  setupTryAgainButtons(); // Adicionado aqui
 }
 
 if (document.readyState !== "loading") {
@@ -315,6 +308,9 @@ function setupFilterModalAndButton() {
   const applyFiltersModalButton = document.getElementById(
     "apply-filters-button-modal"
   );
+  const clearFiltersModalButton = document.getElementById( // Botão Limpar Filtros
+    "clear-filters-button-modal"
+  );
 
   if (openFilterButton && modalFiltros) {
     openFilterButton.addEventListener("click", () => {
@@ -375,6 +371,45 @@ function setupFilterModalAndButton() {
       }
     });
   }
+
+  // Event listener para o botão Limpar Filtros
+  if (clearFiltersModalButton && modalFiltros) {
+    clearFiltersModalButton.addEventListener("click", () => {
+      // Resetar filtros gerais
+      const categoryFilterModal = document.getElementById("category-filter-modal");
+      if (categoryFilterModal) categoryFilterModal.value = "";
+
+      const periodFilterModal = document.getElementById("period-filter-modal");
+      if (periodFilterModal) periodFilterModal.value = "";
+
+      // Resetar filtros de contexto (enquetes, solicitações, ocorrências)
+      // Enquetes
+      const enqueteAuthorFilter = document.getElementById("enquete-author-filter");
+      if (enqueteAuthorFilter) enqueteAuthorFilter.value = "todas";
+      const enqueteStatusFilter = document.getElementById("enquete-status-filter");
+      if (enqueteStatusFilter) enqueteStatusFilter.value = "";
+      // Solicitações
+      const solicitacaoAuthorFilter = document.getElementById("solicitacao-author-filter");
+      if (solicitacaoAuthorFilter) solicitacaoAuthorFilter.value = "todas";
+      const solicitacaoStatusFilter = document.getElementById("solicitacao-status-filter");
+      if (solicitacaoStatusFilter) solicitacaoStatusFilter.value = "";
+      // Ocorrências
+      const ocorrenciaAuthorFilter = document.getElementById("ocorrencia-author-filter");
+      if (ocorrenciaAuthorFilter) ocorrenciaAuthorFilter.value = "todas";
+      const ocorrenciaStatusFilter = document.getElementById("ocorrencia-status-filter");
+      if (ocorrenciaStatusFilter) ocorrenciaStatusFilter.value = "";
+
+      // Recarregar o feed
+      const activeTabContentId = getActiveTabContentId();
+      showFeedSkeleton("content-mural");
+      if (activeTabContentId !== "content-mural") {
+          showFeedSkeleton(activeTabContentId);
+      }
+      loadInitialFeedItems();
+      if (modalFiltros) modalFiltros.style.display = "none"; // Fechar modal
+      if (openFilterButton) openFilterButton.classList.remove("has-indicator"); // Remover indicador
+    });
+  }
 }
 
 function setupSortModalAndButton() {
@@ -382,6 +417,7 @@ function setupSortModalAndButton() {
   const sortModal = document.getElementById("modal-sort");
   const closeSortButtons = document.querySelectorAll(".js-modal-sort-close");
   const applySortButton = document.getElementById("apply-sort-button");
+  const clearSortButton = document.getElementById("clear-sort-button-modal"); // Botão Limpar Ordenação
   const sortSelect = document.getElementById("sort-order-select");
 
   if (openSortButton && sortModal) {
@@ -411,7 +447,30 @@ function setupSortModalAndButton() {
       if (currentSortOrder !== "desc")
         openSortButton.classList.add("has-indicator");
       else openSortButton.classList.remove("has-indicator");
-      showFeedSkeleton(getActiveTabContentId());
+
+      const activeTabContentId = getActiveTabContentId();
+      showFeedSkeleton("content-mural");
+        if (activeTabContentId !== "content-mural") {
+            showFeedSkeleton(activeTabContentId);
+        }
+      loadInitialFeedItems();
+    });
+  }
+
+  // Event listener para o botão Limpar Ordenação
+  if (clearSortButton && sortSelect && sortModal) {
+    clearSortButton.addEventListener("click", () => {
+      sortSelect.value = "desc"; // Valor padrão
+      currentSortOrder = "desc";
+      sortModal.style.display = "none";
+      openSortButton.classList.remove("rotated");
+      openSortButton.classList.remove("has-indicator"); // Remover indicador
+
+      const activeTabContentId = getActiveTabContentId();
+      showFeedSkeleton("content-mural");
+      if (activeTabContentId !== "content-mural") {
+          showFeedSkeleton(activeTabContentId);
+      }
       loadInitialFeedItems();
     });
   }
@@ -423,14 +482,27 @@ function openCriarAvisoModal() {
     formCriarAviso.reset();
     avisoIdField.value = "";
     criarAvisoModal.querySelector("h2").textContent = "Criar Novo Aviso";
-    formCriarAviso.querySelector('button[type="submit"]').textContent =
-      "Salvar Aviso";
+    formCriarAviso.querySelector('button[type="submit"]').textContent = "Salvar Aviso";
+    // Resetar e esconder preview da imagem
+    const imgPreview = document.getElementById("aviso-imagem-preview");
+    if (imgPreview) {
+        imgPreview.style.display = "none";
+        imgPreview.src = "#";
+    }
+    document.getElementById("aviso-imagem").value = ""; // Limpar o input file
     criarAvisoModal.style.display = "flex";
   }
 }
 
 function openEditFeedItemModal(itemType, itemId) {
   if (itemType === "Aviso") {
+    // Resetar e esconder preview da imagem ao abrir para edição também
+    const imgPreview = document.getElementById("aviso-imagem-preview");
+    if (imgPreview) {
+        imgPreview.style.display = "none";
+        imgPreview.src = "#";
+    }
+    document.getElementById("aviso-imagem").value = "";
     const itemData = fetchedFeedItems.find(
       (i) => i.id.toString() === itemId.toString() && i.itemType === "Aviso"
     );
@@ -494,6 +566,14 @@ function setupModalEventListeners() {
     if (formCriarAviso && avisoIdField) {
       formCriarAviso.addEventListener("submit", async (event) => {
         event.preventDefault();
+        const submitBtn = formCriarAviso.querySelector('button[type="submit"]');
+        const originalButtonText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `${avisoIdField.value ? 'Salvando...' : 'Criando...'} <span class="inline-spinner"></span>`;
+
+        clearModalError(criarAvisoModal); // Limpar erros anteriores
+
+        // const hideSpinner = showInlineSpinner(submitBtn); // Replaced by direct manipulation
         const currentAvisoId = avisoIdField.value;
         const formData = new FormData(formCriarAviso);
 
@@ -528,24 +608,32 @@ function setupModalEventListeners() {
               `/api/v1/avisos/syndic/avisos/${currentAvisoId}`,
               avisoDataPayload
             );
-            showGlobalFeedback("Aviso atualizado com sucesso!", "success");
+            showGlobalFeedback("Aviso atualizado com sucesso!", "success", 2500);
           } else {
             await apiClient.post(
               "/api/v1/avisos/syndic/avisos",
               avisoDataPayload
             );
-            showGlobalFeedback("Aviso criado com sucesso!", "success");
+            showGlobalFeedback("Aviso criado com sucesso!", "success", 2500);
           }
+          // Sucesso:
           closeCriarAvisoModal();
           await loadInitialFeedItems();
+          // O showGlobalFeedback de sucesso (com duração reduzida) ainda é útil aqui
+          // para confirmar que a ação em background (loadInitialFeedItems) também ocorreu bem,
+          // e o modal fechou.
+          showGlobalFeedback(currentAvisoId ? "Aviso atualizado com sucesso!" : "Aviso criado com sucesso!", "success", 2500);
+
         } catch (error) {
           console.error("Erro ao salvar aviso:", error);
-          if (!error.handledByApiClient) {
-            showGlobalFeedback(
-              error.message || "Falha ao salvar o aviso.",
-              "error"
-            );
-          }
+          const errorMessage = error.detalhesValidacao || error.message || "Falha ao salvar o aviso. Verifique os dados e tente novamente.";
+          showModalError(criarAvisoModal, errorMessage);
+          // Não mostrar showGlobalFeedback de erro aqui, pois o erro já está no modal.
+          // Apenas se o erro for TÃO genérico que o apiClient já o tratou com um toast global.
+        } finally {
+          // hideSpinner(); // Replaced by direct manipulation
+          submitBtn.innerHTML = originalButtonText;
+          submitBtn.disabled = false;
         }
       });
     }
@@ -602,7 +690,14 @@ function setupModalEventListeners() {
     if (formCriarEnquete) {
       formCriarEnquete.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const id = enqueteIdField.value;
+        const submitButton = formCriarEnquete.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        const id = enqueteIdField.value; // Captura o ID antes de desabilitar/mudar texto
+
+        submitButton.disabled = true;
+        submitButton.innerHTML = `${id ? 'Salvando...' : 'Criando...'} <span class="inline-spinner"></span>`;
+        clearModalError(criarEnqueteModal); // Limpar erros anteriores
+
         const perguntaOuTitulo =
           document.getElementById("enquete-pergunta").value;
         const opcoesTexto = document.getElementById("enquete-opcoes").value;
@@ -614,11 +709,21 @@ function setupModalEventListeners() {
           .map((opt) => opt.trim())
           .filter((opt) => opt !== "")
           .map((desc) => ({ Descricao: desc }));
+
+        if (!perguntaOuTitulo.trim()) {
+            showModalError(criarEnqueteModal, "O título/pergunta da enquete é obrigatório.");
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
+            return;
+        }
+
         if (opcoesDto.length < 2) {
-          showGlobalFeedback(
-            "Uma enquete deve ter pelo menos duas opções.",
-            "error"
-          );
+          showModalError(criarEnqueteModal, "Uma enquete deve ter pelo menos duas opções.");
+          // Restaurar botão e não retornar ainda, para que o finally seja alcançado se houver.
+          // No entanto, o fluxo atual não tem um try/finally em volta desta validação.
+          // Para consistência, restauramos o botão e retornamos.
+          submitButton.innerHTML = originalButtonText;
+          submitButton.disabled = false;
           return;
         }
         const enqueteData = {
@@ -627,13 +732,35 @@ function setupModalEventListeners() {
           DataFim: prazo ? prazo : null,
           Opcoes: opcoesDto,
         };
-        if (id) {
-          await handleUpdateEnquete(id, enqueteData);
-        } else {
-          await handleCreateEnquete(enqueteData);
+
+        try {
+          if (id) {
+            await handleUpdateEnquete(id, enqueteData); // Mostra warning global, não há erro de API esperado
+            // Se fosse uma API call real, o sucesso seria tratado aqui:
+            // if (criarEnqueteModal) criarEnqueteModal.style.display = "none";
+            // formCriarEnquete.reset();
+            // showGlobalFeedback("Enquete atualizada com sucesso!", "success", 2500);
+
+            // Por ora, como só exibe warning, podemos fechar o modal se desejado.
+            if (criarEnqueteModal) criarEnqueteModal.style.display = "none";
+            formCriarEnquete.reset();
+
+          } else {
+            await handleCreateEnquete(enqueteData); // Agora só faz a chamada e recarrega o feed
+            // Sucesso da criação:
+            if (criarEnqueteModal) criarEnqueteModal.style.display = "none";
+            formCriarEnquete.reset();
+            showGlobalFeedback("Nova enquete criada com sucesso! Ela aparecerá no feed.", "success", 2500);
+          }
+        } catch (error) {
+          // Este catch pegará erros de handleCreateEnquete (que agora propaga o erro)
+          // ou erros inesperados.
+          const errorMessage = error.detalhesValidacao || error.message || "Falha ao processar a enquete.";
+          showModalError(criarEnqueteModal, errorMessage);
+        } finally {
+          submitButton.innerHTML = originalButtonText;
+          submitButton.disabled = false;
         }
-        if (criarEnqueteModal) criarEnqueteModal.style.display = "none";
-        formCriarEnquete.reset();
       });
     }
   }
@@ -658,22 +785,48 @@ function setupModalEventListeners() {
     ) {
       formCriarChamado.addEventListener("submit", async (event) => {
         event.preventDefault();
+        const submitButton = formCriarChamado.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
         const currentChamadoId = chamadoIdFieldModal.value;
+
+        submitButton.disabled = true;
+        submitButton.innerHTML = `${currentChamadoId ? 'Salvando...' : 'Abrindo...'} <span class="inline-spinner"></span>`;
+        clearModalError(criarChamadoModal);
+
         const chamadoData = {
           titulo: document.getElementById("chamado-titulo-modal").value,
           descricao: document.getElementById("chamado-descricao-modal").value,
           categoria: document.getElementById("chamado-categoria-modal").value,
         };
-        if (currentChamadoId) {
-          chamadoData.status = document.getElementById(
-            "chamado-status-modal"
-          ).value;
-          await handleUpdateChamado(currentChamadoId, chamadoData);
-        } else {
-          await handleCreateChamado(chamadoData);
+
+        try {
+          if (currentChamadoId) {
+            // Este é o modal de "Criar Chamado", mas o código permite um ID.
+            // Se currentChamadoId existir, significa que estamos editando através deste modal,
+            // o que é menos comum para "Criar Solicitação". A função handleUpdateChamado
+            // atualmente só exibe um warning. Se fosse uma edição real, o tratamento seria similar.
+            chamadoData.status = document.getElementById("chamado-status-modal").value;
+            await handleUpdateChamado(currentChamadoId, chamadoData); // Mostra warning global
+            if (criarChamadoModal) criarChamadoModal.style.display = "none"; // Fecha no "sucesso" do warning
+            formCriarChamado.reset();
+          } else {
+            // Validação simples antes de chamar a API
+            if (!chamadoData.titulo.trim() || !chamadoData.descricao.trim() || !chamadoData.categoria.trim()) {
+              throw new Error("Título, descrição e categoria são obrigatórios.");
+            }
+            await handleCreateChamado(chamadoData);
+            // Sucesso:
+            if (criarChamadoModal) criarChamadoModal.style.display = "none";
+            formCriarChamado.reset();
+            showGlobalFeedback("Nova solicitação aberta com sucesso! Ela aparecerá no feed.", "success", 2500);
+          }
+        } catch (error) {
+          const errorMessage = error.detalhesValidacao || error.message || "Falha ao processar a solicitação.";
+          showModalError(criarChamadoModal, errorMessage);
+        } finally {
+          submitButton.innerHTML = originalButtonText;
+          submitButton.disabled = false;
         }
-        if (criarChamadoModal) criarChamadoModal.style.display = "none";
-      formCriarChamado.reset();
       });
     }
   }
@@ -695,7 +848,37 @@ function setupModalEventListeners() {
     if (formCriarOcorrencia) {
       formCriarOcorrencia.addEventListener("submit", async (event) => {
         event.preventDefault();
-        await handleCreateOcorrencia();
+        const submitButton = formCriarOcorrencia.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+
+        submitButton.disabled = true;
+        submitButton.innerHTML = 'Enviando... <span class="inline-spinner"></span>';
+        clearModalError(criarOcorrenciaModal); // Limpar erros anteriores
+
+        try {
+          // handleCreateOcorrencia fará a validação e a chamada de API.
+          // Ele será modificado para mostrar erros de validação/API no modal.
+          await handleCreateOcorrencia();
+          // Se handleCreateOcorrencia for bem-sucedido, ele fecha o modal e mostra o feedback de sucesso.
+        } catch (error) {
+          // Este catch é para erros que handleCreateOcorrencia pode relançar
+          // (especialmente erros de validação para que o botão seja resetado aqui)
+          // ou erros inesperados no próprio listener.
+          // Se showModalError já foi chamado em handleCreateOcorrencia, não há problema em chamar de novo,
+          // ou podemos fazer handleCreateOcorrencia retornar um booleano de sucesso/falha.
+          // Por ora, se handleCreateOcorrencia já mostrou o erro no modal, este catch pode não ser necessário
+          // para erros de API, mas sim para reset do botão em caso de erro de validação.
+          // A refatoração de handleCreateOcorrencia cuidará de mostrar o erro no modal.
+          // Este catch aqui garante que o botão seja redefinido.
+          const errorMessage = error.message || "Ocorreu um problema ao enviar a ocorrência.";
+          if (!criarOcorrenciaModal.querySelector('.cv-modal-error-message[style*="display: block"]')) {
+            // Só mostra erro aqui se handleCreateOcorrencia não o fez.
+            showModalError(criarOcorrenciaModal, errorMessage);
+          }
+        } finally {
+          submitButton.innerHTML = originalButtonText;
+          submitButton.disabled = false;
+        }
       });
     }
   }
@@ -751,11 +934,26 @@ function setupFeedItemActionButtons() {
     if (isSindico) {
       newButton.style.display = "inline-block";
       newButton.addEventListener("click", async (event) => {
-        const itemId = event.target.dataset.itemId;
+        const buttonElement = event.currentTarget; // Use currentTarget
+        const itemId = buttonElement.dataset.itemId;
         if (
           confirm("Tem certeza que deseja encerrar esta enquete manualmente?")
         ) {
-          await handleEndEnquete(itemId);
+          const originalButtonText = buttonElement.textContent; // Use textContent for plain text
+          buttonElement.disabled = true;
+          // Clear existing content and add spinner
+          buttonElement.innerHTML = '<span class="inline-spinner"></span> Encerrando...';
+          try {
+            await handleEndEnquete(itemId);
+            // On success, the feed reloads, button might be gone or updated.
+            // If it's still there and action was successful, it should reflect new state.
+          } catch (error) {
+            // On error, restore button text and re-enable
+            buttonElement.textContent = originalButtonText;
+            buttonElement.disabled = false;
+          }
+          // No finally needed if success path removes/replaces button via feed reload
+          // and error path explicitly restores it.
         }
       });
     } else {
@@ -771,8 +969,22 @@ function setupFeedItemActionButtons() {
       if (isSindico) {
         newButton.style.display = "inline-block";
         newButton.addEventListener("click", async (event) => {
-          const itemId = event.target.dataset.itemId;
-          await handleGenerateAtaEnquete(itemId);
+          const buttonElement = event.currentTarget;
+          const itemId = buttonElement.dataset.itemId;
+        const originalButtonText = buttonElement.textContent; // Use textContent
+          buttonElement.disabled = true;
+        buttonElement.innerHTML = '<span class="inline-spinner"></span> Gerando...';
+          try {
+            await handleGenerateAtaEnquete(itemId);
+          // Assuming success means the ata is downloaded and button state doesn't change,
+          // or if it does, it's handled by a feed reload if that occurs.
+        } catch (error) {
+          // Error is likely handled by showGlobalFeedback in handleGenerateAtaEnquete
+          } finally {
+          // Always restore the button after attempt, regardless of success/failure of download
+          buttonElement.textContent = originalButtonText;
+            buttonElement.disabled = false;
+          }
         });
       } else {
         newButton.style.display = "none";
@@ -787,7 +999,7 @@ async function handleDeleteAviso(itemId) {
   if (card) card.style.display = "none";
   try {
     await apiClient.delete(`/api/v1/avisos/syndic/avisos/${itemId}`);
-    showGlobalFeedback("Aviso excluído com sucesso!", "success");
+    showGlobalFeedback("Aviso excluído com sucesso!", "success", 2500);
     fetchedFeedItems = fetchedFeedItems.filter(
       (i) => !(i.id.toString() === itemId.toString() && i.itemType === "Aviso")
     );
@@ -808,9 +1020,13 @@ async function handleDeleteAviso(itemId) {
 // rely on that role should treat "Condomino" and "Inquilino" as synonyms of
 // "Morador".
 function getUserRoles() {
-  const user = JSON.parse(localStorage.getItem("userInfo"));
-  if (user && user.roles) return user.roles;
-  return ["Condomino"];
+  // const user = JSON.parse(localStorage.getItem("userInfo")); // LINHA ANTIGA
+  // if (user && user.roles) return user.roles; // LINHA ANTIGA
+  const userInfo = getUserInfo(); // NOVA LINHA: Usa a função de auth.js
+  if (userInfo && userInfo.roles) { // NOVA LINHA
+    return userInfo.roles; // NOVA LINHA
+  }
+  return ["Condomino"]; // Mantém o fallback
 }
 
 
@@ -946,8 +1162,10 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     // Remove old "no items" or "error" messages from muralFeedContainer
     const noItemsMsg = muralFeedContainer.querySelector(".cv-no-items-message");
     if (noItemsMsg) noItemsMsg.remove();
-    const errorMsg = muralFeedContainer.querySelector(".cv-error-message");
-    if (errorMsg) errorMsg.remove();
+    const errorStateElement = muralFeedContainer.querySelector(".cv-error-state");
+    if (errorStateElement) errorStateElement.remove();
+    const emptyStateElement = muralFeedContainer.querySelector(".cv-empty-state");
+    if (emptyStateElement) emptyStateElement.remove();
 
   } else {
     // This is for infinite scroll, show a smaller loading indicator if desired, or rely on skeleton
@@ -955,6 +1173,19 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     // If we want a specific "loading more" visual, it would go here.
     // e.g., a small spinner near the sentinel.
     // For simplicity, we'll let the existing skeleton cover this or just load.
+    // Show a small spinner near the sentinel when loading more items
+    if (append && sentinelElement) {
+      const spinner = sentinelElement.querySelector('.inline-spinner');
+      if (!spinner) {
+        const spinnerElement = document.createElement('span');
+        spinnerElement.className = 'inline-spinner';
+        spinnerElement.style.display = 'block';
+        spinnerElement.style.margin = 'var(--cv-spacing-md) auto'; // Center it
+        sentinelElement.insertAdjacentElement('beforebegin', spinnerElement);
+      } else {
+        spinner.style.display = 'block';
+      }
+    }
   }
   if (sentinelElement) sentinelElement.style.display = "block"; // Keep sentinel active
 
@@ -1003,9 +1234,18 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     const items = response || [];
     const activeTabContentId = getActiveTabContentId();
 
-    hideFeedSkeleton("content-mural"); // Hide mural skeleton first
+    hideFeedSkeleton("content-mural");
     if (activeTabContentId !== "content-mural") {
-        hideFeedSkeleton(activeTabContentId); // Hide other active tab's skeleton
+        hideFeedSkeleton(activeTabContentId);
+    }
+
+    // Limpar erro anterior da aba ativa, caso exista
+    const activeTabElement = document.getElementById(activeTabContentId);
+    if (activeTabElement) {
+        const existingErrorState = activeTabElement.querySelector(".cv-error-state");
+        if (existingErrorState) existingErrorState.style.display = "none";
+        const existingEmptyState = activeTabElement.querySelector(".cv-empty-state");
+        if (existingEmptyState) existingEmptyState.style.display = "none";
     }
 
 
@@ -1017,19 +1257,14 @@ async function fetchAndDisplayFeedItems(page, append = false) {
             (fi) => fi.id === item.id && fi.itemType === item.itemType
           )
         ) {
-          // If it's a pinned item (prio 0), it might be in fetchedFeedItems from initial load
-          // but we still need to ensure it's rendered if not already.
-          // If it's not prio 0 and already in fetchedFeedItems, skip re-rendering.
           if (item.prioridadeOrdenacao !== 0) return;
         }
 
         const itemElement = renderFeedItem(item);
-        // Always append to the muralFeedContainer before the sentinel
         if (sentinelElement)
             muralFeedContainer.insertBefore(itemElement, sentinelElement);
         else muralFeedContainer.appendChild(itemElement);
 
-        // Add to fetchedFeedItems if it's genuinely new
         if (
           !fetchedFeedItems.some(
             (fi) => fi.id === item.id && fi.itemType === item.itemType
@@ -1037,9 +1272,21 @@ async function fetchAndDisplayFeedItems(page, append = false) {
         ) {
           fetchedFeedItems.push(item);
         }
+        const imgElement = itemElement.querySelector('.feed-item__image');
+        if (imgElement && imgElement.dataset.src) {
+          const highResImage = new Image();
+          highResImage.onload = () => {
+            imgElement.src = highResImage.src;
+            imgElement.classList.add('loaded');
+          };
+          highResImage.onerror = () => {
+            imgElement.classList.add('loaded');
+            console.error("Erro ao carregar imagem de alta resolução:", imgElement.dataset.src);
+          };
+          highResImage.src = imgElement.dataset.src;
+        }
       });
 
-      // Sort all items in the DOM (including newly added and pinned ones)
       const allRenderedItems = Array.from(
         muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)")
       );
@@ -1066,15 +1313,68 @@ async function fetchAndDisplayFeedItems(page, append = false) {
       if (page === 1 && !append) { // First page and not appending
         const currentVisibleItems = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)");
         if (currentVisibleItems.length === 0) { // No items at all (including pinned)
-          const noItemsMsgCheck = muralFeedContainer.querySelector(".cv-no-items-message");
-          if (noItemsMsgCheck) noItemsMsgCheck.remove(); // Remove old message if any
+          // Remove mensagens antigas de "no items" ou erro
+          const oldNoItemsMsg = muralFeedContainer.querySelector(".cv-no-items-message");
+          if (oldNoItemsMsg) oldNoItemsMsg.remove();
+          const oldErrorState = muralFeedContainer.querySelector(".cv-error-state");
+          if (oldErrorState) oldErrorState.remove();
+          const oldEmptyState = muralFeedContainer.querySelector(".cv-empty-state");
+          if (oldEmptyState) oldEmptyState.remove();
 
-          const noItemsP = document.createElement("p");
-          noItemsP.className = "cv-no-items-message";
-          noItemsP.textContent = "Nenhum item encontrado para os filtros atuais.";
+          // Verifica se há filtros ativos para personalizar a mensagem
+          const CategoriaFilterValue = document.getElementById("category-filter-modal")?.value?.toLowerCase() || "";
+          const periodoFilterInput = document.getElementById("period-filter-modal")?.value;
+          // Outros filtros específicos de aba poderiam ser verificados aqui também.
+          const hasActiveFilters = CategoriaFilterValue || periodoFilterInput;
+
+          const userRolesForEmptyState = getUserRoles(); // Obter roles para decidir o botão
+          const isSindicoForEmptyState = userRolesForEmptyState.includes("Sindico") || userRolesForEmptyState.includes("Administrador");
+
+          let emptyStateConfig = {
+            iconHTML: `
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+              </svg>`, // Ícone de Lupa
+            title: "Nenhum Item Encontrado", // Default title
+            description: "Não há comunicados, enquetes ou outras atualizações no momento. Volte mais tarde!",
+            actionButton: null // Default no action button
+          };
+
+          if (hasActiveFilters) {
+            emptyStateConfig.title = "Nenhum Item Encontrado";
+            emptyStateConfig.description = "Tente ajustar seus filtros ou verificar mais tarde.";
+            emptyStateConfig.actionButton = {
+                text: "Limpar Filtros",
+                onClick: () => {
+                    // Lógica para limpar filtros e recarregar - pode chamar a função de clearFiltersModalButton
+                    const clearFiltersBtnModal = document.getElementById("clear-filters-button-modal");
+                    if (clearFiltersBtnModal) clearFiltersBtnModal.click();
+                    // A ação de click no botão de limpar filtros já recarrega o feed.
+                },
+                classes: ["cv-button--secondary"]
+            };
+          } else {
+            // Sem filtros ativos, mural principal vazio
+            emptyStateConfig.title = "Mural Vazio";
+            emptyStateConfig.description = "Ainda não há comunicados, enquetes ou outras atualizações. Que tal criar o primeiro aviso?";
+            if (isSindicoForEmptyState) {
+                emptyStateConfig.actionButton = {
+                    text: "Criar Aviso",
+                    onClick: openCriarAvisoModal, // Função para abrir modal de criar aviso
+                    classes: ["cv-button--primary"]
+                };
+            } else {
+                 // Para não-síndicos, talvez um botão para ver ocorrências ou algo similar, ou nenhum botão.
+                 // Por ora, sem botão se não for síndico e o mural estiver genuinamente vazio.
+                 emptyStateConfig.description = "Ainda não há comunicados, enquetes ou outras atualizações no momento. Volte mais tarde!"
+            }
+          }
+
+          const emptyStateElement = createEmptyStateElement(emptyStateConfig);
+
           if (sentinelElement)
-            muralFeedContainer.insertBefore(noItemsP, sentinelElement);
-          else muralFeedContainer.appendChild(noItemsP);
+            muralFeedContainer.insertBefore(emptyStateElement, sentinelElement);
+          else muralFeedContainer.appendChild(emptyStateElement);
         }
       }
       noMoreFeedItems = true;
@@ -1083,26 +1383,67 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     setupFeedItemActionButtons(); // Re-attach event listeners if items were added/changed
 
   } catch (error) {
-    console.error("Erro ao buscar feed:", error);
+    console.error("Erro ao buscar feed:", error); // Log original error
     const activeTabContentIdOnError = getActiveTabContentId();
     hideFeedSkeleton("content-mural");
     if (activeTabContentIdOnError !== "content-mural") {
-        hideFeedSkeleton(activeTabContentIdOnError);
+        hideFeedSkeleton(activeTabContentIdOnError); // Esconde skeleton da aba ativa específica
     }
 
-    const currentVisibleItemsOnError = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)");
-    if (currentVisibleItemsOnError.length === 0) {
-      const errorMsgCheck = muralFeedContainer.querySelector(".cv-error-message");
-      if (errorMsgCheck) errorMsgCheck.remove();
-      const errorP = document.createElement("p");
-      errorP.className = "cv-error-message";
-      errorP.textContent = "Erro ao carregar o feed. Tente novamente mais tarde.";
-      if (sentinelElement) muralFeedContainer.insertBefore(errorP, sentinelElement);
-      else muralFeedContainer.appendChild(errorP);
+    // Determinar o container de conteúdo da aba ativa para exibir o erro
+    const targetErrorContainer = document.getElementById(activeTabContentIdOnError);
+
+    if (targetErrorContainer && !append) { // Mostrar erro na aba ativa apenas se não for erro de append
+        const itemsCurrentlyInMural = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)").length;
+        const itemsInActiveTab = targetErrorContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item), .cv-card:not(.feed-skeleton-item)").length;
+
+        // Mostrar erro na aba específica se ela estiver vazia ou se for a própria mural
+        if (itemsInActiveTab === 0 || activeTabContentIdOnError === "content-mural") {
+            // Limpar conteúdo anterior da aba (exceto o skeleton que já foi tratado)
+            const existingError = targetErrorContainer.querySelector(".cv-error-state");
+            if (existingError) existingError.remove();
+            const existingEmpty = targetErrorContainer.querySelector(".cv-empty-state");
+            if (existingEmpty) existingEmpty.remove();
+
+            // Remover itens do feed apenas se o erro for na mural e ela estiver sendo limpa
+            if (activeTabContentIdOnError === "content-mural") {
+                 muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)").forEach(el => el.remove());
+            }
+
+
+            // Usar o cv-error-state que já existe no HTML da aba
+            const errorStateDiv = targetErrorContainer.querySelector(".cv-error-state");
+            if (errorStateDiv) {
+                errorStateDiv.style.display = "flex"; // Ou o display correto para o componente
+                // O botão "Tentar Novamente" no HTML já tem o data-content-id.
+                // A lógica do listener para ele será adicionada separadamente.
+            } else {
+                // Fallback se o div não existir (não deveria acontecer com o HTML atualizado)
+                const errorState = createErrorStateElement({
+                    title: "Falha ao Carregar",
+                    message: error.message || `Não foi possível carregar o conteúdo de ${activeTabContentIdOnError}. Verifique sua conexão e tente novamente.`,
+                    retryButton: {
+                        text: "Tentar Novamente",
+                        onClick: () => {
+                            const currentErrorStateInTab = targetErrorContainer.querySelector(".cv-error-state");
+                            if (currentErrorStateInTab) currentErrorStateInTab.style.display = "none";
+                            showFeedSkeleton(activeTabContentIdOnError);
+                            loadInitialFeedItems(); // Ou uma função específica para a aba
+                        }
+                    }
+                });
+                // Adicionar ao container da aba ativa, não ao muralFeedContainer necessariamente
+                const contentArea = targetErrorContainer.querySelector('.feed-grid, .js-avisos, .enquetes-list, .chamados-list') || targetErrorContainer;
+                contentArea.appendChild(errorState);
+            }
+        }
     } else if (append) {
-      showGlobalFeedback("Erro ao carregar mais itens.", "error"); // Keep this for infinite scroll errors
+      if (!error.handledByApiClient && error.message) {
+         showGlobalFeedback(error.message || "Erro ao carregar mais itens.", "error");
+      }
+      console.warn("Erro ao carregar mais itens (append).");
     }
-    if (sentinelElement) sentinelElement.style.display = "none"; // Stop trying to load more on error
+    if (sentinelElement) sentinelElement.style.display = "none";
   } finally {
     isLoadingFeedItems = false;
     // Skeletons should be hidden by now, but as a safeguard:
@@ -1110,12 +1451,100 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     hideFeedSkeleton("content-mural");
     if(finalActiveTab !== "content-mural") hideFeedSkeleton(finalActiveTab);
 
+    // Hide spinner for "load more" if it was shown
+    if (append && sentinelElement) {
+        const spinner = sentinelElement.parentElement.querySelector('.inline-spinner:not(#' + feedScrollSentinelId + ' .inline-spinner)');
+        if (spinner) {
+            spinner.style.display = 'none';
+        }
+    }
+
     // Restore info messages for Enquetes/Solicitações if they are active and mural is empty
-    if ((finalActiveTab === "content-enquetes" || finalActiveTab === "content-solicitacoes")) {
-        const muralItems = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)");
-        const infoMsg = document.querySelector(`#${finalActiveTab} .cv-info-message`);
-        if (muralItems.length === 0 && infoMsg) {
-            infoMsg.style.display = "block";
+    // This is now handled by displaying a specific EmptyState for the tab.
+    const muralIsEmpty = noMoreFeedItems && page === 1 && muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)").length === 0;
+
+    if (muralIsEmpty) {
+        const tabSpecificContentArea = document.getElementById(finalActiveTab);
+        if (tabSpecificContentArea && finalActiveTab !== "content-mural") {
+            // Limpar área de conteúdo da aba específica
+            const existingMessages = tabSpecificContentArea.querySelectorAll(".cv-info-message, .cv-no-items-message, .cv-error-message, .cv-empty-state, .cv-error-state, .feed-skeleton-container");
+            existingMessages.forEach(msg => msg.remove()); // Remove também skeletons se houver
+
+            let emptyStateConfig = null;
+            const userRoles = getUserRoles();
+            const isSindico = userRoles.includes("Sindico") || userRoles.includes("Administrador");
+            const hasActiveFilters = document.getElementById("open-filter-modal-button")?.classList.contains("has-indicator");
+
+            let actionButtonConfig = null;
+
+            if (finalActiveTab === "content-enquetes") {
+                if (isSindico) {
+                    actionButtonConfig = { text: "Criar Nova Enquete", onClick: openCreateEnqueteModal, classes: ["cv-button--primary"] };
+                }
+                emptyStateConfig = {
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bar-chart-2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
+                    title: hasActiveFilters ? "Nenhuma Enquete Encontrada" : "Sem Enquetes no Momento",
+                    description: hasActiveFilters
+                        ? "Nenhuma enquete corresponde aos filtros aplicados. Tente ajustá-los ou crie uma nova enquete."
+                        : "Ainda não há enquetes ativas ou encerradas. Que tal criar a primeira?",
+                    actionButton: actionButtonConfig
+                };
+            } else if (finalActiveTab === "content-solicitacoes") {
+                 actionButtonConfig = { text: "Abrir Nova Solicitação", onClick: openCreateChamadoModal, classes: ["cv-button--primary"] };
+                emptyStateConfig = {
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
+                    title: hasActiveFilters ? "Nenhuma Solicitação Encontrada" : "Caixa de Solicitações Vazia",
+                    description: hasActiveFilters
+                        ? "Nenhuma solicitação corresponde aos filtros aplicados. Tente ajustá-los ou abra uma nova."
+                        : "Ainda não foram abertas solicitações. Se precisar de algo, este é o lugar!",
+                    actionButton: actionButtonConfig
+                };
+            } else if (finalActiveTab === "content-ocorrencias") {
+                 actionButtonConfig = { text: "Relatar Nova Ocorrência", onClick: openCreateOcorrenciaModal, classes: ["cv-button--primary"] };
+                emptyStateConfig = {
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+                    title: hasActiveFilters ? "Nenhuma Ocorrência Encontrada" : "Sem Ocorrências Registradas",
+                    description: hasActiveFilters
+                        ? "Nenhuma ocorrência corresponde aos filtros atuais. Tente ajustá-los ou relate uma nova."
+                        : "Ainda não há ocorrências registradas. Se identificar algo, utilize o botão abaixo.",
+                    actionButton: actionButtonConfig
+                };
+            }
+
+            if (emptyStateConfig) {
+                 // Adicionar botão de limpar filtros se houver filtros ativos e não houver já um botão de ação primário,
+                 // ou se o empty state for por causa dos filtros.
+                if (hasActiveFilters && (!emptyStateConfig.actionButton || emptyStateConfig.title.includes("Encontrada"))) {
+                    emptyStateConfig.secondaryActionButton = { // Adicionando um botão secundário
+                        text: "Limpar Filtros",
+                        onClick: () => {
+                            const clearFiltersBtnModal = document.getElementById("clear-filters-button-modal");
+                            if (clearFiltersBtnModal) clearFiltersBtnModal.click();
+                        },
+                        classes: ["cv-button--secondary"]
+                    };
+                }
+
+                let targetContainerForEmptyState = tabSpecificContentArea.querySelector('.feed-content');
+                if (!targetContainerForEmptyState) targetContainerForEmptyState = tabSpecificContentArea;
+
+                const oldTabEmptyState = targetContainerForEmptyState.querySelector('.cv-empty-state');
+                if(oldTabEmptyState) oldTabEmptyState.remove();
+
+                const emptyStateEl = createEmptyStateElement(emptyStateConfig);
+                targetContainerForEmptyState.appendChild(emptyStateEl);
+            }
+        }
+    } else if (!muralIsEmpty && finalActiveTab !== "content-mural") {
+        const tabSpecificContentArea = document.getElementById(finalActiveTab);
+        if (tabSpecificContentArea) {
+            const oldTabEmptyState = tabSpecificContentArea.querySelector('.cv-empty-state');
+            if(oldTabEmptyState) oldTabEmptyState.remove();
+            const infoMsg = tabSpecificContentArea.querySelector(".cv-info-message"); // Legado
+            if(infoMsg) infoMsg.remove();
+            // Remover também skeletons se houver
+            const skeleton = tabSpecificContentArea.querySelector('.feed-skeleton-container');
+            if (skeleton) skeleton.remove();
         }
     }
   }
@@ -1167,7 +1596,19 @@ function renderFeedItem(item) {
   let tagDisplay =
     categoriaMap[categoriaParaTag?.toLowerCase()] || categoriaParaTag;
 
-  let contentHtml = `
+  let contentHtml = "";
+  // Adicionar imagem com lazy loading e preparo para progressive loading
+  if (item.imagemUrl) {
+    // Usaremos um placeholder simples por enquanto. Idealmente, seria uma LQIP real.
+    // Poderia ser uma miniatura de 1x1 pixel ou um SVG placeholder.
+    const placeholderSrc = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"; // 1x1 pixel transparente
+    contentHtml += `
+      <div class="feed-item__image-container">
+        <img src="${placeholderSrc}" data-src="${item.imagemUrl}" alt="Imagem do feed: ${item.titulo}" class="feed-item__image" loading="lazy">
+      </div>`;
+  }
+
+  contentHtml += `
         <h3 class="feed-item__title">${pinLabel}${item.titulo}</h3>
         <p class="feed-item__summary">${item.resumo}</p>
         <div class="feed-item__meta">
@@ -1260,12 +1701,14 @@ async function handleFeedItemClick(event) {
   }
   if (clickedElement.classList.contains("js-end-enquete-item")) {
     if (confirm("Tem certeza que deseja encerrar esta enquete manualmente?")) {
-      await handleEndEnquete(itemId);
+      // Spinner logic is now inside the event listener in setupFeedItemActionButtons
+      await handleEndEnquete(itemId); // This will be called by the setup listener
     }
     return;
   }
   if (clickedElement.classList.contains("js-generate-ata-enquete-item")) {
-    await handleGenerateAtaEnquete(itemId);
+    // Spinner logic is now inside the event listener in setupFeedItemActionButtons
+    await handleGenerateAtaEnquete(itemId); // This will be called by the setup listener
     return;
   }
 
@@ -1337,8 +1780,18 @@ async function handleEnqueteClick(itemId, targetElementOrCard) {
       `/api/v1/votacoes/app/votacoes/${itemId}`
     );
     if (!enquete) {
-      modalEnqueteDetalheOpcoesContainer.innerHTML =
-        '<p class="cv-error-message">Enquete não encontrada.</p>';
+      // modalEnqueteDetalheOpcoesContainer.innerHTML =
+      //   '<p class="cv-error-message">Enquete não encontrada ou acesso não permitido.</p>';
+      const errorState = createErrorStateElement({
+        title: "Enquete não encontrada",
+        message: "A enquete que você está tentando visualizar não foi encontrada ou você não tem permissão para acessá-la.",
+        retryButton: {
+            text: "Tentar Novamente",
+            onClick: () => handleEnqueteClick(itemId, null)
+        }
+      });
+      modalEnqueteDetalheOpcoesContainer.innerHTML = '';
+      modalEnqueteDetalheOpcoesContainer.appendChild(errorState);
       return;
     }
     modalEnqueteDetalheTitulo.textContent = enquete.titulo;
@@ -1364,14 +1817,28 @@ async function handleEnqueteClick(itemId, targetElementOrCard) {
     }
   } catch (error) {
     console.error("Erro ao buscar detalhes da enquete:", error);
-    modalEnqueteDetalheOpcoesContainer.innerHTML =
-      '<p class="cv-error-message">Erro ao carregar detalhes da enquete. Tente novamente.</p>';
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(
-        error.message || "Falha ao carregar enquete.",
-        "error"
-      );
-    }
+    // A mensagem de erro agora é mostrada dentro do modal pelo createErrorStateElement (indiretamente)
+    // ou por uma mensagem simples se o componente não for usado aqui.
+    // O importante é que o modal já tem seu próprio feedback de erro.
+    // modalEnqueteDetalheOpcoesContainer.innerHTML =
+    //   '<p class="cv-error-message">Erro ao carregar detalhes da enquete. Tente novamente mais tarde.</p>';
+    const errorState = createErrorStateElement({
+        title: "Erro ao Carregar Enquete",
+        message: error.message || "Não foi possível carregar os detalhes da enquete. Verifique sua conexão e tente novamente.",
+        retryButton: {
+            text: "Tentar Novamente",
+            onClick: () => handleEnqueteClick(itemId, null)
+        }
+    });
+    modalEnqueteDetalheOpcoesContainer.innerHTML = '';
+    modalEnqueteDetalheOpcoesContainer.appendChild(errorState);
+    // Removido showGlobalFeedback daqui para evitar redundância com o feedback no modal.
+    // if (!error.handledByApiClient) {
+    //   showGlobalFeedback(
+    //     error.message || "Falha ao carregar enquete.",
+    //     "error"
+    //   );
+    // }
   }
 }
 
@@ -1434,29 +1901,62 @@ function renderResultadosEnquete(opcoes, status, usuarioJaVotou, dataFim) {
 async function submitVoto(enqueteId) {
   const form = document.getElementById("form-votar-enquete");
   if (!form) return;
+
+  const submitButton = document.getElementById("modal-enquete-submit-voto");
+  if (!submitButton) return; // Safety check
+  const originalButtonText = submitButton.innerHTML;
+
+  clearModalError(modalEnqueteDetalhe); // Limpar erros anteriores
+
   const selectedOption = form.querySelector('input[name="opcaoVoto"]:checked');
   if (!selectedOption) {
-    showGlobalFeedback("Por favor, selecione uma opção para votar.", "warning");
+    showModalError(modalEnqueteDetalhe, "Por favor, selecione uma opção para votar.");
+    // Não desabilitar o botão ou mudar texto, pois o usuário precisa poder tentar de novo.
     return;
   }
   const opcaoId = selectedOption.value;
+
+  // UI Otimista e Desabilitar botão durante a submissão
+  submitButton.disabled = true;
+  submitButton.innerHTML = 'Registrando... <span class="inline-spinner"></span>';
+
+  // A UI otimista de esconder opções e mostrar "voto registrado" pode ser mantida,
+  // mas precisa ser revertida em caso de erro.
+  const originalOpcoesHTML = modalEnqueteDetalheOpcoesContainer.innerHTML;
+  modalEnqueteDetalheOpcoesContainer.innerHTML = '<p class="poll-status voted">Seu voto foi registrado. Atualizando resultados...</p>';
+  // modalEnqueteSubmitVotoButton.style.display = "none"; // O botão já está desabilitado e com spinner
+
   try {
-    showGlobalFeedback("Registrando seu voto...", "info");
-    await apiClient.post(`/api/v1/votacoes/app/votacoes/${enqueteId}/votar`, {
-      OpcaoId: opcaoId,
-    });
-    showGlobalFeedback("Voto registrado com sucesso!", "success");
-    modalEnqueteSubmitVotoButton.style.display = "none";
-    await handleEnqueteClick(enqueteId, null);
+    await apiClient.post(`/api/v1/votacoes/app/votacoes/${enqueteId}/votar`, { OpcaoId: opcaoId });
+    showGlobalFeedback("Voto confirmado pelo servidor!", "success", 2000);
+    // O handleEnqueteClick no finally vai recarregar e mostrar o estado correto (resultados/já votou).
+    // Não precisa mais esconder o botão aqui explicitamente, o handleEnqueteClick vai determinar.
   } catch (error) {
     console.error("Erro ao registrar voto:", error);
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(
-        error.message || "Falha ao registrar o voto.",
-        "error"
-      );
+    // Reverter UI otimista
+    modalEnqueteDetalheOpcoesContainer.innerHTML = originalOpcoesHTML; // Restaura as opções de voto
+
+    const errorMessage = error.message || "Falha ao registrar o voto. Tente novamente.";
+    showModalError(modalEnqueteDetalhe, errorMessage);
+
+    // Restaurar botão para permitir nova tentativa
+    submitButton.innerHTML = originalButtonText;
+    submitButton.disabled = false;
+    // Não chamar showGlobalFeedback de erro aqui.
+  } finally {
+    // Se não houve erro, o botão já estará com spinner. Se houve erro, foi resetado.
+    // O `handleEnqueteClick` vai re-renderizar o estado do modal, incluindo o botão.
+    // Se o voto foi bem sucedido, o botão não deve reaparecer (pois usuarioJaVotou será true).
+    // Se falhou, o botão já foi re-ativado no catch.
+    // Então, o reset do texto/estado do botão aqui pode não ser sempre necessário,
+    // mas é mais seguro garantir que ele volte ao estado original se não for ser escondido.
+    if (!submitButton.disabled) { // Se o catch já reabilitou.
+        // submitButton.innerHTML = originalButtonText; // Já feito no catch
+    } else if(modalEnqueteSubmitVotoButton.style.display !== 'none') { // Se ainda estiver visível e desabilitado (sucesso)
+        // O handleEnqueteClick vai esconder ou mudar o botão, então não precisa resetar aqui.
     }
-    await handleEnqueteClick(enqueteId, null);
+
+    await handleEnqueteClick(enqueteId, null); // Recarrega os detalhes da enquete
   }
 }
 
@@ -1515,8 +2015,18 @@ async function handleChamadoClick(
     const itemData = await apiClient.get(endpoint);
 
     if (!itemData) {
-      modalChamadoDetalheConteudo.innerHTML =
-        '<p class="cv-error-message">Item não encontrado ou acesso não permitido.</p>';
+      // modalChamadoDetalheConteudo.innerHTML =
+      //   '<p class="cv-error-message">Item não encontrado ou acesso não permitido.</p>';
+      const errorState = createErrorStateElement({
+        title: "Item não encontrado",
+        message: `O item do tipo '${itemType}' que você está tentando visualizar não foi encontrado ou você não tem permissão para acessá-lo.`,
+        retryButton: {
+            text: "Tentar Novamente",
+            onClick: () => handleChamadoClick(itemId, null, itemType)
+        }
+      });
+      modalChamadoDetalheConteudo.innerHTML = '';
+      modalChamadoDetalheConteudo.appendChild(errorState);
       return;
     }
 
@@ -1554,13 +2064,24 @@ async function handleChamadoClick(
     }
   } catch (error) {
     console.error(`Erro ao buscar detalhes de ${itemType}:`, error);
-    modalChamadoDetalheConteudo.innerHTML = `<p class="cv-error-message">Erro ao carregar detalhes de ${itemType}.</p>`;
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(
-        error.message || `Falha ao carregar ${itemType}.`,
-        "error"
-      );
-    }
+    // modalChamadoDetalheConteudo.innerHTML = `<p class="cv-error-message">Erro ao carregar detalhes de ${itemType}. Tente novamente mais tarde.</p>`;
+    const errorState = createErrorStateElement({
+        title: `Erro ao Carregar ${itemType}`,
+        message: error.message || `Não foi possível carregar os detalhes de ${itemType}. Verifique sua conexão e tente novamente.`,
+        retryButton: {
+            text: "Tentar Novamente",
+            onClick: () => handleChamadoClick(itemId, null, itemType)
+        }
+    });
+    modalChamadoDetalheConteudo.innerHTML = '';
+    modalChamadoDetalheConteudo.appendChild(errorState);
+    // Removido showGlobalFeedback daqui para evitar redundância com o feedback no modal.
+    // if (!error.handledByApiClient) {
+    //   showGlobalFeedback(
+    //     error.message || `Falha ao carregar ${itemType}.`,
+    //     "error"
+    //   );
+    // }
   }
 }
 
@@ -1618,7 +2139,8 @@ function renderDetalhesGenerico(itemData, itemType) {
   if (itemData.fotos && itemData.fotos.length > 0) {
     html += `<p><strong>Fotos:</strong></p><div class="item-photos">`;
     itemData.fotos.forEach((fotoUrl) => {
-      html += `<img src="${fotoUrl}" alt="Foto do item" style="max-width:100px; margin:5px; border:1px solid #ddd;">`;
+      // Adicionado loading="lazy"
+      html += `<img src="${fotoUrl}" alt="Foto do item" style="max-width:100px; margin:5px; border:1px solid #ddd;" loading="lazy">`;
     });
     html += `</div>`;
   }
@@ -1631,12 +2153,18 @@ async function submitChamadoUpdateBySindico(chamadoId) {
   const respostaTextarea = document.getElementById(
     "modal-chamado-resposta-textarea"
   );
+  const updateBtn = document.getElementById("modal-chamado-submit-sindico-update");
+  const originalButtonText = updateBtn.innerHTML;
+  updateBtn.disabled = true;
+  updateBtn.innerHTML = 'Salvando... <span class="inline-spinner"></span>';
+  clearModalError(modalChamadoDetalhe); // Limpar erros anteriores no modal de detalhes
 
   if (!statusSelect || !respostaTextarea) {
-    showGlobalFeedback(
-      "Erro: Elementos do formulário de atualização do síndico não encontrados.",
-      "error"
-    );
+    // Este erro é de setup, um toast global é aceitável ou um erro no console.
+    // Mas para consistência, tentaremos mostrar no modal se possível.
+    showModalError(modalChamadoDetalhe, "Erro interno: Elementos do formulário não encontrados.");
+    updateBtn.innerHTML = originalButtonText;
+    updateBtn.disabled = false;
     return;
   }
 
@@ -1644,27 +2172,29 @@ async function submitChamadoUpdateBySindico(chamadoId) {
   const respostaDoSindico = respostaTextarea.value.trim();
 
   if (!status) {
-    showGlobalFeedback("O novo status do chamado é obrigatório.", "warning");
+    showModalError(modalChamadoDetalhe, "O novo status do chamado é obrigatório.");
+    updateBtn.innerHTML = originalButtonText;
+    updateBtn.disabled = false;
     return;
   }
 
   try {
-    showGlobalFeedback("Atualizando chamado...", "info");
     await apiClient.put(`/api/v1/chamados/syndic/chamados/${chamadoId}`, {
       status: status,
       respostaDoSindico: respostaDoSindico,
     });
-    showGlobalFeedback("Chamado atualizado com sucesso!", "success");
+    // Sucesso:
     if (modalChamadoDetalhe) modalChamadoDetalhe.style.display = "none";
     await loadInitialFeedItems();
+    showGlobalFeedback("Chamado atualizado com sucesso!", "success", 2500);
   } catch (error) {
     console.error("Erro ao atualizar chamado pelo síndico:", error);
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(
-        error.message || "Falha ao atualizar o chamado.",
-        "error"
-      );
-    }
+    const errorMessage = error.detalhesValidacao || error.message || "Falha ao atualizar o chamado.";
+    showModalError(modalChamadoDetalhe, errorMessage);
+    // Não mostrar showGlobalFeedback de erro aqui.
+  } finally {
+    updateBtn.innerHTML = originalButtonText;
+    updateBtn.disabled = false;
   }
 }
 
@@ -1746,20 +2276,12 @@ function openCreateEnqueteModal() {
 }
 
 async function handleCreateEnquete(enqueteData) {
-  try {
-    showGlobalFeedback("Criando nova enquete...", "info");
-    await apiClient.post("/api/v1/votacoes/syndic/votacoes", enqueteData);
-    showGlobalFeedback(
-      "Nova enquete criada com sucesso! Ela aparecerá no feed.",
-      "success"
-    );
-    await loadInitialFeedItems();
-  } catch (error) {
-    console.error("Erro ao criar enquete:", error);
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(error.message || "Falha ao criar a enquete.", "error");
-    }
-  }
+  // Opcional: manter o feedback "info" se desejado, mas o spinner no botão já indica processamento.
+  // showGlobalFeedback("Criando nova enquete...", "info", 1500);
+  await apiClient.post("/api/v1/votacoes/syndic/votacoes", enqueteData);
+  // Não mostra mais feedback de sucesso ou erro aqui. Deixa o chamador lidar.
+  await loadInitialFeedItems();
+  // Se apiClient.post lança um erro, ele será propagado para o chamador.
 }
 
 async function handleUpdateEnquete(id, enqueteData) {
@@ -1781,7 +2303,7 @@ async function handleEndEnquete(enqueteId) {
       `/api/v1/votacoes/syndic/votacoes/${enqueteId}/encerrar`,
       {}
     );
-    showGlobalFeedback("Enquete encerrada com sucesso!", "success");
+    showGlobalFeedback("Enquete encerrada com sucesso!", "success", 2500);
     await loadInitialFeedItems();
   } catch (error) {
     console.error("Erro ao encerrar enquete:", error);
@@ -1875,25 +2397,14 @@ function setupOcorrenciasTab() {
 }
 
 async function handleCreateChamado(chamadoData) {
-  try {
-    showGlobalFeedback("Abrindo novo chamado...", "info");
-    const dataParaApi = {
-      Titulo: chamadoData.titulo,
-      Descricao: `Categoria: ${chamadoData.categoria}\n\n${chamadoData.descricao}`,
-      // Fotos e UnidadeId são opcionais e seriam adicionados aqui se presentes em chamadoData e suportados pelo DTO.
-    };
-    await apiClient.post("/api/v1/chamados/app/chamados", dataParaApi);
-    showGlobalFeedback(
-      "Novo chamado aberto com sucesso! Ele aparecerá no feed.",
-      "success"
-    );
-    await loadInitialFeedItems();
-  } catch (error) {
-    console.error("Erro ao abrir chamado:", error);
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(error.message || "Falha ao abrir o chamado.", "error");
-    }
-  }
+  // showGlobalFeedback("Abrindo novo chamado...", "info", 1500); // Opcional
+  const dataParaApi = {
+    Titulo: chamadoData.titulo,
+    Descricao: `Categoria: ${chamadoData.categoria}\n\n${chamadoData.descricao}`,
+    // Fotos e UnidadeId são opcionais e seriam adicionados aqui se presentes em chamadoData e suportados pelo DTO.
+  };
+  await apiClient.post("/api/v1/chamados/app/chamados", dataParaApi);
+  await loadInitialFeedItems(); // Propaga erro se houver
 }
 
 async function handleUpdateChamado(id, chamadoData) {
@@ -1961,11 +2472,16 @@ async function handleCreateOcorrencia() {
   const prioridade = ocorrenciaPrioridadeSelect.value || "NORMAL";
 
   if (!titulo || !descricao || !categoria) {
-    showGlobalFeedback(
-      "Preencha título, descrição e categoria da ocorrência.",
-      "warning"
-    );
-    return;
+    const message = "Preencha título, descrição e categoria da ocorrência.";
+    // Precisamos garantir que o modal de ocorrência seja passado ou acessível aqui
+    // Se criarOcorrenciaModal é globalmente acessível:
+    if (criarOcorrenciaModal) { // criarOcorrenciaModal é uma variável global no escopo do módulo
+        showModalError(criarOcorrenciaModal, message);
+    } else {
+        // Fallback se o modal não estiver acessível (improvável neste contexto)
+        showGlobalFeedback(message, "warning");
+    }
+    throw new Error(message); // Lança erro para que o listener do form possa resetar o botão no finally
   }
 
   const formData = new FormData();
@@ -1978,13 +2494,34 @@ async function handleCreateOcorrencia() {
       formData.append("anexos", f)
     );
   }
+  // Adicionar a barra de progresso ao formulário de ocorrências, se não existir
+  let ocorrenciaProgressBar = formCriarOcorrencia.querySelector('.cv-progress');
+  if (!ocorrenciaProgressBar) {
+      ocorrenciaProgressBar = document.createElement('div');
+      ocorrenciaProgressBar.className = 'cv-progress';
+      const bar = document.createElement('div');
+      bar.className = 'cv-progress__bar';
+      ocorrenciaProgressBar.appendChild(bar);
+      formCriarOcorrencia.appendChild(ocorrenciaProgressBar); // Adiciona no final do formulário
+  }
+  ocorrenciaProgressBar.style.display = 'block';
+  ocorrenciaProgressBar.querySelector('.cv-progress__bar').style.width = '0%';
+
 
   try {
-    showGlobalFeedback("Enviando ocorrência...", "info");
-    await postWithFiles("/api/ocorrencias", formData);
+    // showGlobalFeedback("Enviando ocorrência...", "info"); // Spinner e barra são suficientes
+
+    // Usar xhrPost de progress.js que já lida com FormData e token
+    await xhrPost("/api/ocorrencias", formData, (progress) => {
+        if (ocorrenciaProgressBar) {
+            ocorrenciaProgressBar.querySelector('.cv-progress__bar').style.width = `${progress}%`;
+        }
+    }, true); // true indica que é FormData
+    if(ocorrenciaProgressBar) ocorrenciaProgressBar.querySelector('.cv-progress__bar').style.width = '100%';
     showGlobalFeedback(
       "Ocorrência criada com sucesso! Ela aparecerá no feed.",
-      "success"
+      "success",
+      2500
     );
     if (criarOcorrenciaModal) {
       criarOcorrenciaModal.style.display = "none";
@@ -1994,39 +2531,121 @@ async function handleCreateOcorrencia() {
       ocorrenciaAnexosPreviewContainer.innerHTML = "";
     }
     await loadInitialFeedItems();
+    // Sucesso já tratado pelo showGlobalFeedback no try.
   } catch (error) {
     console.error("Erro ao criar ocorrência:", error);
-    if (!error.handledByApiClient) {
-      showGlobalFeedback(
-        error.message || "Falha ao criar a ocorrência.",
-        "error"
-      );
+    const errorMessage = error.detalhesValidacao || error.message || "Falha ao criar a ocorrência.";
+    if (criarOcorrenciaModal) { // criarOcorrenciaModal é global
+        showModalError(criarOcorrenciaModal, errorMessage);
+    } else {
+        // Fallback improvável
+        showGlobalFeedback(errorMessage, "error");
     }
+    throw error; // Relança o erro para o listener do form poder lidar com o finally (reset do botão)
+  } finally {
+    if (ocorrenciaProgressBar) ocorrenciaProgressBar.style.display = 'none';
   }
 }
 
-async function postWithFiles(path, formData) {
-  const token = localStorage.getItem("cv_token");
-  const headers = {};
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  const response = await fetch(
-    (window.APP_CONFIG?.API_BASE_URL || "") + path,
-    {
-      method: "POST",
-      body: formData,
-      headers,
-    }
-  );
-  if (!response.ok) {
-    const data = await response
-      .json()
-      .catch(() => ({ message: `Falha ${response.status}` }));
-    throw new Error(data.message);
-  }
-  return response.headers.get("content-type")?.includes("application/json")
-    ? await response.json()
-    : null;
-}
+// Removido postWithFiles local, pois xhrPost de progress.js será usado.
+//   const token = localStorage.getItem("cv_token");
+//   const headers = {};
+//   if (token) {
+//     headers["Authorization"] = `Bearer ${token}`;
+//   }
+//   const response = await fetch(
+//     (window.APP_CONFIG?.API_BASE_URL || "") + path,
+//     {
+//       method: "POST",
+//       body: formData,
+//       headers,
+//       // Para XHR, a lógica de progresso é diferente.
+//       // Esta função usa fetch, que não suporta onprogress diretamente para upload.
+//       // Para progresso de upload com fetch, precisaríamos de um Service Worker
+//       // ou usar XHR. Dado que `progress.js` usa XHR, vamos adaptar para usar XHR aqui
+//       // ou modificar `xhrPost` para ser mais genérico se ele já não for.
+//       // Por simplicidade, e assumindo que `xhrPost` já existe e é adequado:
+//     }
+//     // Se xhrPost já está em progress.js e faz o que precisamos:
+//     // return xhrPost(path, formData, onProgress, true); // true para indicar que é uma chamada de API autenticada
+//     // Caso contrário, implementamos uma lógica XHR básica aqui:
+//   ); // Fim do fetch original
 
+//   // A lógica de XHR para progresso de upload:
+//   return new Promise((resolve, reject) => {
+//     const xhr = new XMLHttpRequest();
+//     xhr.open("POST", (window.APP_CONFIG?.API_BASE_URL || "") + path, true);
+//     if (token) {
+//       xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+//     }
+//     // Não defina Content-Type para FormData, o XHR faz isso.
+
+//     if (onProgress && typeof onProgress === 'function') {
+//       xhr.upload.onprogress = (event) => {
+//         if (event.lengthComputable) {
+//           const percentComplete = (event.loaded / event.total) * 100;
+//           onProgress(percentComplete);
+//         }
+//       };
+//     }
+
+//     xhr.onload = () => {
+//       if (xhr.status >= 200 && xhr.status < 300) {
+//         try {
+//           const contentType = xhr.getResponseHeader("content-type");
+//           if (contentType && contentType.includes("application/json")) {
+//             resolve(JSON.parse(xhr.responseText));
+//           } else {
+//             resolve(null); // ou xhr.responseText se for texto simples
+//           }
+//         } catch (e) {
+//           resolve(null); // Resposta não-JSON bem-sucedida
+//         }
+//       } else {
+//         try {
+//             const errorData = JSON.parse(xhr.responseText);
+//             reject(new Error(errorData.message || `Falha ${xhr.status}`));
+//         } catch (e) {
+//             reject(new Error(`Falha ${xhr.status}: ${xhr.statusText}`));
+//         }
+//       }
+//     };
+
+//     xhr.onerror = () => {
+//       reject(new Error("Falha de rede ou CORS ao enviar formulário."));
+//     };
+
+//     xhr.send(formData);
+//   });
+// }
+
+// --- Botão Tentar Novamente nos Error States ---
+function setupTryAgainButtons() {
+    document.querySelectorAll(".js-try-again-button").forEach(button => {
+        button.addEventListener("click", (event) => {
+            const buttonEl = event.currentTarget;
+            const contentId = buttonEl.dataset.contentId;
+            if (contentId) {
+                const errorStateDiv = buttonEl.closest(".cv-error-state");
+                if (errorStateDiv) {
+                    errorStateDiv.style.display = "none";
+                }
+
+                // Mostrar skeleton da aba específica antes de tentar recarregar
+                showFeedSkeleton(contentId);
+
+                // Se o contentId for o do mural, ou se a aba ativa for a do mural,
+                // a chamada loadInitialFeedItems já vai lidar com o skeleton do mural.
+                // Se for uma aba específica e não for a mural, o skeleton dela foi ativado acima.
+                // A função loadInitialFeedItems é a principal para carregar o feed.
+                // Ela já usa os filtros e a aba ativa para determinar o que carregar.
+                loadInitialFeedItems();
+            } else {
+                console.warn("Botão 'Tentar Novamente' sem data-content-id definido.");
+                // Fallback geral se não houver contentId (recarrega o feed principal)
+                showFeedSkeleton("content-mural"); // Mostra skeleton do mural como fallback
+                loadInitialFeedItems();
+            }
+        });
+    });
+}
