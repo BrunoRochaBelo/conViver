@@ -3,6 +3,11 @@
                 <button class="cv-tab-button active" id="tab-agenda">Agenda e Disponibilidade</button>
                 <button class="cv-tab-button" id="tab-minhas-reservas">Minhas Reservas</button>
             </div>
+            <button id="open-sort-reservas-button" class="cv-button icon-button" title="Ordenar Reservas">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
             <button id="open-filter-reservas-button" class="cv-button icon-button" title="Filtros">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -62,31 +67,7 @@
             <div id="list-view-container" style="display:none;">
                 <section class="reservas-section cv-card">
                     <h2 class="cv-section__title">Lista de Reservas</h2>
-                    <div class="reservas-filtros-container" style="display:none;">
-                        <div class="cv-form-group">
-                            <label for="filtro-espaco-lista">Espaço Comum:</label>
-                            <select id="filtro-espaco-lista" class="cv-input">
-                                <option value="">Todos</option>
-                                <!-- Populado por JS -->
-                            </select>
-                        </div>
-                        <div class="cv-form-group">
-                            <label for="filtro-status-lista">Status:</label>
-                            <select id="filtro-status-lista" class="cv-input">
-                                <option value="">Todos</option>
-                                <option value="Pendente">Pendente</option>
-                                <option value="Confirmada">Confirmada</option>
-                                <option value="Recusada">Recusada</option>
-                                <option value="CanceladaPeloUsuario">Cancelada</option> <!-- Simplificado para o usuário -->
-                                <!-- <option value="CanceladaPeloSindico">Cancelada pelo Síndico</option> -->
-                            </select>
-                        </div>
-                        <div class="cv-form-group">
-                            <label for="filtro-periodo-lista">Período:</label>
-                            <input type="month" id="filtro-periodo-lista" class="cv-input">
-                        </div>
-                        <button id="btn-aplicar-filtros-lista" class="cv-button cv-button--primary">Filtrar Lista</button>
-                    </div>
+                    <!-- Filtros inline removidos daqui -->
                     <section style="margin-top: var(--cv-spacing-lg);">
                         <div class="feed-skeleton-container" style="display:none;">
                             <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
@@ -103,29 +84,7 @@
         <div class="cv-tab-content" id="content-minhas-reservas" style="display:none;">
             <section class="reservas-section cv-card">
                 <h2 class="cv-section__title">Minhas Reservas</h2>
-                <div class="reservas-filtros-container" style="display:none;">
-                    <div class="cv-form-group">
-                        <label for="filtro-minhas-espaco">Espaço Comum:</label>
-                        <select id="filtro-minhas-espaco" class="cv-input">
-                            <option value="">Todos</option>
-                        </select>
-                    </div>
-                    <div class="cv-form-group">
-                        <label for="filtro-minhas-status">Status:</label>
-                        <select id="filtro-minhas-status" class="cv-input">
-                            <option value="">Todos</option>
-                            <option value="Pendente">Pendente</option>
-                            <option value="Confirmada">Confirmada</option>
-                            <option value="Recusada">Recusada</option>
-                            <option value="CanceladaPeloUsuario">Cancelada</option>
-                        </select>
-                    </div>
-                    <div class="cv-form-group">
-                        <label for="filtro-minhas-periodo">Período:</label>
-                        <input type="month" id="filtro-minhas-periodo" class="cv-input">
-                    </div>
-                    <button id="btn-aplicar-filtros-minhas" class="cv-button cv-button--primary">Filtrar</button>
-                </div>
+                <!-- Filtros inline de Minhas Reservas removidos -->
                 <section class="minhas-reservas-section">
                     <div class="feed-skeleton-container" style="display:none;">
                         <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
@@ -165,6 +124,17 @@
                         <label for="filtro-data-modal-agenda">Mês/Ano:</label>
                         <input type="month" id="filtro-data-modal-agenda" class="cv-input">
                     </div>
+                    <!-- NOVO FILTRO DE STATUS PARA AGENDA NO MODAL -->
+                    <div class="cv-form-group">
+                        <label for="filtro-status-modal-agenda">Status:</label>
+                        <select id="filtro-status-modal-agenda" class="cv-input">
+                            <option value="">Todos</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Confirmada">Confirmada</option>
+                            <option value="Recusada">Recusada</option>
+                            <option value="CanceladaPeloUsuario">Cancelada</option>
+                        </select>
+                    </div>
                 </div>
 
                    <!-- Filtros para Minhas Reservas -->
@@ -197,6 +167,31 @@
                 <div class="cv-form-actions">
                     <button id="aplicar-filtros-modal-reservas" class="cv-button cv-button--primary">Aplicar Filtros</button>
                     <button type="button" class="cv-button js-modal-filtros-reservas-close">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-sort-reservas" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close js-modal-sort-reservas-close">&times;</span>
+            <h2>Ordenação de Reservas</h2>
+            <div class="cv-form">
+                <div class="cv-form-group">
+                    <label for="sort-order-select-reservas">Ordenar por:</label>
+                    <select id="sort-order-select-reservas" class="cv-input">
+                        <option value="dataReservaDesc">Data da Reserva (Mais Recente)</option>
+                        <option value="dataReservaAsc">Data da Reserva (Mais Antiga)</option>
+                        <option value="dataSolicitacaoDesc">Data da Solicitação (Mais Recente)</option>
+                        <option value="dataSolicitacaoAsc">Data da Solicitação (Mais Antiga)</option>
+                        <option value="statusAsc">Status (A-Z)</option>
+                        <option value="statusDesc">Status (Z-A)</option>
+                    </select>
+                </div>
+                <div class="cv-form-actions">
+                    <button id="apply-sort-button-reservas" class="cv-button cv-button--primary">Aplicar</button>
+                    <button type="button" id="clear-sort-button-reservas-modal" class="cv-button">Limpar Ordenação</button>
+                    <button type="button" class="cv-button js-modal-sort-reservas-close">Cancelar</button>
                 </div>
             </div>
         </div>
