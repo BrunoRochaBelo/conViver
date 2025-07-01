@@ -1,6 +1,6 @@
         <div class="cv-tabs" id="reservas-tabs">
             <div class="cv-tabs-buttons">
-                <button class="cv-tab-button active" id="tab-agenda">Agenda e Disponibilidade</button>
+                <button class="cv-tab-button active" id="tab-agenda">Agenda</button>
                 <button class="cv-tab-button" id="tab-minhas-reservas">Minhas Reservas</button>
             </div>
             <!-- Wrapper para alinhar botões à direita -->
@@ -34,17 +34,7 @@
                 <section class="reservas-section cv-card"> <!-- Mantido o cv-card para consistência de fundo e sombra -->
                     <!-- Título e select de display removidos -->
                     <div id="calendario-reservas"></div>
-                    <!-- Lista de reservas do dia selecionado no calendário -->
-                    <section id="agenda-dia-list" class="js-agenda-dia-list feed-grid" style="margin-top:var(--cv-spacing-lg);">
-                         <h3 style="font-size: var(--cv-font-size-lg); color: var(--current-text-secondary); margin-bottom: var(--cv-spacing-md);">Reservas para o dia selecionado:</h3>
-                        <div class="feed-skeleton-container" style="display:none;">
-                            <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
-                        </div>
-                        <div id="agenda-dia-reservas-items" class="card-grid"></div> <!-- card-grid para consistência se for usar cards -->
-                    </section>
-                    <div id="info-espaco-selecionado-calendario" class="cv-card cv-alert cv-alert--info" style="margin-top:var(--cv-spacing-md); display:none; font-size:0.9em;">
-                        <!-- Informações do espaço selecionado no dropdown (se mantido) -->
-                    </div>
+                    <!-- Lista de reservas do dia e info-espaco-selecionado-calendario REMOVIDAS -->
                 </section>
             </div>
 
