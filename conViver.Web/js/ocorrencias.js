@@ -3,13 +3,18 @@ import { requireAuth, getCurrentUser } from './auth.js';
 import { createProgressBar, showProgress, xhrPost } from './progress.js';
 import {
     showGlobalFeedback,
-    createErrorStateElement,
-    createEmptyStateElement,
+    // createErrorStateElement, // Usar de pageLoader
+    // createEmptyStateElement, // Usar de pageLoader
     showModalError,
     clearModalError,
     showSkeleton,
     hideSkeleton
-} from './main.js'; // Importar helpers de UI
+} from './main.js';
+import {
+    showErrorState,
+    showEmptyState,
+    showLoadingState
+} from "./pageLoader.js"; // Assumindo que estão em pageLoader.js
 
 // --- DOM Elements ---
 const listaOcorrenciasEl = document.getElementById('listaOcorrencias');
@@ -321,16 +326,14 @@ function renderOcorrencias(ocorrencias, paginationInfo, append = false) {
             if (paginationInfo.pageNumber < totalPages) {
                 loadMoreContainerEl.style.display = 'block';
                 btnCarregarMaisOcorrenciasEl.disabled = false;
-                // Restore original text if it was changed to "Carregando..."
                 btnCarregarMaisOcorrenciasEl.innerHTML = btnCarregarMaisOcorrenciasEl.dataset.originalText || 'Carregar Mais';
             } else {
                 loadMoreContainerEl.style.display = 'none';
             }
         } else {
-            // If paginationInfo is incomplete or invalid, hide the button to be safe
             loadMoreContainerEl.style.display = 'none';
         }
-    } else if (loadMoreContainerEl) { // If button elements are not found, ensure container is hidden
+    } else if (loadMoreContainerEl) {
         loadMoreContainerEl.style.display = 'none';
     }
 }
@@ -392,66 +395,54 @@ async function loadOcorrencias(page = 1, filter = currentFilter, append = false)
 
     let queryParams = `pagina=${page}&tamanhoPagina=${PAGE_SIZE}`;
 
-    // Status mapping based on filter tabs (adjust if API expects enum keys directly)
-    // The API /api/ocorrencias endpoint uses OcorrenciaQueryParametersDto which has nullable OcorrenciaStatus and OcorrenciaCategoria.
-    // The API also has a 'Minha' boolean.
     switch (filter) {
-        case 'minhas':
-            queryParams += '&minha=true';
-            break;
-        case 'abertas':
-            // This requires knowing which statuses are considered "abertas"
-            // For simplicity, let's assume API can filter by a group or we filter by specific statuses.
-            // Example: queryParams += '&status=ABERTA&status=EM_ANALISE&status=EM_ATENDIMENTO';
-            // If API only takes one status, this needs adjustment or multiple calls.
-            // For now, let's assume the API handles a generic "abertas" concept or specific default open statuses.
-            // The OcorrenciaQueryParametersDto does not have a general "abertas" flag, only specific status.
-            // So, we might need to send multiple status values if the backend supports it, or filter client-side (not ideal for pagination).
-            // Let's assume for now the backend can take a list of statuses or has a default for "abertas" if no status is sent.
-            // For this implementation, I'll send specific statuses that are typically "open".
-            queryParams += '&status=ABERTA&status=EM_ANALISE&status=EM_ATENDIMENTO'; // Example, API must support multiple status params
-            break;
-        case 'resolvidas':
-            queryParams += '&status=RESOLVIDA';
-            break;
-        case 'todas':
-            // No specific status filter, no 'minha' filter unless explicitly set by user controls (not implemented here)
-            break;
-        default: // e.g. if a specific category is a filter
-            queryParams += `&categoria=${filter}`; // Assuming filter could be a category name
-            break;
+        case 'minhas': queryParams += '&minha=true'; break;
+        case 'abertas': queryParams += '&status=ABERTA&status=EM_ANALISE&status=EM_ATENDIMENTO'; break;
+        case 'resolvidas': queryParams += '&status=RESOLVIDA'; break;
+        case 'todas': /* No specific filter */ break;
+        default: queryParams += `&categoria=${filter}`; break;
     }
 
     try {
         const result = await apiClient.get(`/api/ocorrencias?${queryParams}`);
+        // Se não for append, renderOcorrencias cuidará de limpar e mostrar o empty state se necessário.
+        // Se for append, os itens são adicionados.
         renderOcorrencias(result.items, {
             totalCount: result.totalCount,
             pageNumber: result.pageNumber,
             pageSize: result.pageSize
-        }, append); // Pass append flag to renderOcorrencias
+        }, append);
     } catch (error) {
         console.error(`Erro ao carregar ocorrências (${filter}):`, error.message);
-        if (!append) { // Only show full error state if not appending
-            listaOcorrenciasEl.innerHTML = ''; // Limpa qualquer resquício
-        const errorState = createErrorStateElement({
-            title: "Erro ao Carregar Ocorrências",
-            message: error.message || "Não foi possível buscar as ocorrências. Verifique sua conexão e tente novamente.",
-            retryButton: {
-                text: "Tentar Novamente",
-                onClick: () => loadOcorrencias(page, filter)
+        if (!append) {
+            // Para carregamento inicial, showErrorState limpa e exibe o erro.
+            showErrorState(listaOcorrenciasEl,
+                error.message || "Não foi possível buscar as ocorrências. Verifique sua conexão e tente novamente.",
+                // Ícone padrão de erro será usado.
+            );
+            // Adicionar listener para o botão de tentar novamente, se ele foi adicionado por showErrorState
+            const retryButton = listaOcorrenciasEl.querySelector('.error-state__retry-button');
+            if (retryButton) {
+                retryButton.onclick = () => loadOcorrencias(page, filter);
             }
-        });
-        listaOcorrenciasEl.appendChild(errorState);
-        // noOcorrenciasMessageEl não é mais usado para erros
+        } else {
+            // Para 'carregar mais', um feedback global pode ser mais apropriado,
+            // ou uma mensagem discreta perto do botão.
+            showGlobalFeedback("Erro ao carregar mais ocorrências.", "error");
+        }
     } finally {
         isLoading = false;
-        if (!append) { // Only hide main skeleton on full loads
-            if (ocorrenciasLoadingEl) ocorrenciasLoadingEl.style.display = 'none';
+        if (!append) {
+            // Esconder skeleton/loading principal apenas em carregamentos completos.
+            // As funções showEmptyState/showErrorState já limpam o container,
+            // então não precisamos de hideSkeleton aqui se o container for o mesmo.
+            // Se ocorrenciasSkeletonContainerEl for um elemento separado, então:
             if (ocorrenciasSkeletonContainerEl) hideSkeleton(ocorrenciasSkeletonContainerEl);
-        } else if (btnCarregarMaisOcorrenciasEl) { // Reset "Load More" button state if it was an append operation
+            if (ocorrenciasLoadingEl) ocorrenciasLoadingEl.style.display = 'none'; // Legacy loading
+        } else if (btnCarregarMaisOcorrenciasEl) {
             btnCarregarMaisOcorrenciasEl.disabled = false;
             btnCarregarMaisOcorrenciasEl.innerHTML = btnCarregarMaisOcorrenciasEl.dataset.originalText || 'Carregar Mais';
-            // Visibility of the button itself is handled by renderOcorrencias based on totalPages
+            // A visibilidade do botão é tratada em renderOcorrencias.
         }
     }
 }
@@ -755,16 +746,25 @@ function renderComentariosDetalhe(comentarios) {
 async function openDetalheOcorrenciaModal(ocorrenciaId) {
     if (isLoading) return;
     isLoading = true;
-    currentOcorrenciaId = ocorrenciaId; // Set for context (comments, status change)
+    currentOcorrenciaId = ocorrenciaId;
 
-    if (detalheOcorrenciaSkeletonEl) showSkeleton(detalheOcorrenciaSkeletonEl);
-    if (detalheOcorrenciaContentLoadedEl) detalheOcorrenciaContentLoadedEl.style.display = 'none';
-    modalDetalheOcorrencia.style.display = 'flex'; // Show modal first, then load content
+    // Usar showLoadingState para o conteúdo do modal de detalhes
+    if (detalheOcorrenciaContentLoadedEl) { // Onde o conteúdo real será inserido
+        showLoadingState(detalheOcorrenciaContentLoadedEl, "Carregando detalhes da ocorrência...");
+    } else if (modalDetalheOcorrencia.querySelector('.cv-modal-content')) { // Fallback para o content geral do modal
+        showLoadingState(modalDetalheOcorrencia.querySelector('.cv-modal-content'), "Carregando detalhes da ocorrência...");
+    }
+
+    // Esconder o skeleton legado, se ainda estiver sendo usado em algum lugar
+    if (detalheOcorrenciaSkeletonEl) hideSkeleton(detalheOcorrenciaSkeletonEl);
+    modalDetalheOcorrencia.style.display = 'flex';
 
     try {
         const ocorrencia = await apiClient.get(`/api/ocorrencias/${ocorrenciaId}`);
 
-        // Ensure elements are found before setting textContent
+        // Limpar o container (showLoadingState já faz isso) e então preencher
+        if (detalheOcorrenciaContentLoadedEl) detalheOcorrenciaContentLoadedEl.innerHTML = '';
+
         if (detalheTituloEl) detalheTituloEl.textContent = ocorrencia.titulo;
         if (detalheCategoriaEl) detalheCategoriaEl.textContent = ocorrencia.categoria.replace(/_/g, ' ');
         detalheStatusEl.innerHTML = renderStatusTag(ocorrencia.status, ocorrencia.status.replace(/_/g, ' '));
@@ -779,57 +779,48 @@ async function openDetalheOcorrenciaModal(ocorrenciaId) {
         renderHistoricoStatusDetalhe(ocorrencia.historicoStatus || []);
         renderComentariosDetalhe(ocorrencia.comentarios || []);
 
-        // Reset "add more anexos"
         detalheNovosAnexosInput.value = '';
         novosAnexosPreviewContainer.innerHTML = '';
 
-        // Control visibility of action buttons
-        if (canUserChangeStatus(ocorrencia)) { // Admin/Sindico for general status change
+        if (canUserChangeStatus(ocorrencia)) {
             btnAlterarStatus.style.display = 'inline-block';
         } else {
             btnAlterarStatus.style.display = 'none';
         }
-
-        if (canUserManageOcorrencia(ocorrencia)) { // Admin/Sindico for delete
+        if (canUserManageOcorrencia(ocorrencia)) {
              btnExcluirOcorrencia.style.display = 'inline-block';
         } else {
             btnExcluirOcorrencia.style.display = 'none';
         }
 
-        // Show/Hide comment form based on permissions or if occurrence is closed
         const isResolvidaOuCancelada = ocorrencia.status === 'RESOLVIDA' || ocorrencia.status === 'CANCELADA';
         const formComentarioContainer = document.getElementById('comentarioFormContainer');
         if (formComentarioContainer) {
             formComentarioContainer.style.display = (isResolvidaOuCancelada && !canUserManageOcorrencia(ocorrencia)) ? 'none' : 'block';
         }
-        // Show/Hide "add more anexos" based on permissions or if occurrence is closed
         const detalheNovosAnexosFormGroup = detalheNovosAnexosInput.closest('.cv-form__group');
          if (detalheNovosAnexosFormGroup) {
             detalheNovosAnexosFormGroup.style.display = (isResolvidaOuCancelada && !canUserManageOcorrencia(ocorrencia)) ? 'none' : 'block';
         }
-
-        if (detalheOcorrenciaContentLoadedEl) detalheOcorrenciaContentLoadedEl.style.display = 'block'; // Show content
+        // Garantir que a área de conteúdo principal seja exibida após o carregamento
+        if (detalheOcorrenciaContentLoadedEl) detalheOcorrenciaContentLoadedEl.style.display = 'block';
 
     } catch (error) {
         console.error(`Erro ao carregar detalhes da ocorrência ${ocorrenciaId}:`, error);
-        currentOcorrenciaId = null; // Reset current ID
-        if (detalheOcorrenciaContentLoadedEl) { // Ensure content area is clean for error state
-            detalheOcorrenciaContentLoadedEl.innerHTML = ''; // Clear any partial content
-            const errorState = createErrorStateElement({
-                title: "Erro ao Carregar Detalhes",
-                message: error.message || "Não foi possível carregar os detalhes da ocorrência. Verifique sua conexão e tente novamente.",
-                retryButton: {
-                    text: "Tentar Novamente",
-                    onClick: () => openDetalheOcorrenciaModal(ocorrenciaId) // Pass the original ID for retry
-                }
-            });
-            detalheOcorrenciaContentLoadedEl.appendChild(errorState);
-            detalheOcorrenciaContentLoadedEl.style.display = 'block'; // Make sure this container is visible
+        currentOcorrenciaId = null;
+        const targetErrorContainer = detalheOcorrenciaContentLoadedEl || modalDetalheOcorrencia.querySelector('.cv-modal-content');
+        if (targetErrorContainer) {
+            showErrorState(targetErrorContainer,
+                error.message || "Não foi possível carregar os detalhes da ocorrência. Verifique sua conexão e tente novamente."
+            );
+            const retryButton = targetErrorContainer.querySelector('.error-state__retry-button');
+            if (retryButton) {
+                retryButton.onclick = () => openDetalheOcorrenciaModal(ocorrenciaId);
+            }
         }
-        // showGlobalFeedback(`Erro ao carregar detalhes da ocorrência: ${error.message || 'Tente novamente.'}`, 'error', 6000); // Removed
     } finally {
         isLoading = false;
-        if (detalheOcorrenciaSkeletonEl) hideSkeleton(detalheOcorrenciaSkeletonEl);
+        // O skeleton legado já foi escondido. O estado de loading é substituído por conteúdo ou erro.
     }
 }
 

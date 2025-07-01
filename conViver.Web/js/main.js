@@ -356,33 +356,27 @@ export function showModalError(modalElement, message) {
     if (!errorContainer) {
         errorContainer = document.createElement('div');
         errorContainer.className = 'cv-modal-error-message';
-        // Estilos aplicados diretamente para garantir visibilidade e feedback de erro
-        errorContainer.style.color = 'var(--current-semantic-error, #e53935)';
-        errorContainer.style.backgroundColor = 'var(--current-color-error-bg, #ffebee)';
-        errorContainer.style.padding = 'var(--cv-spacing-sm, 8px) var(--cv-spacing-md, 16px)';
-        errorContainer.style.marginTop = 'var(--cv-spacing-md, 16px)';
-        errorContainer.style.marginBottom = 'var(--cv-spacing-sm, 8px)';
-        errorContainer.style.borderRadius = 'var(--cv-border-radius-md, 8px)';
-        errorContainer.style.fontSize = '0.9em';
-        errorContainer.style.textAlign = 'center';
-        errorContainer.style.border = `1px solid var(--current-semantic-error-darker, #c62828)`;
+        // Estilos são aplicados via CSS pela classe .cv-modal-error-message
+        // Se precisar de estilos inline como fallback, eles podem ser adicionados aqui.
+        // Exemplo: errorContainer.style.color = 'var(--current-semantic-error)'; ...
 
         const modalContent = modalElement.querySelector('.cv-modal-content');
-        const modalFooter = modalElement.querySelector('.cv-modal-footer');
+        const formActions = modalContent ? modalContent.querySelector('.cv-form-actions') : null; // Procurar por .cv-form-actions
 
         if (modalContent) {
-            if (modalFooter) {
-                modalContent.insertBefore(errorContainer, modalFooter);
-            } else {
+            if (formActions) { // Inserir antes dos botões de ação do formulário, se existirem
+                modalContent.insertBefore(errorContainer, formActions);
+            } else { // Ou no final do conteúdo do modal
                 modalContent.appendChild(errorContainer);
             }
         } else {
+            // Fallback se .cv-modal-content não for encontrado (menos ideal)
             modalElement.appendChild(errorContainer);
             console.warn("showModalError: '.cv-modal-content' não encontrado. Mensagem de erro adicionada ao root do modal.", modalElement);
         }
     }
     errorContainer.textContent = message;
-    errorContainer.style.display = 'block';
+    errorContainer.style.display = 'block'; // Garante que está visível
 }
 
 /**
