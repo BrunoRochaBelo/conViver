@@ -303,8 +303,9 @@ async function request(path, options = {}) {
                 `Network or unexpected error during API Request: ${method} ${url}. Error: ${error.message}`,
                 { url, requestOptions: loggedOptions, originalError: error }
             );
-            showGlobalFeedback(displayErrorMessage, 'error');
-            throw new ApiError(displayErrorMessage, null, url, loggedOptions, null); // Wrap in ApiError
+            const apiError = new ApiError(displayErrorMessage, null, url, loggedOptions, null); // Wrap in ApiError
+            apiError.handledByApiClient = true; // prevent duplicate toasts
+            throw apiError;
         }
     } finally {
         if (skeletonTimer) clearTimeout(skeletonTimer);

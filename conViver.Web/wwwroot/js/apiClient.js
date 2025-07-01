@@ -97,7 +97,9 @@ async function request(path, options = {}) {
                 `Network or unexpected error during API Request: ${method} ${url}. Error: ${error.message}`,
                 { url, requestOptions: loggedOptions, originalError: error }
             );
-            throw new ApiError(`Network request failed for ${method} ${url}. ${error.message}`, null, url, loggedOptions);
+            const apiError = new ApiError(`Network request failed for ${method} ${url}. ${error.message}`, null, url, loggedOptions);
+            apiError.handledByApiClient = true;
+            throw apiError;
         }
     } finally {
         // no overlay to hide
