@@ -16,7 +16,7 @@ $routes = @(
     '/pages/financeiro.html',
     '/pages/portaria.html',
     '/pages/ocorrencias.html',
-    '/pages/reservas.html'
+    '/pages/calendario.html'
 )
 
 Write-Host "Starting web server..."
