@@ -305,26 +305,29 @@ function setupTabs() {
   if (initialActiveTab) initialActiveTab.click();
 }
 
-function toggleAgendaView(showCalendar) {
-  if (showCalendar) {
-    calendarioViewContainer.style.display = "block";
-    listViewContainer.style.display = "none";
-    viewToggleSwitch.checked = true; // Garante que o switch reflita o estado
-    // Recarregar/refetch eventos do calendário se necessário
-    calendarioReservas?.refetchEvents();
-    // Carregar lista de reservas do dia (se a data já estiver selecionada)
-    if(dataSelecionadaAgenda) carregarReservasDia(dataSelecionadaAgenda);
-  } else {
+/**
+ * Alterna a visualização na aba Agenda entre Calendário e Lista.
+ * @param {boolean} showList Se true, mostra a Lista; senão, mostra o Calendário.
+ */
+function toggleAgendaView(showList) {
+  if (showList) { // Mostrar Lista
     calendarioViewContainer.style.display = "none";
     listViewContainer.style.display = "block"; // Ou 'grid' se usar .feed-grid
-    viewToggleSwitch.checked = false; // Garante que o switch reflita o estado
-    // Carregar dados da lista se ainda não carregados
+    if (viewToggleSwitch) viewToggleSwitch.checked = true; // Switch marcado = Lista
+
     const listItemsEl = document.getElementById(listViewItemsContainerId);
     if (!listItemsEl.dataset.loadedOnce || !listItemsEl.innerHTML.trim()) {
       currentPageListView = 1;
       noMoreItemsListView = false;
       carregarReservasListView(1, false);
     }
+  } else { // Mostrar Calendário
+    calendarioViewContainer.style.display = "block";
+    listViewContainer.style.display = "none";
+    if (viewToggleSwitch) viewToggleSwitch.checked = false; // Switch desmarcado = Calendário
+
+    calendarioReservas?.refetchEvents();
+    if (dataSelecionadaAgenda) carregarReservasDia(dataSelecionadaAgenda);
   }
 }
 
