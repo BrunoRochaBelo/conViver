@@ -520,3 +520,172 @@
 .fc .fc-timegrid-slot-lane:hover {
     background-color: var(--current-bg-subtle-hover, #f0f3f5); /* Reafirmar o hover */
 }
+
+/* ==========================================================================
+   Tema Escuro para FullCalendar
+   ========================================================================== */
+
+html[data-theme='dark'] .fc {
+    background-color: var(--current-dark-bg-secondary, #2c2c2e); /* Fundo escuro para o card do calendário */
+    border-color: var(--current-dark-border-subtle, #3a3a3c);
+    color: var(--current-dark-text-primary, #ffffff);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* Sombra um pouco mais pronunciada no escuro */
+}
+
+html[data-theme='dark'] .fc th, /* Cabeçalho dos dias da semana */
+html[data-theme='dark'] .fc td,
+html[data-theme='dark'] .fc hr,
+html[data-theme='dark'] .fc thead,
+html[data-theme='dark'] .fc tbody,
+html[data-theme='dark'] .fc .fc-scrollgrid,
+html[data-theme='dark'] .fc .fc-list,
+html[data-theme='dark'] .fc .fc-list-empty {
+    border-color: var(--current-dark-border-ultra-subtle, #444446); /* Borda interna MUITO sutil no escuro */
+}
+
+html[data-theme='dark'] .fc a {
+    color: var(--current-dark-primary-accent, #0a84ff); /* Azul Apple mais brilhante para tema escuro */
+}
+html[data-theme='dark'] .fc a:hover {
+    color: var(--current-dark-primary-accent-hover, #389dff);
+}
+
+/* Cabeçalho (Toolbar) - Tema Escuro */
+html[data-theme='dark'] .fc .fc-toolbar.fc-header-toolbar {
+    border-bottom-color: var(--current-dark-border-subtle, #3a3a3c);
+}
+
+html[data-theme='dark'] .fc .fc-toolbar-title {
+    color: var(--current-dark-text-primary, #ffffff);
+}
+
+html[data-theme='dark'] .fc .fc-button {
+    background-color: var(--current-dark-bg-controls, #3a3a3c);
+    color: var(--current-dark-text-primary, #ffffff);
+    border-color: var(--current-dark-border-controls, #545458);
+}
+
+html[data-theme='dark'] .fc .fc-button:hover {
+    background-color: var(--current-dark-bg-controls-hover, #545458);
+    border-color: var(--current-dark-border-controls-hover, #636366);
+}
+
+html[data-theme='dark'] .fc .fc-button:active,
+html[data-theme='dark'] .fc .fc-button.fc-button-active {
+    background-color: var(--current-dark-primary-accent, #0a84ff);
+    color: #ffffff; /* Texto branco no botão ativo azul */
+    border-color: var(--current-dark-primary-accent, #0a84ff);
+}
+html[data-theme='dark'] .fc .fc-button.fc-button-active:hover {
+     background-color: var(--current-dark-primary-accent-hover, #389dff);
+     border-color: var(--current-dark-primary-accent-hover, #389dff);
+}
+
+/* Grid e Células - Tema Escuro */
+html[data-theme='dark'] .fc .fc-col-header-cell { /* Cabeçalho dos dias da semana (Dom, Seg...) */
+    color: var(--current-dark-text-secondary, #8e8e93);
+    border-color: var(--current-dark-border-subtle, #3a3a3c);
+}
+
+html[data-theme='dark'] .fc .fc-daygrid-day:hover .fc-daygrid-day-frame,
+html[data-theme='dark'] .fc .fc-timegrid-slot:hover {
+    background-color: var(--current-dark-bg-subtle-hover, #3a3a3c);
+}
+
+html[data-theme='dark'] .fc .fc-daygrid-day-number {
+    color: var(--current-dark-text-secondary, #aeaeb2);
+}
+
+html[data-theme='dark'] .fc .fc-day-today .fc-daygrid-day-frame {
+    background-color: var(--current-dark-bg-today, #1c3d5f); /* Fundo azul escuro sutil para hoje */
+}
+html[data-theme='dark'] .fc .fc-day-today .fc-daygrid-day-number {
+    background-color: var(--current-dark-primary-accent, #0a84ff);
+    color: #ffffff; /* Texto branco no número do dia atual */
+}
+
+html[data-theme='dark'] .fc .fc-day-other .fc-daygrid-day-number {
+    color: var(--current-dark-text-disabled, #505054);
+}
+html[data-theme='dark'] .fc .fc-day-other .fc-daygrid-day-frame {
+    background-color: var(--current-dark-bg-other-month, #222224); /* Fundo ainda mais escuro para outros meses */
+}
+
+/* Linhas da visualização de semana/dia (TimeGrid) - Tema Escuro */
+html[data-theme='dark'] .fc .fc-timegrid-slot {
+    border-bottom-color: var(--current-dark-border-ultra-subtle, #444446);
+}
+html[data-theme='dark'] .fc .fc-timegrid-slot-label {
+    color: var(--current-dark-text-secondary, #8e8e93);
+}
+html[data-theme='dark'] .fc .fc-timegrid-now-indicator-line {
+    border-color: var(--current-dark-semantic-danger, #ff453a); /* Vermelho Apple mais brilhante para tema escuro */
+}
+html[data-theme='dark'] .fc .fc-timegrid-now-indicator-arrow {
+    border-top-color: var(--current-dark-semantic-danger, #ff453a);
+}
+
+/* Scrollbars - Tema Escuro */
+html[data-theme='dark'] .fc .fc-scroller {
+    scrollbar-color: var(--current-dark-border-controls, #545458) var(--current-dark-bg-secondary, #2c2c2e);
+}
+html[data-theme='dark'] .fc .fc-scroller::-webkit-scrollbar-track {
+    background: var(--current-dark-bg-secondary, #2c2c2e);
+}
+html[data-theme='dark'] .fc .fc-scroller::-webkit-scrollbar-thumb {
+    background-color: var(--current-dark-border-controls, #545458);
+    border-color: var(--current-dark-bg-secondary, #2c2c2e);
+}
+html[data-theme='dark'] .fc .fc-scroller::-webkit-scrollbar-thumb:hover {
+    background-color: var(--current-dark-border-controls-hover, #636366);
+}
+
+/* List view - Tema Escuro */
+html[data-theme='dark'] .fc .fc-list-day th {
+    background-color: var(--current-dark-bg-tertiary, #1c1c1e);
+    color: var(--current-dark-text-primary, #ffffff);
+}
+html[data-theme='dark'] .fc .fc-list-event:hover td {
+    background-color: var(--current-dark-bg-subtle-hover, #3a3a3c);
+}
+html[data-theme='dark'] .fc .fc-list-event-time {
+    color: var(--current-dark-text-secondary, #aeaeb2);
+}
+html[data-theme='dark'] .fc .fc-list-empty {
+    color: var(--current-dark-text-secondary, #8e8e93);
+}
+
+/* Eventos - Tema Escuro */
+/* Ajustar as variáveis CSS do FullCalendar para cores de evento padrão no tema escuro */
+html[data-theme='dark'] .fc {
+    --fc-event-bg-color: var(--current-dark-primary-accent-light, #2a3d5c); /* Um azul escuro/acinzentado para eventos padrão */
+    --fc-event-border-color: var(--current-dark-primary-accent, #0a84ff);
+    --fc-event-text-color: var(--current-dark-primary-accent-text, #d0e8ff); /* Texto claro para contraste com fundo escuro do evento */
+}
+
+/* Exemplo de como estilizar eventos com status específicos no tema escuro */
+html[data-theme='dark'] .fc-event.fc-event-confirmed {
+    /* --fc-event-bg-color: var(--current-dark-semantic-success-light, #1c4a36);
+    --fc-event-border-color: var(--current-dark-semantic-success, #30d158);
+    --fc-event-text-color: var(--current-dark-semantic-success-text, #d4f5dd); */
+}
+html[data-theme='dark'] .fc-event.fc-event-pending {
+     /* --fc-event-bg-color: var(--current-dark-semantic-warning-light, #5c4b00);
+    --fc-event-border-color: var(--current-dark-semantic-warning, #ffd60a);
+    --fc-event-text-color: var(--current-dark-semantic-warning-text, #fff5cc); */
+}
+
+html[data-theme='dark'] .fc-event.fc-event-past {
+    opacity: 0.65; /* Ainda mais sutil no tema escuro */
+}
+html[data-theme='dark'] .fc-event.fc-event-past:hover {
+    opacity: 0.9;
+}
+
+/* Foco visível para tema escuro */
+html[data-theme='dark'] .fc .fc-button:focus-visible,
+html[data-theme='dark'] .fc .fc-daygrid-day-number:focus-visible,
+html[data-theme='dark'] .fc .fc-event:focus-visible {
+    outline-color: var(--current-dark-focus-ring-color, #0a84ff);
+    box-shadow: 0 0 0 3px var(--current-dark-focus-ring-shadow, rgba(10,132,255,0.3));
+}
