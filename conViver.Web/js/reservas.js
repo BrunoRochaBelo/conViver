@@ -1,4 +1,4 @@
-import { showGlobalFeedback, createErrorStateElement, createEmptyStateElement } from "./main.js";
+import { showGlobalFeedback, createErrorStateElement, createEmptyStateElement, debugLog } from "./main.js";
 import { requireAuth, getUserInfo, getRoles } from "./auth.js";
 import apiClient from "./apiClient.js";
 import { initFabMenu } from "./fabMenu.js";
@@ -160,9 +160,9 @@ export async function initialize() {
 
   // Modal de filtros gerais
   if (openFilterReservasButton && filtrosModal) {
-        console.log("Filter modal button and modal element found. Attaching listener."); // Log
+        debugLog("Filter modal button and modal element found. Attaching listener.");
     openFilterReservasButton.addEventListener("click", () => {
-            console.log("Filter icon button clicked."); // Log
+            debugLog("Filter icon button clicked.");
       // Determine active tab to show correct filters
       const agendaTabActive = tabAgendaBtn.classList.contains("active");
       const minhasReservasTabActive = tabMinhasBtn.classList.contains("active");
@@ -199,9 +199,9 @@ export async function initialize() {
         if (filtrosAgendaContent) filtrosAgendaContent.style.display = "none";
         if (filtrosMinhasReservasContent) filtrosMinhasReservasContent.style.display = "none";
       }
-      console.log(`Attempting to show modal. Current display: ${filtrosModal.style.display}`); // Log
+      debugLog(`Attempting to show modal. Current display: ${filtrosModal.style.display}`);
       filtrosModal.style.display = "flex";
-      console.log(`Modal display set to: ${filtrosModal.style.display}`); // Log
+      debugLog(`Modal display set to: ${filtrosModal.style.display}`);
     });
 
     filtrosModal
@@ -900,7 +900,7 @@ function setupTabs() {
 
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      console.log(`Tab clicked: ${button.id}`);
+      debugLog(`Tab clicked: ${button.id}`);
       tabButtons.forEach((btn) => btn.classList.remove("active"));
       button.classList.add("active");
 
@@ -909,29 +909,29 @@ function setupTabs() {
       });
 
       const targetContentId = "content-" + button.id.replace("tab-", "");
-      console.log(`Target content ID: ${targetContentId}`);
+      debugLog(`Target content ID: ${targetContentId}`);
       const target = document.getElementById(targetContentId);
       if (target) {
         target.style.display = "block";
-        console.log(`Displayed content: ${target.id}`);
+        debugLog(`Displayed content: ${target.id}`);
       } else {
         console.error(`Target content pane with ID ${targetContentId} not found.`);
       }
 
       if (button.id === "tab-minhas-reservas") {
-        console.log("Handling 'tab-minhas-reservas' activation.");
+        debugLog("Handling 'tab-minhas-reservas' activation.");
         const container = document.getElementById(minhasReservasItemsContainerId);
         if (!container) {
           console.error(`Container for minhas reservas (#${minhasReservasItemsContainerId}) not found.`);
           return;
         }
-        console.log(`'Minhas Reservas' container found. LoadedOnce: ${container.dataset.loadedOnce}, empty: ${!container.innerHTML.trim()}`);
+        debugLog(`'Minhas Reservas' container found. LoadedOnce: ${container.dataset.loadedOnce}, empty: ${!container.innerHTML.trim()}`);
         if (
           !container.dataset.loadedOnce ||
           !container.innerHTML.trim() ||
           container.querySelector(".cv-loading-message")
         ) {
-          console.log("Loading 'Minhas Reservas' now.");
+          debugLog("Loading 'Minhas Reservas' now.");
           currentPageMinhasReservas = 1;
           noMoreItemsMinhasReservas = false;
           carregarMinhasReservas(1, false);

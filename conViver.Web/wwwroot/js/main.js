@@ -4,6 +4,12 @@
  * Funções Utilitárias Globais e Inicializações Comuns
  */
 
+export function debugLog(...args) {
+  if (window.APP_CONFIG?.ENABLE_DEBUG_LOGS) {
+    console.log(...args);
+  }
+}
+
 /**
  * Formata um objeto Date para o formato dd/mm/yyyy.
  * @param {Date} date O objeto Date a ser formatado.
@@ -184,4 +190,4 @@ export function hideSkeleton(target) {
 //   // Inicializações globais aqui
 // });
 
-console.log('main.js carregado.');
+debugLog('main.js carregado.');

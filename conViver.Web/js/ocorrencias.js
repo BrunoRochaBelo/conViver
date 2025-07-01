@@ -8,7 +8,8 @@ import {
     showModalError,
     clearModalError,
     showSkeleton,
-    hideSkeleton
+    hideSkeleton,
+    debugLog
 } from './main.js'; // Importar helpers de UI
 
 // --- DOM Elements ---
@@ -222,7 +223,7 @@ async function fetchCurrentUser() {
                 nome: userData.nome, // Assuming 'nome' is part of userData
                 roles: userData.roles || ['Morador'] // Default to 'Morador' if roles not present
             };
-            console.log('Current user:', currentUser);
+            debugLog('Current user:', currentUser);
         } else {
              throw new Error("Dados do usuário não retornados pela API.");
         }
@@ -526,7 +527,7 @@ async function handleNovaOcorrenciaSubmit(event) {
         const result = await postWithFiles('/api/ocorrencias', formData, p => showProgress(novaOcorrenciaProgress, p));
         showProgress(novaOcorrenciaProgress, 100);
 
-        console.log('Nova ocorrência criada:', result);
+        debugLog('Nova ocorrência criada:', result);
         closeNovaOcorrenciaModal();
 
         // Optimistic UI: Add the new card directly
@@ -1085,4 +1086,4 @@ function canCreateOcorrencia() {
 if (ocorrenciasLoadingEl) ocorrenciasLoadingEl.style.display = 'block';
 if (noOcorrenciasMessageEl) noOcorrenciasMessageEl.style.display = 'none';
 
-console.log('ocorrencias.js loaded and initial setup complete.');
+debugLog('ocorrencias.js loaded and initial setup complete.');

@@ -8,7 +8,8 @@ import {
     createErrorStateElement, // Adicionado
     createEmptyStateElement, // Adicionado
     showModalError,          // Adicionado
-    clearModalError          // Adicionado
+    clearModalError,         // Adicionado
+    debugLog
 } from './main.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
@@ -565,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         text: "Adicionar Despesa",
                         onClick: () => {
                             // Placeholder: Logic to open a modal or navigate to a form for adding expenses
-                            console.log("Botão 'Adicionar Despesa' clicado. Implementar ação.");
+                            debugLog("Botão 'Adicionar Despesa' clicado. Implementar ação.");
                             showGlobalFeedback("Funcionalidade 'Adicionar Despesa' a ser implementada.", "info");
                         },
                         classes: ["cv-button--primary"]

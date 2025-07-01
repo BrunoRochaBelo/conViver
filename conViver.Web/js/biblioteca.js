@@ -1,6 +1,6 @@
 import apiClient from './apiClient.js';
 import { requireAuth, getUserRoles } from './auth.js'; // Supondo que getUserRoles exista ou será criado
-import { showGlobalFeedback, createErrorStateElement, createEmptyStateElement, debounce } from './main.js';
+import { showGlobalFeedback, createErrorStateElement, createEmptyStateElement, debounce, debugLog } from './main.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js'; // skeleton.js re-exporta de main.js
 import { createProgressBar, showProgress, xhrPost } from './progress.js';
 
@@ -44,7 +44,7 @@ function initializeBibliotecaPage() {
     if (searchInput) searchInput.addEventListener('input', debounce(loadDocumentos, 300));
     if (categoryFilter) categoryFilter.addEventListener('change', () => loadDocumentos());
 
-    console.log('Página da Biblioteca inicializada.');
+    debugLog('Página da Biblioteca inicializada.');
 }
 
 async function loadDocumentos() {

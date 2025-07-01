@@ -4,6 +4,12 @@
  * Funções Utilitárias Globais e Inicializações Comuns
  */
 
+export function debugLog(...args) {
+  if (window.APP_CONFIG?.ENABLE_DEBUG_LOGS) {
+    console.log(...args);
+  }
+}
+
 /**
  * Formata um objeto Date para o formato dd/mm/yyyy.
  * @param {Date} date O objeto Date a ser formatado.
@@ -219,7 +225,7 @@ export function showInlineSpinner(element) {
 //   // Inicializações globais aqui
 // });
 
-console.log('main.js carregado.');
+debugLog('main.js carregado.');
 
 /**
  * Cria e retorna um elemento HTML para o "Empty State".
@@ -337,8 +343,8 @@ export function createErrorStateElement({ iconHTML, title = "Oops! Algo deu erra
     return errorState;
 }
 
-// Adicionar console.log no final para teste de carregamento do script
-console.log('main.js com helpers de state e modal error carregado.');
+// Adicionado log opcional de carregamento do script
+debugLog('main.js com helpers de state e modal error carregado.');
 
 // --- Funções Auxiliares para Erro em Modal (Movidas de comunicacao.js) ---
 /**

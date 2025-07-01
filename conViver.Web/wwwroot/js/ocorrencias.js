@@ -1,5 +1,6 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth, getCurrentUser } from './auth.js';
+import { debugLog } from './main.js';
 
 // --- DOM Elements ---
 const listaOcorrenciasEl = document.getElementById('listaOcorrencias');
@@ -225,7 +226,7 @@ async function fetchCurrentUser() {
                 nome: userData.nome, // Assuming 'nome' is part of userData
                 roles: userData.roles || ['Morador'] // Default to 'Morador' if roles not present
             };
-            console.log('Current user:', currentUser);
+            debugLog('Current user:', currentUser);
         } else {
              throw new Error("Dados do usuário não retornados pela API.");
         }
@@ -415,7 +416,7 @@ async function handleNovaOcorrenciaSubmit(event) {
         // Using the local postWithFiles helper
         const result = await postWithFiles('/api/ocorrencias', formData);
         // The API returns the created object directly, no need to check _isFromLocationHeader if it's JSON
-        console.log('Nova ocorrência criada:', result);
+        debugLog('Nova ocorrência criada:', result);
         closeNovaOcorrenciaModal();
         await loadOcorrencias(1, 'minhas'); // Refresh list to 'minhas' and go to first page
         // TODO: Show success message (e.g., using a global banner)
@@ -786,4 +787,4 @@ function canCreateOcorrencia() {
 if (ocorrenciasLoadingEl) ocorrenciasLoadingEl.style.display = 'block';
 if (noOcorrenciasMessageEl) noOcorrenciasMessageEl.style.display = 'none';
 
-console.log('ocorrencias.js loaded and initial setup complete.');
+debugLog('ocorrencias.js loaded and initial setup complete.');
