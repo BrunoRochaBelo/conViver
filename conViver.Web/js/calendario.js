@@ -4,12 +4,8 @@ import apiClient from "./apiClient.js";
 import { initFabMenu } from "./fabMenu.js";
 
 // FullCalendar (global)
-const {
-  Calendar: FullCalendarCalendar,
-  dayGridPlugin,
-  timeGridPlugin,
-  listPlugin,
-} = window.FullCalendar || {};
+const FullCalendarCalendar = window.FullCalendar?.Calendar;
+// Os plugins (dayGridPlugin, timeGridPlugin, listPlugin) são incluídos automaticamente pelo bundle standard index.global.min.js
 
 // --- State & Constants ---
 let espacosComunsList = [];
@@ -1020,13 +1016,19 @@ function createEspacoCard(espaco) { // Para a lista de gerenciamento de espaços
 // --- FullCalendar ---
 function initializeFullCalendar() {
   const el = document.getElementById("calendario-reservas");
-  if (!el || !FullCalendarCalendar) {
-    console.error("Elemento do FullCalendar ou biblioteca não encontrados.");
+  if (!el) {
+    console.error("Elemento do FullCalendar (#calendario-reservas) não encontrado.");
+    return;
+  }
+  if (!FullCalendarCalendar) {
+    console.error("Biblioteca FullCalendar não encontrada globalmente (FullCalendar.Calendar). Verifique se o bundle index.global.min.js está carregado corretamente.");
     return;
   }
   calendarioReservas = new FullCalendarCalendar(el, {
     locale: "pt-br",
-    plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
+    // Não é necessário listar os plugins aqui se estiver usando o bundle standard (index.global.min.js)
+    // que já os inclui (dayGrid, timeGrid, list).
+    // plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
     initialView: "dayGridMonth",
     headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay" },
     buttonText: { today: "Hoje", month: "Mês", week: "Semana", day: "Dia", list: "Lista" },
