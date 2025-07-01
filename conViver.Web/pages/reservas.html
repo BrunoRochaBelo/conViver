@@ -1,14 +1,8 @@
         <div class="cv-tabs" id="reservas-tabs">
             <div class="cv-tabs-buttons">
-                <button class="cv-tab-button active" id="tab-agenda">Agenda</button>
+                <button class="cv-tab-button active" id="tab-agenda">Agenda e Disponibilidade</button>
                 <button class="cv-tab-button" id="tab-minhas-reservas">Minhas Reservas</button>
             </div>
-            <!-- Botões de Ação Globais para a Página -->
-            <button id="open-sort-reservas-button" class="cv-button icon-button" title="Ordenar">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-            </button>
             <button id="open-filter-reservas-button" class="cv-button icon-button" title="Filtros">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -16,185 +10,199 @@
             </button>
         </div>
 
-        <div class="cv-tab-content active" id="content-agenda">
+        <div class="cv-tab-content" id="content-agenda">
+
             <div class="reservas-view-toggle">
                 <button id="btn-view-calendario" class="cv-button cv-button--primary">Calendário</button>
-                <button id="btn-view-lista" class="cv-button">Lista Cronológica</button>
+                <button id="btn-view-lista" class="cv-button">Lista</button>
             </div>
 
-            <!-- Container para a Visualização em Calendário -->
-            <div id="calendario-view-container" class="reservas-view">
-                <section class="reservas-section">
-                    <!-- Título removido, filtros movidos para modal -->
-                    <div id="calendario-reservas" class="cv-card"></div> <!-- Calendário em si -->
-                    <section id="agenda-dia-list" class="js-agenda-dia-list card-grid-single-column" style="margin-top:var(--cv-spacing-lg);">
+            <div id="calendario-view-container">
+                <section class="reservas-section cv-card">
+                    <h2 class="cv-section__title">Agenda e Disponibilidade</h2>
+                    <div class="reservas-filtros-container" style="display:none;">
+                        <div class="cv-form-group">
+                            <label for="select-espaco-comum-calendario">Filtrar por Espaço Comum:</label>
+                            <select id="select-espaco-comum-calendario" class="cv-input">
+                                <option value="">Todos os Espaços</option>
+                            </select>
+                        </div>
+                        <div id="filtros-reservas-admin-calendario" class="cv-form" style="flex-basis: 100%; display:flex; gap: var(--cv-spacing-md); flex-wrap: wrap; align-items: flex-end; display: none;">
+                            <div class="cv-form-group">
+                                <label for="filtro-status-reserva-calendario">Status:</label>
+                                <select id="filtro-status-reserva-calendario" class="cv-input">
+                                    <option value="">Todos</option>
+                                    <option value="Pendente">Pendente</option>
+                                    <option value="Confirmada">Confirmada</option>
+                                    <option value="Recusada">Recusada</option>
+                                    <option value="CanceladaPeloUsuario">Cancelada pelo Usuário</option>
+                                    <option value="CanceladaPeloSindico">Cancelada pelo Síndico</option>
+                                </select>
+                            </div>
+                            <div class="cv-form-group">
+                                <label for="filtro-unidade-reserva-calendario">ID da Unidade:</label>
+                                <input type="text" id="filtro-unidade-reserva-calendario" class="cv-input" placeholder="Guid da Unidade">
+                            </div>
+                            <button id="btn-aplicar-filtros-calendario-sindico" class="cv-button cv-button--primary">Filtrar Agenda</button>
+                        </div>
+                    </div>
+                    <div id="calendario-reservas"></div>
+                    <section id="agenda-dia-list" class="js-agenda-dia-list" style="margin-top:var(--cv-spacing-lg);">
                         <div class="feed-skeleton-container" style="display:none;">
                             <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
+                            <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
                         </div>
-                        <div id="agenda-dia-reservas-items"></div> <!-- Detalhes do dia selecionado -->
+                        <div id="agenda-dia-reservas-items"></div>
                     </section>
                     <div id="info-espaco-selecionado-calendario" class="cv-card cv-alert cv-alert--info" style="margin-top:var(--cv-spacing-md); display:none; font-size:0.9em;">
-                        <!-- Info do espaço selecionado no filtro do calendário (se aplicável) -->
                     </div>
                 </section>
-                 <div class="cv-empty-state" id="agenda-calendario-empty" style="display: none;">
-                    <img src="/img/illustrations/calendar-empty.svg" alt="Nenhuma reserva" class="cv-empty-state__image">
-                    <p class="cv-empty-state__message">Nenhuma reserva encontrada para os filtros atuais no calendário.</p>
-                </div>
-                <div class="cv-error-state" id="agenda-calendario-error" style="display: none;">
-                    <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro" class="cv-empty-state__image">
-                    <p class="cv-empty-state__message">Falha ao carregar a agenda. Tente novamente.</p>
-                    <button class="cv-button cv-button--primary js-try-again-button" data-content-id="content-agenda-calendario">Tentar Novamente</button>
-                </div>
             </div>
 
-            <!-- Container para a Visualização em Lista Cronológica -->
-            <div id="list-view-container" class="reservas-view card-grid-single-column" style="display:none;">
-                <section class="reservas-section">
-                    <!-- Título removido, filtros movidos para modal -->
-                    <div class="feed-skeleton-container" style="display:none;">
-                        <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
-                        <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
+            <div id="list-view-container" style="display:none;">
+                <section class="reservas-section cv-card">
+                    <h2 class="cv-section__title">Lista de Reservas</h2>
+                    <div class="reservas-filtros-container" style="display:none;">
+                        <div class="cv-form-group">
+                            <label for="filtro-espaco-lista">Espaço Comum:</label>
+                            <select id="filtro-espaco-lista" class="cv-input">
+                                <option value="">Todos</option>
+                                <!-- Populado por JS -->
+                            </select>
+                        </div>
+                        <div class="cv-form-group">
+                            <label for="filtro-status-lista">Status:</label>
+                            <select id="filtro-status-lista" class="cv-input">
+                                <option value="">Todos</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Confirmada">Confirmada</option>
+                                <option value="Recusada">Recusada</option>
+                                <option value="CanceladaPeloUsuario">Cancelada</option> <!-- Simplificado para o usuário -->
+                                <!-- <option value="CanceladaPeloSindico">Cancelada pelo Síndico</option> -->
+                            </select>
+                        </div>
+                        <div class="cv-form-group">
+                            <label for="filtro-periodo-lista">Período:</label>
+                            <input type="month" id="filtro-periodo-lista" class="cv-input">
+                        </div>
+                        <button id="btn-aplicar-filtros-lista" class="cv-button cv-button--primary">Filtrar Lista</button>
                     </div>
-                    <div id="list-view-reservas-items" class="card-list-content">
-                        <!-- Cards de reserva da lista cronológica carregados aqui -->
-                    </div>
+                    <section style="margin-top: var(--cv-spacing-lg);">
+                        <div class="feed-skeleton-container" style="display:none;">
+                            <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
+                            <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
+                        </div>
+                        <div id="list-view-reservas-items"></div>
+                    </section>
                     <div id="list-view-sentinel" style="height: 10px;"></div>
                 </section>
-                 <div class="cv-empty-state" id="agenda-lista-empty" style="display: none;">
-                    <img src="/img/illustrations/empty-box.svg" alt="Nenhuma reserva" class="cv-empty-state__image">
-                    <p class="cv-empty-state__message">Nenhuma reserva encontrada para os filtros atuais na lista.</p>
-                </div>
-                <div class="cv-error-state" id="agenda-lista-error" style="display: none;">
-                    <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro" class="cv-empty-state__image">
-                    <p class="cv-empty-state__message">Falha ao carregar a lista de reservas. Tente novamente.</p>
-                    <button class="cv-button cv-button--primary js-try-again-button" data-content-id="content-agenda-lista">Tentar Novamente</button>
-                </div>
             </div>
+
         </div> <!-- fim content-agenda -->
 
-        <div class="cv-tab-content card-grid-single-column" id="content-minhas-reservas" style="display:none;">
-            <section class="reservas-section">
-                <!-- Título removido, filtros movidos para modal -->
-                <div class="feed-skeleton-container" style="display:none;">
-                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
-                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
-                </div>
-                <div id="minhas-reservas-list" class="card-list-content">
-                    <!-- Cards de "Minhas Reservas" carregados aqui -->
-                </div>
-                <div id="minhas-reservas-sentinel" style="height: 10px;"></div>
-            </section>
-            <div class="cv-empty-state" id="minhas-reservas-empty" style="display: none;">
-                <img src="/img/illustrations/personal-notes.svg" alt="Nenhuma reserva" class="cv-empty-state__image">
-                <p class="cv-empty-state__message">Você ainda não possui reservas ou nenhuma corresponde aos filtros aplicados.</p>
-                <button class="cv-button cv-button--primary js-nova-reserva-fab-action">Fazer Nova Reserva</button>
-            </div>
-            <div class="cv-error-state" id="minhas-reservas-error" style="display: none;">
-                <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro" class="cv-empty-state__image">
-                <p class="cv-empty-state__message">Falha ao carregar suas reservas. Tente novamente.</p>
-                <button class="cv-button cv-button--primary js-try-again-button" data-content-id="content-minhas-reservas">Tentar Novamente</button>
-            </div>
-        </div>
-
-        <!-- Seção de Admin para Espaços Comuns (opcional, pode ser movida para uma página de admin) -->
-        <section id="admin-espacos-section" class="reservas-section cv-card" style="display:none; margin-top: var(--cv-spacing-lg);">
-            <h3 class="cv-section__title">Gerenciar Espaços Comuns</h3>
-            <div class="cv-form-actions" style="justify-content: flex-start; margin-bottom: var(--cv-spacing-md);">
-                <button id="btn-adicionar-espaco" class="cv-button cv-button--primary js-admin-action">Adicionar Novo Espaço</button>
-            </div>
-            <div id="admin-espacos-grid" class="card-grid">
-                <!-- Cards de espaços comuns para admin -->
-            </div>
-        </section>
-
-    <!-- Botão FAB movido para ser inicializado pelo JS (fabMenu.js) -->
-
-    <!-- Modal de Filtros Unificado -->
-    <div id="modal-filtros-reservas" class="cv-modal" style="display:none;">
-        <div class="cv-modal-content">
-            <span class="cv-modal-close js-modal-filtros-reservas-close">&times;</span>
-            <h2 id="modal-filtros-reservas-title">Filtros</h2>
-            <form id="form-filtros-reservas" class="cv-form">
-                <!-- Filtros para Aba Agenda (Calendário e Lista) -->
-                <div class="cv-form-group-wrapper" data-context="agenda">
+        <div class="cv-tab-content" id="content-minhas-reservas" style="display:none;">
+            <section class="reservas-section cv-card">
+                <h2 class="cv-section__title">Minhas Reservas</h2>
+                <div class="reservas-filtros-container" style="display:none;">
                     <div class="cv-form-group">
-                        <label for="filtro-espaco-comum-agenda">Espaço Comum:</label>
-                        <select id="filtro-espaco-comum-agenda" name="espacoComumId" class="cv-input">
-                            <option value="">Todos os Espaços</option>
-                            <!-- Populado por JS -->
-                        </select>
-                    </div>
-                    <div class="cv-form-group" data-view-context="lista"> <!-- Apenas para view de lista da agenda -->
-                        <label for="filtro-periodo-agenda-lista">Período (Mês/Ano):</label>
-                        <input type="month" id="filtro-periodo-agenda-lista" name="periodo" class="cv-input">
-                    </div>
-                </div>
-
-                <!-- Filtros para Aba Minhas Reservas -->
-                <div class="cv-form-group-wrapper" data-context="minhas-reservas" style="display:none;">
-                    <div class="cv-form-group">
-                        <label for="filtro-espaco-comum-minhas">Espaço Comum:</label>
-                        <select id="filtro-espaco-comum-minhas" name="espacoComumId" class="cv-input">
-                            <option value="">Todos os Espaços</option>
-                            <!-- Populado por JS -->
+                        <label for="filtro-minhas-espaco">Espaço Comum:</label>
+                        <select id="filtro-minhas-espaco" class="cv-input">
+                            <option value="">Todos</option>
                         </select>
                     </div>
                     <div class="cv-form-group">
-                        <label for="filtro-periodo-minhas">Período (Mês/Ano):</label>
-                        <input type="month" id="filtro-periodo-minhas" name="periodo" class="cv-input">
-                    </div>
-                    <div class="cv-form-group">
-                        <label for="filtro-status-minhas">Situação:</label>
-                        <select id="filtro-status-minhas" name="status" class="cv-input">
-                            <option value="">Todas</option>
+                        <label for="filtro-minhas-status">Status:</label>
+                        <select id="filtro-minhas-status" class="cv-input">
+                            <option value="">Todos</option>
                             <option value="Pendente">Pendente</option>
                             <option value="Confirmada">Confirmada</option>
                             <option value="Recusada">Recusada</option>
                             <option value="CanceladaPeloUsuario">Cancelada</option>
                         </select>
                     </div>
+                    <div class="cv-form-group">
+                        <label for="filtro-minhas-periodo">Período:</label>
+                        <input type="month" id="filtro-minhas-periodo" class="cv-input">
+                    </div>
+                    <button id="btn-aplicar-filtros-minhas" class="cv-button cv-button--primary">Filtrar</button>
                 </div>
+                <section class="minhas-reservas-section">
+                    <div class="feed-skeleton-container" style="display:none;">
+                        <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
+                        <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
+                    </div>
+                    <div id="minhas-reservas-list"></div>
+                </section>
+                <div id="minhas-reservas-sentinel" style="height: 10px;"></div> <!-- Sentinel for infinite scroll -->
+            </section>
+        </div>
+
+        <section id="admin-espacos-section" class="reservas-section cv-card" style="display:none;">
+            <h2 class="cv-section__title">Gerenciar Espaços Comuns</h2>
+            <div class="cv-form-actions" style="justify-content: flex-start; margin-bottom: var(--cv-spacing-md);">
+                <button id="btn-adicionar-espaco" class="cv-button cv-button--primary">Adicionar Novo Espaço</button>
+            </div>
+            <div id="admin-espacos-grid" class="card-grid"></div>
+        </section>
+
+    <button class="fab" id="fab-nova-reserva" title="Nova Reserva" style="display: none;">+</button>
+
+    <div id="modal-filtros-reservas" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content">
+            <span class="cv-modal-close js-modal-filtros-reservas-close">&times;</span>
+            <h2>Filtros de Reservas</h2>
+            <div class="cv-form">
+                <!-- Filtros para Agenda e Disponibilidade -->
+                <div class="cv-form-group-wrapper" id="filtros-modal-agenda">
+                    <div class="cv-form-group">
+                        <label for="filtro-espaco-modal-agenda">Espaço:</label>
+                        <select id="filtro-espaco-modal-agenda" class="cv-input">
+                            <option value="">Todos os Espaços</option>
+                            <!-- Populado por JS -->
+                        </select>
+                    </div>
+                    <div class="cv-form-group">
+                        <label for="filtro-data-modal-agenda">Mês/Ano:</label>
+                        <input type="month" id="filtro-data-modal-agenda" class="cv-input">
+                    </div>
+                </div>
+
+                   <!-- Filtros para Minhas Reservas -->
+                <div class="cv-form-group-wrapper" id="filtros-modal-minhas-reservas" style="display:none;">
+                        <div class="cv-form-group">
+                            <label for="filtro-data-modal-minhas">Período (Mês/Ano):</label>
+                            <input type="month" id="filtro-data-modal-minhas" class="cv-input">
+                        </div>
+                        <div class="cv-form-group">
+                            <label for="filtro-espaco-modal-minhas">Espaço Comum:</label>
+                            <select id="filtro-espaco-modal-minhas" class="cv-input">
+                                <option value="">Todos os Espaços</option>
+                                <!-- Populado por JS -->
+                            </select>
+                        </div>
+                        <div class="cv-form-group">
+                            <label for="filtro-status-modal-minhas">Situação:</label>
+                            <select id="filtro-status-modal-minhas" class="cv-input">
+                                <option value="">Todas</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Confirmada">Confirmada</option>
+                                <option value="Recusada">Recusada</option>
+                                <option value="CanceladaPeloUsuario">Cancelada pelo Usuário</option>
+                                <option value="CanceladaPeloSindico">Cancelada pelo Síndico</option>
+                                <!-- Mantendo opções completas, o backend/frontend pode simplificar a exibição se necessário -->
+                            </select>
+                        </div>
+                </div>
+
                 <div class="cv-form-actions">
-                    <button type="submit" id="aplicar-filtros-modal-reservas" class="cv-button cv-button--primary">Aplicar Filtros</button>
-                    <button type="button" id="limpar-filtros-modal-reservas" class="cv-button">Limpar Filtros</button>
+                    <button id="aplicar-filtros-modal-reservas" class="cv-button cv-button--primary">Aplicar Filtros</button>
                     <button type="button" class="cv-button js-modal-filtros-reservas-close">Cancelar</button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
-    <!-- Modal de Ordenação -->
-    <div id="modal-sort-reservas" class="cv-modal" style="display:none;">
-        <div class="cv-modal-content">
-            <span class="cv-modal-close js-modal-sort-reservas-close">&times;</span>
-            <h2>Ordenar Reservas</h2>
-            <form id="form-sort-reservas" class="cv-form">
-                 <div class="cv-form-group">
-                    <label for="sort-by-reservas">Ordenar por:</label>
-                    <select id="sort-by-reservas" name="sortBy" class="cv-input">
-                        <option value="dataInicio">Data de Início</option>
-                        <option value="dataSolicitacao">Data da Solicitação</option>
-                        <option value="nomeEspaco">Nome do Espaço</option>
-                    </select>
-                </div>
-                <div class="cv-form-group">
-                    <label for="sort-direction-reservas">Direção:</label>
-                    <select id="sort-direction-reservas" name="sortDirection" class="cv-input">
-                        <option value="asc">Crescente (Mais Antigas Primeiro)</option>
-                        <option value="desc">Decrescente (Mais Recentes Primeiro)</option>
-                    </select>
-                </div>
-                <div class="cv-form-actions">
-                    <button type="submit" id="aplicar-sort-modal-reservas" class="cv-button cv-button--primary">Aplicar Ordenação</button>
-                    <button type="button" id="limpar-sort-modal-reservas" class="cv-button">Limpar Ordenação</button>
-                    <button type="button" class="cv-button js-modal-sort-reservas-close">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal para Solicitar/Editar Reserva -->
+    <!-- Modais Específicos de Reservas -->
     <div id="modal-nova-reserva" class="cv-modal" style="display:none;">
         <div class="cv-modal-content">
             <span class="cv-modal-close js-modal-nova-reserva-close">&times;</span>
