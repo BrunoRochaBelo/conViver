@@ -327,7 +327,6 @@ function toggleAgendaView(showList) {
     if (viewToggleSwitch) viewToggleSwitch.checked = false; // Switch desmarcado = Calendário
 
     calendarioReservas?.refetchEvents();
-    if (dataSelecionadaAgenda) carregarReservasDia(dataSelecionadaAgenda);
   }
 }
 
@@ -391,8 +390,7 @@ function aplicarFiltrosDoModal() {
                 const [year, month] = filtroDataModalAgenda.value.split('-');
                 calendarioReservas?.gotoDate(`${year}-${month}-01`);
             }
-             // Atualizar a lista de reservas do dia com base nos novos filtros também
-            carregarReservasDia(dataSelecionadaAgenda); // dataSelecionadaAgenda é a data clicada no calendário
+             // Atualizar a lista de reservas do dia com base nos novos filtros também // dataSelecionadaAgenda é a data clicada no calendário
         } else { // Visualização de lista da agenda ativa
             currentPageListView = 1;
             noMoreItemsListView = false;
@@ -469,7 +467,6 @@ function reloadDataForActiveTab() {
   if (tabAgendaBtn && tabAgendaBtn.classList.contains("active")) {
     if (viewToggleSwitch.checked) { // Calendário visível
       calendarioReservas?.refetchEvents();
-      carregarReservasDia(dataSelecionadaAgenda);
     } else { // Lista da Agenda visível
       currentPageListView = 1;
       noMoreItemsListView = false;
@@ -1026,7 +1023,7 @@ function initializeFullCalendar() {
     locale: "pt-br",
     plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
     initialView: "dayGridMonth",
-    headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek" },
+    headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay" },
     buttonText: { today: "Hoje", month: "Mês", week: "Semana", day: "Dia", list: "Lista" },
     events: async (fetchInfo, successCallback, failureCallback) => {
       try {
@@ -1062,7 +1059,6 @@ function initializeFullCalendar() {
     },
     dateClick: (info) => {
       dataSelecionadaAgenda = info.dateStr.split("T")[0];
-      carregarReservasDia(dataSelecionadaAgenda);
       abrirModalNovaReserva(); // Abre o modal de nova reserva
       // Pré-preenche a data no modal
       const modalDataInput = document.getElementById("modal-reserva-data");
@@ -1082,7 +1078,6 @@ function initializeFullCalendar() {
     },
   });
   calendarioReservas.render();
-  carregarReservasDia(dataSelecionadaAgenda); // Carrega reservas do dia atual inicialmente
 }
 
 // --- Funções de Apoio e Utilitários ---
