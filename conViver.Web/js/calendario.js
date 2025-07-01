@@ -315,6 +315,8 @@ function toggleAgendaView(showList) {
     listViewContainer.style.display = "block"; // Ou 'grid' se usar .feed-grid
     if (viewToggleSwitch) viewToggleSwitch.checked = true; // Switch marcado = Lista
 
+    if (agendaDiaListContainer) agendaDiaListContainer.style.display = "";
+
     const listItemsEl = document.getElementById(listViewItemsContainerId);
     if (!listItemsEl.dataset.loadedOnce || !listItemsEl.innerHTML.trim()) {
       currentPageListView = 1;
@@ -326,8 +328,8 @@ function toggleAgendaView(showList) {
     listViewContainer.style.display = "none";
     if (viewToggleSwitch) viewToggleSwitch.checked = false; // Switch desmarcado = Calendário
 
+    if (agendaDiaListContainer) agendaDiaListContainer.style.display = "none";
     calendarioReservas?.refetchEvents();
-    if (dataSelecionadaAgenda) carregarReservasDia(dataSelecionadaAgenda);
   }
 }
 
