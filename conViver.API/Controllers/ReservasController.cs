@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using conViver.Application.Services; // Mantido, pois CalendarioService está neste namespace
-using conViver.Core.DTOs; // Mantido, pois os DTOs (agora Calendario*Dto) estão neste namespace
+using conViver.Application.Services;
+using conViver.Core.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
@@ -11,28 +11,27 @@ using System.ComponentModel.DataAnnotations;
 namespace conViver.API.Controllers;
 
 [ApiController]
-[Route("api/v1")] // Rota base mantida
+[Route("api/v1")]
 [Authorize]
-public class CalendarioController : ControllerBase // Renomeado de ReservasController
+public class ReservasController : ControllerBase
 {
-    private readonly CalendarioService _calendarioService; // Renomeado de _reservaService
+    private readonly ReservaService _reservaService;
 
-    public CalendarioController(CalendarioService calendarioService) // Renomeado de ReservasController
+    public ReservasController(ReservaService reservaService)
     {
-        _calendarioService = calendarioService; // Renomeado de _reservaService
+        _reservaService = reservaService;
     }
 
     /// <summary>
-    /// Obtém a agenda de itens do calendário para um determinado mês/ano. (App)
+    /// Obtém a agenda de reservas para um determinado mês/ano. (App)
     /// </summary>
-    [HttpGet("app/reservas/agenda")] // Rota mantida como /reservas/ para compatibilidade
+    [HttpGet("app/reservas/agenda")]
     [Authorize(Roles = "Sindico,Morador")]
-    public async Task<ActionResult<IEnumerable<AgendaCalendarioItemDto>>> GetAgenda( // Retorna AgendaCalendarioItemDto
+    public async Task<ActionResult<IEnumerable<AgendaReservaDto>>> GetAgenda(
         [FromQuery, Required] string mesAno,
         [FromQuery] Guid? espacoComumId,
         [FromQuery] string? status,
-        [FromQuery] Guid? unidadeId,
-        [FromQuery] string? tipoItem) // Novo filtro para tipo de item
+        [FromQuery] Guid? unidadeId)
     {
         if (!DateTime.TryParse($"{mesAno}-01", out var mes))
             return BadRequest(new { error = "INVALID_DATE", message = "Formato de mesAno deve ser YYYY-MM." });
@@ -47,22 +46,21 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
         }
 
         bool isSindico = User.IsInRole("Sindico");
-        var items = await _calendarioService.GetAgendaAsync( // Chama _calendarioService
+        var items = await _reservaService.GetAgendaAsync(
             condominioId,
             mes,
             usuarioLogadoId,
             espacoComumId,
             status,
             unidadeId,
-            isSindico,
-            tipoItem); // Passa tipoItem
+            isSindico);
         return Ok(items);
     }
 
     /// <summary>
-    /// Lista todos os espaços comuns disponíveis para reserva/agendamento no condomínio. (App)
+    /// Lista todos os espaços comuns disponíveis para reserva no condomínio. (App)
     /// </summary>
-    [HttpGet("app/reservas/espacos-comuns")] // Rota mantida
+    [HttpGet("app/reservas/espacos-comuns")]
     [Authorize(Roles = "Sindico,Morador")]
     public async Task<ActionResult<IEnumerable<EspacoComumDto>>> ListarEspacosComuns()
     {
@@ -72,17 +70,17 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
             return Unauthorized("CondominioId não encontrado ou inválido no token.");
         }
 
-        var espacos = await _calendarioService.ListarEspacosComunsAsync(condominioId); // Chama _calendarioService
+        var espacos = await _reservaService.ListarEspacosComunsAsync(condominioId);
         return Ok(espacos);
     }
 
 
     /// <summary>
-    /// Obtém detalhes de um item específico do calendário (reserva, evento, etc.). (App)
+    /// Obtém detalhes de uma reserva específica. (App)
     /// </summary>
-    [HttpGet("app/reservas/{id:guid}")] // Rota mantida, id refere-se a um CalendarioItem
+    [HttpGet("app/reservas/{id:guid}")]
     [Authorize(Roles = "Sindico,Morador")]
-    public async Task<ActionResult<CalendarioItemDto>> GetItemCalendarioPorId(Guid id) // Renomeado, Retorna CalendarioItemDto
+    public async Task<ActionResult<ReservaDto>> GetReservaPorId(Guid id)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -93,18 +91,18 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
         }
 
         bool isSindico = User.IsInRole("Sindico");
-        var itemDto = await _calendarioService.GetByIdAsync(id, condominioId, userId, isSindico); // Chama _calendarioService
+        var reservaDto = await _reservaService.GetByIdAsync(id, condominioId, userId, isSindico);
 
-        if (itemDto == null) return NotFound("Item do calendário não encontrado ou acesso não permitido.");
-        return Ok(itemDto);
+        if (reservaDto == null) return NotFound("Reserva não encontrada ou acesso não permitido.");
+        return Ok(reservaDto);
     }
 
     /// <summary>
-    /// Cria uma nova solicitação de item no calendário (reserva, evento, etc.). (App)
+    /// Cria uma nova solicitação de reserva para uma área comum. (App)
     /// </summary>
-    [HttpPost("app/reservas")] // Rota mantida
+    [HttpPost("app/reservas")]
     [Authorize(Roles = "Sindico,Morador")]
-    public async Task<ActionResult<CalendarioItemDto>> SolicitarItemCalendario([FromBody] CalendarioItemInputDto inputDto) // Recebe e Retorna CalendarioItemDto/InputDto
+    public async Task<ActionResult<ReservaDto>> SolicitarReserva([FromBody] ReservaInputDto inputDto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -119,10 +117,10 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
 
         try
         {
-            var itemDto = await _calendarioService.SolicitarAsync(condominioId, usuarioId, inputDto); // Chama _calendarioService
-            if (itemDto == null)
-                return StatusCode(500, "Erro ao criar item no calendário.");
-            return CreatedAtAction(nameof(GetItemCalendarioPorId), new { id = itemDto.Id }, itemDto); // Referencia GetItemCalendarioPorId
+            var reservaDto = await _reservaService.SolicitarAsync(condominioId, usuarioId, inputDto);
+            if (reservaDto == null)
+                return StatusCode(500, "Erro ao criar reserva.");
+            return CreatedAtAction(nameof(GetReservaPorId), new { id = reservaDto.Id }, reservaDto);
         }
         catch (ArgumentException ex)
         {
@@ -139,12 +137,12 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
     }
 
     /// <summary>
-    /// Cancela um item do calendário (reserva, evento, etc.). (App)
+    /// Cancela uma reserva (solicitada pelo próprio usuário ou síndico). (App)
     /// </summary>
-    [HttpDelete("app/reservas/{id:guid}")] // Rota mantida
-    [HttpPost("app/reservas/{id:guid}/cancelar")] // Rota mantida
+    [HttpDelete("app/reservas/{id:guid}")]
+    [HttpPost("app/reservas/{id:guid}/cancelar")]
     [Authorize(Roles = "Sindico,Morador")]
-    public async Task<IActionResult> CancelarItemCalendario(Guid id) // Renomeado
+    public async Task<IActionResult> CancelarReserva(Guid id)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -158,10 +156,10 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
         try
         {
             bool isSindico = User.IsInRole("Sindico");
-            var sucesso = await _calendarioService.CancelarAsync(id, condominioId, usuarioId, isSindico); // Chama _calendarioService
-            if (!sucesso)
+            var sucesso = await _reservaService.CancelarAsync(id, condominioId, usuarioId, isSindico);
+            if (!sucesso) // Serviço agora lança exceção em caso de não encontrar, então essa checagem pode ser redundante.
             {
-                return NotFound(new { error = "CANCEL_FAILED", message = "Item do calendário não encontrado ou não pôde ser cancelado." });
+                return NotFound(new { error = "CANCEL_FAILED", message = "Reserva não encontrada ou não pôde ser cancelada." });
             }
             return NoContent();
         }
@@ -180,11 +178,11 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
     }
 
     /// <summary>
-    /// (App) Lista itens do calendário em formato paginado.
+    /// (App) Lista reservas em formato paginado.
     /// </summary>
-    [HttpGet("app/reservas/lista")] // Rota mantida
+    [HttpGet("app/reservas/lista")]
     [Authorize(Roles = "Sindico,Morador")]
-    public async Task<ActionResult<PaginatedResultDto<CalendarioItemDto>>> ListarItensCalendarioPaginados([FromQuery] CalendarioItemFilterDto filters) // Recebe e Retorna CalendarioItemDto/FilterDto
+    public async Task<ActionResult<PaginatedResultDto<ReservaDto>>> ListarReservasPaginadas([FromQuery] ReservaFilterDto filters)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -196,21 +194,20 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
         }
 
         bool isSindico = User.IsInRole("Sindico");
-        var result = await _calendarioService.ListarItensCalendarioListViewAsync(condominioId, usuarioId, filters, isSindico); // Chama _calendarioService
+        var result = await _reservaService.ListarReservasListViewAsync(condominioId, usuarioId, filters, isSindico);
         return Ok(result);
     }
 
     /// <summary>
-    /// (App) Lista os itens do calendário do usuário logado (Minhas Reservas / Meus Agendamentos).
+    /// (App) Lista as reservas do usuário logado.
     /// </summary>
-    [HttpGet("app/reservas/minhas"), HttpGet("app/reservas/minhas-reservas")] // Rota mantida
+    [HttpGet("app/reservas/minhas"), HttpGet("app/reservas/minhas-reservas")]
     [Authorize(Roles = "Sindico,Morador")]
-    public async Task<ActionResult<IEnumerable<CalendarioItemDto>>> ListarMeusItensCalendario([ // Renomeado, Retorna CalendarioItemDto
+    public async Task<ActionResult<IEnumerable<ReservaDto>>> ListarMinhasReservas([
         FromQuery] Guid? espacoComumId,
         [FromQuery] string? status,
         [FromQuery] DateTime? periodoInicio,
-        [FromQuery] DateTime? periodoFim,
-        [FromQuery] string? tipoItem) // Novo filtro
+        [FromQuery] DateTime? periodoFim)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -221,25 +218,24 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
             return Unauthorized("CondominioId ou UserId não encontrado ou inválido no token.");
         }
 
-        var itens = await _calendarioService.ListarMeusItensCalendarioAsync( // Chama _calendarioService
+        var reservas = await _reservaService.ListarMinhasReservasAsync(
             condominioId,
             usuarioId,
             espacoComumId,
             status,
             periodoInicio,
-            periodoFim,
-            tipoItem); // Passa tipoItem
-        return Ok(itens);
+            periodoFim);
+        return Ok(reservas);
     }
 
-    // --- Endpoints de Gestão de Itens do Calendário para Síndico ---
+    // --- Endpoints de Gestão de Reservas para Síndico ---
 
     /// <summary>
-    /// (Síndico) Aprova, recusa ou modifica o status de um item do calendário.
+    /// (Síndico) Aprova, recusa ou modifica o status de uma solicitação de reserva.
     /// </summary>
-    [HttpPut("syndic/reservas/{id:guid}/status")] // Rota mantida
+    [HttpPut("syndic/reservas/{id:guid}/status")]
     [Authorize(Roles = "Sindico")]
-    public async Task<ActionResult<CalendarioItemDto>> SyndicAtualizarStatusItemCalendario(Guid id, [FromBody] CalendarioItemStatusUpdateDto updateDto) // Recebe e Retorna CalendarioItemDto/StatusUpdateDto
+    public async Task<ActionResult<ReservaDto>> SyndicAtualizarStatusReserva(Guid id, [FromBody] ReservaStatusUpdateDto updateDto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -254,8 +250,9 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
 
         try
         {
-            var itemAtualizadoDto = await _calendarioService.AtualizarStatusAsync(id, condominioId, sindicoUserId, updateDto); // Chama _calendarioService
-            return Ok(itemAtualizadoDto);
+            var reservaAtualizadaDto = await _reservaService.AtualizarStatusAsync(id, condominioId, sindicoUserId, updateDto);
+            // AtualizarStatusAsync agora lança KeyNotFoundException se não encontrar
+            return Ok(reservaAtualizadaDto);
         }
         catch (KeyNotFoundException ex)
         {
@@ -272,11 +269,11 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
     }
 
     /// <summary>
-    /// (Síndico) Lista todos os itens do calendário do condomínio com filtros e paginação.
+    /// (Síndico) Lista todas as reservas do condomínio com filtros e paginação.
     /// </summary>
-    [HttpGet("syndic/reservas")] // Rota mantida
+    [HttpGet("syndic/reservas")]
     [Authorize(Roles = "Sindico")]
-    public async Task<ActionResult<PaginatedResultDto<CalendarioItemDto>>> SyndicListarTodosItensCalendario([FromQuery] CalendarioItemFilterDto filters) // Recebe e Retorna CalendarioItemDto/FilterDto
+    public async Task<ActionResult<PaginatedResultDto<ReservaDto>>> SyndicListarTodasReservas([FromQuery] ReservaFilterDto filters)
     {
         var condominioIdClaim = User.FindFirstValue("condominioId");
         if (string.IsNullOrEmpty(condominioIdClaim) || !Guid.TryParse(condominioIdClaim, out Guid condominioId))
@@ -284,16 +281,16 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
             return Unauthorized("CondominioId não encontrado ou inválido no token.");
         }
 
-        var paginatedResult = await _calendarioService.ListarTodosItensCalendarioAsync(condominioId, filters); // Chama _calendarioService
+        var paginatedResult = await _reservaService.ListarTodasReservasAsync(condominioId, filters);
         return Ok(paginatedResult);
     }
 
     /// <summary>
-    /// (Síndico) Edita um item existente no calendário.
+    /// (Síndico) Edita uma reserva existente.
     /// </summary>
-    [HttpPut("syndic/reservas/{id:guid}/editar")] // Rota mantida
+    [HttpPut("syndic/reservas/{id:guid}/editar")]
     [Authorize(Roles = "Sindico")]
-    public async Task<ActionResult<CalendarioItemDto>> SyndicEditarItemCalendario(Guid id, [FromBody] CalendarioItemInputDto inputDto) // Recebe e Retorna CalendarioItemDto/InputDto
+    public async Task<ActionResult<ReservaDto>> SyndicEditarReserva(Guid id, [FromBody] ReservaInputDto inputDto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -308,9 +305,8 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
 
         try
         {
-            // No ReservaService era EditarReservaAsync, agora será EditarCalendarioItemAsync
-            var itemAtualizadoDto = await _calendarioService.EditarCalendarioItemAsync(id, condominioId, sindicoUserId, inputDto); // Chama _calendarioService
-            return Ok(itemAtualizadoDto);
+            var reservaAtualizadaDto = await _reservaService.EditarReservaAsync(id, condominioId, sindicoUserId, inputDto);
+            return Ok(reservaAtualizadaDto);
         }
         catch (KeyNotFoundException ex)
         {
@@ -327,12 +323,12 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
     }
 
 
-    // --- Endpoints de Gestão de Espaços Comuns para Síndico (Mantidos como estavam, pois EspacoComum é uma entidade separada) ---
+    // --- Endpoints de Gestão de Espaços Comuns para Síndico ---
 
     /// <summary>
     /// (Síndico) Lista todos os espaços comuns do condomínio (incluindo suas regras).
     /// </summary>
-    [HttpGet("syndic/reservas/espacos-comuns")] // Rota mantida
+    [HttpGet("syndic/reservas/espacos-comuns")]
     [Authorize(Roles = "Sindico")]
     public async Task<ActionResult<IEnumerable<EspacoComumDto>>> SyndicListarEspacosComuns()
     {
@@ -341,14 +337,14 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
         {
             return Unauthorized("CondominioId não encontrado ou inválido no token.");
         }
-        var espacos = await _calendarioService.ListarEspacosComunsAsync(condominioId); // Chama _calendarioService
+        var espacos = await _reservaService.ListarEspacosComunsAsync(condominioId);
         return Ok(espacos);
     }
 
     /// <summary>
     /// (Síndico) Obtém detalhes de um espaço comum específico.
     /// </summary>
-    [HttpGet("syndic/reservas/espacos-comuns/{id:guid}")] // Rota mantida
+    [HttpGet("syndic/reservas/espacos-comuns/{id:guid}")]
     [Authorize(Roles = "Sindico")]
     public async Task<ActionResult<EspacoComumDto>> SyndicGetEspacoComumPorId(Guid id)
     {
@@ -357,7 +353,7 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
         {
             return Unauthorized("CondominioId não encontrado ou inválido no token.");
         }
-        var espacoDto = await _calendarioService.GetEspacoComumByIdAsync(id, condominioId); // Chama _calendarioService
+        var espacoDto = await _reservaService.GetEspacoComumByIdAsync(id, condominioId);
         if (espacoDto == null) return NotFound("Espaço comum não encontrado.");
         return Ok(espacoDto);
     }
@@ -365,7 +361,7 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
     /// <summary>
     /// (Síndico) Cria um novo espaço comum.
     /// </summary>
-    [HttpPost("syndic/reservas/espacos-comuns")] // Rota mantida
+    [HttpPost("syndic/reservas/espacos-comuns")]
     [Authorize(Roles = "Sindico")]
     public async Task<ActionResult<EspacoComumDto>> SyndicCriarEspacoComum([FromBody] EspacoComumDto inputDto)
     {
@@ -378,7 +374,7 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
         }
         try
         {
-            var espacoCriadoDto = await _calendarioService.CriarEspacoComumAsync(condominioId, inputDto); // Chama _calendarioService
+            var espacoCriadoDto = await _reservaService.CriarEspacoComumAsync(condominioId, inputDto);
             if (espacoCriadoDto == null)
                 return StatusCode(500, "Erro ao criar espaço comum.");
             return CreatedAtAction(nameof(SyndicGetEspacoComumPorId), new { id = espacoCriadoDto.Id }, espacoCriadoDto);
@@ -396,7 +392,7 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
     /// <summary>
     /// (Síndico) Atualiza um espaço comum existente.
     /// </summary>
-    [HttpPut("syndic/reservas/espacos-comuns/{id:guid}")] // Rota mantida
+    [HttpPut("syndic/reservas/espacos-comuns/{id:guid}")]
     [Authorize(Roles = "Sindico")]
     public async Task<ActionResult<EspacoComumDto>> SyndicAtualizarEspacoComum(Guid id, [FromBody] EspacoComumDto inputDto)
     {
@@ -415,7 +411,8 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
             }
             inputDto.Id = id;
 
-            var espacoAtualizadoDto = await _calendarioService.AtualizarEspacoComumAsync(id, condominioId, inputDto); // Chama _calendarioService
+            var espacoAtualizadoDto = await _reservaService.AtualizarEspacoComumAsync(id, condominioId, inputDto);
+            // AtualizarEspacoComumAsync agora lança KeyNotFoundException
             return Ok(espacoAtualizadoDto);
         }
         catch (KeyNotFoundException ex)
@@ -435,7 +432,7 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
     /// <summary>
     /// (Síndico) Exclui um espaço comum.
     /// </summary>
-    [HttpDelete("syndic/reservas/espacos-comuns/{id:guid}")] // Rota mantida
+    [HttpDelete("syndic/reservas/espacos-comuns/{id:guid}")]
     [Authorize(Roles = "Sindico")]
     public async Task<IActionResult> SyndicExcluirEspacoComum(Guid id)
     {
@@ -446,7 +443,8 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
         }
         try
         {
-            var sucesso = await _calendarioService.ExcluirEspacoComumAsync(id, condominioId); // Chama _calendarioService
+            var sucesso = await _reservaService.ExcluirEspacoComumAsync(id, condominioId);
+            // ExcluirEspacoComumAsync agora lança KeyNotFoundException
             return NoContent();
         }
         catch (KeyNotFoundException ex)
@@ -459,6 +457,7 @@ public class CalendarioController : ControllerBase // Renomeado de ReservasContr
         }
         catch (Exception ex)
         {
+            // Log ex
             Console.Error.WriteLine(ex);
             return StatusCode(500, new { error = "INTERNAL_ERROR", message = "Erro ao excluir espaço comum." });
         }

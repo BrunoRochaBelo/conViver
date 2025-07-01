@@ -29,7 +29,6 @@ public class Reserva
     // Novos campos conforme plano
     public bool NotificadoLembrete24h { get; set; } = false;
     public string? TituloParaMural { get; set; }
-    public string? TipoItem { get; set; } // "Reserva", "Evento", "Manutencao", "Servico", "Reuniao"
 
 
     // Propriedades de navegação para Unidade e Usuario (opcionais)
