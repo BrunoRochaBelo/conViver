@@ -1127,6 +1127,21 @@ html[data-theme="dark"] .cv-modal-close {
 }
 /* .cv-form-actions .cv-button {} */ /* General button styling is applied */
 
+/* Modal Error Message Styling */
+.cv-modal-error-message {
+    color: var(--current-semantic-error, #e53935);
+    background-color: var(--current-color-error-bg, #ffebee);
+    padding: var(--cv-spacing-sm, 8px) var(--cv-spacing-md, 16px);
+    margin-top: var(--cv-spacing-md, 16px);
+    margin-bottom: var(--cv-spacing-sm, 8px); /* Ajuste para não ficar tão colado nos botões se estiver acima */
+    border-radius: var(--cv-border-radius-md, 8px);
+    font-size: 0.9em;
+    text-align: center;
+    border: 1px solid var(--current-semantic-error); /* Usar a cor principal do erro para a borda */
+    display: none; /* Hidden by default */
+}
+
+
 /* Notice Card Action Buttons */
 .communication__post-actions {
     margin-top: var(--cv-spacing-md, 15px); /* Use theme variable */
@@ -1650,9 +1665,10 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
 }
 
 
-/* Styles for .cv-empty-state and .cv-error-state */
+/* Styles for .cv-empty-state, .cv-error-state, and .cv-loading-state */
 .cv-empty-state,
-.cv-error-state {
+.cv-error-state,
+.cv-loading-state {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1679,7 +1695,8 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     margin-bottom: var(--cv-spacing-lg);
 }
 .cv-empty-state__icon svg,
-.cv-error-state__icon svg {
+.cv-error-state__icon svg,
+.cv-loading-state__icon svg {
     width: 64px;
     height: 64px;
     color: var(--current-text-placeholder);
@@ -1687,9 +1704,19 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
 .cv-error-state__icon svg {
     color: var(--current-semantic-error);
 }
+.cv-loading-state__icon svg {
+    color: var(--current-primary-blue); /* Or another appropriate color for loading */
+    animation: cv-spin 1s linear infinite; /* Add spinning animation for loading icon */
+}
+
+@keyframes cv-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 .cv-empty-state__title, /* Títulos mais discretos se a imagem for o foco */
-.cv-error-state__title {
+.cv-error-state__title,
+.cv-loading-state__title {
     font-size: var(--cv-font-size-h4); /* Um pouco menor que h3 */
     color: var(--current-text-primary);
     margin-top: 0;
@@ -1699,15 +1726,30 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
 
 .cv-empty-state__message, /* Novo nome para consistência, usado no HTML */
 .cv-empty-state__description,
-.cv-error-state__message {
+.cv-error-state__message,
+.cv-loading-state__message {
     font-size: var(--cv-font-size-md);
     color: var(--current-text-secondary);
     margin-bottom: var(--cv-spacing-md); /* Espaçamento antes das ações */
     max-width: 450px;
     line-height: 1.6;
 }
-.cv-empty-state__message:last-of-type { /* Remove margem inferior do último parágrafo de mensagem */
+.cv-empty-state__message:last-of-type,
+.cv-loading-state__message:last-of-type { /* Remove margem inferior do último parágrafo de mensagem */
     margin-bottom: var(--cv-spacing-lg);
+}
+
+/* Specific styles for different empty states, if needed, can be added using modifier classes */
+/* For example, .cv-empty-state--no-data or .cv-empty-state--no-results */
+/* These would primarily be for different icons/images or minor text adjustments */
+/* The base .cv-empty-state handles the main layout */
+
+.cv-empty-state--no-data .cv-empty-state__icon svg { /* Example: different icon color or specific icon */
+    /* color: var(--cv-gray-400); */
+}
+
+.cv-empty-state--no-results .cv-empty-state__icon svg { /* Example: different icon color or specific icon */
+    /* color: var(--cv-primary-orange); */
 }
 
 

@@ -1,7 +1,15 @@
 import apiClient from './apiClient.js';
-import { requireAuth, getUserRoles } from './auth.js'; // Supondo que getUserRoles exista ou será criado
-import { showGlobalFeedback, createErrorStateElement, createEmptyStateElement, debounce } from './main.js';
-import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js'; // skeleton.js re-exporta de main.js
+import { requireAuth, getUserRoles } from './auth.js';
+import { showGlobalFeedback, debounce } from './main.js'; // createErrorStateElement, createEmptyStateElement removidos
+// showFeedSkeleton, hideFeedSkeleton são de main.js, não de um skeleton.js separado neste projeto
+// Se skeleton.js existir e reexportar, ok. Caso contrário, importar de main.js.
+// Para consistência, vamos assumir que são de main.js por enquanto, como os outros.
+import { showSkeleton, hideSkeleton } from './main.js';
+import {
+    showErrorState,
+    showEmptyState,
+    showLoadingState
+} from "./pageLoader.js"; // Assumindo que estão em pageLoader.js
 import { createProgressBar, showProgress, xhrPost } from './progress.js';
 
 let uploadProgressBar;
@@ -50,109 +58,97 @@ function initializeBibliotecaPage() {
 async function loadDocumentos() {
     const listContainer = document.querySelector('.js-document-list');
     if (!listContainer) return;
-    const skeleton = document.getElementById('biblioteca-skeleton');
 
-    if (skeleton) showFeedSkeleton(skeleton);
-    listContainer.innerHTML = '';
+    // Usar showLoadingState diretamente no listContainer
+    showLoadingState(listContainer, "Carregando documentos...");
 
     const searchTerm = document.getElementById('docSearchInput')?.value || '';
     const category = document.getElementById('docCategoryFilter')?.value || '';
 
     try {
-        // O endpoint /api/v1/app/docs espera 'categoria' como query param.
-        // A busca por termo (searchTerm) precisará ser implementada no backend ou filtrada no frontend.
-        // Por simplicidade, filtraremos no frontend por enquanto se o backend não suportar.
         const params = {};
         if (category) {
             params.categoria = category;
         }
 
         const documentos = await apiClient.get('/api/v1/app/docs', params);
-        listContainer.innerHTML = ''; // Limpar antes de adicionar conteúdo ou empty state
+        // listContainer.innerHTML = ''; // showLoadingState já limpa
 
         if (!documentos || documentos.length === 0) {
             const userRoles = getUserRoles();
             const isSindico = userRoles.includes('Sindico') || userRoles.includes('Administrador');
-            let actionButton = null;
+            let actions = [];
             if (isSindico) {
-                actionButton = {
+                actions.push({
                     text: "Adicionar Documento",
-                    onClick: () => {
+                    action: () => {
                         const uploadDocButton = document.getElementById('uploadDocButton');
                         if (uploadDocButton) uploadDocButton.click();
                     },
-                    classes: ["cv-button--primary"]
-                };
+                    class: "cv-button--primary"
+                });
             }
-
-            const emptyState = createEmptyStateElement({
-                iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 2c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6H6zm8 7h-2V4l4 4h-2z"/></svg>`, // Ícone de Documento
-                title: "Biblioteca Vazia",
-                description: isSindico
+            showEmptyState(listContainer,
+                "Biblioteca Vazia",
+                isSindico
                     ? "Ainda não há documentos disponíveis. Adicione atas, regulamentos e outros arquivos importantes aqui."
                     : "Ainda não há documentos disponíveis na biblioteca.",
-                actionButton: actionButton
-            });
-            listContainer.appendChild(emptyState);
+                getDefaultDocumentIcon(), // Ícone de Documento
+                actions
+            );
             return;
         }
 
-        // Filtro frontend para searchTerm (simples, apenas no título)
         const filteredDocumentos = documentos.filter(doc =>
             doc.tituloDescritivo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (doc.nomeArquivoOriginal && doc.nomeArquivoOriginal.toLowerCase().includes(searchTerm.toLowerCase())) || // Adicionado check para nomeArquivoOriginal
-            (doc.categoria && doc.categoria.toLowerCase().includes(searchTerm.toLowerCase())) // Adicionado filtro por categoria
+            (doc.nomeArquivoOriginal && doc.nomeArquivoOriginal.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (doc.categoria && doc.categoria.toLowerCase().includes(searchTerm.toLowerCase()))
         );
 
         if (filteredDocumentos.length === 0) {
-            const emptyState = createEmptyStateElement({
-                iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>`, // Ícone de Lupa
-                title: "Nenhum Documento Encontrado",
-                description: "Não encontramos documentos que correspondam à sua busca ou filtro. Tente palavras-chave diferentes ou ajuste a categoria.",
-                 actionButton: (searchTerm || category) ? { // Mostrar botão apenas se houver filtro/busca
+            let actions = [];
+            if (searchTerm || category) {
+                actions.push({
                     text: "Limpar Busca/Filtro",
-                    onClick: () => {
+                    action: () => {
                         const searchInput = document.getElementById('docSearchInput');
                         const categoryFilter = document.getElementById('docCategoryFilter');
                         if (searchInput) searchInput.value = '';
                         if (categoryFilter) categoryFilter.value = '';
-                        loadDocumentos(); // Recarregar
+                        loadDocumentos();
                     },
-                    classes: ["cv-button--secondary"]
-                } : null
-            });
-            listContainer.appendChild(emptyState);
+                    class: "cv-button--secondary"
+                });
+            }
+            showEmptyState(listContainer,
+                "Nenhum Documento Encontrado",
+                "Não encontramos documentos que correspondam à sua busca ou filtro. Tente palavras-chave diferentes ou ajuste a categoria.",
+                getDefaultSearchIcon(), // Ícone de Lupa/Busca
+                actions
+            );
             return;
         }
-
+        // Limpar o container antes de renderizar os documentos (showLoadingState já fez isso)
         renderDocumentos(filteredDocumentos, listContainer);
     } catch (error) {
         console.error('Erro ao carregar documentos:', error);
-        listContainer.innerHTML = ''; // Limpa qualquer conteúdo anterior
-        const errorState = createErrorStateElement({
-            title: "Falha ao Carregar Documentos",
-            message: error.message || "Não foi possível buscar os documentos. Verifique sua conexão e tente novamente.",
-            retryButton: {
-                text: "Tentar Novamente",
-                onClick: () => {
-                    const currentErrorState = listContainer.querySelector(".cv-error-state");
-                    if (currentErrorState) currentErrorState.remove();
-                    if (skeleton) showFeedSkeleton(skeleton); // Mostrar skeleton ao tentar novamente
-                    loadDocumentos();
-                }
-            }
-        });
-        listContainer.appendChild(errorState);
-        // showGlobalFeedback é opcional aqui, pois o Error State já é um feedback visual forte.
-        // Se o erro for muito genérico ou precisar de atenção extra, pode ser mantido.
-        // Por ora, vamos remover para evitar redundância.
-        // showGlobalFeedback('Erro ao carregar documentos.', 'error');
+        showErrorState(listContainer,
+            error.message || "Não foi possível buscar os documentos. Verifique sua conexão e tente novamente."
+            // Ícone de erro padrão será usado
+        );
+        // Adicionar listener para o botão de tentar novamente, se ele foi adicionado por showErrorState
+        const retryButton = listContainer.querySelector('.error-state__retry-button');
+        if (retryButton) {
+            retryButton.onclick = () => loadDocumentos();
+        }
     } finally {
-        if (skeleton) hideFeedSkeleton(skeleton);
+        // Não é mais necessário hideSkeleton aqui, pois o showLoadingState/EmptyState/ErrorState
+        // manipulam o conteúdo do listContainer diretamente.
+        // Se o skeleton fosse um elemento overlay separado, seria escondido aqui.
     }
 }
 
-function renderDocumentos(documentos, container) { // Adicionado 'container' como parâmetro
+function renderDocumentos(documentos, container) {
     container.innerHTML = ''; // Limpa a lista
     const userRoles = getUserRoles();
     const isSindico = userRoles.includes('Sindico') || userRoles.includes('Administrador');
@@ -349,3 +345,11 @@ async post(endpoint, data, isFormData = false) {
     // ... resto da lógica de fetch ...
 }
 */
+
+// Importar ícones de pageLoader.js
+import {
+    getDefaultDocumentIcon,
+    getDefaultSearchIcon
+    // Outros ícones como getDefaultErrorIcon, getDefaultEmptyIcon, getDefaultLoadingIcon
+    // são usados indiretamente através das funções showXState de pageLoader.js
+} from "./pageLoader.js";
