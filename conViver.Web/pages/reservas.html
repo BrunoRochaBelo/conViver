@@ -3,17 +3,19 @@
                 <button class="cv-tab-button active" id="tab-agenda">Agenda e Disponibilidade</button>
                 <button class="cv-tab-button" id="tab-minhas-reservas">Minhas Reservas</button>
             </div>
-            <!-- Botões de Ordenar e Filtrar seguem o padrão de comunicacao.html -->
-            <button id="open-sort-reservas-button" class="cv-button icon-button" title="Ordenar Reservas">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-            </button>
-            <button id="open-filter-reservas-button" class="cv-button icon-button" title="Filtros de Reservas">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                </svg>
-            </button>
+            <!-- Wrapper para alinhar botões à direita -->
+            <div class="cv-tabs-actions" style="margin-left: auto; display: flex; align-items: center; gap: var(--cv-spacing-sm);">
+                <button id="open-sort-reservas-button" class="cv-button icon-button" title="Ordenar Reservas">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <button id="open-filter-reservas-button" class="cv-button icon-button" title="Filtros de Reservas">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <div class="cv-tab-content" id="content-agenda">
@@ -83,16 +85,7 @@
             <!-- cv-empty-state e cv-error-state serão adicionados aqui via JS -->
         </div>
 
-        <!-- Seção de Gerenciar Espaços (para Admin/Síndico) - fora das abas principais -->
-        <section id="admin-espacos-section" class="reservas-section cv-card" style="display:none; margin-top: var(--cv-spacing-lg);">
-            <h2 class="cv-section__title">Gerenciar Espaços Comuns</h2>
-            <div class="cv-form-actions" style="justify-content: flex-start; margin-bottom: var(--cv-spacing-md);">
-                <button id="btn-adicionar-espaco-admin" class="cv-button cv-button--primary">Adicionar Novo Espaço</button>
-            </div>
-            <div id="admin-espacos-grid" class="card-grid">
-                <!-- Cards de espaços comuns (admin) carregados aqui -->
-            </div>
-        </section>
+        <!-- Seção de Gerenciar Espaços foi REMOVIDA - funcionalidade agora apenas pelo FAB -->
 
     <!-- FAB será inicializado por JS, não precisa do botão estático aqui se o initFabMenu for usado -->
     <!-- <button class="fab" id="fab-nova-reserva" title="Nova Reserva" style="display: none;">+</button> -->
