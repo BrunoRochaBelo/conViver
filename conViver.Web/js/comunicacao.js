@@ -189,9 +189,10 @@ export async function initialize() {
   setupFeedObserver();
   setupFeedContainerClickListener();
   setupFabMenu();
-  setupFilterModalAndButton(); // Setup filter modal and its trigger
+  setupFilterModalAndButton();
   setupSortModalAndButton();
-  setupModalEventListeners(); // Setup generic close/submit for other modals
+  setupModalEventListeners();
+  setupTryAgainButtons(); // Adicionado aqui
 }
 
 if (document.readyState !== "loading") {
@@ -1233,9 +1234,18 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     const items = response || [];
     const activeTabContentId = getActiveTabContentId();
 
-    hideFeedSkeleton("content-mural"); // Hide mural skeleton first
+    hideFeedSkeleton("content-mural");
     if (activeTabContentId !== "content-mural") {
-        hideFeedSkeleton(activeTabContentId); // Hide other active tab's skeleton
+        hideFeedSkeleton(activeTabContentId);
+    }
+
+    // Limpar erro anterior da aba ativa, caso exista
+    const activeTabElement = document.getElementById(activeTabContentId);
+    if (activeTabElement) {
+        const existingErrorState = activeTabElement.querySelector(".cv-error-state");
+        if (existingErrorState) existingErrorState.style.display = "none";
+        const existingEmptyState = activeTabElement.querySelector(".cv-empty-state");
+        if (existingEmptyState) existingEmptyState.style.display = "none";
     }
 
 
@@ -1247,19 +1257,14 @@ async function fetchAndDisplayFeedItems(page, append = false) {
             (fi) => fi.id === item.id && fi.itemType === item.itemType
           )
         ) {
-          // If it's a pinned item (prio 0), it might be in fetchedFeedItems from initial load
-          // but we still need to ensure it's rendered if not already.
-          // If it's not prio 0 and already in fetchedFeedItems, skip re-rendering.
           if (item.prioridadeOrdenacao !== 0) return;
         }
 
         const itemElement = renderFeedItem(item);
-        // Always append to the muralFeedContainer before the sentinel
         if (sentinelElement)
             muralFeedContainer.insertBefore(itemElement, sentinelElement);
         else muralFeedContainer.appendChild(itemElement);
 
-        // Add to fetchedFeedItems if it's genuinely new
         if (
           !fetchedFeedItems.some(
             (fi) => fi.id === item.id && fi.itemType === item.itemType
@@ -1267,7 +1272,6 @@ async function fetchAndDisplayFeedItems(page, append = false) {
         ) {
           fetchedFeedItems.push(item);
         }
-        // After appending, find the image and apply progressive loading logic
         const imgElement = itemElement.querySelector('.feed-item__image');
         if (imgElement && imgElement.dataset.src) {
           const highResImage = new Image();
@@ -1276,15 +1280,13 @@ async function fetchAndDisplayFeedItems(page, append = false) {
             imgElement.classList.add('loaded');
           };
           highResImage.onerror = () => {
-            // Optional: handle error, e.g., remove blur, show broken image icon
-            imgElement.classList.add('loaded'); // Remove blur even on error to show placeholder or broken icon clearly
+            imgElement.classList.add('loaded');
             console.error("Erro ao carregar imagem de alta resolução:", imgElement.dataset.src);
           };
           highResImage.src = imgElement.dataset.src;
         }
       });
 
-      // Sort all items in the DOM (including newly added and pinned ones)
       const allRenderedItems = Array.from(
         muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)")
       );
@@ -1385,50 +1387,63 @@ async function fetchAndDisplayFeedItems(page, append = false) {
     const activeTabContentIdOnError = getActiveTabContentId();
     hideFeedSkeleton("content-mural");
     if (activeTabContentIdOnError !== "content-mural") {
-        hideFeedSkeleton(activeTabContentIdOnError);
+        hideFeedSkeleton(activeTabContentIdOnError); // Esconde skeleton da aba ativa específica
     }
 
-    const currentVisibleItemsOnError = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)");
-    if (currentVisibleItemsOnError.length === 0 && !append) { // Only show full page error if not appending and no items visible
-      // Remove qualquer mensagem antiga de erro ou de lista vazia
-      const oldErrorMsg = muralFeedContainer.querySelector(".cv-error-message"); // Legado
-      if (oldErrorMsg) oldErrorMsg.remove();
-      const oldErrorState = muralFeedContainer.querySelector(".cv-error-state");
-      if (oldErrorState) oldErrorState.remove();
-      const oldEmptyState = muralFeedContainer.querySelector(".cv-empty-state");
-      if (oldEmptyState) oldEmptyState.remove();
-      const oldNoItemsMsg = muralFeedContainer.querySelector(".cv-no-items-message"); // Legado
-      if (oldNoItemsMsg) oldNoItemsMsg.remove();
+    // Determinar o container de conteúdo da aba ativa para exibir o erro
+    const targetErrorContainer = document.getElementById(activeTabContentIdOnError);
 
-      const errorState = createErrorStateElement({
-        // iconHTML: "...", // Ícone padrão já é de erro
-        title: "Falha ao Carregar",
-        message: error.message || "Não foi possível carregar o feed. Verifique sua conexão e tente novamente.",
-        retryButton: {
-          text: "Tentar Novamente",
-          onClick: () => {
-            // Limpar o error state antes de tentar novamente
-            const currentErrorState = muralFeedContainer.querySelector(".cv-error-state");
-            if (currentErrorState) currentErrorState.remove();
-            showFeedSkeleton("content-mural"); // Mostrar skeleton ao tentar novamente
-            loadInitialFeedItems(); // Tenta recarregar tudo
-          }
+    if (targetErrorContainer && !append) { // Mostrar erro na aba ativa apenas se não for erro de append
+        const itemsCurrentlyInMural = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)").length;
+        const itemsInActiveTab = targetErrorContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item), .cv-card:not(.feed-skeleton-item)").length;
+
+        // Mostrar erro na aba específica se ela estiver vazia ou se for a própria mural
+        if (itemsInActiveTab === 0 || activeTabContentIdOnError === "content-mural") {
+            // Limpar conteúdo anterior da aba (exceto o skeleton que já foi tratado)
+            const existingError = targetErrorContainer.querySelector(".cv-error-state");
+            if (existingError) existingError.remove();
+            const existingEmpty = targetErrorContainer.querySelector(".cv-empty-state");
+            if (existingEmpty) existingEmpty.remove();
+
+            // Remover itens do feed apenas se o erro for na mural e ela estiver sendo limpa
+            if (activeTabContentIdOnError === "content-mural") {
+                 muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)").forEach(el => el.remove());
+            }
+
+
+            // Usar o cv-error-state que já existe no HTML da aba
+            const errorStateDiv = targetErrorContainer.querySelector(".cv-error-state");
+            if (errorStateDiv) {
+                errorStateDiv.style.display = "flex"; // Ou o display correto para o componente
+                // O botão "Tentar Novamente" no HTML já tem o data-content-id.
+                // A lógica do listener para ele será adicionada separadamente.
+            } else {
+                // Fallback se o div não existir (não deveria acontecer com o HTML atualizado)
+                const errorState = createErrorStateElement({
+                    title: "Falha ao Carregar",
+                    message: error.message || `Não foi possível carregar o conteúdo de ${activeTabContentIdOnError}. Verifique sua conexão e tente novamente.`,
+                    retryButton: {
+                        text: "Tentar Novamente",
+                        onClick: () => {
+                            const currentErrorStateInTab = targetErrorContainer.querySelector(".cv-error-state");
+                            if (currentErrorStateInTab) currentErrorStateInTab.style.display = "none";
+                            showFeedSkeleton(activeTabContentIdOnError);
+                            loadInitialFeedItems(); // Ou uma função específica para a aba
+                        }
+                    }
+                });
+                // Adicionar ao container da aba ativa, não ao muralFeedContainer necessariamente
+                const contentArea = targetErrorContainer.querySelector('.feed-grid, .js-avisos, .enquetes-list, .chamados-list') || targetErrorContainer;
+                contentArea.appendChild(errorState);
+            }
         }
-      });
-
-      if (sentinelElement) muralFeedContainer.insertBefore(errorState, sentinelElement);
-      else muralFeedContainer.appendChild(errorState);
-
     } else if (append) {
-      // Para erros de "append" (infinite scroll), um toast global é aceitável,
-      // pois o conteúdo principal ainda está visível. O apiClient já pode ter mostrado um.
-      // Se não, podemos forçar um aqui se a mensagem de erro não foi "handledByApiClient".
       if (!error.handledByApiClient && error.message) {
          showGlobalFeedback(error.message || "Erro ao carregar mais itens.", "error");
       }
       console.warn("Erro ao carregar mais itens (append).");
     }
-    if (sentinelElement) sentinelElement.style.display = "none"; // Stop trying to load more on error
+    if (sentinelElement) sentinelElement.style.display = "none";
   } finally {
     isLoadingFeedItems = false;
     // Skeletons should be hidden by now, but as a safeguard:
@@ -2604,3 +2619,33 @@ async function handleCreateOcorrencia() {
 //   });
 // }
 
+// --- Botão Tentar Novamente nos Error States ---
+function setupTryAgainButtons() {
+    document.querySelectorAll(".js-try-again-button").forEach(button => {
+        button.addEventListener("click", (event) => {
+            const buttonEl = event.currentTarget;
+            const contentId = buttonEl.dataset.contentId;
+            if (contentId) {
+                const errorStateDiv = buttonEl.closest(".cv-error-state");
+                if (errorStateDiv) {
+                    errorStateDiv.style.display = "none";
+                }
+
+                // Mostrar skeleton da aba específica antes de tentar recarregar
+                showFeedSkeleton(contentId);
+
+                // Se o contentId for o do mural, ou se a aba ativa for a do mural,
+                // a chamada loadInitialFeedItems já vai lidar com o skeleton do mural.
+                // Se for uma aba específica e não for a mural, o skeleton dela foi ativado acima.
+                // A função loadInitialFeedItems é a principal para carregar o feed.
+                // Ela já usa os filtros e a aba ativa para determinar o que carregar.
+                loadInitialFeedItems();
+            } else {
+                console.warn("Botão 'Tentar Novamente' sem data-content-id definido.");
+                // Fallback geral se não houver contentId (recarrega o feed principal)
+                showFeedSkeleton("content-mural"); // Mostra skeleton do mural como fallback
+                loadInitialFeedItems();
+            }
+        });
+    });
+}
