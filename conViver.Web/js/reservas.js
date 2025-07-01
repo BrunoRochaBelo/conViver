@@ -17,9 +17,9 @@ let calendarioReservas = null;
 let currentUserId = null;
 let currentUserRoles = [];
 
-// Agenda Tab - Dia List (abaixo do calendário) - REMOVIDO
-// let agendaDiaListContainer, agendaDiaSkeleton;
-let dataSelecionadaAgenda = new Date().toISOString().split("T")[0]; // Usado pelo dateClick do FullCalendar
+// Agenda Tab - Dia List (abaixo do calendário)
+let agendaDiaListContainer, agendaDiaSkeleton; // agendaDiaLoading removido, skeleton cobre
+let dataSelecionadaAgenda = new Date().toISOString().split("T")[0]; // Para a lista de reservas do dia
 
 // Agenda Tab - List View (alternativa ao calendário)
 let currentPageListView = 1;
@@ -47,7 +47,7 @@ let contentAgenda, contentMinhas;
 // Visualização da Agenda (Calendário vs Lista)
 let viewToggleSwitch;
 let calendarioViewContainer, listViewContainer;
-// let selectEspacoComumCalendarioDisplay; // REMOVIDO
+let selectEspacoComumCalendarioDisplay; // Novo para display do filtro do calendário
 
 // Botões Globais de Filtro e Ordenação (no header das abas)
 let openFilterReservasButton, openSortReservasButton;
@@ -60,9 +60,8 @@ let filtrosModalMinhasReservasContent, filtroEspacoModalMinhas, filtroDataModalM
 // Modal de Ordenação e seus elementos
 let modalSortReservas, sortOrderSelectReservas, applySortButtonReservas, clearSortButtonReservasModal;
 
-// Seção de Admin (Gerenciar Espaços) - REMOVIDA
-// let adminEspacosSection, adminEspacosGrid;
-let btnAdicionarEspacoAdmin;
+// Seção de Admin (Gerenciar Espaços)
+let adminEspacosSection, adminEspacosGrid, btnAdicionarEspacoAdmin; // Renomeado btnAdicionarEspaco
 
 // Modais de CRUD (Nova Reserva, Detalhe, Gerenciar Espaço) - IDs permanecem os mesmos
 // const modalNovaReserva = document.getElementById("modal-nova-reserva");
@@ -99,7 +98,7 @@ export async function initialize() {
   initFabMenu(fabActions);
 
   // Estado inicial da visualização da Agenda
-  toggleAgendaView(viewToggleSwitch.checked); // Agora 'false' (desmarcado) mostra o calendário
+  toggleAgendaView(viewToggleSwitch.checked); // Checked = Calendário
 }
 
 if (document.readyState !== "loading") {
@@ -119,11 +118,11 @@ function cacheDOMElements() {
   viewToggleSwitch = document.getElementById("view-toggle-switch");
   calendarioViewContainer = document.getElementById("calendario-view-container");
   listViewContainer = document.getElementById("list-view-container");
-  // selectEspacoComumCalendarioDisplay = document.getElementById("select-espaco-comum-calendario-display"); // REMOVIDO
+  selectEspacoComumCalendarioDisplay = document.getElementById("select-espaco-comum-calendario-display");
 
-  // Lista de Reservas do Dia (abaixo do calendário) - REMOVIDO
-  // agendaDiaListContainer = document.getElementById("agenda-dia-reservas-items");
-  // agendaDiaSkeleton = document.querySelector("#agenda-dia-list .feed-skeleton-container");
+  // Lista de Reservas do Dia (abaixo do calendário)
+  agendaDiaListContainer = document.getElementById("agenda-dia-reservas-items");
+  agendaDiaSkeleton = document.querySelector("#agenda-dia-list .feed-skeleton-container");
 
   // Skeletons para listas principais
   listViewContainerSkeleton = document.querySelector("#list-view-container .feed-skeleton-container");
@@ -636,15 +635,14 @@ async function handleSalvarEspacoFormSubmit(event) {
 
 async function carregarEspacosComuns() {
   const selectsParaPopular = [
-    // selectEspacoComumCalendarioDisplay, // REMOVIDO - Elemento não existe mais no HTML
+    selectEspacoComumCalendarioDisplay, // O select de display no calendário
     document.getElementById("modal-reserva-espaco"), // Select no modal de nova reserva
     filtroEspacoModalAgenda, // Select de espaço no modal de filtros (seção Agenda)
     filtroEspacoModalMinhas, // Select de espaço no modal de filtros (seção Minhas Reservas)
-  ].filter(sel => sel !== null && sel !== undefined); // Filtrar nulos para segurança
+  ];
 
   selectsParaPopular.forEach(sel => {
-    // if (sel) sel.innerHTML = "<option value=''>Carregando...</option>"; // Não precisa mais checar sel aqui devido ao filter
-    sel.innerHTML = "<option value=''>Carregando...</option>";
+    if (sel) sel.innerHTML = "<option value=''>Carregando...</option>";
   });
 
   try {
@@ -652,11 +650,10 @@ async function carregarEspacosComuns() {
     espacosComunsList = espacos;
 
     selectsParaPopular.forEach(sel => {
-      // if (!sel) return; // Não precisa mais checar sel aqui devido ao filter
+      if (!sel) return;
       const currentValue = sel.value; // Salvar valor atual para tentar restaurar
-      // const isFiltroOuDisplay = sel.id.includes("filtro") || sel.id.includes("display"); // Não precisamos mais de 'display'
-      const isFiltro = sel.id.includes("filtro");
-      sel.innerHTML = `<option value="">${isFiltro ? "Todos os Espaços" : "Selecione um espaço"}</option>`;
+      const isFiltroOuDisplay = sel.id.includes("filtro") || sel.id.includes("display");
+      sel.innerHTML = `<option value="">${isFiltroOuDisplay ? "Todos os Espaços" : "Selecione um espaço"}</option>`;
       espacos.forEach(e => {
         const o = new Option(e.nome, e.id);
         sel.appendChild(o);
@@ -664,25 +661,22 @@ async function carregarEspacosComuns() {
       // Tentar restaurar valor selecionado anteriormente, se ainda válido
       if (currentValue && espacos.some(e => e.id === currentValue)) {
         sel.value = currentValue;
-      } else if (sel.options.length > 0 && !isFiltro) {
+      } else if (sel.options.length > 0 && !isFiltroOuDisplay) {
          // Se não for filtro e não puder restaurar, não seleciona nada (deixa "Selecione")
-      } else if (sel.options.length > 0 && isFiltro) {
+      } else if (sel.options.length > 0 && isFiltroOuDisplay) {
         sel.value = ""; // Para filtros, default para "Todos"
       }
     });
 
     // Se a seção de admin estiver visível, renderizar os espaços nela
-    // A seção admin-espacos-section foi removida, mas a lógica de renderizar o grid pode ser chamada
-    // se houver outro lugar para exibir (não é o caso atualmente).
-    // if (adminEspacosSection && (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador"))) {
-    //   renderAdminEspacos();
-    // }
+    if (adminEspacosSection && (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador"))) {
+      renderAdminEspacos();
+    }
   } catch (err) {
     console.error("Erro ao carregar espaços comuns:", err);
     showGlobalFeedback("Falha ao carregar espaços comuns.", "error");
     selectsParaPopular.forEach(sel => {
-      // if (sel) sel.innerHTML = "<option value=''>Erro ao carregar</option>"; // Não precisa mais checar sel
-      sel.innerHTML = "<option value=''>Erro ao carregar</option>";
+      if (sel) sel.innerHTML = "<option value=''>Erro ao carregar</option>";
     });
   }
 }
