@@ -605,7 +605,8 @@ public class ReservaService
             .Include(r => r.EspacoComum)
             .Include(r => r.Unidade)
             .Include(r => r.Solicitante)
-            .OrderByDescending(r => r.Inicio)
+            .OrderBy(r => r.Status == ReservaStatus.Pendente ? 0 : 1)
+            .ThenBy(r => r.Inicio)
             .ToListAsync(ct);
 
         var dtos = new List<ReservaDto>(reservas.Count);
@@ -674,7 +675,7 @@ public class ReservaService
             HoraFim = r.Fim.ToString("HH:mm"),
             TituloCustomizado = r.TituloParaMural,
             TituloGerado = $"{r.EspacoComum.Nome} reservado por {(r.Unidade?.Identificacao ?? "condômino")}",
-            UrlDetalhes = $"/pages/reservas.html?idReserva={r.Id}" // Exemplo de URL
+            UrlDetalhes = $"/pages/calendario.html?idReserva={r.Id}" // Exemplo de URL
         }).ToList();
 
         return new PaginatedResultDto<ReservaMuralDto>(dtos, total, pageNumber, pageSize);

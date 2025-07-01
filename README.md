@@ -36,7 +36,7 @@ Principais módulos:
 | **Financeiro** | Geração de boletos, conciliação via webhook (genérico), gestão de despesas, balancetes. Acordos de inadimplência implementados. (*PIX específico e relatórios avançados como DIRF são futuros*) |
 | **Comunicação** | Mural digital (Avisos), Votações Online |
 | **Portaria & Segurança** | Registro de Visitantes (com pré-autorização e QR code), Encomendas (registro e retirada) |
-| **Reservas & Agenda** | Reservas de áreas comuns com aprovação |
+| **Calendário** | Reservas de áreas comuns com aprovação |
 | **Prestadores & OS** | Cadastro de Prestadores, Ordens de Serviço, Avaliações de Prestadores |
 | **Documentos** | Biblioteca de documentos com upload e download |
 | **Gamificação** | Pontos, níveis, metas (Planejado/Futuro) |
@@ -188,7 +188,7 @@ Infra (Exemplo): Azure App Service (API), Azure Storage (front), Azure AD B2C (a
 *   **Gestão Financeira Base**: Cadastro de Despesas, Balancete. Geração de Cobranças (Boletos) e Geração em Lote. Webhook de Pagamento genérico. Acordos de Inadimplência.
 *   **Comunicação**: Mural de Avisos, Votações Online completas.
 *   **Portaria & Segurança**: Registro de Visitantes (com pré-autorização e QR code), Encomendas (registro e retirada).
-*   **Reservas de Áreas Comuns**: Funcionalidade completa com aprovação.
+*   **Calendário e Reservas**: Funcionalidade completa com aprovação.
 *   **Prestadores & Ordens de Serviço**: Cadastro de Prestadores, OS, Avaliações de Prestadores.
 *   **Documentos**: Biblioteca de documentos com upload e download.
 *   **Autenticação**: Login, Signup, Refresh Token, Forgot/Reset Password (simulado), Gestão de Usuários (Admin), Gestão de Membros de Unidades (Síndico).
