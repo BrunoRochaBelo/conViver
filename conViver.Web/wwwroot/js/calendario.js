@@ -2,7 +2,7 @@ import { showGlobalFeedback, showSkeleton, hideSkeleton, debugLog } from "./main
 import { requireAuth, getUserInfo, getRoles } from "./auth.js";
 import apiClient from "./apiClient.js";
 import { initFabMenu } from "./fabMenu.js";
-// FullCalendar is loaded globally via CDN in reservas.html. Here we pull the
+// FullCalendar is loaded globally via CDN in calendario.html. Here we pull the
 // needed constructors/plugins from the global object to avoid module
 // resolution issues when running without a bundler.
 const {

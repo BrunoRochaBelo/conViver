@@ -945,7 +945,7 @@ Acesso geral: `Sindico`, `Condomino`, `Inquilino`.
   "horaFim": "string (HH:mm)",
   "tituloCustomizado": "string|null",
   "tituloGerado": "string",
-  "urlDetalhes": "string (e.g., /pages/reservas.html?idReserva=uuid)"
+  "urlDetalhes": "string (e.g., /pages/calendario.html?idReserva=uuid)"
 }
 ```
 
