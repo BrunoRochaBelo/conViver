@@ -5,16 +5,11 @@ import {
     showSkeleton,
     hideSkeleton,
     showInlineSpinner,
-    // createErrorStateElement, // Agora importado de pageLoader (ou uiUtils)
-    // createEmptyStateElement, // Agora importado de pageLoader (ou uiUtils)
-    showModalError,
-    clearModalError
+    createErrorStateElement,
+    createEmptyStateElement,
+    showModalError, // Importar de main.js
+    clearModalError // Importar de main.js
 } from "./main.js";
-import {
-    showErrorState,
-    showEmptyState,
-    showLoadingState
-} from "./pageLoader.js"; // Supondo que as funções estão em pageLoader.js
 import { initFabMenu } from "./fabMenu.js";
 import { xhrPost } from './progress.js'; // Importar xhrPost
 
@@ -1128,56 +1123,71 @@ async function fetchAndDisplayFeedItems(page, append = false) {
   const muralFeedContainer = document.querySelector("#content-mural " + feedContainerSelector);
   if (!muralFeedContainer) {
     isLoadingFeedItems = false;
-    // Não precisa mais chamar hideFeedSkeleton aqui, pois showLoadingState/showErrorState limparão o container.
-    // hideFeedSkeleton("content-mural");
-    // const activeTabId = getActiveTabContentId();
-    // if (activeTabId !== "content-mural") hideFeedSkeleton(activeTabId);
+    hideFeedSkeleton("content-mural"); // Hide mural skeleton if its container is missing
+    const activeTabId = getActiveTabContentId();
+    if (activeTabId !== "content-mural") hideFeedSkeleton(activeTabId);
     return;
   }
 
   const sentinelElement = document.getElementById(feedScrollSentinelId);
+  const loadingMessageClass = "cv-loading-message"; // This was for text loading, less needed with skeleton
+  let loadingP = muralFeedContainer.querySelector(`.${loadingMessageClass}`);
+  if(loadingP) loadingP.style.display = 'none'; // Hide old text loading message
 
   if (!append) {
-    // Fresh load: Show loading state in the mural feed container
-    showLoadingState(muralFeedContainer, "Carregando comunicados e atualizações...");
-
+    // This is a fresh load (not infinite scroll)
+    showFeedSkeleton("content-mural"); // Ensure mural skeleton is visible
     const activeTabId = getActiveTabContentId();
     if (activeTabId !== "content-mural") {
-        const activeTabContentElement = document.getElementById(activeTabId);
-        if (activeTabContentElement) {
-            // Se a aba ativa não for o mural, mostrar loading state nela também
-            showLoadingState(activeTabContentElement, `Carregando ${activeTabId.replace('content-', '')}...`);
-        }
+        // If another tab (like Enquetes) triggered this, show its skeleton too
+        showFeedSkeleton(activeTabId);
     }
 
-    // fetchedFeedItems é limpo de itens não fixos, mantendo os fixos se o filtro permitir
+    // Clear previous items (non-pinned) from the DOM and from fetchedFeedItems array
+    muralFeedContainer
+      .querySelectorAll(`.feed-item:not(.prio-0):not(.feed-skeleton-item)`)
+      .forEach((el) => el.remove());
+
     const CategoriaFilterValue =
       document.getElementById("category-filter-modal")?.value?.toLowerCase() || "";
     fetchedFeedItems = fetchedFeedItems.filter((fi) => {
       return (
-        fi.prioridadeOrdenacao === 0 &&
+        fi.prioridadeOrdenacao === 0 && // Keep pinned items
         (CategoriaFilterValue === "" ||
           fi.categoria?.toLowerCase() === CategoriaFilterValue ||
           fi.itemType?.toLowerCase() === CategoriaFilterValue)
       );
     });
 
+    // Remove old "no items" or "error" messages from muralFeedContainer
+    const noItemsMsg = muralFeedContainer.querySelector(".cv-no-items-message");
+    if (noItemsMsg) noItemsMsg.remove();
+    const errorStateElement = muralFeedContainer.querySelector(".cv-error-state");
+    if (errorStateElement) errorStateElement.remove();
+    const emptyStateElement = muralFeedContainer.querySelector(".cv-empty-state");
+    if (emptyStateElement) emptyStateElement.remove();
+
   } else {
-    // Infinite scroll: Show a small spinner near the sentinel
-    if (sentinelElement) {
-      let spinner = sentinelElement.previousElementSibling;
-      if (!spinner || !spinner.classList.contains('load-more-spinner')) {
-        spinner = document.createElement('div');
-        spinner.className = 'load-more-spinner cv-loading-state'; // Usar cv-loading-state para estilização base
-        spinner.style.minHeight = 'auto'; // Override min-height para ser menor
-        spinner.style.padding = 'var(--cv-spacing-md)';
-        spinner.innerHTML = `<div class="cv-loading-state__icon" style="width: 32px; height: 32px;">${getDefaultLoadingIcon()}</div> <p class="cv-loading-state__message">Carregando mais...</p>`;
-        sentinelElement.insertAdjacentElement('beforebegin', spinner);
+    // This is for infinite scroll, show a smaller loading indicator if desired, or rely on skeleton
+    // For now, the main skeleton is shown by loadInitialFeedItems.
+    // If we want a specific "loading more" visual, it would go here.
+    // e.g., a small spinner near the sentinel.
+    // For simplicity, we'll let the existing skeleton cover this or just load.
+    // Show a small spinner near the sentinel when loading more items
+    if (append && sentinelElement) {
+      const spinner = sentinelElement.querySelector('.inline-spinner');
+      if (!spinner) {
+        const spinnerElement = document.createElement('span');
+        spinnerElement.className = 'inline-spinner';
+        spinnerElement.style.display = 'block';
+        spinnerElement.style.margin = 'var(--cv-spacing-md) auto'; // Center it
+        sentinelElement.insertAdjacentElement('beforebegin', spinnerElement);
+      } else {
+        spinner.style.display = 'block';
       }
-      spinner.style.display = 'flex';
     }
   }
-  if (sentinelElement) sentinelElement.style.display = "block";
+  if (sentinelElement) sentinelElement.style.display = "block"; // Keep sentinel active
 
   // Read filters from the modal
   const categoriaFilter =
@@ -1223,26 +1233,25 @@ async function fetchAndDisplayFeedItems(page, append = false) {
 
     const items = response || [];
     const activeTabContentId = getActiveTabContentId();
-    const activeTabElement = document.getElementById(activeTabContentId); // Elemento da aba ativa
 
-    // Limpar container do mural antes de adicionar novos itens ou estado de vazio/erro
-    // As funções showEmptyState/showErrorState já limpam, mas é bom garantir se formos adicionar itens.
-    if (!append) { // Apenas para o carregamento inicial, não para 'carregar mais'
-        muralFeedContainer.innerHTML = '';
-        if (activeTabElement && activeTabContentId !== "content-mural") {
-            activeTabElement.innerHTML = ''; // Limpar também a aba específica
-        }
+    hideFeedSkeleton("content-mural");
+    if (activeTabContentId !== "content-mural") {
+        hideFeedSkeleton(activeTabContentId);
+    }
+
+    // Limpar erro anterior da aba ativa, caso exista
+    const activeTabElement = document.getElementById(activeTabContentId);
+    if (activeTabElement) {
+        const existingErrorState = activeTabElement.querySelector(".cv-error-state");
+        if (existingErrorState) existingErrorState.style.display = "none";
+        const existingEmptyState = activeTabElement.querySelector(".cv-empty-state");
+        if (existingEmptyState) existingEmptyState.style.display = "none";
     }
 
 
     if (items.length > 0) {
-      // Esconder o spinner de "carregar mais" se estiver visível
-      const loadMoreSpinner = sentinelElement?.previousElementSibling;
-      if (loadMoreSpinner && loadMoreSpinner.classList.contains('load-more-spinner')) {
-        loadMoreSpinner.style.display = 'none';
-      }
-
       items.forEach((item) => {
+        // Check if item (non-pinned) already exists from a previous fetch or is pinned
         if (
           fetchedFeedItems.some(
             (fi) => fi.id === item.id && fi.itemType === item.itemType
@@ -1285,7 +1294,7 @@ async function fetchAndDisplayFeedItems(page, append = false) {
         const itemAData = fetchedFeedItems.find(
           (fi) =>
             fi.id === a.dataset.itemId && fi.itemType === a.dataset.itemType
-        ) || { prioridadeOrdenacao: 1, dataHoraPrincipal: 0 };
+        ) || { prioridadeOrdenacao: 1, dataHoraPrincipal: 0 }; // Fallback for items not in fetchedFeedItems (should not happen)
         const itemBData = fetchedFeedItems.find(
           (fi) =>
             fi.id === b.dataset.itemId && fi.itemType === b.dataset.itemType
@@ -1298,158 +1307,245 @@ async function fetchAndDisplayFeedItems(page, append = false) {
         return currentSortOrder === "desc" ? diff : -diff;
       });
       allRenderedItems.forEach((el) =>
-        muralFeedContainer.insertBefore(el, sentinelElement)
+        muralFeedContainer.insertBefore(el, sentinelElement) // Re-insert in sorted order
       );
     } else { // No items returned from API
-      // Esconder o spinner de "carregar mais" se estiver visível (caso de erro ao carregar mais)
-      const loadMoreSpinner = sentinelElement?.previousElementSibling;
-      if (loadMoreSpinner && loadMoreSpinner.classList.contains('load-more-spinner')) {
-        loadMoreSpinner.style.display = 'none';
-      }
-
-      if (page === 1 && !append) {
+      if (page === 1 && !append) { // First page and not appending
         const currentVisibleItems = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)");
-        if (currentVisibleItems.length === 0) {
+        if (currentVisibleItems.length === 0) { // No items at all (including pinned)
+          // Remove mensagens antigas de "no items" ou erro
+          const oldNoItemsMsg = muralFeedContainer.querySelector(".cv-no-items-message");
+          if (oldNoItemsMsg) oldNoItemsMsg.remove();
+          const oldErrorState = muralFeedContainer.querySelector(".cv-error-state");
+          if (oldErrorState) oldErrorState.remove();
+          const oldEmptyState = muralFeedContainer.querySelector(".cv-empty-state");
+          if (oldEmptyState) oldEmptyState.remove();
+
+          // Verifica se há filtros ativos para personalizar a mensagem
           const CategoriaFilterValue = document.getElementById("category-filter-modal")?.value?.toLowerCase() || "";
           const periodoFilterInput = document.getElementById("period-filter-modal")?.value;
-          const hasActiveFilters = CategoriaFilterValue || periodoFilterInput; // Simplificado
-          const userRolesForEmptyState = getUserRoles();
+          // Outros filtros específicos de aba poderiam ser verificados aqui também.
+          const hasActiveFilters = CategoriaFilterValue || periodoFilterInput;
+
+          const userRolesForEmptyState = getUserRoles(); // Obter roles para decidir o botão
           const isSindicoForEmptyState = userRolesForEmptyState.includes("Sindico") || userRolesForEmptyState.includes("Administrador");
 
-          let title = "Nenhum Item Encontrado";
-          let message = "Não há comunicados, enquetes ou outras atualizações no momento.";
-          let actions = [];
-          let icon = getDefaultEmptyIcon(); // Usar o ícone padrão de "vazio"
+          let emptyStateConfig = {
+            iconHTML: `
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+              </svg>`, // Ícone de Lupa
+            title: "Nenhum Item Encontrado", // Default title
+            description: "Não há comunicados, enquetes ou outras atualizações no momento. Volte mais tarde!",
+            actionButton: null // Default no action button
+          };
 
           if (hasActiveFilters) {
-            title = "Nenhum Item com Esses Filtros";
-            message = "Tente ajustar seus filtros ou verificar mais tarde.";
-            actions.push({
+            emptyStateConfig.title = "Nenhum Item Encontrado";
+            emptyStateConfig.description = "Tente ajustar seus filtros ou verificar mais tarde.";
+            emptyStateConfig.actionButton = {
                 text: "Limpar Filtros",
-                action: () => {
+                onClick: () => {
+                    // Lógica para limpar filtros e recarregar - pode chamar a função de clearFiltersModalButton
                     const clearFiltersBtnModal = document.getElementById("clear-filters-button-modal");
                     if (clearFiltersBtnModal) clearFiltersBtnModal.click();
+                    // A ação de click no botão de limpar filtros já recarrega o feed.
                 },
-                class: "cv-button--secondary"
-            });
-            icon = getDefaultSearchIcon(); // Ícone de busca/sem resultados
+                classes: ["cv-button--secondary"]
+            };
           } else {
-            title = "Mural Vazio";
-            message = "Ainda não há comunicados, enquetes ou outras atualizações.";
+            // Sem filtros ativos, mural principal vazio
+            emptyStateConfig.title = "Mural Vazio";
+            emptyStateConfig.description = "Ainda não há comunicados, enquetes ou outras atualizações. Que tal criar o primeiro aviso?";
             if (isSindicoForEmptyState) {
-                message += " Que tal criar o primeiro aviso?";
-                actions.push({
+                emptyStateConfig.actionButton = {
                     text: "Criar Aviso",
-                    action: openCriarAvisoModal,
-                    class: "cv-button--primary"
-                });
+                    onClick: openCriarAvisoModal, // Função para abrir modal de criar aviso
+                    classes: ["cv-button--primary"]
+                };
+            } else {
+                 // Para não-síndicos, talvez um botão para ver ocorrências ou algo similar, ou nenhum botão.
+                 // Por ora, sem botão se não for síndico e o mural estiver genuinamente vazio.
+                 emptyStateConfig.description = "Ainda não há comunicados, enquetes ou outras atualizações no momento. Volte mais tarde!"
             }
           }
-          showEmptyState(muralFeedContainer, title, message, icon, actions);
+
+          const emptyStateElement = createEmptyStateElement(emptyStateConfig);
+
+          if (sentinelElement)
+            muralFeedContainer.insertBefore(emptyStateElement, sentinelElement);
+          else muralFeedContainer.appendChild(emptyStateElement);
         }
       }
       noMoreFeedItems = true;
-      if (sentinelElement) sentinelElement.style.display = "none";
+      if (sentinelElement) sentinelElement.style.display = "none"; // No more items, hide sentinel
     }
-    setupFeedItemActionButtons();
+    setupFeedItemActionButtons(); // Re-attach event listeners if items were added/changed
 
   } catch (error) {
-    console.error("Erro ao buscar feed:", error);
+    console.error("Erro ao buscar feed:", error); // Log original error
     const activeTabContentIdOnError = getActiveTabContentId();
-    const targetErrorContainer = document.getElementById(activeTabContentIdOnError);
-
-    // Esconder o spinner de "carregar mais" se estiver visível (caso de erro ao carregar mais)
-    const loadMoreSpinner = sentinelElement?.previousElementSibling;
-    if (loadMoreSpinner && loadMoreSpinner.classList.contains('load-more-spinner')) {
-      loadMoreSpinner.style.display = 'none';
+    hideFeedSkeleton("content-mural");
+    if (activeTabContentIdOnError !== "content-mural") {
+        hideFeedSkeleton(activeTabContentIdOnError); // Esconde skeleton da aba ativa específica
     }
 
-    if (targetErrorContainer && !append) {
+    // Determinar o container de conteúdo da aba ativa para exibir o erro
+    const targetErrorContainer = document.getElementById(activeTabContentIdOnError);
+
+    if (targetErrorContainer && !append) { // Mostrar erro na aba ativa apenas se não for erro de append
+        const itemsCurrentlyInMural = muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)").length;
         const itemsInActiveTab = targetErrorContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item), .cv-card:not(.feed-skeleton-item)").length;
+
+        // Mostrar erro na aba específica se ela estiver vazia ou se for a própria mural
         if (itemsInActiveTab === 0 || activeTabContentIdOnError === "content-mural") {
-            showErrorState(targetErrorContainer,
-                error.message || `Não foi possível carregar o conteúdo de ${activeTabContentIdOnError}. Verifique sua conexão e tente novamente.`,
-                // A função showErrorState já tem um ícone padrão, mas podemos passar um específico se quisermos
-            );
-            // Adicionar listener para o botão de tentar novamente, se ele foi adicionado por showErrorState
-            const retryButton = targetErrorContainer.querySelector('.error-state__retry-button');
-            if (retryButton) {
-                retryButton.onclick = () => loadInitialFeedItems(); // Ou uma função específica para a aba
+            // Limpar conteúdo anterior da aba (exceto o skeleton que já foi tratado)
+            const existingError = targetErrorContainer.querySelector(".cv-error-state");
+            if (existingError) existingError.remove();
+            const existingEmpty = targetErrorContainer.querySelector(".cv-empty-state");
+            if (existingEmpty) existingEmpty.remove();
+
+            // Remover itens do feed apenas se o erro for na mural e ela estiver sendo limpa
+            if (activeTabContentIdOnError === "content-mural") {
+                 muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)").forEach(el => el.remove());
+            }
+
+
+            // Usar o cv-error-state que já existe no HTML da aba
+            const errorStateDiv = targetErrorContainer.querySelector(".cv-error-state");
+            if (errorStateDiv) {
+                errorStateDiv.style.display = "flex"; // Ou o display correto para o componente
+                // O botão "Tentar Novamente" no HTML já tem o data-content-id.
+                // A lógica do listener para ele será adicionada separadamente.
+            } else {
+                // Fallback se o div não existir (não deveria acontecer com o HTML atualizado)
+                const errorState = createErrorStateElement({
+                    title: "Falha ao Carregar",
+                    message: error.message || `Não foi possível carregar o conteúdo de ${activeTabContentIdOnError}. Verifique sua conexão e tente novamente.`,
+                    retryButton: {
+                        text: "Tentar Novamente",
+                        onClick: () => {
+                            const currentErrorStateInTab = targetErrorContainer.querySelector(".cv-error-state");
+                            if (currentErrorStateInTab) currentErrorStateInTab.style.display = "none";
+                            showFeedSkeleton(activeTabContentIdOnError);
+                            loadInitialFeedItems(); // Ou uma função específica para a aba
+                        }
+                    }
+                });
+                // Adicionar ao container da aba ativa, não ao muralFeedContainer necessariamente
+                const contentArea = targetErrorContainer.querySelector('.feed-grid, .js-avisos, .enquetes-list, .chamados-list') || targetErrorContainer;
+                contentArea.appendChild(errorState);
             }
         }
     } else if (append) {
       if (!error.handledByApiClient && error.message) {
          showGlobalFeedback(error.message || "Erro ao carregar mais itens.", "error");
       }
+      console.warn("Erro ao carregar mais itens (append).");
     }
     if (sentinelElement) sentinelElement.style.display = "none";
   } finally {
     isLoadingFeedItems = false;
-    // A lógica de esconder skeletons/loading states já foi feita dentro do try/catch
-    // ou será feita pelas funções showEmptyState/showErrorState que limpam o container.
-
+    // Skeletons should be hidden by now, but as a safeguard:
     const finalActiveTab = getActiveTabContentId();
+    hideFeedSkeleton("content-mural");
+    if(finalActiveTab !== "content-mural") hideFeedSkeleton(finalActiveTab);
+
+    // Hide spinner for "load more" if it was shown
+    if (append && sentinelElement) {
+        const spinner = sentinelElement.parentElement.querySelector('.inline-spinner:not(#' + feedScrollSentinelId + ' .inline-spinner)');
+        if (spinner) {
+            spinner.style.display = 'none';
+        }
+    }
+
+    // Restore info messages for Enquetes/Solicitações if they are active and mural is empty
+    // This is now handled by displaying a specific EmptyState for the tab.
     const muralIsEmpty = noMoreFeedItems && page === 1 && muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)").length === 0;
 
     if (muralIsEmpty) {
         const tabSpecificContentArea = document.getElementById(finalActiveTab);
         if (tabSpecificContentArea && finalActiveTab !== "content-mural") {
             // Limpar área de conteúdo da aba específica
-            tabSpecificContentArea.innerHTML = ''; // Limpa para o showEmptyState
+            const existingMessages = tabSpecificContentArea.querySelectorAll(".cv-info-message, .cv-no-items-message, .cv-error-message, .cv-empty-state, .cv-error-state, .feed-skeleton-container");
+            existingMessages.forEach(msg => msg.remove()); // Remove também skeletons se houver
 
-            let title = "Nenhum Conteúdo";
-            let message = "Não há itens para exibir nesta seção no momento.";
-            let actions = [];
-            let icon = getDefaultEmptyIcon();
-
+            let emptyStateConfig = null;
             const userRoles = getUserRoles();
             const isSindico = userRoles.includes("Sindico") || userRoles.includes("Administrador");
             const hasActiveFilters = document.getElementById("open-filter-modal-button")?.classList.contains("has-indicator");
 
+            let actionButtonConfig = null;
+
             if (finalActiveTab === "content-enquetes") {
-                title = hasActiveFilters ? "Nenhuma Enquete Encontrada" : "Sem Enquetes no Momento";
-                message = hasActiveFilters
-                    ? "Nenhuma enquete corresponde aos filtros aplicados."
-                    : "Ainda não há enquetes ativas ou encerradas.";
                 if (isSindico) {
-                    message += " Que tal criar a primeira?";
-                    actions.push({ text: "Criar Nova Enquete", action: openCreateEnqueteModal, class: "cv-button--primary" });
+                    actionButtonConfig = { text: "Criar Nova Enquete", onClick: openCreateEnqueteModal, classes: ["cv-button--primary"] };
                 }
-                icon = getDefaultPollIcon(); // Ícone de enquete
+                emptyStateConfig = {
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bar-chart-2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
+                    title: hasActiveFilters ? "Nenhuma Enquete Encontrada" : "Sem Enquetes no Momento",
+                    description: hasActiveFilters
+                        ? "Nenhuma enquete corresponde aos filtros aplicados. Tente ajustá-los ou crie uma nova enquete."
+                        : "Ainda não há enquetes ativas ou encerradas. Que tal criar a primeira?",
+                    actionButton: actionButtonConfig
+                };
             } else if (finalActiveTab === "content-solicitacoes") {
-                title = hasActiveFilters ? "Nenhuma Solicitação Encontrada" : "Caixa de Solicitações Vazia";
-                message = hasActiveFilters
-                    ? "Nenhuma solicitação corresponde aos filtros aplicados."
-                    : "Ainda não foram abertas solicitações.";
-                actions.push({ text: "Abrir Nova Solicitação", action: openCreateChamadoModal, class: "cv-button--primary" });
-                icon = getDefaultRequestIcon(); // Ícone de solicitação
+                 actionButtonConfig = { text: "Abrir Nova Solicitação", onClick: openCreateChamadoModal, classes: ["cv-button--primary"] };
+                emptyStateConfig = {
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
+                    title: hasActiveFilters ? "Nenhuma Solicitação Encontrada" : "Caixa de Solicitações Vazia",
+                    description: hasActiveFilters
+                        ? "Nenhuma solicitação corresponde aos filtros aplicados. Tente ajustá-los ou abra uma nova."
+                        : "Ainda não foram abertas solicitações. Se precisar de algo, este é o lugar!",
+                    actionButton: actionButtonConfig
+                };
             } else if (finalActiveTab === "content-ocorrencias") {
-                title = hasActiveFilters ? "Nenhuma Ocorrência Encontrada" : "Sem Ocorrências Registradas";
-                message = hasActiveFilters
-                    ? "Nenhuma ocorrência corresponde aos filtros atuais."
-                    : "Ainda não há ocorrências registradas.";
-                 actions.push({ text: "Relatar Nova Ocorrência", action: openCreateOcorrenciaModal, class: "cv-button--primary" });
-                 icon = getDefaultOccurrenceIcon(); // Ícone de ocorrência
+                 actionButtonConfig = { text: "Relatar Nova Ocorrência", onClick: openCreateOcorrenciaModal, classes: ["cv-button--primary"] };
+                emptyStateConfig = {
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+                    title: hasActiveFilters ? "Nenhuma Ocorrência Encontrada" : "Sem Ocorrências Registradas",
+                    description: hasActiveFilters
+                        ? "Nenhuma ocorrência corresponde aos filtros atuais. Tente ajustá-los ou relate uma nova."
+                        : "Ainda não há ocorrências registradas. Se identificar algo, utilize o botão abaixo.",
+                    actionButton: actionButtonConfig
+                };
             }
 
-            if (hasActiveFilters) {
-                 actions.push({
-                    text: "Limpar Filtros",
-                    action: () => {
-                        const clearFiltersBtnModal = document.getElementById("clear-filters-button-modal");
-                        if (clearFiltersBtnModal) clearFiltersBtnModal.click();
-                    },
-                    class: "cv-button--secondary"
-                });
+            if (emptyStateConfig) {
+                 // Adicionar botão de limpar filtros se houver filtros ativos e não houver já um botão de ação primário,
+                 // ou se o empty state for por causa dos filtros.
+                if (hasActiveFilters && (!emptyStateConfig.actionButton || emptyStateConfig.title.includes("Encontrada"))) {
+                    emptyStateConfig.secondaryActionButton = { // Adicionando um botão secundário
+                        text: "Limpar Filtros",
+                        onClick: () => {
+                            const clearFiltersBtnModal = document.getElementById("clear-filters-button-modal");
+                            if (clearFiltersBtnModal) clearFiltersBtnModal.click();
+                        },
+                        classes: ["cv-button--secondary"]
+                    };
+                }
+
+                let targetContainerForEmptyState = tabSpecificContentArea.querySelector('.feed-content');
+                if (!targetContainerForEmptyState) targetContainerForEmptyState = tabSpecificContentArea;
+
+                const oldTabEmptyState = targetContainerForEmptyState.querySelector('.cv-empty-state');
+                if(oldTabEmptyState) oldTabEmptyState.remove();
+
+                const emptyStateEl = createEmptyStateElement(emptyStateConfig);
+                targetContainerForEmptyState.appendChild(emptyStateEl);
             }
-            showEmptyState(tabSpecificContentArea, title, message, icon, actions);
         }
     } else if (!muralIsEmpty && finalActiveTab !== "content-mural") {
-        // Se o mural não está vazio, mas a aba específica poderia estar (se não fosse baseada no mural)
-        // Aqui, como as abas filtram o mural, se o mural tem itens, a aba filtrada também terá (ou mostrará o mural).
-        // Se a aba tivesse seu próprio conteúdo independente e estivesse vazia, limparíamos aqui.
-        // Por ora, se o mural tem itens, as abas refletem isso, então não precisamos limpar explicitamente
-        // o empty state da aba específica, a menos que a lógica de exibição de conteúdo mude.
+        const tabSpecificContentArea = document.getElementById(finalActiveTab);
+        if (tabSpecificContentArea) {
+            const oldTabEmptyState = tabSpecificContentArea.querySelector('.cv-empty-state');
+            if(oldTabEmptyState) oldTabEmptyState.remove();
+            const infoMsg = tabSpecificContentArea.querySelector(".cv-info-message"); // Legado
+            if(infoMsg) infoMsg.remove();
+            // Remover também skeletons se houver
+            const skeleton = tabSpecificContentArea.querySelector('.feed-skeleton-container');
+            if (skeleton) skeleton.remove();
+        }
     }
   }
 }
@@ -1673,35 +1769,37 @@ async function handleEnqueteClick(itemId, targetElementOrCard) {
   currentEnqueteId = itemId;
   if (!modalEnqueteDetalhe || !apiClient) return;
 
-  // Use showLoadingState para o container de opções dentro do modal
-  showLoadingState(modalEnqueteDetalheOpcoesContainer, "Carregando detalhes da enquete...");
-  modalEnqueteDetalheStatus.innerHTML = ""; // Limpar status anterior
-  modalEnqueteSubmitVotoButton.style.display = "none"; // Esconder botão de voto
-  modalEnqueteDetalhe.style.display = "flex"; // Mostrar o modal
+  modalEnqueteDetalheOpcoesContainer.innerHTML =
+    '<p class="cv-loading-message"><span class="spinner spinner-small"></span> Carregando detalhes da enquete...</p>';
+  modalEnqueteDetalheStatus.innerHTML = "";
+  modalEnqueteSubmitVotoButton.style.display = "none";
+  modalEnqueteDetalhe.style.display = "flex";
 
   try {
     const enquete = await apiClient.get(
       `/api/v1/votacoes/app/votacoes/${itemId}`
     );
     if (!enquete) {
-      showErrorState(modalEnqueteDetalheOpcoesContainer,
-        "A enquete que você está tentando visualizar não foi encontrada ou você não tem permissão para acessá-la.",
-        // Ícone padrão de erro será usado por showErrorState
-      );
-      // Adicionar botão de tentar novamente se necessário, a função showErrorState pode ser estendida para isso
-      // Por ora, o usuário pode fechar e tentar reabrir o modal.
+      // modalEnqueteDetalheOpcoesContainer.innerHTML =
+      //   '<p class="cv-error-message">Enquete não encontrada ou acesso não permitido.</p>';
+      const errorState = createErrorStateElement({
+        title: "Enquete não encontrada",
+        message: "A enquete que você está tentando visualizar não foi encontrada ou você não tem permissão para acessá-la.",
+        retryButton: {
+            text: "Tentar Novamente",
+            onClick: () => handleEnqueteClick(itemId, null)
+        }
+      });
+      modalEnqueteDetalheOpcoesContainer.innerHTML = '';
+      modalEnqueteDetalheOpcoesContainer.appendChild(errorState);
       return;
     }
-    // Limpar o container antes de adicionar conteúdo real (showLoadingState já faz isso)
-    // modalEnqueteDetalheOpcoesContainer.innerHTML = '';
-
     modalEnqueteDetalheTitulo.textContent = enquete.titulo;
     modalEnqueteDetalheDescricao.innerHTML = enquete.descricao
       ? `<p>${enquete.descricao.replace(/\n/g, "<br>")}</p>`
       : "<p><em>Sem descrição adicional.</em></p>";
-
     if (enquete.status === "Aberta" && !enquete.usuarioJaVotou) {
-      renderOpcoesDeVoto(enquete.opcoes); // Esta função popula modalEnqueteDetalheOpcoesContainer
+      renderOpcoesDeVoto(enquete.opcoes);
       modalEnqueteSubmitVotoButton.style.display = "block";
       modalEnqueteSubmitVotoButton.onclick = () => submitVoto(itemId);
       modalEnqueteDetalheStatus.innerHTML = `<p><strong>Status:</strong> Aberta para votação.</p> <p>Prazo: ${
@@ -1710,7 +1808,7 @@ async function handleEnqueteClick(itemId, targetElementOrCard) {
           : "Não definido"
       }</p>`;
     } else {
-      renderResultadosEnquete( // Esta função também popula modalEnqueteDetalheOpcoesContainer
+      renderResultadosEnquete(
         enquete.opcoes,
         enquete.status,
         enquete.usuarioJaVotou,
@@ -1719,21 +1817,32 @@ async function handleEnqueteClick(itemId, targetElementOrCard) {
     }
   } catch (error) {
     console.error("Erro ao buscar detalhes da enquete:", error);
-    showErrorState(modalEnqueteDetalheOpcoesContainer,
-        error.message || "Não foi possível carregar os detalhes da enquete. Verifique sua conexão e tente novamente.",
-        // Ícone padrão de erro será usado
-    );
-    // Adicionar listener para o botão de tentar novamente, se ele foi adicionado por showErrorState
-    const retryButton = modalEnqueteDetalheOpcoesContainer.querySelector('.error-state__retry-button');
-    if (retryButton) {
-        retryButton.onclick = () => handleEnqueteClick(itemId, null);
-    }
+    // A mensagem de erro agora é mostrada dentro do modal pelo createErrorStateElement (indiretamente)
+    // ou por uma mensagem simples se o componente não for usado aqui.
+    // O importante é que o modal já tem seu próprio feedback de erro.
+    // modalEnqueteDetalheOpcoesContainer.innerHTML =
+    //   '<p class="cv-error-message">Erro ao carregar detalhes da enquete. Tente novamente mais tarde.</p>';
+    const errorState = createErrorStateElement({
+        title: "Erro ao Carregar Enquete",
+        message: error.message || "Não foi possível carregar os detalhes da enquete. Verifique sua conexão e tente novamente.",
+        retryButton: {
+            text: "Tentar Novamente",
+            onClick: () => handleEnqueteClick(itemId, null)
+        }
+    });
+    modalEnqueteDetalheOpcoesContainer.innerHTML = '';
+    modalEnqueteDetalheOpcoesContainer.appendChild(errorState);
+    // Removido showGlobalFeedback daqui para evitar redundância com o feedback no modal.
+    // if (!error.handledByApiClient) {
+    //   showGlobalFeedback(
+    //     error.message || "Falha ao carregar enquete.",
+    //     "error"
+    //   );
+    // }
   }
 }
 
 function renderOpcoesDeVoto(opcoes) {
-  // Assegurar que o container está limpo antes de renderizar
-  modalEnqueteDetalheOpcoesContainer.innerHTML = '';
   let html =
     '<h4>Escolha uma opção:</h4><form id="form-votar-enquete" class="cv-form">';
   opcoes.forEach((opcao) => {
@@ -1861,9 +1970,9 @@ async function handleChamadoClick(
   currentChamadoIdModal = itemId;
   if (!modalChamadoDetalhe || !apiClient) return;
 
-  // Usar showLoadingState para o conteúdo principal do modal de detalhes do chamado/ocorrência
-  showLoadingState(modalChamadoDetalheConteudo, `Carregando detalhes de ${itemType}...`);
-  modalChamadoDetalheInteracoes.innerHTML = ""; // Limpar interações anteriores
+  modalChamadoDetalheConteudo.innerHTML =
+    '<p class="cv-loading-message"><span class="spinner spinner-small"></span> Carregando detalhes...</p>';
+  modalChamadoDetalheInteracoes.innerHTML = "";
 
   const sindicoUpdateSection = document.getElementById(
     "sindico-chamado-update-section"
@@ -1906,18 +2015,20 @@ async function handleChamadoClick(
     const itemData = await apiClient.get(endpoint);
 
     if (!itemData) {
-      showErrorState(modalChamadoDetalheConteudo,
-        `O item do tipo '${itemType}' que você está tentando visualizar não foi encontrado ou você não tem permissão para acessá-lo.`
-      );
-      // Adicionar listener para o botão de tentar novamente, se ele foi adicionado por showErrorState
-      const retryButton = modalChamadoDetalheConteudo.querySelector('.error-state__retry-button');
-      if (retryButton) {
-          retryButton.onclick = () => handleChamadoClick(itemId, null, itemType);
-      }
+      // modalChamadoDetalheConteudo.innerHTML =
+      //   '<p class="cv-error-message">Item não encontrado ou acesso não permitido.</p>';
+      const errorState = createErrorStateElement({
+        title: "Item não encontrado",
+        message: `O item do tipo '${itemType}' que você está tentando visualizar não foi encontrado ou você não tem permissão para acessá-lo.`,
+        retryButton: {
+            text: "Tentar Novamente",
+            onClick: () => handleChamadoClick(itemId, null, itemType)
+        }
+      });
+      modalChamadoDetalheConteudo.innerHTML = '';
+      modalChamadoDetalheConteudo.appendChild(errorState);
       return;
     }
-    // Limpar o container antes de adicionar conteúdo real (showLoadingState já faz isso)
-    // modalChamadoDetalheConteudo.innerHTML = '';
 
     modalChamadoDetalheTitulo.textContent =
       itemData.titulo || `Detalhes de ${itemType}`;
@@ -1953,19 +2064,28 @@ async function handleChamadoClick(
     }
   } catch (error) {
     console.error(`Erro ao buscar detalhes de ${itemType}:`, error);
-    showErrorState(modalChamadoDetalheConteudo,
-        error.message || `Não foi possível carregar os detalhes de ${itemType}. Verifique sua conexão e tente novamente.`
-    );
-    const retryButton = modalChamadoDetalheConteudo.querySelector('.error-state__retry-button');
-    if (retryButton) {
-        retryButton.onclick = () => handleChamadoClick(itemId, null, itemType);
-    }
+    // modalChamadoDetalheConteudo.innerHTML = `<p class="cv-error-message">Erro ao carregar detalhes de ${itemType}. Tente novamente mais tarde.</p>`;
+    const errorState = createErrorStateElement({
+        title: `Erro ao Carregar ${itemType}`,
+        message: error.message || `Não foi possível carregar os detalhes de ${itemType}. Verifique sua conexão e tente novamente.`,
+        retryButton: {
+            text: "Tentar Novamente",
+            onClick: () => handleChamadoClick(itemId, null, itemType)
+        }
+    });
+    modalChamadoDetalheConteudo.innerHTML = '';
+    modalChamadoDetalheConteudo.appendChild(errorState);
+    // Removido showGlobalFeedback daqui para evitar redundância com o feedback no modal.
+    // if (!error.handledByApiClient) {
+    //   showGlobalFeedback(
+    //     error.message || `Falha ao carregar ${itemType}.`,
+    //     "error"
+    //   );
+    // }
   }
 }
 
 function renderDetalhesGenerico(itemData, itemType) {
-  // Assegurar que o container está limpo antes de renderizar
-  modalChamadoDetalheConteudo.innerHTML = '';
   const dataPrincipal =
     itemData.dataAbertura ||
     itemData.dataHoraPrincipal ||
@@ -2499,18 +2619,33 @@ async function handleCreateOcorrencia() {
 //   });
 // }
 
-// --- Botão Tentar Novamente nos Error States (agora tratado por showErrorState) ---
-// Comentado pois showErrorState agora lida com a criação de botões de retry e seus listeners.
-// A função setupTryAgainButtons foi removida.
+// --- Botão Tentar Novamente nos Error States ---
+function setupTryAgainButtons() {
+    document.querySelectorAll(".js-try-again-button").forEach(button => {
+        button.addEventListener("click", (event) => {
+            const buttonEl = event.currentTarget;
+            const contentId = buttonEl.dataset.contentId;
+            if (contentId) {
+                const errorStateDiv = buttonEl.closest(".cv-error-state");
+                if (errorStateDiv) {
+                    errorStateDiv.style.display = "none";
+                }
 
-// Importar ícones de pageLoader.js
-import {
-    getDefaultErrorIcon,
-    getDefaultEmptyIcon,
-    getDefaultLoadingIcon,
-    getDefaultPollIcon,
-    getDefaultRequestIcon,
-    getDefaultOccurrenceIcon,
-    getDefaultSearchIcon
-    // getDefaultDocumentIcon não é usado diretamente em comunicacao.js, mas está disponível
-} from "./pageLoader.js";
+                // Mostrar skeleton da aba específica antes de tentar recarregar
+                showFeedSkeleton(contentId);
+
+                // Se o contentId for o do mural, ou se a aba ativa for a do mural,
+                // a chamada loadInitialFeedItems já vai lidar com o skeleton do mural.
+                // Se for uma aba específica e não for a mural, o skeleton dela foi ativado acima.
+                // A função loadInitialFeedItems é a principal para carregar o feed.
+                // Ela já usa os filtros e a aba ativa para determinar o que carregar.
+                loadInitialFeedItems();
+            } else {
+                console.warn("Botão 'Tentar Novamente' sem data-content-id definido.");
+                // Fallback geral se não houver contentId (recarrega o feed principal)
+                showFeedSkeleton("content-mural"); // Mostra skeleton do mural como fallback
+                loadInitialFeedItems();
+            }
+        });
+    });
+}
