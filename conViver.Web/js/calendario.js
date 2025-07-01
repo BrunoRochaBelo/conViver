@@ -345,7 +345,8 @@ function abrirModalFiltros() {
         filtrosAdminModalAgenda.style.display = (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador")) ? "block" : "none";
 
         // Preencher campos do modal com os filtros atuais da Agenda
-        filtroEspacoModalAgenda.value = selectEspacoComumCalendarioDisplay.value; // O select display reflete o filtro real
+        if (selectEspacoComumCalendarioDisplay)
+            filtroEspacoModalAgenda.value = selectEspacoComumCalendarioDisplay.value; // O select display reflete o filtro real
         // Para data e status, eles são aplicados diretamente na carga, então o modal pode manter o último valor ou ser resetado
         // Se dataSelecionadaAgenda for relevante para o filtro de data da lista:
         // filtroDataModalAgenda.value = dataSelecionadaAgenda ? dataSelecionadaAgenda.substring(0, 7) : "";
@@ -374,7 +375,8 @@ function aplicarFiltrosDoModal() {
 
     if (agendaTabActive) {
         // Atualizar o select de display do calendário
-        selectEspacoComumCalendarioDisplay.value = filtroEspacoModalAgenda.value;
+        if (selectEspacoComumCalendarioDisplay)
+            selectEspacoComumCalendarioDisplay.value = filtroEspacoModalAgenda.value;
         // Forçar a atualização da lista de espaços, se necessário, para que o select display mostre o nome correto
         // (Isso geralmente é tratado ao popular o select inicialmente)
 
@@ -422,7 +424,8 @@ function limparFiltrosDoModal() {
         filtroDataModalAgenda.value = "";
         filtroStatusModalAgenda.value = "";
         filtroUnidadeModalAgenda.value = "";
-        selectEspacoComumCalendarioDisplay.value = ""; // Limpar também o display
+        if (selectEspacoComumCalendarioDisplay)
+            selectEspacoComumCalendarioDisplay.value = ""; // Limpar também o display
     } else if (minhasReservasTabActive) {
         filtroEspacoModalMinhas.value = "";
         filtroDataModalMinhas.value = "";
@@ -674,7 +677,6 @@ async function carregarEspacosComuns() {
     }
   } catch (err) {
     console.error("Erro ao carregar espaços comuns:", err);
-    showGlobalFeedback("Falha ao carregar espaços comuns.", "error");
     selectsParaPopular.forEach(sel => {
       if (sel) sel.innerHTML = "<option value=''>Erro ao carregar</option>";
     });
