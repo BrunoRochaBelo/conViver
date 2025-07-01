@@ -8,6 +8,7 @@ import {
     createEmptyStateElement, // Adicionado
     showSkeleton,            // Adicionado
     hideSkeleton             // Adicionado
+    , debugLog
 } from './main.js';
 import messages from './messages.js';
 import { initFabMenu } from './fabMenu.js';
@@ -328,10 +329,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         try {
-            console.log('Buscando dados do dashboard...');
+            debugLog('Buscando dados do dashboard...');
             // apiClient.get pode ser modificado para não precisar passar o skeleton global se vamos controlar por seção
             const dados = await apiClient.get('/dashboard/geral' /*, { showSkeleton: globalDashboardSkeleton } */);
-            console.log('Dados recebidos:', dados);
+            debugLog('Dados recebidos:', dados);
 
             if (dados) {
                 renderMetricas(dados.metricas || null);

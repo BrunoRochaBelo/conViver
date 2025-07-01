@@ -1,6 +1,6 @@
 import apiClient from './apiClient.js';
 import { requireAuth, getUserRoles } from './auth.js'; // Supondo que getUserRoles exista ou será criado
-import { showGlobalFeedback } from './main.js';
+import { showGlobalFeedback, debugLog } from './main.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -39,7 +39,7 @@ function initializeBibliotecaPage() {
     if (searchInput) searchInput.addEventListener('input', () => loadDocumentos());
     if (categoryFilter) categoryFilter.addEventListener('change', () => loadDocumentos());
 
-    console.log('Página da Biblioteca inicializada.');
+    debugLog('Página da Biblioteca inicializada.');
 }
 
 async function loadDocumentos() {
@@ -139,7 +139,7 @@ async function handleUploadDocumento(event) {
 
     // Adicionando log para verificar o conteúdo do FormData
     for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value instanceof File ? value.name : value}`);
+        debugLog(`${key}: ${value instanceof File ? value.name : value}`);
     }
 
 

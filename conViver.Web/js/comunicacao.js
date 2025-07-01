@@ -8,7 +8,8 @@ import {
     createErrorStateElement,
     createEmptyStateElement,
     showModalError, // Importar de main.js
-    clearModalError // Importar de main.js
+    clearModalError, // Importar de main.js
+    debugLog
 } from "./main.js";
 import { initFabMenu } from "./fabMenu.js";
 import { xhrPost } from './progress.js'; // Importar xhrPost
@@ -2262,7 +2263,7 @@ function handleBoletoLembreteClick(itemId, targetElementOrCard) {
 
 // --- Enquetes e Votações Tab ---
 function setupEnquetesTab() {
-  console.log("Modo de filtro de Enquetes ativado.");
+  debugLog("Modo de filtro de Enquetes ativado.");
 }
 
 function openCreateEnqueteModal() {
@@ -2363,7 +2364,7 @@ async function handleGenerateAtaEnquete(enqueteId) {
 
 function setupEnqueteModalAndFAB() {
   // Listeners for modal form are in setupModalEventListeners
-  console.log("setupEnqueteModalAndFAB (major logic moved)");
+  debugLog("setupEnqueteModalAndFAB (major logic moved)");
 }
 
 // --- Solicitações Tab (formerly Chamados) ---
@@ -2388,12 +2389,12 @@ function formatChamadoCategoria(categoria) {
 }
 
 function setupSolicitacoesTab() {
-  console.log("Modo de filtro de Solicitações ativado.");
+  debugLog("Modo de filtro de Solicitações ativado.");
   // setupChamadoModalAndFAB();
 }
 
 function setupOcorrenciasTab() {
-  console.log("Modo de filtro de Ocorrências ativado.");
+  debugLog("Modo de filtro de Ocorrências ativado.");
 }
 
 async function handleCreateChamado(chamadoData) {
@@ -2421,7 +2422,7 @@ async function handleUpdateChamado(id, chamadoData) {
 
 function setupChamadoModalAndFAB() {
   // Listeners for modal form are in setupModalEventListeners
-  console.log("setupChamadoModalAndFAB (major logic moved)");
+  debugLog("setupChamadoModalAndFAB (major logic moved)");
 }
 
 function openCreateChamadoModal() {

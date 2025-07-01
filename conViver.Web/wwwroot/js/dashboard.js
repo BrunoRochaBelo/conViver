@@ -1,6 +1,6 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth, getUserRoles } from './auth.js';
-import { formatCurrency, formatDate, showGlobalFeedback } from './main.js'; // Updated import
+import { formatCurrency, formatDate, showGlobalFeedback, debugLog } from './main.js'; // Updated import
 import messages from './messages.js';
 import { initFabMenu } from './fabMenu.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
@@ -241,9 +241,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         try {
-            console.log('Buscando dados do dashboard...');
+            debugLog('Buscando dados do dashboard...');
             const dados = await apiClient.get('/dashboard/geral');
-            console.log('Dados recebidos:', dados);
+            debugLog('Dados recebidos:', dados);
 
             // Clear local loading messages (optional, as global feedback is present)
             // clearLoading(inadimplenciaPercentEl.parentNode, '');
