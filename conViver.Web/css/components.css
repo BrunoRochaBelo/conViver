@@ -786,3 +786,61 @@ html[data-theme="dark"] {
     /* Adicionar margens ou ajustes específicos, se necessário. */
     min-width: 150px; /* Para dar um tamanho mínimo ao botão */
 }
+
+/* === Switch Component === */
+.cv-switch-label {
+    font-size: var(--cv-font-size-sm, 0.875rem); /* Tamanho da label */
+    color: var(--current-text-secondary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.cv-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;  /* Largura do switch */
+    height: 28px; /* Altura do switch */
+}
+
+.cv-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.cv-switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--cv-gray-300); /* Cor do fundo do switch desligado */
+    transition: .4s;
+    border-radius: 28px; /* Para torná-lo arredondado */
+}
+
+.cv-switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px; /* Tamanho do círculo deslizante */
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .cv-switch-slider {
+    background-color: var(--current-primary-blue); /* Cor do fundo do switch ligado */
+}
+
+input:focus + .cv-switch-slider {
+    box-shadow: 0 0 1px var(--current-primary-blue); /* Efeito de foco */
+}
+
+input:checked + .cv-switch-slider:before {
+    transform: translateX(20px); /* Distância que o círculo desliza */
+}
+/* === End Switch Component === */
