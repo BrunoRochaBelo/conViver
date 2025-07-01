@@ -1637,6 +1637,19 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     gap: var(--cv-spacing-md);
 }
 
+.feed-grid { /* Novo estilo para o feed de uma coluna */
+    display: grid;
+    grid-template-columns: 1fr; /* Apenas uma coluna */
+    gap: var(--cv-spacing-lg); /* Espaçamento maior entre itens do feed */
+    max-width: 700px; /* Largura máxima para o feed, centralizado pelo .cv-tab-content */
+    margin-left: auto;
+    margin-right: auto;
+}
+.feed-grid .cv-card { /* Ajustes nos cards dentro do feed, se necessário */
+    /* Por exemplo, se os cards no feed precisarem de margens ou paddings diferentes */
+}
+
+
 /* Styles for .cv-empty-state and .cv-error-state */
 .cv-empty-state,
 .cv-error-state {
@@ -1649,39 +1662,54 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     min-height: 300px; /* Ensure it takes some space */
     width: 100%;
     box-sizing: border-box;
+    border: 1px dashed var(--current-border-subtle); /* Adiciona uma borda sutil */
+    border-radius: var(--cv-border-radius-lg); /* Borda arredondada */
+    background-color: var(--current-bg-element); /* Um fundo levemente diferente da página */
 }
 
-.cv-empty-state__icon,
+.cv-empty-state__image { /* Novo estilo para a imagem */
+    max-width: 150px; /* Tamanho máximo da ilustração */
+    height: auto;
+    margin-bottom: var(--cv-spacing-lg);
+    opacity: 0.7; /* Levemente transparente para suavizar */
+}
+
+.cv-empty-state__icon, /* Mantido para compatibilidade ou uso futuro */
 .cv-error-state__icon {
     margin-bottom: var(--cv-spacing-lg);
 }
 .cv-empty-state__icon svg,
 .cv-error-state__icon svg {
-    width: 64px; /* Increased size */
-    height: 64px; /* Increased size */
-    color: var(--current-text-placeholder); /* Subtle color */
+    width: 64px;
+    height: 64px;
+    color: var(--current-text-placeholder);
 }
 .cv-error-state__icon svg {
-    color: var(--current-semantic-error); /* Error color for error icon */
+    color: var(--current-semantic-error);
 }
 
-.cv-empty-state__title,
+.cv-empty-state__title, /* Títulos mais discretos se a imagem for o foco */
 .cv-error-state__title {
-    font-size: var(--cv-font-size-h3); /* Larger title */
+    font-size: var(--cv-font-size-h4); /* Um pouco menor que h3 */
     color: var(--current-text-primary);
     margin-top: 0;
-    margin-bottom: var(--cv-spacing-sm);
+    margin-bottom: var(--cv-spacing-xs); /* Menor margem se a descrição for mais importante */
     font-weight: 600;
 }
 
+.cv-empty-state__message, /* Novo nome para consistência, usado no HTML */
 .cv-empty-state__description,
 .cv-error-state__message {
     font-size: var(--cv-font-size-md);
     color: var(--current-text-secondary);
-    margin-bottom: var(--cv-spacing-lg);
-    max-width: 450px; /* Limit width for readability */
+    margin-bottom: var(--cv-spacing-md); /* Espaçamento antes das ações */
+    max-width: 450px;
     line-height: 1.6;
 }
+.cv-empty-state__message:last-of-type { /* Remove margem inferior do último parágrafo de mensagem */
+    margin-bottom: var(--cv-spacing-lg);
+}
+
 
 .cv-empty-state__actions {
     display: flex;

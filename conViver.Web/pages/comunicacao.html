@@ -18,7 +18,7 @@
         </div>
 
         <div class="cv-tab-content" id="content-mural">
-            <section class="communication__mural card-grid js-avisos">
+            <section class="communication__mural feed-grid js-avisos">
                 <!-- Skeleton items for Mural -->
                 <div class="feed-skeleton-container" style="display: none;">
                     <div class="cv-card feed-skeleton-item">
@@ -52,10 +52,11 @@
                     <div class="skeleton-line skeleton-block skeleton-line--medium"></div>
                 </div>
             </div>
-            <p class="cv-info-message" style="padding: 20px; text-align: center;">
-                Nenhuma enquete encontrada para os filtros atuais.
-                <span class="js-sindico-only-message" style="display:none;">Use o botão (+) para criar uma nova enquete.</span>
-            </p>
+            <div class="cv-empty-state" style="display: none;"> <!-- Adicionado para Enquetes -->
+                <img src="/img/illustrations/empty-search.svg" alt="Nenhuma enquete encontrada" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Nenhuma enquete encontrada para os filtros atuais.</p>
+                <p class="cv-empty-state__message js-sindico-only-message" style="display:none;">Use o botão (+) para criar uma nova enquete.</p>
+            </div>
         </div>
 
         <div class="cv-tab-content" id="content-solicitacoes" style="display:none;">
@@ -67,10 +68,11 @@
                     <div class="skeleton-line skeleton-block skeleton-line--short"></div>
                 </div>
             </div>
-            <p class="cv-info-message" style="padding: 20px; text-align: center;">
-                Nenhuma solicitação encontrada para os filtros atuais.
-                Use o botão (+) para criar uma nova solicitação.
-            </p>
+            <div class="cv-empty-state" style="display: none;"> <!-- Adicionado para Solicitacoes -->
+                <img src="/img/illustrations/empty-box.svg" alt="Nenhuma solicitação encontrada" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Nenhuma solicitação encontrada para os filtros atuais.</p>
+                <p class="cv-empty-state__message">Use o botão (+) para criar uma nova solicitação.</p>
+            </div>
         </div>
 
         <div class="cv-tab-content" id="content-ocorrencias" style="display:none;">
@@ -82,10 +84,11 @@
                     <div class="skeleton-line skeleton-block skeleton-line--short"></div>
                 </div>
             </div>
-            <p class="cv-info-message" style="padding: 20px; text-align: center;">
-                Nenhuma ocorrência encontrada para os filtros atuais.
-                Use o botão (+) para relatar uma nova ocorrência.
-            </p>
+            <div class="cv-empty-state" style="display: none;"> <!-- Adicionado para Ocorrencias -->
+                <img src="/img/illustrations/problem-solving.svg" alt="Nenhuma ocorrência encontrada" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Nenhuma ocorrência encontrada para os filtros atuais.</p>
+                <p class="cv-empty-state__message">Use o botão (+) para relatar uma nova ocorrência.</p>
+            </div>
         </div>
 
 

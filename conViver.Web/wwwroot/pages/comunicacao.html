@@ -1,4 +1,4 @@
-        <div class="cv-tabs">
+<div class="cv-tabs">
             <div class="cv-tabs-buttons">
                 <button class="cv-tab-button active" id="tab-mural">Mural</button>
                 <button class="cv-tab-button" id="tab-enquetes">Enquetes</button>
@@ -18,48 +18,77 @@
         </div>
 
         <div class="cv-tab-content" id="content-mural">
-            <section class="communication__mural card-grid js-avisos">
+            <section class="communication__mural feed-grid js-avisos">
                 <!-- Skeleton items for Mural -->
                 <div class="feed-skeleton-container" style="display: none;">
-                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
-                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
-                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-image skeleton-block"></div>
+                        <div class="skeleton-title skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                    </div>
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-title skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--medium"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                    </div>
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-image skeleton-block"></div>
+                        <div class="skeleton-title skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                    </div>
                 </div>
                 <!-- Feed items (including prioritized ones) will be loaded here by JS (infinite scroll) -->
             </section>
         </div>
 
         <div class="cv-tab-content" id="content-enquetes" style="display:none;">
-            <!-- Skeleton items for Enquetes (even if it's just a message, good for consistency) -->
+            <!-- Skeleton items for Enquetes -->
             <div class="feed-skeleton-container" style="display: none;">
-                <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                <div class="cv-card feed-skeleton-item">
+                    <div class="skeleton-title skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block skeleton-line--medium"></div>
+                </div>
             </div>
-            <p class="cv-info-message" style="padding: 20px; text-align: center;">
-                Nenhuma enquete encontrada para os filtros atuais.
-                <span class="js-sindico-only-message" style="display:none;">Use o botão (+) para criar uma nova enquete.</span>
-            </p>
+            <div class="cv-empty-state" style="display: none;"> <!-- Adicionado para Enquetes -->
+                <img src="/img/illustrations/empty-search.svg" alt="Nenhuma enquete encontrada" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Nenhuma enquete encontrada para os filtros atuais.</p>
+                <p class="cv-empty-state__message js-sindico-only-message" style="display:none;">Use o botão (+) para criar uma nova enquete.</p>
+            </div>
         </div>
 
         <div class="cv-tab-content" id="content-solicitacoes" style="display:none;">
             <!-- Skeleton items for Solicitacoes -->
             <div class="feed-skeleton-container" style="display: none;">
-                <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                <div class="cv-card feed-skeleton-item">
+                    <div class="skeleton-title skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                </div>
             </div>
-            <p class="cv-info-message" style="padding: 20px; text-align: center;">
-                Nenhuma solicitação encontrada para os filtros atuais.
-                Use o botão (+) para criar uma nova solicitação.
-            </p>
+            <div class="cv-empty-state" style="display: none;"> <!-- Adicionado para Solicitacoes -->
+                <img src="/img/illustrations/empty-box.svg" alt="Nenhuma solicitação encontrada" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Nenhuma solicitação encontrada para os filtros atuais.</p>
+                <p class="cv-empty-state__message">Use o botão (+) para criar uma nova solicitação.</p>
+            </div>
         </div>
 
         <div class="cv-tab-content" id="content-ocorrencias" style="display:none;">
             <!-- Skeleton items for Ocorrencias -->
             <div class="feed-skeleton-container" style="display: none;">
-                <div class="cv-card feed-skeleton-item"><div class="skeleton-title"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                <div class="cv-card feed-skeleton-item">
+                    <div class="skeleton-title skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                </div>
             </div>
-            <p class="cv-info-message" style="padding: 20px; text-align: center;">
-                Nenhuma ocorrência encontrada para os filtros atuais.
-                Use o botão (+) para relatar uma nova ocorrência.
-            </p>
+            <div class="cv-empty-state" style="display: none;"> <!-- Adicionado para Ocorrencias -->
+                <img src="/img/illustrations/problem-solving.svg" alt="Nenhuma ocorrência encontrada" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Nenhuma ocorrência encontrada para os filtros atuais.</p>
+                <p class="cv-empty-state__message">Use o botão (+) para relatar uma nova ocorrência.</p>
+            </div>
         </div>
 
 
@@ -141,7 +170,8 @@
                     </select>
                 </div>
                 <div class="cv-form-actions">
-                    <button id="apply-filters-button-modal" class="cv-button primary">Aplicar Filtros</button>
+                    <button id="apply-filters-button-modal" class="cv-button cv-button--primary">Aplicar Filtros</button>
+                    <button type="button" id="clear-filters-button-modal" class="cv-button">Limpar Filtros</button>
                     <button type="button" class="cv-button js-modal-filtros-close">Cancelar</button>
                 </div>
             </div>
@@ -161,7 +191,8 @@
                     </select>
                 </div>
                 <div class="cv-form-actions">
-                    <button id="apply-sort-button" class="cv-button primary">Aplicar</button>
+                    <button id="apply-sort-button" class="cv-button cv-button--primary">Aplicar</button>
+                    <button type="button" id="clear-sort-button-modal" class="cv-button">Limpar Ordenação</button>
                     <button type="button" class="cv-button js-modal-sort-close">Cancelar</button>
                 </div>
             </div>
@@ -185,6 +216,7 @@
                 <div class="cv-form-group">
                     <label for="aviso-imagem">Imagem (Opcional):</label>
                     <input type="file" id="aviso-imagem" name="imagem" class="cv-input" accept="image/*">
+                    <img id="aviso-imagem-preview" src="#" alt="Pré-visualização da imagem" style="max-width: 100%; max-height: 200px; margin-top: 10px; display: none;" loading="lazy">
                 </div>
                 <div class="cv-form-group">
                     <label for="aviso-anexos">Anexos (PDFs, etc. Opcional):</label>
@@ -203,7 +235,7 @@
                     <small>Segure Ctrl/Cmd para selecionar múltiplas.</small>
                 </div>
                 <div class="cv-form-actions">
-                    <button type="submit" class="cv-button primary">Salvar Aviso</button>
+                    <button type="submit" class="cv-button cv-button--primary">Salvar Aviso</button>
                     <button type="button" class="cv-button js-modal-criar-aviso-close">Cancelar</button>
                 </div>
             </form>
@@ -220,7 +252,7 @@
             <div id="modal-enquete-detalhe-status" class="enquete-status" style="margin-top: 15px;"></div>
             <div class="cv-form-actions">
                 <button type="button" class="cv-button js-modal-enquete-detalhe-close">Fechar</button>
-                <button type="button" id="modal-enquete-submit-voto" class="cv-button primary" style="display:none;">Votar</button>
+                <button type="button" id="modal-enquete-submit-voto" class="cv-button cv-button--primary" style="display:none;">Votar</button>
             </div>
         </div>
     </div>
@@ -249,12 +281,12 @@
                     <label for="modal-chamado-resposta-textarea">Resposta do Síndico:</label>
                     <textarea id="modal-chamado-resposta-textarea" class="cv-input" rows="3"></textarea>
                 </div>
-                <button id="modal-chamado-submit-sindico-update" class="cv-button primary" style="margin-top: 10px; display:none;">Salvar Atualização</button>
+                <button id="modal-chamado-submit-sindico-update" class="cv-button cv-button--primary" style="margin-top: 10px; display:none;">Salvar Atualização</button>
             </div>
             <div id="modal-chamado-add-comment-section" class="cv-form-group" style="margin-top:20px; display:none;">
                 <label for="modal-chamado-comment-text">Adicionar Comentário/Resposta:</label>
                 <textarea id="modal-chamado-comment-text" class="cv-input" rows="3"></textarea>
-                <button id="modal-chamado-submit-comment" class="cv-button primary" style="margin-top:10px;">Enviar</button>
+                <button id="modal-chamado-submit-comment" class="cv-button cv-button--primary" style="margin-top:10px;">Enviar</button>
             </div>
             <div class="cv-form-actions" style="margin-top:20px;">
                 <button type="button" class="cv-button js-modal-chamado-detalhe-close">Fechar</button>
@@ -288,7 +320,7 @@
                     </select>
                 </div>
                 <div class="cv-form-actions">
-                    <button type="submit" id="form-enquete-submit-button" class="cv-button primary">Salvar Enquete</button>
+                    <button type="submit" id="form-enquete-submit-button" class="cv-button cv-button--primary">Salvar Enquete</button>
                     <button type="button" class="cv-button js-modal-criar-enquete-close">Cancelar</button>
                 </div>
             </form>
@@ -332,7 +364,7 @@
                     </select>
                 </div>
                 <div class="cv-form-actions">
-                    <button type="submit" id="form-chamado-submit-button" class="cv-button primary">Abrir Solicitação</button>
+                    <button type="submit" id="form-chamado-submit-button" class="cv-button cv-button--primary">Abrir Solicitação</button>
                     <button type="button" class="cv-button js-modal-criar-chamado-close">Cancelar</button>
                 </div>
             </form>
@@ -341,45 +373,44 @@
 
     <!-- Modal de Cadastro de Nova Ocorrência -->
     <div id="modalNovaOcorrencia" class="cv-modal" style="display:none;">
-        <div class="cv-modal__content">
-            <span class="cv-modal__close-button js-modal-criar-ocorrencia-close" id="closeNovaOcorrenciaModal">&times;</span>
+        <div class="cv-modal-content"> <!-- Alterado de cv-modal__content -->
+            <span class="cv-modal-close js-modal-criar-ocorrencia-close" id="closeNovaOcorrenciaModal">&times;</span> <!-- Alterado de cv-modal__close-button -->
             <h2>Nova Ocorrência</h2>
             <form id="formNovaOcorrencia" class="cv-form">
-                <div class="cv-form__group">
-                    <label for="ocorrenciaTitulo" class="cv-form__label">Título (obrigatório):</label>
-                    <input type="text" id="ocorrenciaTitulo" name="titulo" class="cv-form__input" required maxlength="100">
+                <div class="cv-form-group"> <!-- Alterado de cv-form__group -->
+                    <label for="ocorrenciaTitulo">Título (obrigatório):</label> <!-- Removida classe cv-form__label -->
+                    <input type="text" id="ocorrenciaTitulo" name="titulo" class="cv-input" required maxlength="100"> <!-- Alterado de cv-form__input -->
                 </div>
-                <div class="cv-form__group">
-                    <label for="ocorrenciaDescricao" class="cv-form__label">Descrição (obrigatório):</label>
-                    <textarea id="ocorrenciaDescricao" name="descricao" class="cv-form__textarea" rows="5" required maxlength="1000"></textarea>
+                <div class="cv-form-group"> <!-- Alterado de cv-form__group -->
+                    <label for="ocorrenciaDescricao">Descrição (obrigatório):</label> <!-- Removida classe cv-form__label -->
+                    <textarea id="ocorrenciaDescricao" name="descricao" class="cv-input" rows="5" required maxlength="1000"></textarea> <!-- Alterado de cv-form__textarea para cv-input -->
                 </div>
-                <div class="cv-form__group">
-                    <label for="ocorrenciaCategoria" class="cv-form__label">Categoria (obrigatório):</label>
-                    <select id="ocorrenciaCategoria" name="categoria" class="cv-form__select" required>
+                <div class="cv-form-group"> <!-- Alterado de cv-form__group -->
+                    <label for="ocorrenciaCategoria">Categoria (obrigatório):</label> <!-- Removida classe cv-form__label -->
+                    <select id="ocorrenciaCategoria" name="categoria" class="cv-input" required> <!-- Alterado de cv-form__select para cv-input -->
                         <option value="">Selecione...</option>
                         <!-- Options serão populadas pelo JS -->
                     </select>
                 </div>
-                <div class="cv-form__group">
-                    <label for="ocorrenciaPrioridade" class="cv-form__label">Prioridade:</label>
-                    <select id="ocorrenciaPrioridade" name="prioridade" class="cv-form__select">
+                <div class="cv-form-group"> <!-- Alterado de cv-form__group -->
+                    <label for="ocorrenciaPrioridade">Prioridade:</label> <!-- Removida classe cv-form__label -->
+                    <select id="ocorrenciaPrioridade" name="prioridade" class="cv-input"> <!-- Alterado de cv-form__select para cv-input -->
                         <option value="NORMAL">Normal</option>
                         <option value="URGENTE">Urgente</option>
                     </select>
                 </div>
-                <div class="cv-form__group">
-                    <label for="ocorrenciaAnexos" class="cv-form__label">Anexos (opcional, máx 10MB por arquivo):</label>
-                    <input type="file" id="ocorrenciaAnexos" name="anexos" class="cv-form__input-file" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.aac,.mp3,.wav">
+                <div class="cv-form-group"> <!-- Alterado de cv-form__group -->
+                    <label for="ocorrenciaAnexos">Anexos (opcional, máx 10MB por arquivo):</label> <!-- Removida classe cv-form__label -->
+                    <input type="file" id="ocorrenciaAnexos" name="anexos" class="cv-input" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.aac,.mp3,.wav"> <!-- Alterado de cv-form__input-file para cv-input -->
                     <div id="anexosPreviewContainer" class="anexos-preview"></div>
                 </div>
-                <div id="formNovaOcorrenciaErrors" class="cv-form__errors" style="display:none;"></div>
-                <div class="cv-form__actions">
-                    <button type="submit" class="cv-button cv-button--primary">Enviar Ocorrência</button>
-                    <button type="button" id="cancelNovaOcorrencia" class="cv-button cv-button--secondary js-modal-criar-ocorrencia-close">Cancelar</button>
+                <div id="formNovaOcorrenciaErrors" class="cv-form__errors" style="display:none;"></div> <!-- Mantido cv-form__errors por enquanto -->
+                <div class="cv-form-actions"> <!-- Alterado de cv-form__actions -->
+                    <button type="submit" class="cv-button cv-button--primary">Enviar Ocorrência</button> <!-- Alterado de cv-button--primary -->
+                    <button type="button" id="cancelNovaOcorrencia" class="cv-button js-modal-criar-ocorrencia-close">Cancelar</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Floating Action Button menu is initialized via JS -->
-

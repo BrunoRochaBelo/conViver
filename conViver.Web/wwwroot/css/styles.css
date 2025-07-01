@@ -2,6 +2,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap');
 
 :root {
+    --current-skeleton-bg: var(--cv-gray-200);
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.3); /* Adjusted shimmer for light */
     /* Primary Colors */
     --cv-primary-blue: #007AFF;
     --cv-primary-green: #34C759;
@@ -164,6 +166,8 @@
 }
 
 html[data-theme="dark"] {
+    --current-skeleton-bg: var(--cv-dark-gray-300);
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.08); /* Adjusted shimmer for dark */
     --current-primary-blue: var(--cv-dark-primary-blue);
     --current-primary-green: var(--cv-dark-primary-green);
     --current-primary-orange: var(--cv-dark-primary-orange);
@@ -754,6 +758,16 @@ main {
 }
 /* End of specific page styles */
 
+/* Inline spinner adjustments, especially within buttons */
+.cv-button .inline-spinner {
+    width: 0.8em; /* Slightly smaller than default text */
+    height: 0.8em;
+    border-width: 0.15em; /* Thinner border for smaller size */
+    margin-left: 0.5em; /* Space it from text if text is on the left */
+    margin-right: 0.2em; /* If text is on the right, or just general spacing */
+    vertical-align: -0.1em; /* Fine-tune vertical alignment with text */
+}
+
 /* Loading Overlay removed */
 
 /* Message Banner */
@@ -838,6 +852,24 @@ main {
     padding: var(--cv-spacing-md, 15px); /* Use variable or fallback */
     /* border: 1px solid var(--current-border-color, #ddd); */ /* Optional */
     /* border-top: none; */ /* Optional */
+    width: 100%;
+    max-width: 1200px; /* Max width similar to main content */
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+/* Specific adjustment for mural content if it's inside another container */
+#content-mural .communication__mural {
+    /* If communication__mural is the direct grid container */
+    /* display: grid; already applied by .card-grid */
+    /* grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); */
+    /* gap: var(--cv-spacing-md); */
+    /* The above is handled by .card-grid. Ensure .communication__mural has .card-grid class or inherits it. */
+    /* If #content-mural itself should be centered, the rule for .cv-tab-content already does that. */
+    /* If .communication__mural is an intermediate container that needs centering or width control: */
+    width: 100%; /* Take full width of parent .cv-tab-content */
+    /* No specific margin needed here if .cv-tab-content handles centering */
 }
 
 /* --- Nested Tabs (Sub-Abas) --- */
@@ -1494,6 +1526,35 @@ html[data-theme="dark"] .cv-modal-close {
     font-size: 1.2em; /* Ajustar tamanho do emoji se necessário */
 }
 
+/* Progressive Image Loading Styles for Feed */
+.feed-item__image-container {
+    width: 100%;
+    /* Definir uma aspect-ratio ajuda a evitar layout shift. Ex: 16/9.
+       Ajuste conforme o aspect ratio mais comum das suas imagens. */
+    aspect-ratio: 16 / 9;
+    background-color: var(--current-border-subtle); /* Cor de fundo enquanto a imagem não carrega */
+    margin-bottom: var(--cv-spacing-sm);
+    overflow: hidden; /* Garante que a imagem não ultrapasse o container */
+    border-radius: var(--cv-border-radius-md); /* Consistente com cards */
+}
+
+.feed-item__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cobre o container, pode cortar um pouco da imagem */
+    display: block;
+    /* Initial blur for LQIP effect - will be overridden by JS once high-res loads */
+    filter: blur(10px);
+    transform: scale(1.1); /* Slightly zoom to avoid blurred edges showing container bg */
+    transition: filter 0.5s ease-out, transform 0.5s ease-out; /* Suaviza a transição */
+}
+
+.feed-item__image.loaded {
+    filter: blur(0);
+    transform: scale(1);
+}
+
+
 .feed-item__pin {
     font-size: 0.85em;
     color: var(--cv-primary-orange);
@@ -1576,6 +1637,103 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     gap: var(--cv-spacing-md);
 }
 
+.feed-grid { /* Novo estilo para o feed de uma coluna */
+    display: grid;
+    grid-template-columns: 1fr; /* Apenas uma coluna */
+    gap: var(--cv-spacing-lg); /* Espaçamento maior entre itens do feed */
+    max-width: 700px; /* Largura máxima para o feed, centralizado pelo .cv-tab-content */
+    margin-left: auto;
+    margin-right: auto;
+}
+.feed-grid .cv-card { /* Ajustes nos cards dentro do feed, se necessário */
+    /* Por exemplo, se os cards no feed precisarem de margens ou paddings diferentes */
+}
+
+
+/* Styles for .cv-empty-state and .cv-error-state */
+.cv-empty-state,
+.cv-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--cv-spacing-xl) var(--cv-spacing-md);
+    text-align: center;
+    min-height: 300px; /* Ensure it takes some space */
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px dashed var(--current-border-subtle); /* Adiciona uma borda sutil */
+    border-radius: var(--cv-border-radius-lg); /* Borda arredondada */
+    background-color: var(--current-bg-element); /* Um fundo levemente diferente da página */
+}
+
+.cv-empty-state__image { /* Novo estilo para a imagem */
+    max-width: 150px; /* Tamanho máximo da ilustração */
+    height: auto;
+    margin-bottom: var(--cv-spacing-lg);
+    opacity: 0.7; /* Levemente transparente para suavizar */
+}
+
+.cv-empty-state__icon, /* Mantido para compatibilidade ou uso futuro */
+.cv-error-state__icon {
+    margin-bottom: var(--cv-spacing-lg);
+}
+.cv-empty-state__icon svg,
+.cv-error-state__icon svg {
+    width: 64px;
+    height: 64px;
+    color: var(--current-text-placeholder);
+}
+.cv-error-state__icon svg {
+    color: var(--current-semantic-error);
+}
+
+.cv-empty-state__title, /* Títulos mais discretos se a imagem for o foco */
+.cv-error-state__title {
+    font-size: var(--cv-font-size-h4); /* Um pouco menor que h3 */
+    color: var(--current-text-primary);
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-xs); /* Menor margem se a descrição for mais importante */
+    font-weight: 600;
+}
+
+.cv-empty-state__message, /* Novo nome para consistência, usado no HTML */
+.cv-empty-state__description,
+.cv-error-state__message {
+    font-size: var(--cv-font-size-md);
+    color: var(--current-text-secondary);
+    margin-bottom: var(--cv-spacing-md); /* Espaçamento antes das ações */
+    max-width: 450px;
+    line-height: 1.6;
+}
+.cv-empty-state__message:last-of-type { /* Remove margem inferior do último parágrafo de mensagem */
+    margin-bottom: var(--cv-spacing-lg);
+}
+
+
+.cv-empty-state__actions {
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically on small screens */
+    gap: var(--cv-spacing-sm);
+    align-items: center;
+}
+
+@media (min-width: 576px) { /* Or your preferred breakpoint for horizontal buttons */
+    .cv-empty-state__actions {
+        flex-direction: row; /* Buttons side-by-side on larger screens */
+    }
+}
+
+.cv-empty-state__action,
+.cv-error-state__retry-button {
+    /* .cv-button styles are inherited. Add specific overrides if needed. */
+    /* Example: make buttons slightly larger for empty/error states */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-lg);
+    font-size: var(--cv-font-size-md);
+}
+/* End of .cv-empty-state and .cv-error-state styles */
+
+
 .document-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -1638,7 +1796,6 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     width: 100%;
     box-sizing: border-box;
 }
-
 /* Reservas - Espaços Comuns */
 /* Portaria Cards */
 
@@ -1648,7 +1805,7 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     gap: var(--cv-spacing-md);
 }
 
-/* --- Espaços Comuns --- */
+/* Espaços Comuns */
 .espaco-card {
     display: flex;
     flex-direction: column;
@@ -1672,7 +1829,7 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     border-top: 1px solid var(--current-border-subtle);
 }
 
-/* --- Visitantes & Encomendas --- */
+/* Visitantes & Encomendas */
 .visitante-card,
 .encomenda-card {
     background-color: var(--current-bg-white);
@@ -1703,4 +1860,3 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     display: flex;
     gap: var(--cv-spacing-xs);
 }
-
