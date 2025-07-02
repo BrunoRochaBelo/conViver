@@ -1292,7 +1292,7 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:a
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 html[data-theme="dark"] .cv-modal-close {
-    background-color: transparent; /* Corrected from var(--cv-dark-gray-400) */
+    background-color: var(--cv-dark-gray-400);
     color: var(--cv-dark-text-placeholder);
 }
 
