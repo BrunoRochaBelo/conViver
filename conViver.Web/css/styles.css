@@ -1024,13 +1024,14 @@ main {
     gap: var(--cv-spacing-sm, 8px);
     background-color: var(--current-bg-white);
     padding: var(--cv-spacing-sm, 8px);
-    border-radius: var(--cv-border-radius-md, 8px);
-    box-shadow: var(--current-shadow-lg);
+    border-radius: var(--cv-border-radius-lg, 14px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.1);
     min-width: 180px;
     z-index: 1051;
 }
 html[data-theme="dark"] .fab-menu-options {
     background-color: var(--cv-dark-gray-200);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.3), 0 20px 40px rgba(0,0,0,0.3);
 }
 .fab-menu--open .fab-menu-options {
     display: flex;
@@ -1038,18 +1039,6 @@ html[data-theme="dark"] .fab-menu-options {
 .fab-menu-options .cv-button {
     width: 100%;
     justify-content: flex-start;
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
-    background-color: transparent;
-    color: var(--current-text-link);
-    border: none;
-}
-.fab-menu-options .cv-button:hover {
-    background-color: var(--cv-gray-100-alpha-50);
-    color: var(--current-text-link);
-    filter: none;
-}
-html[data-theme="dark"] .fab-menu-options .cv-button:hover {
-    background-color: var(--cv-dark-gray-100-alpha-50);
 }
 
 /* If the FAB itself is part of .fab-menu and not a separate element outside it: */
