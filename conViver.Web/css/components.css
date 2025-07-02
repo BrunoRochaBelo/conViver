@@ -641,14 +641,18 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
 
 
 .user-menu-modal .cv-modal-header {
-    padding: var(--cv-spacing-xs) var(--cv-spacing-sm); /* Add padding so close button fits */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Increased padding */
     min-height: auto; /* No strict min-height */
+    display: flex; /* Use flexbox for layout */
+    justify-content: space-between; /* Pushes title to left and close button to right */
+    align-items: center; /* Vertically aligns items */
+    position: relative; /* Needed for absolute positioning of close button if not using flex order */
 }
-.user-menu-modal .cv-modal-header h2 {
+.user-menu-modal .cv-modal-header h2.user-menu-username { /* Adjusted selector for specificity */
     font-size: var(--cv-font-size-md);
     text-align: left;
-    padding-left: 0;
-    padding-right: calc(var(--cv-spacing-sm) + 24px + var(--cv-spacing-xs)); /* right-padding = close_button_right_offset + close_button_width + extra_space */
+    margin: 0; /* Remove default margins */
+    flex-grow: 1; /* Allows title to take available space */
 }
 
 .user-menu-modal .cv-modal-body {
@@ -659,13 +663,15 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
 }
 
 .user-menu-modal .cv-modal-close {
-    /* Ensure close button is correctly positioned and not overlapping */
-    top: 50%;
-    transform: translateY(-50%);
-    right: var(--cv-spacing-sm); /* Closer to the edge for smaller modal header */
-    width: 24px; /* Smaller close button */
+    position: static; /* Remove absolute positioning if flex order is used */
+    transform: none; /* Remove transform if not absolutely positioned */
+    /* top: 50%; */
+    /* transform: translateY(-50%); */
+    /* right: var(--cv-spacing-sm); */
+    width: 24px;
     height: 24px;
     font-size: 16px;
+    order: 1; /* Ensures close button comes after the title in flex layout */
 }
 
 
