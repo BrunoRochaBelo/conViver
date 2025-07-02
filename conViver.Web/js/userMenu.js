@@ -9,8 +9,17 @@ export function initUserMenu() {
     const profileBtn = document.getElementById('goProfileButton');
     const logoutBtn = document.getElementById('userLogoutButton');
 
-    // Set avatar
-    const userName = localStorage.getItem('cv_userName') || 'Usuário';
+    // Determine display name for avatar and header
+    let displayName = localStorage.getItem('cv_userName');
+    if (!displayName) {
+        const userEmail = localStorage.getItem('cv_userEmail');
+        if (userEmail) {
+            displayName = userEmail.split('@')[0];
+        } else {
+            displayName = 'Usuário'; // Default if no name or email
+        }
+    }
+
     const userPhoto = localStorage.getItem('cv_userPhoto');
     if (avatarBtn) {
         if (userPhoto) {
@@ -19,9 +28,9 @@ export function initUserMenu() {
             avatarBtn.textContent = '';
             avatarBtn.appendChild(img);
         } else {
-            avatarBtn.textContent = userName.charAt(0).toUpperCase();
+            avatarBtn.textContent = displayName.charAt(0).toUpperCase();
         }
-        avatarBtn.title = userName;
+        avatarBtn.title = displayName;
     }
 
     function openModal() {
@@ -32,12 +41,12 @@ export function initUserMenu() {
             if (existingH2) {
                 existingH2.remove();
             }
-            // Add user name to modal header
-            const userNameH2 = document.createElement('h2');
-            userNameH2.classList.add('user-menu-username'); // Add a class for specific styling if needed
-            userNameH2.textContent = userName;
+            // Add display name to modal header
+            const displayNameH2 = document.createElement('h2');
+            displayNameH2.classList.add('user-menu-username'); // Add a class for specific styling if needed
+            displayNameH2.textContent = displayName;
             // Prepend h2 to keep close button (if it's part of header) after it or style accordingly
-            modalHeader.insertBefore(userNameH2, modalHeader.firstChild);
+            modalHeader.insertBefore(displayNameH2, modalHeader.firstChild);
         }
     }
     function closeModal() {
