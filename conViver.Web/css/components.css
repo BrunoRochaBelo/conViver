@@ -643,10 +643,10 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
     min-height: auto; /* No strict min-height */
 }
 .user-menu-modal .cv-modal-header h2 {
-    font-size: var(--cv-font-size-md); /* Smaller title */
-    text-align: left; /* Titles in user menus are often left-aligned */
-    padding-left: 0; /* Reset padding if close button is handled differently */
-    padding-right: 30px; /* Space for close button on the right */
+    font-size: var(--cv-font-size-md);
+    text-align: left;
+    padding-left: 0;
+    padding-right: calc(var(--cv-spacing-sm) + 24px + var(--cv-spacing-xs)); /* right-padding = close_button_right_offset + close_button_width + extra_space */
 }
 
 .user-menu-modal .cv-modal-body {
