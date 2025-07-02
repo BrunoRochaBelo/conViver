@@ -469,7 +469,7 @@ html[data-theme="dark"] .cv-nav {
     border-radius: var(--cv-border-radius-md);
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.1s ease-in-out;
     font-weight: 500;
-    gap: var(--cv-spacing-xs);
+    gap: var(--cv-spacing-sm); /* Aumentado de xs para sm (4px para 8px) */
 }
 .cv-nav__icon {
     width: 20px;
@@ -607,11 +607,66 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
     border-radius: 50%;
 }
 /* User menu modal overrides */
-.user-menu-modal .cv-modal-content {
-    padding: var(--cv-spacing-md);
-    max-width: 300px; /* Smaller max-width for user menu modal */
-    /* Ensure it still gets the primary modal animation and shadow from styles.css */
+/* Assuming userMenuModal has the ID 'userMenuModal' or a specific class like '.user-menu-modal-instance' */
+/* Let's use a more specific selector if possible, e.g., #userMenuModal .cv-modal-content */
+/* For now, using .user-menu-modal class on the .cv-modal element */
+
+.user-menu-modal .cv-modal-content { /* Styles for the content box of the user menu */
+    /* padding: var(--cv-spacing-md); */ /* Padding is now handled by header/body/footer */
+    max-width: 280px; /* Smaller max-width for user menu modal, more like a popover */
+    border-radius: var(--cv-border-radius-md); /* Slightly smaller radius for popover feel */
+    box-shadow: var(--current-shadow-lg); /* Popovers often have a more distinct shadow */
+    /* Override general modal animation if a different one is desired, e.g., fade-in or slide-from-top */
+    /* animation: user-menu-pop-in 0.2s ease-out; */
+    /* margin-top: 60px; */ /* Control positioning with top/right */
+    /* margin-right: var(--cv-spacing-md); */ /* Control positioning with top/right */
+    margin-left: auto; /* Allows it to be pushed to the right by the parent .cv-modal flex centering */
+    position: absolute; /* Take it out of the normal flow of .cv-modal content centering */
+    top: calc(var(--cv-header-height, 60px) + var(--cv-spacing-sm)); /* Position below header; needs --cv-header-height var */
+    right: var(--cv-spacing-md);
+    width: auto; /* Let content dictate width up to max-width */
+    height: auto; /* Let content dictate height */
+    /* The parent .cv-modal provides the full screen overlay and initial centering.
+       These absolute positioning rules then place the .cv-modal-content specifically for the user menu. */
 }
+
+/* Define --cv-header-height in :root or where .cv-header is styled */
+/* Example, if header height is dynamic, JS might need to set this variable.
+   For a fixed example:
+   :root { --cv-header-height: 56px; }
+   @media (min-width: 768px) { :root { --cv-header-height: 68px; } }
+*/
+
+
+.user-menu-modal .cv-modal-header {
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Smaller padding for user menu header */
+    min-height: auto; /* No strict min-height */
+}
+.user-menu-modal .cv-modal-header h2 {
+    font-size: var(--cv-font-size-md); /* Smaller title */
+    text-align: left; /* Titles in user menus are often left-aligned */
+    padding-left: 0; /* Reset padding if close button is handled differently */
+    padding-right: 30px; /* Space for close button on the right */
+}
+
+.user-menu-modal .cv-modal-body {
+    padding: var(--cv-spacing-sm) 0; /* No horizontal padding if list items span full width */
+}
+.user-menu-modal .cv-modal-footer {
+    display: none; /* User menus typically don't have a footer with OK/Cancel */
+}
+
+.user-menu-modal .cv-modal-close {
+    /* Ensure close button is correctly positioned and not overlapping */
+    top: 50%;
+    transform: translateY(-50%);
+    right: var(--cv-spacing-sm); /* Closer to the edge for smaller modal header */
+    width: 24px; /* Smaller close button */
+    height: 24px;
+    font-size: 16px;
+}
+
+
 .user-menu-list {
     list-style: none;
     margin: 0;
