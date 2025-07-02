@@ -664,14 +664,15 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
 }
 
 .user-menu-modal .cv-modal-close {
-    position: absolute; /* Changed from static */
-    top: var(--cv-spacing-md); /* Align with standard modal close */
-    right: var(--cv-spacing-md); /* Align with standard modal close */
-    width: 30px; /* Match standard modal close */
-    height: 30px; /* Match standard modal close */
-    font-size: 20px; /* Match standard modal close */
-    /* order: 1; Removed as it's not needed for absolute positioning */
-    /* Inherits other properties like color, background, border-radius from .cv-modal-close */
+    position: static; /* Remove absolute positioning if flex order is used */
+    transform: none; /* Remove transform if not absolutely positioned */
+    /* top: 50%; */
+    /* transform: translateY(-50%); */
+    /* right: var(--cv-spacing-sm); */
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+    order: 1; /* Ensures close button comes after the title in flex layout */
 }
 
 
