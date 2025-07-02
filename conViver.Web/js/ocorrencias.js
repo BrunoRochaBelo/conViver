@@ -83,6 +83,7 @@ const formAlterarStatusErrorsEl = document.getElementById('formAlterarStatusErro
 // --- State Variables ---
 let currentUser = null; // To store user ID, roles { id: 'guid', nome: 'User', roles: ['Morador'] }
 let currentOcorrenciaId = null;
+let novaOcorrenciaSubmitButton = null;
 let currentPage = 1;
 let currentFilter = 'minhas'; // Default filter
 let isLoading = false;
@@ -169,6 +170,13 @@ async function initOcorrenciasPage() {
     // Attach Event Listeners
     if (formNovaOcorrencia) {
         formNovaOcorrencia.appendChild(novaOcorrenciaProgress);
+        novaOcorrenciaSubmitButton = formNovaOcorrencia.querySelector('button[type="submit"]');
+        // Add event listeners for dynamic validation
+        ocorrenciaTituloInput.addEventListener('input', validateNovaOcorrenciaForm);
+        ocorrenciaDescricaoInput.addEventListener('input', validateNovaOcorrenciaForm);
+        ocorrenciaCategoriaSelect.addEventListener('change', validateNovaOcorrenciaForm);
+        // Initial validation check
+        validateNovaOcorrenciaForm();
     }
     if (detalheNovosAnexosInput) {
         const grp = detalheNovosAnexosInput.closest('.cv-form__group') || detalheNovosAnexosInput.parentElement;
@@ -183,6 +191,7 @@ async function initOcorrenciasPage() {
 
     closeDetalheOcorrenciaModalBtn.addEventListener('click', closeDetalheOcorrenciaModal);
     btnAdicionarComentario.addEventListener('click', handleAddComentario);
+    novoComentarioTextoInput.addEventListener('input', validateNovoComentarioForm); // Add listener for comment input
     btnAlterarStatus.addEventListener('click', openAlterarStatusModal); // Button in detail modal
     detalheNovosAnexosInput.addEventListener('change', handleDetalheNovosAnexosChange);
     btnAdicionarNovosAnexos.addEventListener('click', handleAdicionarNovosAnexosSubmit);
@@ -479,6 +488,7 @@ function openNovaOcorrenciaModal() {
     formNovaOcorrencia.reset();
     anexosPreviewContainer.innerHTML = '';
     displayFormErrors(formNovaOcorrenciaErrorsEl, []); // Clear previous errors
+
     // Reset category dropdown (it's populated dynamically)
     if (allCategories.length > 0) {
         ocorrenciaCategoriaSelect.innerHTML = '<option value="">Selecione...</option>';
@@ -493,19 +503,42 @@ function openNovaOcorrenciaModal() {
         ocorrenciaCategoriaSelect.innerHTML = '<option value="">Categorias não carregadas</option>';
     }
     ocorrenciaPrioridadeSelect.value = 'NORMAL'; // Default priority
+    validateNovaOcorrenciaForm(); // Ensure button state is correct on open
     modalNovaOcorrencia.style.display = 'flex';
 }
 function closeNovaOcorrenciaModal() { modalNovaOcorrencia.style.display = 'none'; }
 
+function validateNovaOcorrenciaForm() {
+    if (!formNovaOcorrencia || !novaOcorrenciaSubmitButton) return;
+
+    const tituloValido = ocorrenciaTituloInput.value.trim() !== '';
+    const descricaoValida = ocorrenciaDescricaoInput.value.trim() !== '';
+    const categoriaValida = ocorrenciaCategoriaSelect.value !== '';
+
+    if (tituloValido && descricaoValida && categoriaValida) {
+        novaOcorrenciaSubmitButton.disabled = false;
+    } else {
+        novaOcorrenciaSubmitButton.disabled = true;
+    }
+}
+
 async function handleNovaOcorrenciaSubmit(event) {
     event.preventDefault();
-    const submitButton = formNovaOcorrencia.querySelector('button[type="submit"]');
-    const originalButtonText = submitButton.textContent;
+    // const submitButton = formNovaOcorrencia.querySelector('button[type="submit"]'); // Already have novaOcorrenciaSubmitButton
+    const originalButtonText = novaOcorrenciaSubmitButton.textContent;
+
+    // Re-check validation in case the button was enabled via dev tools or other means
+    if (ocorrenciaTituloInput.value.trim() === '' || ocorrenciaDescricaoInput.value.trim() === '' || ocorrenciaCategoriaSelect.value === '') {
+        displayFormErrors(formNovaOcorrenciaErrorsEl, [{errorMessage: "Por favor, preencha todos os campos obrigatórios."}]);
+        // Ensure button is disabled if it somehow got enabled
+        novaOcorrenciaSubmitButton.disabled = true;
+        return;
+    }
 
     if (isLoading) return;
     isLoading = true;
-    submitButton.disabled = true;
-    submitButton.innerHTML = 'Enviando... <span class="inline-spinner"></span>';
+    novaOcorrenciaSubmitButton.disabled = true;
+    novaOcorrenciaSubmitButton.innerHTML = 'Enviando... <span class="inline-spinner"></span>';
     displayFormErrors(formNovaOcorrenciaErrorsEl, []); // Clear previous errors
 
     const formData = new FormData();
@@ -593,8 +626,12 @@ async function handleNovaOcorrenciaSubmit(event) {
         }
     } finally {
         isLoading = false;
-        submitButton.disabled = false;
-        submitButton.innerHTML = originalButtonText;
+        // Button is re-enabled by validateNovaOcorrenciaForm if fields are still valid,
+        // or remains disabled if form was reset or fields became invalid.
+        // The text is reset here. If it's disabled, text change might not be visible but is correct.
+        novaOcorrenciaSubmitButton.innerHTML = originalButtonText;
+        validateNovaOcorrenciaForm(); // Re-evaluate button state after submission attempt
+
         // Ensure progress bar is hidden if it was shown and an error occurred before 100%
         if (novaOcorrenciaProgress.style.display !== 'none' && novaOcorrenciaProgress.querySelector('.cv-progress__bar').style.width !== '100%') {
             setTimeout(() => { novaOcorrenciaProgress.style.display = 'none'; }, 1000);
@@ -810,6 +847,7 @@ async function openDetalheOcorrenciaModal(ocorrenciaId) {
         }
 
         if (detalheOcorrenciaContentLoadedEl) detalheOcorrenciaContentLoadedEl.style.display = 'block'; // Show content
+    validateNovoComentarioForm(); // Initial validation for comment button state
 
     } catch (error) {
         console.error(`Erro ao carregar detalhes da ocorrência ${ocorrenciaId}:`, error);
@@ -840,13 +878,28 @@ function closeDetalheOcorrenciaModal() {
     if(novosAnexosPreviewContainer) novosAnexosPreviewContainer.innerHTML = '';
     if(detalheNovosAnexosInput) detalheNovosAnexosInput.value = ''; // Reset file input
     displayFormErrors(formComentarioErrorsEl, []); // Clear comment errors
+    validateNovoComentarioForm(); // Ensure button state is correct when closing modal (e.g. if text was cleared)
+}
+
+function validateNovoComentarioForm() {
+    if (!btnAdicionarComentario || !novoComentarioTextoInput) return;
+
+    const textoValido = novoComentarioTextoInput.value.trim() !== '';
+    if (textoValido) {
+        btnAdicionarComentario.disabled = false;
+    } else {
+        btnAdicionarComentario.disabled = true;
+    }
 }
 
 async function handleAddComentario() {
     if (!currentOcorrenciaId || isLoading) return;
     const texto = novoComentarioTextoInput.value.trim();
+
+    // Double check validation, although button should be disabled if not valid
     if (!texto) {
         displayFormErrors(formComentarioErrorsEl, ['O texto do comentário não pode estar vazio.']);
+        btnAdicionarComentario.disabled = true; // Ensure it's disabled
         return;
     }
     displayFormErrors(formComentarioErrorsEl, []);
@@ -879,8 +932,9 @@ async function handleAddComentario() {
         }
     } finally {
         isLoading = false;
-        btnAdicionarComentario.disabled = false;
+        // Button state will be set by validateNovoComentarioForm based on (now empty) input
         btnAdicionarComentario.innerHTML = originalButtonText;
+        validateNovoComentarioForm(); // Re-evaluate button state after submission (input is now empty)
     }
 }
 
