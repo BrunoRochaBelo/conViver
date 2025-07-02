@@ -3,6 +3,7 @@ import { logout } from './auth.js';
 export function initUserMenu() {
     const avatarBtn = document.getElementById('userMenuButton');
     const modal = document.getElementById('userMenuModal');
+    const modalHeader = modal ? modal.querySelector('.cv-modal-header') : null;
     const closeBtn = document.getElementById('userMenuClose');
     const toggleThemeBtn = document.getElementById('toggleThemeButton');
     const profileBtn = document.getElementById('goProfileButton');
@@ -25,6 +26,19 @@ export function initUserMenu() {
 
     function openModal() {
         if (modal) modal.style.display = 'flex';
+        if (modalHeader) {
+            // Remove existing username h2 if any to prevent duplicates
+            const existingH2 = modalHeader.querySelector('h2.user-menu-username');
+            if (existingH2) {
+                existingH2.remove();
+            }
+            // Add user name to modal header
+            const userNameH2 = document.createElement('h2');
+            userNameH2.classList.add('user-menu-username'); // Add a class for specific styling if needed
+            userNameH2.textContent = userName;
+            // Prepend h2 to keep close button (if it's part of header) after it or style accordingly
+            modalHeader.insertBefore(userNameH2, modalHeader.firstChild);
+        }
     }
     function closeModal() {
         if (modal) modal.style.display = 'none';
