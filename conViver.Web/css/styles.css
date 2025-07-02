@@ -977,6 +977,15 @@ main {
     transform: rotate(45deg);
 }
 
+/* Keep rotation when hovering or pressing the button */
+.fab.fab--rotated:hover {
+    transform: scale(1.05) rotate(45deg);
+}
+
+.fab.fab--rotated:active {
+    transform: scale(0.95) rotate(45deg);
+}
+
 
 .fab:hover {
     /* iOS FAB hover usually involves a subtle scale and shadow change, not typically color change */
@@ -1008,7 +1017,7 @@ main {
 
 .fab-menu-options {
     position: absolute;
-    bottom: 80px;
+    bottom: 96px;
     right: var(--cv-spacing-md);
     display: none;
     flex-direction: column;

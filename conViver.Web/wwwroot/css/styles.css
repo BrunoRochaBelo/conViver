@@ -952,6 +952,14 @@ main {
     transform: rotate(45deg);
 }
 
+.fab.fab--rotated:hover {
+    transform: rotate(45deg) translateY(-2px);
+}
+
+.fab.fab--rotated:active {
+    transform: rotate(45deg) translateY(0px);
+}
+
 .fab:hover {
     background-color: var(--cv-dark-primary-blue, #0056b3); /* Darken for hover, use theme variable if available */
     transform: translateY(-2px); /* Slight lift on hover */
@@ -970,7 +978,7 @@ main {
 }
 .fab-menu-options {
     position: absolute;
-    bottom: 80px;
+    bottom: 96px;
     right: var(--cv-spacing-md, 16px);
     display: none;
     flex-direction: column;
