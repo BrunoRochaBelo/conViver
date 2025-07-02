@@ -73,6 +73,14 @@
     background-color: var(--current-primary-blue);
 }
 
+/* Para animação de rotação do ícone */
+.cv-button.icon-button svg {
+    transition: transform 0.3s ease;
+}
+.cv-button.icon-button.rotated svg {
+    transform: rotate(180deg);
+}
+
 .cv-button:disabled,
 .cv-button--primary:disabled,
 .cv-button--secondary:disabled {

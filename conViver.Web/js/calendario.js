@@ -222,7 +222,12 @@ function setupModalCrudListeners() {
     const modalNovaReserva = document.getElementById("modal-nova-reserva");
     const formNovaReserva = document.getElementById("form-nova-reserva");
     if (modalNovaReserva) {
-        modalNovaReserva.querySelector(".js-modal-nova-reserva-close")?.addEventListener("click", () => modalNovaReserva.style.display = "none");
+        // Adiciona listener para todos os botões de fechar dentro do modal de nova reserva
+        modalNovaReserva.querySelectorAll(".js-modal-nova-reserva-close").forEach(btn => {
+            btn.addEventListener("click", () => {
+                modalNovaReserva.style.display = "none";
+            });
+        });
         window.addEventListener("click", (e) => { if (e.target === modalNovaReserva) modalNovaReserva.style.display = "none"; });
         formNovaReserva?.addEventListener("submit", handleSalvarReservaFormSubmit);
     }
@@ -1029,6 +1034,7 @@ function initializeFullCalendar() {
     // Não é necessário listar os plugins aqui se estiver usando o bundle standard (index.global.min.js)
     // que já os inclui (dayGrid, timeGrid, list).
     // plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
+    nowIndicator: true, // Adiciona o indicador de hora atual
     initialView: "dayGridMonth",
     headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay" },
     buttonText: { today: "Hoje", month: "Mês", week: "Semana", day: "Dia", list: "Lista" },

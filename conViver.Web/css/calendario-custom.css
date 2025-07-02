@@ -287,15 +287,36 @@
 
 /* Linha horizontal que marca a hora atual na visualização TimeGrid */
 .fc .fc-timegrid-now-indicator-line {
-  border-color: var(
-    --current-semantic-danger,
-    #ff3b30
-  ); /* Vermelho Apple para a linha da hora atual */
-  border-width: 2px;
+    /* cor principal (vermelho Apple) */
+    border-color: var(--current-semantic-danger, #ff3b30);
+    /* zerar bordas laterais e inferior */
+    border-width: 0;
+    /* apenas a borda superior visível, com 2px de espessura e tracejada */
+    border-top-width: 2px;
+    border-top-style: dashed;
+    /* ocupar toda a largura do grid */
+    left: 0;
+    right: 0;
+    width: 100%;
 }
+
 .fc .fc-timegrid-now-indicator-arrow {
-  border-top-color: var(--current-semantic-danger, #ff3b30);
+    /* esconder bordas que não sejam a seta */
+    border-color: transparent;
+    /* seta no topo com cor principal */
+    border-top-color: var(--current-semantic-danger, #ff3b30);
 }
+
+/* Tema escuro: ajustar para tom de vermelho apropriado */
+html[data-theme='dark'] .fc .fc-timegrid-now-indicator-line {
+    border-color: var(--current-dark-semantic-danger, #ff453a);
+    border-top-color: var(--current-dark-semantic-danger, #ff453a);
+}
+
+html[data-theme='dark'] .fc .fc-timegrid-now-indicator-arrow {
+    border-top-color: var(--current-dark-semantic-danger, #ff453a);
+}
+
 
 /* Scrollbars, se visíveis (estilização básica, pode variar por navegador) */
 .fc .fc-scroller {
