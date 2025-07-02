@@ -1123,7 +1123,6 @@ html[data-theme="dark"] .fab-menu-options .cv-button:hover {
     justify-content: center;
     padding: var(--cv-spacing-md); /* Add some padding for smaller screens so modal doesn't touch edges */
     box-sizing: border-box;
-    display: flex; /* ensure this is set for align/justify to work if not already flex */
 }
 
 .cv-modal-content {

@@ -56,6 +56,9 @@ export function initUserMenu() {
     if (savedTheme) {
         document.documentElement.setAttribute('data-theme', savedTheme);
     }
+
+    // Ensure modal starts hidden after events are bound
+    closeModal();
 }
 
 document.addEventListener('DOMContentLoaded', initUserMenu);
