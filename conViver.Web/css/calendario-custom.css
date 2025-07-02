@@ -9,33 +9,30 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.07); /* Sombra mais suave */
     border: 1px solid var(--current-border-subtle, #e5e5e5);
     color: var(--current-text-primary, #2c2c2c);
-    height: 100%; /* Para que o calendário preencha a altura do seu container pai (que precisa ter altura definida) */
-    display: flex; /* Para permitir que o conteúdo interno do calendário (view-harness) também cresça */
-    flex-direction: column; /* Empilhar toolbar e view-harness verticalmente */
+    /* height: 100%; REVERTIDO */
+    /* display: flex; REVERTIDO */
+    /* flex-direction: column; REVERTIDO */
 }
 
 /* Fazer com que o container da visualização do calendário (onde o grid/tabela fica) cresça */
-.fc .fc-view-harness {
+/* .fc .fc-view-harness { REVERTIDO
     flex-grow: 1;
-    height: 0; /* Necessário para flex-grow funcionar corretamente em alguns cenários de altura */
-    min-height: 0; /* Evitar conflitos de min-height */
-}
+    height: 0;
+    min-height: 0;
+} */
 
 
 /* Garantir que o card que contém o calendário possa se esticar se o #calendario-view-container for flex */
-#calendario-view-container {
-    display: flex; /* Se não for já, para permitir que o filho cresça */
-    flex-direction: column; /* Ou row, dependendo do layout geral */
-    /* Se #calendario-view-container precisar de altura definida para o calendário funcionar com height: 'parent',
-       ela precisaria ser definida aqui ou herdada de um pai com altura. Ex: height: 500px; ou height: 80vh;
-       Por enquanto, vamos focar em fazer o card e o .fc se esticarem. */
-}
+/* #calendario-view-container { REVERTIDO - Deixar o layout da página principal controlar isso
+    display: flex;
+    flex-direction: column;
+} */
 
 #calendario-view-container > .reservas-section.cv-card {
-    padding: 0; /* Remove o padding padrão de .cv-card - JÁ FEITO ANTERIORMENTE */
-    flex-grow: 1; /* Permite que o card cresça se #calendario-view-container for flex column */
-    display: flex; /* Para que o .fc (calendário) dentro dele possa usar height: 100% */
-    flex-direction: column; /* Para o caso do .fc precisar de um contexto flex para height:100% */
+    padding: 0; /* Remove o padding padrão de .cv-card - MANTIDO */
+    /* flex-grow: 1; REVERTIDO */
+    /* display: flex; REVERTIDO */
+    /* flex-direction: column; REVERTIDO */
 }
 
 

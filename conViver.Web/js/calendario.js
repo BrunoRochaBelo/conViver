@@ -1035,7 +1035,7 @@ function initializeFullCalendar() {
     // que já os inclui (dayGrid, timeGrid, list).
     // plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
     nowIndicator: true, // Adiciona o indicador de hora atual
-    height: 'parent', // Faz o calendário tentar usar a altura do seu container pai
+    // height: 'parent', // REVERTIDO - Deixar FullCalendar gerenciar altura automaticamente (padrão 'auto')
     initialView: "dayGridMonth",
     headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay" },
     buttonText: { today: "Hoje", month: "Mês", week: "Semana", day: "Dia", list: "Lista" },
