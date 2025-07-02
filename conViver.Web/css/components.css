@@ -1,67 +1,59 @@
 .cv-button {
+    /* ... existing display, text-align, etc. ... */
     font-family: var(--cv-font-family-sans-serif);
-    font-weight: 500; /* Medium weight, common in iOS */
-    font-size: var(--cv-font-size-text-md); /* Use responsive text size */
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
-    border-radius: var(--cv-border-radius-md);
+    font-weight: 500; /* iOS uses medium weight more often than semibold */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* e.g., 8px 16px */
+    border-radius: var(--cv-border-radius-md); /* e.g., 8px - iOS often uses slightly smaller radii for buttons, like 6-8px */
     border: var(--cv-border-width) solid transparent;
     cursor: pointer;
     transition: background-color 0.15s ease-out, color 0.15s ease-out, border-color 0.15s ease-out, box-shadow 0.15s ease-out, transform 0.1s ease-out;
-    background-color: var(--current-button-default-bg); /* Default: Light gray */
-    color: var(--current-text-link); /* Default text color: primary blue */
-    min-height: 44px; /* iOS touch target guideline */
-    display: inline-flex;
+    background-color: var(--current-button-default-bg);
+    color: var(--current-text-link); /* Default buttons in iOS often use the tint color for text */
+    min-height: 44px; /* iOS touch target size guideline */
+    display: inline-flex; /* To align text and potential icons */
     align-items: center;
     justify-content: center;
-    line-height: 1.3; /* Adjusted line height */
-    text-decoration: none; /* Remove underline from button links */
-    -webkit-appearance: none; /* Remove default browser styles on iOS */
-    -moz-appearance: none;
-    appearance: none;
+    line-height: 1.2; /* Adjust line height for better vertical centering if needed */
 }
-/* Increase padding and font size on larger screens for better usability */
-@media (min-width: 768px) {
-    .cv-button {
-        font-size: var(--cv-font-size-md); /* Corresponds to 1rem on desktop (16px if base is 16px) */
-        padding: calc(var(--cv-spacing-sm) + 2px) calc(var(--cv-spacing-md) + 4px); /* Slightly larger padding */
-    }
-}
-
 .cv-button:hover {
     background-color: var(--current-button-default-hover-bg);
-    filter: brightness(95%); /* Subtle brightness change on hover */
+    /* iOS doesn't typically use shadow on default button hover, but a subtle brightness change */
+    filter: brightness(95%);
 }
 .cv-button:active {
-    transform: scale(0.97); /* Slightly less pronounced scale */
-    background-color: var(--cv-gray-300);
+    transform: scale(0.96); /* Slightly more pronounced active scale */
+    background-color: var(--cv-gray-300); /* Darker shade for active state, consistent with iOS patterns */
     filter: brightness(90%);
     box-shadow: none;
 }
-
 .cv-button--primary {
     background-color: var(--current-primary-blue);
     color: var(--current-text-on-primary);
     border-color: var(--current-primary-blue);
-    font-weight: 500; /* Consistent medium weight */
+    font-weight: 500; /* Medium weight for primary buttons too */
 }
 .cv-button--primary:hover {
-    filter: brightness(90%); /* Darken primary blue slightly */
-    box-shadow: none;
+    filter: brightness(90%);
+    box-shadow: none; /* iOS primary buttons usually don't have shadow on hover */
 }
 .cv-button--primary:active {
     filter: brightness(80%);
-    transform: scale(0.97);
+    transform: scale(0.96);
     box-shadow: none;
 }
 
 .cv-button--secondary {
-    background-color: var(--cv-gray-200); /* Light gray */
-    color: var(--current-text-primary); /* Dark text */
+    background-color: var(--current-button-secondary-bg); /* This is a gray in the current vars */
+    color: var(--current-text-on-primary); /* Text on gray might need to be dark or light based on the gray */
+    border-color: var(--current-button-secondary-bg);
+    /* Let's adjust secondary to be more like iOS "gray" or "filled" buttons */
+    background-color: var(--cv-gray-200); /* System Gray 5 Light */
+    color: var(--current-text-primary); /* Black text on light gray */
     border-color: var(--cv-gray-200);
 }
 html[data-theme="dark"] .cv-button--secondary {
-    background-color: var(--cv-dark-gray-400); /* Darker gray for dark mode */
-    color: var(--cv-dark-text-primary); /* Light text */
+    background-color: var(--cv-dark-gray-400); /* System Gray 4 Dark */
+    color: var(--cv-dark-text-primary); /* White text on dark gray */
     border-color: var(--cv-dark-gray-400);
 }
 .cv-button--secondary:hover {
@@ -70,218 +62,165 @@ html[data-theme="dark"] .cv-button--secondary {
 }
 .cv-button--secondary:active {
     filter: brightness(85%);
-    transform: scale(0.97);
+    transform: scale(0.96);
     box-shadow: none;
 }
 
+/* iOS style "Tinted" button (like a default button but with a light tint background) */
 .cv-button--tinted {
-    background-color: var(--cv-primary-blue-alpha-15);
+    background-color: var(--cv-primary-blue-alpha-15); /* Needs to be defined: var(--cv-primary-blue) with low alpha */
     color: var(--current-primary-blue);
     border-color: transparent;
 }
 html[data-theme="dark"] .cv-button--tinted {
-    background-color: var(--cv-dark-primary-blue-alpha-20);
+    background-color: var(--cv-dark-primary-blue-alpha-20); /* Needs to be defined */
 }
 .cv-button--tinted:hover {
-    filter: brightness(95%); /* Subtle change */
+    filter: brightness(95%);
 }
 .cv-button--tinted:active {
     filter: brightness(90%);
-    transform: scale(0.97);
+    transform: scale(0.96);
 }
 
+/* iOS style "Borderless" or "Text" button - already similar to default .cv-button if bg is transparent */
 .cv-button--borderless {
     background-color: transparent;
     color: var(--current-text-link);
     border-color: transparent;
-    padding-left: var(--cv-spacing-sm); /* Slightly less horizontal padding for borderless */
-    padding-right: var(--cv-spacing-sm);
 }
 .cv-button--borderless:hover {
-    background-color: var(--cv-gray-100-alpha-50);
-    filter: none;
+    background-color: var(--cv-gray-100-alpha-50); /* Very subtle hover, needs alpha var */
+    filter: none; /* Remove general hover filter if specific bg is used */
 }
 html[data-theme="dark"] .cv-button--borderless:hover {
-    background-color: var(--cv-dark-gray-100-alpha-50);
+    background-color: var(--cv-dark-gray-100-alpha-50); /* Needs alpha var */
 }
 .cv-button--borderless:active {
-    background-color: var(--cv-gray-200-alpha-70);
-    transform: scale(0.97);
+    background-color: var(--cv-gray-200-alpha-70); /* Subtle active, needs alpha var */
+    transform: scale(0.96);
     filter: none;
 }
 
-/* Icon Button Styles */
+
 .cv-button.icon-button {
-    padding: var(--cv-spacing-sm); /* Consistent padding for icon buttons */
-    min-height: 40px; /* Slightly smaller min-height, but still good touch target */
-    min-width: 40px;
-    width: auto; /* Auto width based on content (icon) */
-    height: auto; /* Auto height */
-    border-radius: 50%; /* Circular icon buttons are common in iOS */
+    padding: var(--cv-spacing-xs); /* iOS icon buttons are often smaller */
+    min-height: 36px; /* Smaller touch target if purely iconic and small */
+    min-width: 36px; /* Ensure it's square or appropriately sized */
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
 }
-.cv-button.icon-button.has-indicator::after { /* Notification dot */
+.cv-button.icon-button.has-indicator::after {
     content: "";
     position: absolute;
-    top: 6px; /* Adjusted position */
-    right: 6px; /* Adjusted position */
+    top: 4px;
+    right: 4px;
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: var(--current-primary-red); /* Use red for notifications */
-    border: 1.5px solid var(--current-bg-white); /* White border for contrast */
-}
-html[data-theme="dark"] .cv-button.icon-button.has-indicator::after {
-    border-color: var(--current-bg-element); /* Dark theme background for border */
+    background-color: var(--current-primary-blue);
 }
 
+/* Para animação de rotação do ícone */
 .cv-button.icon-button svg {
-    transition: transform 0.2s ease-out; /* Faster transition for icon rotation */
-    width: 1.2em; /* Ensure icon scales with button font size if text is present */
-    height: 1.2em;
+    transition: transform 0.3s ease;
 }
 .cv-button.icon-button.rotated svg {
     transform: rotate(180deg);
 }
 
-/* Disabled State */
 .cv-button:disabled,
-.cv-button[disabled] { /* Add attribute selector for robustness */
-    background-color: var(--current-button-disabled-bg) !important; /* Important to override specific types */
-    color: var(--current-button-disabled-text) !important;
-    border-color: var(--current-button-disabled-border) !important;
+.cv-button--primary:disabled,
+.cv-button--secondary:disabled {
+    background-color: var(--current-button-disabled-bg);
+    color: var(--current-button-disabled-text);
     cursor: not-allowed;
-    box-shadow: none !important;
-    filter: none !important;
-    opacity: 0.65; /* Standard opacity for disabled elements */
+    border-color: var(--current-button-disabled-border);
+    box-shadow: none;
+    filter: none; /* Ensure no brightness filter on disabled state */
 }
-
-/* Inline spinner within buttons */
-.cv-button .inline-spinner {
-    width: 1em; /* Relative to button's font size */
-    height: 1em;
-    border-width: 0.18em; /* Slightly thicker for visibility */
-    margin-left: var(--cv-spacing-sm);
-    vertical-align: -0.15em; /* Fine-tune vertical alignment */
-}
-
 
 .cv-card {
     background-color: var(--current-bg-white);
-    border: var(--cv-border-width) solid var(--current-border-subtle); /* Use subtle border */
-    border-radius: var(--cv-border-radius-lg); /* Consistent large radius */
+    border: var(--cv-border-width) solid var(--current-border-color);
+    border-radius: var(--cv-border-radius-lg);
     padding: var(--cv-spacing-md);
     margin-bottom: var(--cv-spacing-md);
-    box-shadow: var(--current-shadow-sm); /* Lighter shadow by default */
-    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out; /* Faster transitions */
-}
-@media (min-width: 768px) {
-    .cv-card {
-        padding: var(--cv-spacing-lg); /* More padding on larger screens */
-        box-shadow: var(--current-shadow-md); /* Slightly more pronounced shadow on desktop */
-    }
+    box-shadow: var(--current-shadow-md);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 
 .cv-card--clickable:hover {
     transform: translateY(-2px);
-    box-shadow: var(--current-shadow-lg); /* More pronounced shadow on hover */
+    box-shadow: var(--current-shadow-lg);
 }
 
 .cv-card__title {
-    font-size: var(--cv-font-size-h4); /* Use responsive heading size */
+    font-size: 1.25rem;
     font-weight: 600;
     color: var(--current-text-primary);
     margin-bottom: var(--cv-spacing-sm);
 }
 
 .cv-card__subtitle {
-    font-size: var(--cv-font-size-text-md); /* Use responsive text size */
+    font-size: 0.9rem;
     color: var(--current-text-secondary);
     margin-bottom: var(--cv-spacing-md);
 }
-@media (min-width: 768px) {
-    .cv-card__title {
-        font-size: var(--cv-font-size-h3); /* Larger on desktop */
-    }
-    .cv-card__subtitle {
-        font-size: var(--cv-font-size-text-lg); /* Larger on desktop */
-    }
+
+/* Generic grid layout for card collections */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--cv-spacing-md);
 }
 
-/* Generic grid layout for card collections - MOVED to styles.css as .card-grid */
-
-.cv-input,
-textarea.cv-input,
-select.cv-input { /* Apply to textarea and select with .cv-input class as well */
+.cv-input {
     font-family: var(--cv-font-family-sans-serif);
     padding: var(--cv-spacing-sm) var(--cv-spacing-md);
     border: var(--cv-border-width) solid var(--current-border-color);
     border-radius: var(--cv-border-radius-md);
-    font-size: var(--cv-font-size-text-md); /* Responsive text size */
-    line-height: 1.4; /* Adjusted line height */
+    font-size: 1rem;
+    line-height: 1.5;
     background-color: var(--current-bg-white);
     color: var(--current-text-primary);
     width: 100%;
     box-sizing: border-box;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    -webkit-appearance: none; /* Remove default iOS styling for inputs/selects */
-    -moz-appearance: none;
-    appearance: none;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-@media (min-width: 768px) {
-    .cv-input, textarea.cv-input, select.cv-input {
-        font-size: var(--cv-font-size-md); /* Desktop font size */
-    }
-}
-
 .cv-input::placeholder {
     color: var(--current-text-placeholder);
-    opacity: 1; /* Ensure placeholder is not too faint */
 }
-.cv-input:focus,
-textarea.cv-input:focus,
-select.cv-input:focus {
+.cv-input:focus {
     border-color: var(--current-primary-blue);
     outline: 0;
-    box-shadow: 0 0 0 2.5px var(--current-input-focus-shadow); /* Thinner focus ring, more iOS like */
+    box-shadow: 0 0 0 3px var(--current-input-focus-shadow);
 }
-
-textarea.cv-input {
-    resize: vertical; /* Allow only vertical resize */
-    min-height: 80px; /* Default min-height for textareas */
-}
-
-select.cv-input {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23${(getComputedStyle(document.documentElement).getPropertyValue('--current-text-placeholder') || '#AEAEB2').substring(1)}'%3E%3Cpath d='M8 11.293l-4.146-4.147a.5.5 0 0 1 .708-.708L8 9.879l3.438-3.438a.5.5 0 0 1 .707.708L8 11.293z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right var(--cv-spacing-sm) center;
-    background-size: 16px 16px;
-    padding-right: calc(var(--cv-spacing-md) + 16px + var(--cv-spacing-sm)); /* Make space for arrow */
-}
-select[multiple].cv-input { /* Styling for multiple select */
-    background-image: none; /* No arrow for multiple select */
-    padding-right: var(--cv-spacing-md); /* Standard padding */
-    min-height: 120px; /* Taller for multiple options */
-}
-
 
 .cv-input--error {
-    border-color: var(--current-semantic-error) !important; /* Ensure override */
+    border-color: var(--current-semantic-error);
     background-color: var(--current-color-error-bg);
 }
 .cv-input--error:focus {
-    box-shadow: 0 0 0 2.5px var(--current-semantic-error); /* Red focus ring for error */
+    border-color: var(--current-semantic-error);
+    /* Assuming --current-input-focus-shadow is adaptable or we need a semantic error focus shadow */
+    box-shadow: 0 0 0 3px var(--current-input-focus-shadow); /* This might need adjustment if focus shadow is always blue */
 }
-
 .cv-input--success {
-    border-color: var(--current-semantic-success) !important; /* Ensure override */
+    border-color: var(--current-semantic-success);
     background-color: var(--current-color-success-bg);
 }
 .cv-input--success:focus {
-    box-shadow: 0 0 0 2.5px var(--current-semantic-success); /* Green focus ring for success */
+    border-color: var(--current-semantic-success);
+    /* Assuming --current-input-focus-shadow is adaptable or we need a semantic success focus shadow */
+    box-shadow: 0 0 0 3px var(--current-input-focus-shadow); /* This might need adjustment */
 }
 
-/* Modal styles are primarily in styles.css for better context and page-specific overrides */
-/* Global Feedback Toast Styles - also in styles.css, ensure consistency or consolidate if identical */
+/* REMOVED .cv-modal__content from components.css to rely on .cv-modal-content in styles.css for consistency */
 /*
 .cv-modal__content {
     background-color: var(--current-bg-white);
@@ -382,43 +321,17 @@ select[multiple].cv-input { /* Styling for multiple select */
     border-left-color: var(--current-semantic-info, blue);
     /* background-color: var(--current-color-info-bg, #e6f7ff); */
 }
-@media (max-width: 576px) { /* On small screens, make toasts full width */
-    .global-feedback-container {
-        top: 0;
-        right: 0;
-        left: 0;
-        max-width: 100%;
-        padding: var(--cv-spacing-sm);
-        gap: var(--cv-spacing-xs);
-    }
-    .global-feedback-toast {
-        min-width: 0; /* Allow to shrink */
-        width: 100%;
-        border-radius: 0; /* Full width toasts often have no radius or only bottom */
-        border-left-width: 3px; /* Thinner accent */
-        padding: var(--cv-spacing-sm);
-        box-shadow: var(--current-shadow-md); /* Slightly less shadow for full-width */
-    }
-    .global-feedback-toast__close-btn {
-        font-size: 1.2rem; /* Smaller close button */
-        margin-left: var(--cv-spacing-sm);
-    }
-}
 /* === End Global Feedback Toast Styles === */
 
 /* === Alert Component Styles === */
 .cv-alert {
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Adjusted padding */
-    margin-bottom: var(--cv-spacing-md);
+    padding: var(--cv-spacing-md); /* 16px */
+    margin-bottom: var(--cv-spacing-md); /* 16px */
     border: var(--cv-border-width) solid transparent;
-    border-radius: var(--cv-border-radius-md);
-    font-size: var(--cv-font-size-text-md); /* Responsive text size */
-    text-align: left;
-    line-height: 1.5; /* Improved line height */
+    border-radius: var(--cv-border-radius-md); /* 8px */
+    font-size: 0.9rem;
+    text-align: left; /* Default to left, can be overridden */
 }
-/* Add icons to alerts for better visual cues (optional, requires icons in HTML or via ::before) */
-/* Example: .cv-alert::before { font-family: "FontAwesome"; margin-right: var(--cv-spacing-sm); } */
-/* .cv-alert--error::before { content: "\f071"; } /* Exclamation triangle */
 
 .cv-alert--error {
     color: var(--current-semantic-error);
@@ -444,321 +357,195 @@ select[multiple].cv-input { /* Styling for multiple select */
     border-color: var(--current-semantic-info);
 }
 
+/* Utility class to hide alerts when needed */
 .cv-alert--hidden {
     display: none;
 }
 /* === End Alert Component Styles === */
 
-/* Modal animation and close/title styles are in styles.css for better context */
+@keyframes animatetop {
+    from {top: -300px; opacity: 0}
+    to {top: 0; opacity: 1}
+}
+
+.cv-modal__close {
+    color: var(--current-text-placeholder); /* Was --cv-gray-500 */
+    /* Consider using an SVG icon or a styled '×' */
+}
+.cv-modal__close:hover,
+.cv-modal__close:focus {
+    color: var(--current-text-primary);
+}
+.cv-modal__title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--current-text-primary);
+    margin-bottom: var(--cv-spacing-md);
+}
 
 .cv-header {
-    background-color: rgba(242, 242, 247, 0.85); /* Adjusted alpha for light mode */
-    -webkit-backdrop-filter: blur(18px) saturate(180%); /* Slightly different blur/saturate */
-    backdrop-filter: blur(18px) saturate(180%);
+    /* Apple-inspired styling */
+    background-color: rgba(242, 242, 247, 0.8); /* Light mode translucent background (System Gray 6 with alpha) */
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
     color: var(--current-text-primary);
-    padding: 0 var(--cv-spacing-sm); /* Reduced vertical padding for a thinner header on mobile */
-    height: var(--cv-header-height-mobile, 50px); /* Specific mobile height */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
     display: flex;
-    /* flex-wrap: wrap; /* Should not wrap on mobile */
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 0.5px solid var(--cv-gray-400); /* Thinner border, more iOS like */
-    position: sticky;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* Subtle border for light mode */
+    position: sticky; /* Make header sticky */
     top: 0;
-    z-index: 1020;
+    z-index: 1020; /* Ensure it's above other content but below modals */
 }
-:root { /* Define mobile header height */
-    --cv-header-height-mobile: 50px;
-    --cv-header-height-desktop: 60px; /* Example desktop height */
-}
-.cv-header__container { /* This container is inside .cv-header */
+.cv-header__container {
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    max-width: 1200px; /* Max width for content within header */
-    margin: 0 auto; /* Center container */
-    padding: 0 var(--cv-spacing-md); /* Padding for content within header */
 }
-@media (min-width: 768px) { /* Desktop header */
-    .cv-header {
-        height: var(--cv-header-height-desktop);
-        padding: 0 var(--cv-spacing-md); /* Adjust padding if needed */
-    }
-    .cv-header__container {
-         padding: 0 var(--cv-spacing-lg); /* Larger padding for desktop */
-    }
-}
-
 
 html[data-theme="dark"] .cv-header {
-    background-color: rgba(28, 28, 30, 0.85); /* Dark mode: System Gray 6 Dark with alpha */
-    border-bottom: 0.5px solid var(--cv-dark-gray-500); /* Dark theme border */
+    background-color: rgba(44, 44, 46, 0.75); /* Dark mode translucent background (System Gray 2 Dark with alpha) */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Subtle border for dark mode */
 }
 
-
+@media (min-width: 768px) {
+    .cv-header {
+        padding: var(--cv-spacing-md) var(--cv-spacing-lg); /* Desktop padding */
+        flex-wrap: nowrap;
+    }
+}
 .cv-header__title {
     margin: 0;
-    font-size: 1.1rem; /* Slightly smaller title for mobile header */
-    font-weight: 600; /* Semibold */
-    text-align: center; /* Center title on mobile if nav buttons are icons */
-    flex-grow: 1; /* Allow title to take space and center */
+    font-size: 1.25rem; /* Adjusted for a more Apple-like feel */
+    font-weight: 600; /* Open Sans Semibold */
 }
-/* If there are buttons on both sides of title, ensure it centers correctly */
-.cv-header__left-actions, .cv-header__right-actions {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0; /* Prevent action groups from shrinking */
-}
-.cv-header__left-actions {
-    justify-content: flex-start;
-}
-.cv-header__right-actions {
-    justify-content: flex-end;
-}
-/* Example: if title should be strictly centered, give equal basis to left/right action containers */
-/* .cv-header__left-actions, .cv-header__right-actions { flex-basis: 60px; } */
-
-
-@media (min-width: 768px) { /* Desktop title */
+@media (min-width: 768px) {
     .cv-header__title {
-        font-size: 1.25rem; /* Slightly larger for desktop */
-        text-align: left; /* Align left on desktop if nav is also present */
-        flex-grow: 0; /* Don't grow if nav takes space */
+        font-size: 1.5rem; /* Desktop title size */
     }
 }
 
-/* Navigation Bar Styles */
-/* Mobile: Off-canvas menu or bottom navigation. Desktop: Top navigation */
-.cv-nav { /* This is the main navigation container */
-    /* Mobile (default) - Hidden, shown by menu button */
-    display: none;
-    /* Desktop - Shown in header or below */
-}
-
-@media (min-width: 768px) { /* Desktop Navigation */
-    .cv-nav {
-        display: flex;
-        align-items: center;
-        margin-left: var(--cv-spacing-lg); /* Space between title and nav */
-    }
-    .cv-nav__list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        gap: var(--cv-spacing-sm);
-    }
-    .cv-nav__link {
-        color: var(--current-text-link); /* Use link color for desktop nav items */
-        text-decoration: none;
-        font-weight: 500; /* Medium weight */
-        padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
-        border-radius: var(--cv-border-radius-sm);
-        transition: background-color 0.15s ease, color 0.15s ease;
-        font-size: var(--cv-font-size-text-md); /* Responsive */
-    }
-    .cv-nav__link:hover {
-        background-color: var(--cv-primary-blue-alpha-15);
-        color: var(--current-primary-blue);
-    }
-    html[data-theme="dark"] .cv-nav__link:hover {
-        background-color: var(--cv-dark-primary-blue-alpha-20);
-    }
-    .cv-nav__link--active {
-        color: var(--current-primary-blue) !important;
-        font-weight: 600; /* Semibold for active */
-        background-color: var(--cv-primary-blue-alpha-15); /* Tinted background for active */
-    }
-    html[data-theme="dark"] .cv-nav__link--active {
-        color: var(--cv-dark-primary-blue) !important;
-        background-color: var(--cv-dark-primary-blue-alpha-20);
-    }
-    .cv-nav__icon { /* Desktop nav icons if used */
-        margin-right: var(--cv-spacing-xs);
-        width: 18px;
-        height: 18px;
-    }
-}
-
-/* Mobile Navigation Menu (Example: Off-canvas) */
-.mobile-nav-menu {
-    position: fixed;
-    top: 0;
-    left: -280px; /* Start off-screen */
-    width: 280px;
-    height: 100%;
-    background-color: var(--current-bg-white);
-    box-shadow: var(--current-shadow-lg);
-    z-index: 1030; /* Above header but below modals */
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow-y: auto;
-    padding-top: var(--cv-header-height-mobile, 50px); /* Space for status bar or if header is over it */
-}
-.mobile-nav-menu.open {
-    left: 0;
-}
-html[data-theme="dark"] .mobile-nav-menu {
-    background-color: var(--cv-dark-bg-element);
-}
-.mobile-nav-menu__list {
-    list-style: none;
-    margin: 0;
-    padding: var(--cv-spacing-md);
-}
-.mobile-nav-menu__link {
-    display: flex;
-    align-items: center;
-    padding: var(--cv-spacing-md) var(--cv-spacing-sm);
-    color: var(--current-text-primary);
-    text-decoration: none;
-    font-size: var(--cv-font-size-text-lg); /* Larger text for mobile menu items */
-    border-radius: var(--cv-border-radius-md);
-    transition: background-color 0.15s ease;
-}
-.mobile-nav-menu__link:hover,
-.mobile-nav-menu__link--active {
-    background-color: var(--cv-primary-blue-alpha-15);
-    color: var(--current-primary-blue);
-}
-html[data-theme="dark"] .mobile-nav-menu__link:hover,
-html[data-theme="dark"] .mobile-nav-menu__link--active {
-    background-color: var(--cv-dark-primary-blue-alpha-20);
-    color: var(--cv-dark-primary-blue);
-}
-.mobile-nav-menu__icon {
-    margin-right: var(--cv-spacing-md);
-    width: 22px; /* Larger icons for mobile menu */
-    height: 22px;
-    color: var(--current-text-secondary); /* Icon color */
-}
-.mobile-nav-menu__link:hover .mobile-nav-menu__icon,
-.mobile-nav-menu__link--active .mobile-nav-menu__icon {
-    color: var(--current-primary-blue); /* Active icon color */
-}
-html[data-theme="dark"] .mobile-nav-menu__link:hover .mobile-nav-menu__icon,
-html[data-theme="dark"] .mobile-nav-menu__link--active .mobile-nav-menu__icon {
-    color: var(--cv-dark-primary-blue);
-}
-
-/* Overlay for off-canvas menu */
-.mobile-nav-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.4);
-    z-index: 1025; /* Below menu, above content */
-    display: none; /* Shown by JS */
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-.mobile-nav-overlay.open {
-    display: block;
-    opacity: 1;
-}
-
-
-/* Hamburger Menu Button (if used for mobile nav) */
-.menu-toggle-button { /* This would be an icon-button */
-    /* Styles for hamburger icon button, uses .cv-button.icon-button base */
-    display: inline-flex;
-    /* visibility is controlled by .hide-on-desktop in layout.html */
-}
-
-
-/* Bottom Navigation Bar for Mobile */
-.cv-bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: var(--cv-bottom-nav-height, 60px); /* Controlled by JS via body class */
-    background-color: var(--current-nav-bg);
-    border-top: 0.5px solid var(--current-border-color);
-    display: none; /* Hidden by default, shown by JS via body class + media query */
-    justify-content: space-around;
-    align-items: stretch; /* Stretch items to fill height */
-    box-shadow: 0 -1px 5px rgba(0,0,0,0.08);
-    z-index: 1010;
-}
-@media (max-width: 767px) { /* Show only on mobile screens */
-    body.has-bottom-nav .cv-bottom-nav {
-        display: flex;
-    }
-}
-html[data-theme="dark"] .cv-bottom-nav {
-    background-color: var(--cv-dark-bg-element);
-    border-top: 0.5px solid var(--cv-dark-gray-400);
-    box-shadow: 0 -1px 5px rgba(0,0,0,0.2);
-}
-
-.cv-bottom-nav__item {
+.cv-nav {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex-grow: 1;
-    flex-basis: 0; /* Ensure items distribute space evenly */
-    padding: var(--cv-spacing-xs) var(--cv-spacing-xs); /* Adjusted padding */
-    color: var(--current-text-secondary);
-    text-decoration: none;
-    font-size: 0.65rem; /* Even smaller for compact labels */
-    line-height: 1.2;
-    gap: 1px; /* Minimal gap */
-    transition: color 0.15s ease;
-    height: 100%;
-    -webkit-tap-highlight-color: transparent;
-    position: relative; /* For potential active indicator */
-}
-
-.cv-bottom-nav__icon {
-    width: 22px; /* Slightly smaller icons */
-    height: 22px;
-}
-.cv-bottom-nav__icon svg {
+    align-items: flex-start;
     width: 100%;
-    height: 100%;
-    display: block;
+    gap: var(--cv-spacing-xs);
+    /* Apple-inspired styling for nav - similar to header but can be slightly different */
+    background-color: rgba(248, 248, 250, 0.85); /* Slightly different from header, or could be same */
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    backdrop-filter: blur(18px) saturate(170%);
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08); /* Subtle border for light mode */
+    /* position: sticky; /* If nav should also stick below header */
+    /* top: YOUR_HEADER_HEIGHT; /* Calculate or set fixed header height */
+    /* z-index: 1010; */
 }
-.cv-bottom-nav__label {
-    margin-top: 2px; /* Add small margin to label if needed */
-    white-space: nowrap; /* Prevent label wrapping */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%; /* Ensure label doesn't overflow item */
+.cv-nav__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: var(--cv-spacing-sm);
 }
 
-.cv-bottom-nav__item.active {
-    color: var(--current-primary-blue);
+html[data-theme="dark"] .cv-nav {
+    background-color: rgba(50, 50, 52, 0.8); /* Dark mode nav bg */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
-/* Optional: Active indicator like a small dot or line */
-/*
-.cv-bottom-nav__item.active::after {
-    content: '';
-    position: absolute;
-    bottom: 4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 5px;
-    height: 5px;
-    background-color: var(--current-primary-blue);
-    border-radius: 50%;
-}
-*/
 
-/* Hide other navs when bottom nav is active on mobile */
-@media (max-width: 767px) {
-    body.has-bottom-nav .cv-header .cv-nav, /* Hide desktop nav inside header */
-    body.has-bottom-nav #mobileNavMenu,
-    body.has-bottom-nav #mobileMenuToggle {
-        display: none !important;
+.cv-nav__link {
+    color: var(--current-text-primary); /* Changed from text-link for a more subdued default state */
+    text-decoration: none;
+    font-weight: normal;
+    display: flex; /* Support icon and label */
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    padding: var(--cv-spacing-sm);
+    border-radius: var(--cv-border-radius-md);
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.1s ease-in-out;
+    font-weight: 500;
+    gap: var(--cv-spacing-sm); /* Aumentado de xs para sm (4px para 8px) */
+}
+.cv-nav__icon {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    vertical-align: middle;
+}
+.cv-nav__label {
+    line-height: 1;
+}
+@media (min-width: 768px) {
+    .cv-nav {
+        flex-direction: row;
+        align-items: center;
+        width: auto; /* Revert to auto width for desktop */
+        gap: var(--cv-spacing-sm); /* Restore original gap */
+        /* padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Ensure this is suitable or adjust */
+        /* Consider removing bottom border for desktop if header has one and they are visually connected */
+        /* border-bottom: none; */
+    }
+    html[data-theme="dark"] .cv-nav {
+        /* border-bottom: none; */ /* Example for dark theme desktop */
+    }
+    .cv-nav__link {
+        display: inline-block; /* Revert for desktop */
+        width: auto;
+        text-align: center; /* Or left, depending on design */
+        padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Adjusted padding for desktop */
     }
 }
+.cv-nav__link:hover {
+    background-color: rgba(0, 0, 0, 0.05); /* Subtle hover for light mode */
+    color: var(--current-primary-blue);
+    /* transform: translateY(-1px); /* Optional: subtle lift */
+}
+html[data-theme="dark"] .cv-nav__link:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Subtle hover for dark mode */
+}
 
+.cv-nav__link--active {
+    /* background-color: var(--current-primary-blue); */ /* Remove background color */
+    /* color: var(--current-text-on-primary) !important; */ /* Remove text color change to on-primary */
+    color: var(--current-primary-blue) !important; /* Ensure active link text is primary blue */
+    font-weight: 600; /* Semibold for active link - iOS often uses bold or a different weight for selected tab */
+    /* box-shadow: 0 1px 3px rgba(0, 122, 255, 0.2); */ /* Remove box shadow */
 
-/* Responsive Table Wrapper - General purpose */
+    /* iOS style active tab indicator: often just a color change for the text/icon, or a subtle underline/pill */
+    /* Option 1: Just color change (already done by setting color to --current-primary-blue) */
+
+    /* Option 2: Subtle bottom border (more common in web, but can be iOS-like if minimal) */
+    /* border-bottom: 2px solid var(--current-primary-blue); */
+    /* padding-bottom: calc(var(--cv-spacing-sm) - 2px); */ /* Adjust padding to account for border */
+
+    /* Option 3: Pill shape background (less common for nav links, more for segmented controls) */
+    /* background-color: var(--cv-primary-blue-alpha-15); */ /* Light tinted background */
+    /* border-radius: 16px; */ /* Pill shape */
+    /* padding: var(--cv-spacing-xs) var(--cv-spacing-md); */ /* Adjust padding for pill */
+
+    /* Let's go with a simple text color change and font weight, which is very iOS like for tabs */
+    background-color: transparent; /* Explicitly ensure no background color from default state */
+}
+.cv-nav__link--active:hover {
+    /* background-color: var(--current-primary-blue); */ /* Remove background color on hover */
+    /* filter: brightness(90%); */ /* No filter needed if bg is transparent */
+    color: var(--current-primary-blue) !important; /* Keep text color as primary blue on hover */
+    background-color: rgba(0, 0, 0, 0.03); /* Very subtle hover for light mode active link */
+}
+html[data-theme="dark"] .cv-nav__link--active {
+    color: var(--cv-dark-primary-blue) !important; /* Ensure active link text is dark primary blue */
+}
+html[data-theme="dark"] .cv-nav__link--active:hover {
+    color: var(--cv-dark-primary-blue) !important; /* Keep text color */
+    background-color: rgba(255, 255, 255, 0.05); /* Very subtle hover for dark mode active link */
+}
+
+/* Responsive Table Wrapper */
 .cv-table-responsive-wrapper {
     overflow-x: auto;
     width: 100%;
@@ -767,59 +554,32 @@ html[data-theme="dark"] .cv-bottom-nav {
 
 /* Apply to actual <table> elements, ensure it can be overridden for specific table needs */
 .cv-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--cv-font-size-text-md); /* Base font size for table content */
+    width: 100%; /* Default to full width within its container */
+    border-collapse: collapse; /* Common practice */
+    /* min-width: 600px; */ /* Example: if table content is wide, forces scrollbar.
+                              This should be set based on table content, or on specific table instances.
+                              Avoid setting a global min-width here unless all tables are complex. */
 }
-/* Ensure table headers and cells have consistent padding and alignment */
-.cv-table th,
-.cv-table td {
-    padding: var(--cv-spacing-sm); /* Base padding for mobile */
-    text-align: left;
-    border-bottom: 1px solid var(--current-border-subtle);
-    vertical-align: top; /* Align content to top for better readability if cells have varying heights */
+
+/* Utility Classes for Responsiveness */
+.hide-on-mobile {
+    display: none !important; /* Use !important to ensure override if needed, use sparingly */
 }
-@media (min-width: 768px) {
-    .cv-table th,
-    .cv-table td {
-        padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* More padding for desktop */
-        vertical-align: middle; /* Middle align on desktop */
+@media (min-width: 768px) { /* Tablet and up */
+    .hide-on-mobile {
+        display: block !important; /* Or flex, inline, etc., as appropriate to restore */
     }
 }
 
-.cv-table th {
-    font-weight: 600; /* Semibold for headers */
-    background-color: var(--current-bg-element); /* Subtle background for headers */
+.hide-on-desktop {
+    display: block !important; /* Or flex, etc. */
 }
-/* Zebra striping for better readability (optional) */
-.cv-table tbody tr:nth-child(odd) {
-    background-color: var(--current-bg-element-zebra, transparent); /* Define --current-bg-element-zebra or use transparent */
-}
-:root {
-    --current-bg-element-zebra: rgba(0,0,0,0.02); /* Very subtle striping for light mode */
-}
-html[data-theme="dark"] {
-    --current-bg-element-zebra: rgba(255,255,255,0.03); /* Subtle striping for dark mode */
-}
-
-
-/* Utility Classes for Responsiveness (Show/Hide) */
-.hide-on-mobile { display: none !important; }
-.show-on-mobile { display: block !important; } /* Or inline, inline-block, flex as needed */
-
 @media (min-width: 768px) { /* Tablet and up */
-    .hide-on-mobile { display: block !important; } /* Or appropriate display type */
-    .show-on-mobile { display: none !important; }
-
-    .hide-on-desktop { display: none !important; }
-    .show-on-desktop { display: block !important; } /* Or appropriate display type */
+    .hide-on-desktop {
+        display: none !important;
+    }
 }
-/* Default state for desktop-targeted classes (hidden on mobile) */
-.hide-on-desktop { display: block !important; } /* Shown on mobile by default */
-.show-on-desktop { display: none !important; } /* Hidden on mobile by default */
-
-
-/* User Avatar Button */
+/* User avatar button */
 .user-avatar {
     display: flex;
     align-items: center;
@@ -827,370 +587,354 @@ html[data-theme="dark"] {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background-color: var(--current-primary-blue); /* Default initials background */
+    background-color: var(--current-primary-blue);
     color: var(--current-text-on-primary);
-    font-weight: 500; /* Medium weight for initials */
-    font-size: 0.9rem; /* Slightly smaller font for initials if needed */
+    font-weight: 600;
     text-transform: uppercase;
     overflow: hidden;
-    border: 1.5px solid var(--current-bg-white); /* White border for pop effect, common in iOS */
+    border: 1.5px solid var(--current-primary-blue); /* Subtle border, themed */
     cursor: pointer;
-    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out; /* Faster transitions */
-}
-html[data-theme="dark"] .user-avatar {
-    border-color: var(--cv-dark-bg-element); /* Border color matches dark background */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 .user-avatar:hover {
-    transform: scale(1.05); /* Subtle scale on hover */
-    box-shadow: var(--current-shadow-md); /* Add shadow on hover */
+    transform: scale(1.1);
+    box-shadow: 0 0 8px rgba(0, 122, 255, 0.5); /* Subtle glow effect */
 }
-.user-avatar img { /* If image is used */
+.user-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* border-radius: 50%; /* Already circular due to parent */
+    border-radius: 50%;
 }
-@media (min-width: 768px) { /* Larger avatar for desktop */
-    .user-avatar {
-        width: 36px;
-        height: 36px;
-        font-size: 1rem;
-    }
-}
+/* User menu modal overrides */
+/* Assuming userMenuModal has the ID 'userMenuModal' or a specific class like '.user-menu-modal-instance' */
+/* Let's use a more specific selector if possible, e.g., #userMenuModal .cv-modal-content */
+/* For now, using .user-menu-modal class on the .cv-modal element */
 
-/* User Menu Modal (Popover Style) */
-.user-menu-modal .cv-modal-content {
-    padding: var(--cv-spacing-xs) 0; /* remove padding horizontal */
-    max-width: 250px; /* popover mais estreito */
-    border-radius: var(--cv-border-radius-md);
-    box-shadow: var(--current-shadow-lg);
-    position: absolute;
-    top: calc(var(--cv-header-height-mobile, 50px) + var(--cv-spacing-xs));
-    right: var(--cv-spacing-sm);
-    width: auto;
-    height: auto;
-    animation: popover-appear 0.15s ease-out;
-}
-
-@media (min-width: 768px) {
-    .user-menu-modal .cv-modal-content {
-        top: calc(var(--cv-header-height-desktop, 60px) + var(--cv-spacing-xs));
-        right: var(--cv-spacing-md);
-    }
-}
-
-/* User Menu Modal Header */
-.user-menu-modal .cv-modal-header {
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
-    min-height: auto;
+.user-menu-modal .cv-modal-content { /* Styles for the content box of the user menu */
+    padding: var(--cv-spacing-xs); /* Ensure inner elements have breathing room */
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
+    flex-direction: column;
+    max-width: 280px; /* Smaller max-width for user menu modal, more like a popover */
+    border-radius: var(--cv-border-radius-md); /* Slightly smaller radius for popover feel */
+    box-shadow: var(--current-shadow-lg); /* Popovers often have a more distinct shadow */
+    /* Override general modal animation if a different one is desired, e.g., fade-in or slide-from-top */
+    /* animation: user-menu-pop-in 0.2s ease-out; */
+    /* margin-top: 60px; */ /* Control positioning with top/right */
+    /* margin-right: var(--cv-spacing-md); */ /* Control positioning with top/right */
+    margin-left: auto; /* Allows it to be pushed to the right by the parent .cv-modal flex centering */
+    position: absolute; /* Take it out of the normal flow of .cv-modal content centering */
+    top: calc(var(--cv-header-height, 60px) + var(--cv-spacing-sm)); /* Position below header; needs --cv-header-height var */
+    right: var(--cv-spacing-md);
+    width: auto; /* Let content dictate width up to max-width */
+    height: auto; /* Let content dictate height */
+    /* The parent .cv-modal provides the full screen overlay and initial centering.
+       These absolute positioning rules then place the .cv-modal-content specifically for the user menu. */
 }
 
-.user-menu-modal .cv-modal-header h2.user-menu-username {
+/* Define --cv-header-height in :root or where .cv-header is styled */
+/* Example, if header height is dynamic, JS might need to set this variable.
+   For a fixed example:
+   :root { --cv-header-height: 56px; }
+   @media (min-width: 768px) { :root { --cv-header-height: 68px; } }
+*/
+
+
+.user-menu-modal .cv-modal-header {
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Increased padding */
+    min-height: auto; /* No strict min-height */
+    display: flex; /* Use flexbox for layout */
+    justify-content: space-between; /* Pushes title to left and close button to right */
+    align-items: center; /* Vertically aligns items */
+    position: relative; /* Needed for absolute positioning of close button if not using flex order */
+}
+.user-menu-modal .cv-modal-header h2.user-menu-username { /* Adjusted selector for specificity */
     font-size: var(--cv-font-size-md);
     text-align: left;
-    margin: 0;
-    flex-grow: 1;
+    margin: 0; /* Remove default margins */
+    flex-grow: 1; /* Allows title to take available space */
 }
 
-@keyframes popover-appear { /* Simple fade-in and slight scale for popovers */
-    from {
-        opacity: 0;
-        transform: scale(0.95) translateY(-5px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
-.user-menu-modal .cv-modal-header { /* User menu usually doesn't have a header */
-    display: none;
-}
 .user-menu-modal .cv-modal-body {
-    padding: var(--cv-spacing-xs) 0; /* Vertical padding for list */
+    padding: var(--cv-spacing-sm) 0; /* No horizontal padding if list items span full width */
 }
 .user-menu-modal .cv-modal-footer {
     display: none; /* User menus typically don't have a footer with OK/Cancel */
 }
 
 .user-menu-modal .cv-modal-close {
-    position: static;          /* Remove absolute positioning if flex order is used */
-    transform: none;           /* Remove transform if not absolutely positioned */
+    position: static; /* Remove absolute positioning if flex order is used */
+    transform: none; /* Remove transform if not absolutely positioned */
+    /* top: 50%; */
+    /* transform: translateY(-50%); */
+    /* right: var(--cv-spacing-sm); */
     width: 24px;
     height: 24px;
     font-size: 16px;
-    order: 1;                  /* Ensures close button comes after the title in flex layout */
+    order: 1; /* Ensures close button comes after the title in flex layout */
 }
 
 
-/* User Menu List Items */
 .user-menu-list {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
+    gap: var(--cv-spacing-sm);
 }
-.user-menu-list li { /* List item acts as container for button */
-    padding: 0 var(--cv-spacing-sm); /* Horizontal padding for items */
-}
-.user-menu-list li:first-child .cv-button {
-    border-top-left-radius: var(--cv-border-radius-md); /* Round top corners of first item */
-    border-top-right-radius: var(--cv-border-radius-md);
-}
-.user-menu-list li:last-child .cv-button {
-    border-bottom-left-radius: var(--cv-border-radius-md); /* Round bottom corners of last item */
-    border-bottom-right-radius: var(--cv-border-radius-md);
-}
-
-.user-menu-list .cv-button { /* Style buttons as menu items */
+.user-menu-list button {
     width: 100%;
-    justify-content: flex-start; /* Align text to left */
-    background-color: transparent;
-    color: var(--current-text-primary);
-    border-radius: 0; /* No individual radius, handled by li or modal content */
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
-    min-height: 40px; /* Slightly smaller min-height for menu items */
-    font-weight: normal; /* Normal weight for menu items */
-    border: none; /* No border for menu items */
 }
-.user-menu-list .cv-button:hover {
-    background-color: var(--cv-primary-blue-alpha-15);
-    color: var(--current-primary-blue);
-}
-html[data-theme="dark"] .user-menu-list .cv-button:hover {
-    background-color: var(--cv-dark-primary-blue-alpha-20);
-    color: var(--cv-dark-primary-blue);
-}
-.user-menu-list .cv-button:active {
-    transform: none; /* No scale transform for menu items */
-    background-color: var(--cv-primary-blue-alpha-15); /* Keep hover state on active */
-    filter: brightness(95%);
-}
-html[data-theme="dark"] .user-menu-list .cv-button:active {
-    background-color: var(--cv-dark-primary-blue-alpha-20);
-}
-
-/* Separator for user menu (optional) */
-.user-menu-list .menu-separator {
-    height: 1px;
-    background-color: var(--current-border-subtle);
-    margin: var(--cv-spacing-xs) 0;
-}
-
 
 /* Skeleton Screen Components */
 .feed-skeleton-container {
-    /* This container is managed by JS to show/hide all skeletons within it */
+    /* This container is managed by JS (display: block/none) */
 }
 
-.feed-skeleton-item { /* Represents a single card skeleton */
-    background-color: var(--current-bg-white);
-    border: var(--cv-border-width) solid var(--current-border-subtle); /* Use subtle border */
-    border-radius: var(--cv-border-radius-lg);
+.feed-skeleton-item {
+    background-color: var(--current-bg-white); /* Match card background */
+    border: var(--cv-border-width) solid var(--current-border-color); /* Match card border */
+    border-radius: var(--cv-border-radius-lg); /* Match card radius */
     padding: var(--cv-spacing-md);
     margin-bottom: var(--cv-spacing-md);
-    box-shadow: var(--current-shadow-sm); /* Lighter shadow */
+    box-shadow: var(--current-shadow-md); /* Match card shadow */
     position: relative;
-    overflow: hidden;
+    overflow: hidden; /* Important for shimmer effect */
 }
 
-/* Base for all skeleton placeholder elements (lines, blocks, circles) */
+/* Base for skeleton placeholder elements */
 .skeleton-block {
-    background-color: var(--current-skeleton-bg); /* Defined in :root and dark theme */
-    border-radius: var(--cv-border-radius-sm);
-    margin-bottom: var(--cv-spacing-sm);
+    background-color: var(--current-skeleton-bg, var(--cv-gray-200));
+    border-radius: var(--cv-border-radius-sm); /* Consistent 4px radius */
+    margin-bottom: var(--cv-spacing-sm); /* 8px */
 }
 .skeleton-block:last-child {
     margin-bottom: 0;
 }
 
-/* Title placeholder */
+/* Specifics for title placeholder */
 .skeleton-title {
-    width: 70%; /* Slightly wider */
-    height: 1.125rem; /* Corresponds to --cv-font-size-text-lg or h4 */
-    margin-bottom: var(--cv-spacing-sm); /* Less margin after title if followed by text */
-}
-@media (min-width: 768px) {
-    .skeleton-title {
-        height: 1.25rem; /* Larger on desktop */
-    }
+    width: 60%;
+    height: 1.25rem; /* Approx 20px, aligns with --cv-font-size-xl */
+    margin-bottom: var(--cv-spacing-md); /* 16px, more space after a title */
 }
 
-/* Text line placeholders */
+/* Specifics for text line placeholders */
 .skeleton-line {
     width: 100%;
-    height: 0.875rem; /* Corresponds to --cv-font-size-text-md */
+    height: 0.875rem; /* Approx 14px, aligns with --cv-font-size-base or md */
 }
-.skeleton-line:not(:last-child) {
-    margin-bottom: var(--cv-spacing-xs); /* Tighter spacing between text lines */
-}
-.skeleton-line--short {
-    width: 60%; /* Adjusted width */
+.skeleton-line--short { /* More descriptive class name */
+    width: 75%;
 }
 .skeleton-line--medium {
-    width: 85%; /* Adjusted width */
+    width: 90%;
+}
+.skeleton-line--long { /* Explicitly full width if needed, otherwise default is 100% */
+    width: 100%;
 }
 
-/* Image placeholder */
+
+/* For simulating an image placeholder */
 .skeleton-image {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 16 / 9; /* Or common image aspect ratio */
     margin-bottom: var(--cv-spacing-sm);
-    border-radius: var(--cv-border-radius-sm); /* Consistent radius with other blocks */
 }
 
-/* Avatar placeholder */
+/* For simulating an avatar placeholder */
 .skeleton-avatar {
-    width: 36px; /* Standard avatar size */
-    height: 36px;
-    border-radius: 50%;
+    width: 40px; /* Example size */
+    height: 40px;
+    border-radius: 50%; /* Circular */
     margin-right: var(--cv-spacing-sm);
-    /* float: left; /* Avoid float, use flexbox in parent if needed */
+    float: left; /* Example layout */
 }
-@media (min-width: 768px) {
-    .skeleton-avatar {
-        width: 40px;
-        height: 40px;
-    }
-}
-
-/* Grouping skeleton blocks (e.g., avatar + text lines) */
 .skeleton-block-group {
     display: flex;
-    /* align-items: center; /* Example: if avatar and text lines should be centered */
-}
-.skeleton-block-group .skeleton-block:last-child {
-    margin-bottom: var(--cv-spacing-sm); /* Ensure group has bottom margin if not last element */
+    flex-direction: column;
 }
 
 
-/* Shimmer Animation */
-.feed-skeleton-item::after { /* Apply shimmer to the whole card */
+/* Shimmer Animation - remains the same */
+.feed-skeleton-item::after {
     content: '';
     position: absolute;
     top: 0;
-    left: -150%; /* Start further left */
+    left: 0;
     height: 100%;
-    width: 150%; /* Wider shimmer */
+    width: 100%;
     background: linear-gradient(
         90deg,
         transparent,
-        var(--current-skeleton-shimmer-color), /* Defined in :root and dark theme */
+        var(--current-skeleton-shimmer-color, rgba(255, 255, 255, 0.5)),
         transparent
     );
-    transform: skewX(-20deg); /* Angled shimmer */
-    animation: skeleton-shimmer 1.8s infinite linear; /* Slower, linear animation */
+    transform: translateX(-100%);
+    animation: skeleton-shimmer 1.5s infinite;
 }
 
 @keyframes skeleton-shimmer {
-    0% { left: -150%; }
-    100% { left: 150%; }
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(100%); }
+    100% { transform: translateX(100%); }
 }
 
-/* Variables for skeleton are already defined in :root and html[data-theme="dark"] in styles.css */
+/* Theme variables for skeleton (ensure these are in :root and html[data-theme="dark"]) */
+/* :root {
+    --current-skeleton-bg: var(--cv-gray-200);
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.5);
+}
+html[data-theme="dark"] {
+    --current-skeleton-bg: var(--cv-dark-gray-300); // Adjusted for dark theme
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.1);
+} */
 
 
 /* === Status Badge Utility Classes === */
 .status-badge {
     display: inline-flex;
     align-items: center;
-    gap: var(--cv-spacing-xs); /* Smaller gap */
-    font-size: 0.7rem; /* Smaller font size for badges */
-    font-weight: 500; /* Medium weight */
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
     padding: 2px 6px;
-    border-radius: var(--cv-border-radius-sm);
-    line-height: 1.2; /* Adjust line height */
+    border-radius: var(--cv-border-radius-sm, 4px);
 }
-.status-icon { /* If using emoji or font icon */
-    font-size: 0.85em; /* Relative to badge font size */
+.status-icon {
+    font-size: 0.8em;
     line-height: 1;
 }
-/* Emojis can be used directly in HTML or via ::before if preferred */
-/* .status-icon.icon-success::before { content: "✅"; } */
-/* .status-icon.icon-warning::before { content: "⚠️"; } */
-/* .status-icon.icon-danger::before { content: "❌"; } */
-
+.status-icon.icon-success::before { content: "✅"; }
+.status-icon.icon-warning::before { content: "⚠️"; }
+.status-icon.icon-danger::before { content: "❌"; }
 .status-badge--success {
     background-color: var(--current-color-success-bg);
     color: var(--current-semantic-success);
-    /* border: 1px solid var(--current-semantic-success); /* Optional: subtle border */
 }
 .status-badge--warning {
     background-color: var(--current-color-warning-bg);
     color: var(--current-semantic-warning);
-    /* border: 1px solid var(--current-semantic-warning); */
 }
-.status-badge--danger, .status-badge--error { /* Alias for error */
+.status-badge--danger {
     background-color: var(--current-color-error-bg);
     color: var(--current-semantic-error);
-    /* border: 1px solid var(--current-semantic-error); */
-}
-.status-badge--info {
-    background-color: var(--current-color-info-bg);
-    color: var(--current-semantic-info);
-    /* border: 1px solid var(--current-semantic-info); */
-}
-.status-badge--neutral { /* For neutral/gray badges */
-    background-color: var(--cv-gray-200);
-    color: var(--cv-gray-700);
-    /* border: 1px solid var(--cv-gray-400); */
-}
-html[data-theme="dark"] .status-badge--neutral {
-    background-color: var(--cv-dark-gray-400);
-    color: var(--cv-dark-text-primary);
-    /* border-color: var(--cv-dark-gray-500); */
-}
-/* === End Status Badge Utility Classes === */
+}/* === End Status Badge Utility Classes === */
 
 /* === Progress Bar Component === */
 .cv-progress {
     width: 100%;
-    height: 8px; /* Thinner progress bar, more iOS like */
-    background-color: var(--current-border-subtle);
-    border-radius: 4px; /* Pill shape */
+    height: 12px; /* Aumentar a altura para melhor visibilidade */
+    background-color: var(--current-border-subtle); /* Usar uma cor de fundo mais sutil */
+    border-radius: var(--cv-border-radius-lg); /* Raio de borda maior, mais Apple-like */
     overflow: hidden;
-    display: none;
-    margin-top: var(--cv-spacing-sm); /* Adjusted margin */
+    display: none; /* Controlado por JS */
+    margin-top: var(--cv-spacing-md); /* Aumentar margem superior para espaçamento */
     margin-bottom: var(--cv-spacing-sm);
-    /* box-shadow: inset 0 1px 1px rgba(0,0,0,0.05); /* Very subtle inner shadow */
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.075); /* Sombra interna sutil */
 }
 
 .cv-progress__bar {
     height: 100%;
     width: 0%;
     background-color: var(--current-primary-blue);
-    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 4px; /* Match parent radius */
-    /* No inner shadow on the bar itself for cleaner look */
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transição mais suave */
+    border-radius: var(--cv-border-radius-lg); /* Garante que a barra interna também tenha cantos arredondados */
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1); /* Efeito de profundidade sutil */
 }
+
 /* === End Progress Bar Component === */
 
-/* === Inline Spinner Utility (already styled with .cv-button .inline-spinner) === */
-/* If a standalone version is needed: */
-.cv-spinner { /* Generic spinner class */
+/* === Inline Spinner Utility === */
+.inline-spinner {
     display: inline-block;
-    width: 1.5em; /* Default size, can be overridden */
-    height: 1.5em;
-    border: 0.2em solid currentColor; /* Use current text color */
-    border-right-color: transparent; /* Creates the spinning effect */
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
     border-radius: 50%;
-    animation: cv-global-spin 0.75s linear infinite;
+    animation: cv-inline-spin 0.75s linear infinite;
+    margin-left: 4px;
+    vertical-align: middle;
 }
-@keyframes cv-global-spin {
+
+@keyframes cv-inline-spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
 
+/* ==========================================================================
+   Empty State & Error State Components
+   ========================================================================== */
 
-/* Empty State & Error State Components are in styles.css for better page context overrides */
+.cv-empty-state,
+.cv-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--cv-spacing-xl, 32px) var(--cv-spacing-md, 16px);
+    margin: var(--cv-spacing-lg, 24px) auto; /* Centraliza e adiciona margem */
+    border: 1px dashed var(--current-border-color, var(--cv-color-gray-light)); /* Borda sutil */
+    border-radius: var(--cv-border-radius-md, 8px);
+    background-color: var(--current-background-alt, var(--cv-color-background-alt)); /* Um fundo levemente diferente */
+    max-width: 600px; /* Limita a largura para melhor leitura */
+    width: calc(100% - 2 * var(--cv-spacing-md, 16px)); /* Ajusta para caber em containers menores */
+    box-sizing: border-box;
+}
+
+.cv-empty-state__icon,
+.cv-error-state__icon {
+    font-size: 3rem; /* Tamanho do ícone */
+    margin-bottom: var(--cv-spacing-md, 16px);
+    color: var(--current-primary-blue, var(--cv-color-primary)); /* Cor primária para ícone de empty state */
+}
+
+.cv-error-state__icon {
+    color: var(--current-danger-color, var(--cv-color-danger)); /* Cor de perigo para ícone de erro */
+}
+
+/* Específico para SVG ou Font Icon, pode precisar de ajuste */
+.cv-empty-state__icon svg,
+.cv-error-state__icon svg,
+.cv-empty-state__icon img, /* Suporte para <img> também */
+.cv-error-state__icon img {
+    width: 3em; /* ou 4em */
+    height: 3em; /* ou 4em */
+    max-width: 80px; /* Limite máximo */
+    max-height: 80px;
+}
 
 
-/* === Switch Component (iOS Style) === */
+.cv-empty-state__title,
+.cv-error-state__title {
+    font-size: var(--cv-font-size-lg, 1.25rem);
+    font-weight: var(--cv-font-weight-bold, 600);
+    color: var(--current-text-primary, var(--cv-color-text-primary));
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-sm, 8px);
+}
+
+.cv-empty-state__description,
+.cv-error-state__message {
+    font-size: var(--cv-font-size-md, 1rem);
+    color: var(--current-text-secondary, var(--cv-color-text-secondary));
+    margin-top: 0;
+    margin-bottom: var(--cv-spacing-lg, 24px);
+    line-height: 1.6;
+    max-width: 90%; /* Evita que o texto fique muito largo dentro do container */
+}
+
+.cv-empty-state__action,
+.cv-error-state__retry-button {
+    /* Estilos do cv-button já devem ser aplicados se a classe for usada. */
+    /* Adicionar margens ou ajustes específicos, se necessário. */
+    min-width: 150px; /* Para dar um tamanho mínimo ao botão */
+}
+
+/* === Switch Component === */
 .cv-switch-label {
     font-size: var(--cv-font-size-sm, 0.875rem); /* Tamanho da label */
     color: var(--current-text-secondary);
@@ -1201,66 +945,49 @@ html[data-theme="dark"] .status-badge--neutral {
 .cv-switch {
     position: relative;
     display: inline-block;
-    width: 51px;  /* Standard iOS switch width */
-    height: 31px; /* Standard iOS switch height */
-    vertical-align: middle; /* Align with text if label is beside it */
+    width: 48px;  /* Largura do switch */
+    height: 28px; /* Altura do switch */
 }
 
-.cv-switch input { /* Hide the actual checkbox */
+.cv-switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-.cv-switch-slider { /* The track of the switch */
+.cv-switch-slider {
     position: absolute;
     cursor: pointer;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: var(--cv-gray-300); /* Off state background */
-    transition: background-color 0.2s ease-in-out; /* Smooth transition for background */
-    border-radius: 31px; /* Fully rounded ends */
-}
-html[data-theme="dark"] .cv-switch-slider {
-    background-color: var(--cv-dark-gray-500); /* Dark theme off state */
+    background-color: var(--cv-gray-300); /* Cor do fundo do switch desligado */
+    transition: .4s;
+    border-radius: 28px; /* Para torná-lo arredondado */
 }
 
-.cv-switch-slider:before { /* The knob of the switch */
+.cv-switch-slider:before {
     position: absolute;
     content: "";
-    height: 27px; /* Knob height */
-    width: 27px;  /* Knob width */
-    left: 2px;    /* Initial position */
-    bottom: 2px;  /* Initial position */
+    height: 20px; /* Tamanho do círculo deslizante */
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
     background-color: white;
-    transition: transform 0.2s ease-in-out; /* Smooth transition for knob movement */
+    transition: .4s;
     border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.1); /* Subtle shadow for knob */
 }
-html[data-theme="dark"] .cv-switch-slider:before {
-    background-color: var(--cv-dark-gray-200); /* Knob color for dark theme */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 1px rgba(0,0,0,0.25);
-}
-
 
 input:checked + .cv-switch-slider {
-    background-color: var(--current-semantic-success); /* On state background (iOS often uses green) */
-}
-html[data-theme="dark"] input:checked + .cv-switch-slider {
-    background-color: var(--cv-dark-semantic-success);
+    background-color: var(--current-primary-blue); /* Cor do fundo do switch ligado */
 }
 
-input:focus + .cv-switch-slider { /* Focus outline for accessibility */
-    box-shadow: 0 0 0 2px var(--current-bg-light), 0 0 0 4px var(--current-primary-blue);
+input:focus + .cv-switch-slider {
+    box-shadow: 0 0 1px var(--current-primary-blue); /* Efeito de foco */
 }
-html[data-theme="dark"] input:focus + .cv-switch-slider {
-    box-shadow: 0 0 0 2px var(--cv-dark-bg-page), 0 0 0 4px var(--cv-dark-primary-blue);
-}
-
 
 input:checked + .cv-switch-slider:before {
-    transform: translateX(20px); /* Distance the knob moves (width - knob_width - 2*offset) = 51 - 27 - 4 = 20 */
+    transform: translateX(20px); /* Distância que o círculo desliza */
 }
 /* === End Switch Component === */
