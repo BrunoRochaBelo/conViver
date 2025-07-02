@@ -252,10 +252,27 @@
 /* Linha horizontal que marca a hora atual na visualização TimeGrid */
 .fc .fc-timegrid-now-indicator-line {
     border-color: var(--current-semantic-danger, #ff3b30); /* Vermelho Apple para a linha da hora atual */
-    border-width: 2px;
+    border-width: 0; /* Zerar borda geral se for usar borda específica (ex: border-top) */
+    border-top-width: 2px; /* Espessura da linha */
+    border-top-style: dashed; /* Estilo pontilhado/tracejado */
+    left: 0;
+    right: 0;
+    width: 100%; /* Garantir que ocupe toda a largura */
 }
 .fc .fc-timegrid-now-indicator-arrow {
-    border-top-color: var(--current-semantic-danger, #ff3b30);
+    border-color: transparent; /* Zerar bordas da seta para não interferir com a linha */
+    border-top-color: var(--current-semantic-danger, #ff3b30); /* Cor da seta */
+    /* A seta padrão do FC é um triângulo feito com bordas.
+       Se a linha é apenas border-top, a seta pode precisar de ajustes ou ser customizada.
+       Por agora, mantemos a cor da seta. A linha tracejada é o principal. */
+}
+
+html[data-theme='dark'] .fc .fc-timegrid-now-indicator-line {
+    border-color: var(--current-dark-semantic-danger, #ff453a);
+    border-top-color: var(--current-dark-semantic-danger, #ff453a); /* Garantir que a cor do tracejado seja a correta */
+}
+html[data-theme='dark'] .fc .fc-timegrid-now-indicator-arrow {
+    border-top-color: var(--current-dark-semantic-danger, #ff453a);
 }
 
 
