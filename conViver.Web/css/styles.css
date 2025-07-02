@@ -1142,6 +1142,11 @@ html[data-theme="dark"] .cv-modal-content {
      box-shadow: 0 12px 24px rgba(0,0,0,0.3), 0 20px 40px rgba(0,0,0,0.3);
 }
 
+/* Utility padding for modals that don't use header/body sections */
+.cv-modal-content--padded {
+    padding: var(--cv-spacing-lg);
+}
+
 .cv-modal-header {
     padding: var(--cv-spacing-md) var(--cv-spacing-lg);
     border-bottom: 1px solid var(--current-border-subtle);
