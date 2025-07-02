@@ -520,8 +520,6 @@ function validateNovaOcorrenciaForm() {
     } else {
         novaOcorrenciaSubmitButton.disabled = true;
     }
-    // console.log('[validateNovaOcorrenciaForm] Titulo:', ocorrenciaTituloInput.value, 'Desc:', ocorrenciaDescricaoInput.value, 'Cat:', ocorrenciaCategoriaSelect.value);
-    // console.log('[validateNovaOcorrenciaForm] Valido?: T', tituloValido, 'D', descricaoValida, 'C', categoriaValida, 'Btn Disabled:', novaOcorrenciaSubmitButton.disabled);
 }
 
 async function handleNovaOcorrenciaSubmit(event) {
@@ -892,7 +890,6 @@ function validateNovoComentarioForm() {
     } else {
         btnAdicionarComentario.disabled = true;
     }
-    // console.log('[validateNovoComentarioForm] Texto:', novoComentarioTextoInput.value, 'Valido?:', textoValido, 'Btn Disabled:', btnAdicionarComentario.disabled);
 }
 
 async function handleAddComentario() {
