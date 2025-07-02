@@ -7,12 +7,8 @@ export function initFabMenu(actions = []) {
     const mainBtn = document.createElement('button');
     mainBtn.className = 'fab fab-main';
     mainBtn.type = 'button';
+    mainBtn.textContent = '+';
     mainBtn.style.display = 'block';
-
-    const icon = document.createElement('span');
-    icon.className = 'fab-icon';
-    icon.innerHTML = `\n        <span class="fab-icon-line fab-icon-line--horizontal"></span>\n        <span class="fab-icon-line fab-icon-line--vertical"></span>\n    `;
-    mainBtn.appendChild(icon);
 
     container.appendChild(mainBtn);
 
@@ -26,7 +22,7 @@ export function initFabMenu(actions = []) {
             btn.addEventListener('click', () => {
                 act.onClick();
                 container.classList.remove('fab-menu--open');
-                mainBtn.classList.remove('fab--active');
+                mainBtn.classList.remove('fab--rotated');
             });
         } else if (act.href) {
             btn.addEventListener('click', () => { window.location.href = act.href; });
@@ -37,13 +33,13 @@ export function initFabMenu(actions = []) {
 
     mainBtn.addEventListener('click', () => {
         container.classList.toggle('fab-menu--open');
-        mainBtn.classList.toggle('fab--active');
+        mainBtn.classList.toggle('fab--rotated');
     });
 
     document.addEventListener('click', (e) => {
         if (!container.contains(e.target)) {
             container.classList.remove('fab-menu--open');
-            mainBtn.classList.remove('fab--active');
+            mainBtn.classList.remove('fab--rotated');
         }
     });
 
