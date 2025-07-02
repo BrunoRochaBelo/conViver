@@ -860,23 +860,40 @@ html[data-theme="dark"] .user-avatar {
 
 /* User Menu Modal (Popover Style) */
 .user-menu-modal .cv-modal-content {
-    padding: var(--cv-spacing-xs) 0; /* Remove horizontal padding, use list item padding */
-    max-width: 250px; /* Slightly narrower for popover */
+    padding: var(--cv-spacing-xs) 0; /* remove padding horizontal */
+    max-width: 250px; /* popover mais estreito */
     border-radius: var(--cv-border-radius-md);
     box-shadow: var(--current-shadow-lg);
     position: absolute;
-    /* Use JS to calculate top/right based on avatar button position, or use fixed if header height is reliable */
     top: calc(var(--cv-header-height-mobile, 50px) + var(--cv-spacing-xs));
-    right: var(--cv-spacing-sm); /* Closer to edge on mobile */
+    right: var(--cv-spacing-sm);
     width: auto;
     height: auto;
-    animation: popover-appear 0.15s ease-out; /* Popover animation */
+    animation: popover-appear 0.15s ease-out;
 }
+
 @media (min-width: 768px) {
     .user-menu-modal .cv-modal-content {
         top: calc(var(--cv-header-height-desktop, 60px) + var(--cv-spacing-xs));
-        right: var(--cv-spacing-md); /* More space from edge on desktop */
+        right: var(--cv-spacing-md);
     }
+}
+
+/* User Menu Modal Header */
+.user-menu-modal .cv-modal-header {
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
+    min-height: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.user-menu-modal .cv-modal-header h2.user-menu-username {
+    font-size: var(--cv-font-size-md);
+    text-align: left;
+    margin: 0;
+    flex-grow: 1;
 }
 
 @keyframes popover-appear { /* Simple fade-in and slight scale for popovers */
@@ -897,8 +914,18 @@ html[data-theme="dark"] .user-avatar {
     padding: var(--cv-spacing-xs) 0; /* Vertical padding for list */
 }
 .user-menu-modal .cv-modal-footer {
-    display: none;
+    display: none; /* User menus typically don't have a footer with OK/Cancel */
 }
+
+.user-menu-modal .cv-modal-close {
+    position: static;          /* Remove absolute positioning if flex order is used */
+    transform: none;           /* Remove transform if not absolutely positioned */
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+    order: 1;                  /* Ensures close button comes after the title in flex layout */
+}
+
 
 /* User Menu List Items */
 .user-menu-list {
