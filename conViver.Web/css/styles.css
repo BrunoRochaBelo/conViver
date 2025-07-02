@@ -1085,12 +1085,10 @@ html[data-theme="dark"] .fab-menu-options {
     position: relative;
     box-shadow: 0 12px 24px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.1); /* Adjusted shadow */
 
-    /* max-height: calc(100vh - (var(--cv-spacing-md) * 2)); */ /* Temporarily remove to restructure */
-    /* overflow-y: auto; */ /* Temporarily remove to restructure */
-
     display: flex; /* Use flex to structure header, body, footer */
     flex-direction: column;
     max-height: calc(100vh - var(--cv-spacing-xl) * 2); /* Ensure modal fits screen with good margin */
+    overflow-y: auto;
 
     animation: cv-modal-scale-up 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Faster, more iOS-like spring */
 }
