@@ -420,6 +420,7 @@ html[data-theme="dark"] .cv-nav {
 }
 .cv-nav__label {
     line-height: 1;
+    margin-left: var(--cv-spacing-xs); /* Ensures clear space between icon and text */
 }
 @media (min-width: 768px) {
     .cv-nav {
