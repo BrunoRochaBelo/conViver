@@ -21,6 +21,7 @@ export function initFabMenu(actions = []) {
             btn.addEventListener('click', () => {
                 act.onClick();
                 container.classList.remove('fab-menu--open');
+                mainBtn.classList.remove('fab--rotated');
             });
         } else if (act.href) {
             btn.addEventListener('click', () => { window.location.href = act.href; });
@@ -31,11 +32,13 @@ export function initFabMenu(actions = []) {
 
     mainBtn.addEventListener('click', () => {
         container.classList.toggle('fab-menu--open');
+        mainBtn.classList.toggle('fab--rotated');
     });
 
     document.addEventListener('click', (e) => {
         if (!container.contains(e.target)) {
             container.classList.remove('fab-menu--open');
+            mainBtn.classList.remove('fab--rotated');
         }
     });
 
