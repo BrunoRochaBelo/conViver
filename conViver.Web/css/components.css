@@ -612,7 +612,7 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
 /* For now, using .user-menu-modal class on the .cv-modal element */
 
 .user-menu-modal .cv-modal-content { /* Styles for the content box of the user menu */
-    padding: 0; /* Header and body manage their own spacing */
+    padding: var(--cv-spacing-xs); /* Ensure inner elements have breathing room */
     display: flex;
     flex-direction: column;
     max-width: 280px; /* Smaller max-width for user menu modal, more like a popover */
@@ -641,7 +641,7 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
 
 
 .user-menu-modal .cv-modal-header {
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Smaller padding for user menu header */
+    padding: var(--cv-spacing-xs) var(--cv-spacing-sm); /* Add padding so close button fits */
     min-height: auto; /* No strict min-height */
 }
 .user-menu-modal .cv-modal-header h2 {

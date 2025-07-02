@@ -525,11 +525,15 @@ html[data-theme="dark"] .cv-nav__link:hover {
 }
 /* User menu modal overrides */
 .user-menu-modal .cv-modal-content {
-    padding: 0;
+    padding: var(--cv-spacing-xs);
     display: flex;
     flex-direction: column;
     max-width: 300px; /* Smaller max-width for user menu modal */
     /* Ensure it still gets the primary modal animation and shadow from styles.css */
+}
+.user-menu-modal .cv-modal-header {
+    padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
+    min-height: auto;
 }
 .user-menu-list {
     list-style: none;
