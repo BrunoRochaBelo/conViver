@@ -954,13 +954,13 @@ main {
     position: fixed;
     bottom: var(--cv-spacing-lg, 24px); /* Consistent spacing */
     right: var(--cv-spacing-lg, 24px); /* Consistent spacing */
-    width: 64px; /* Balance with other UI elements */
-    height: 64px; /* Balance with other UI elements */
+    width: 72px; /* Slightly larger for better tap target */
+    height: 72px; /* Slightly larger for better tap target */
     background-color: var(--current-primary-blue, #007bff);
     color: var(--cv-text-on-primary, white);
     border: none;
     border-radius: 50%;
-    font-size: var(--cv-font-size-lg, 22px); /* Reduced from 24px, using lg which is ~20px on mobile */
+    font-size: var(--cv-font-size-lg, 22px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -977,44 +977,13 @@ main {
     transform: rotate(45deg);
 }
 
-.fab-icon {
-    position: relative;
-    width: 22px; /* Size of the icon area */
-    height: 22px;
+/* Keep rotation when hovering or pressing the button */
+.fab.fab--rotated:hover {
+    transform: scale(1.05) rotate(45deg);
 }
 
-.fab-icon-line {
-    position: absolute;
-    background-color: var(--cv-text-on-primary, white);
-    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-    border-radius: 1px; /* Slightly rounded ends for lines */
-}
-
-.fab-icon-line--horizontal {
-    width: 100%; /* Full width of .fab-icon */
-    height: 3px; /* Thickness of the line */
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-}
-
-.fab-icon-line--vertical {
-    width: 3px; /* Thickness of the line */
-    height: 100%; /* Full height of .fab-icon */
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-/* Transformation to X when FAB is active (e.g., menu is open) */
-/* This assumes a class '.fab--active' is toggled on the .fab button itself by JavaScript */
-.fab.fab--active .fab-icon-line--horizontal {
-    /* Rotates to form one part of the X */
-    transform: translateY(-50%) rotate(45deg);
-}
-.fab.fab--active .fab-icon-line--vertical {
-    /* Rotates to form the other part of the X */
-    transform: translateX(-50%) rotate(-45deg);
+.fab.fab--rotated:active {
+    transform: scale(0.95) rotate(45deg);
 }
 
 
@@ -1048,7 +1017,7 @@ main {
 
 .fab-menu-options {
     position: absolute;
-    bottom: 80px;
+    bottom: 96px;
     right: var(--cv-spacing-md);
     display: none;
     flex-direction: column;
