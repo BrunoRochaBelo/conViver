@@ -1,4 +1,5 @@
 import { logout } from './auth.js';
+import { openModal as openModalFn, closeModal as closeModalFn } from './main.js';
 
 export function initUserMenu() {
     const avatarBtn = document.getElementById('userMenuButton');
@@ -34,7 +35,7 @@ export function initUserMenu() {
     }
 
     function openModal() {
-        if (modal) modal.style.display = 'flex';
+        if (modal) openModalFn(modal);
         if (modalHeader) {
             // Remove existing username h2 if any to prevent duplicates
             const existingH2 = modalHeader.querySelector('h2.user-menu-username');
@@ -50,7 +51,7 @@ export function initUserMenu() {
         }
     }
     function closeModal() {
-        if (modal) modal.style.display = 'none';
+        if (modal) closeModalFn(modal);
     }
 
     avatarBtn?.addEventListener('click', openModal);

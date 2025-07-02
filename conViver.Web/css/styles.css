@@ -2077,3 +2077,5 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     gap: var(--cv-spacing-xs);
 }
 
+
+body.cv-modal-open { overflow: hidden; }

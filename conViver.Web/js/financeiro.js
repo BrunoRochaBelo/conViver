@@ -9,7 +9,9 @@ import {
     createEmptyStateElement, // Adicionado
     showModalError,          // Adicionado
     clearModalError,         // Adicionado
-    debugLog
+    debugLog,
+    openModal,
+    closeModal
 } from './main.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
@@ -98,10 +100,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Modal Logic ---
-    function openModal(title, contentHtml) {
+    function openModalCobranca(title, contentHtml) {
         if (modalCobrancaTitle) modalCobrancaTitle.textContent = title;
         if (modalCobrancaBody) modalCobrancaBody.innerHTML = contentHtml;
-        if (modalCobranca) modalCobranca.style.display = 'block';
+        if (modalCobranca) openModal(modalCobranca);
 
         const modalCancelButton = modalCobrancaBody.querySelector('.js-modal-cancel-cobranca');
         if (modalCancelButton) {
@@ -114,19 +116,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function closeModal() {
+    function closeModalCobranca() {
         if (modalCobranca) {
-            modalCobranca.style.display = 'none';
+            closeModal(modalCobranca);
             if (modalCobrancaBody) modalCobrancaBody.innerHTML = '';
         }
     }
 
     if (closeModalButton) {
-        closeModalButton.addEventListener('click', closeModal);
+        closeModalButton.addEventListener('click', closeModalCobranca);
     }
     window.addEventListener('click', (event) => {
         if (event.target === modalCobranca) {
-            closeModal();
+            closeModalCobranca();
         }
     });
 
@@ -198,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const cobrancaCriada = await apiClient.post('/financeiro/cobrancas', novaCobrancaDto);
-            closeModal();
+            closeModalCobranca();
             showGlobalFeedback("Cobrança emitida com sucesso!", "success", 2500);
 
             if (cobrancaCriada && cobrancaCriada.id && tbodyCobrancas) {
@@ -246,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnNovaCobranca) {
         btnNovaCobranca.addEventListener('click', () => {
-            openModal('Emitir Nova Cobrança', novaCobrancaFormHtml);
+            openModalCobranca('Emitir Nova Cobrança', novaCobrancaFormHtml);
         });
     }
 
@@ -293,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!cobrancaId) return;
 
             if (target.classList.contains('js-btn-detalhes-cobranca')) {
-                openModal(
+                openModalCobranca(
                     `Detalhes da Cobrança ${cobrancaId.substring(0,8)}...`,
                     `<p>Detalhes completos da cobrança ${cobrancaId} serão exibidos aqui... (Funcionalidade a ser implementada)</p>`
                 );
