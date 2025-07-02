@@ -409,7 +409,8 @@ html[data-theme="dark"] .cv-nav {
     border-radius: var(--cv-border-radius-md);
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.1s ease-in-out;
     font-weight: 500;
-    gap: var(--cv-spacing-xs);
+    /* Increased gap for better separation between icon and label */
+    gap: var(--cv-spacing-sm);
 }
 .cv-nav__icon {
     width: 20px;
