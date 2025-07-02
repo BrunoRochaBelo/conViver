@@ -948,42 +948,8 @@ main {
     transition: background-color 0.3s ease, transform 0.2s ease-out;
 }
 
-
-.fab-icon {
-    position: relative;
-    width: 28px;
-    height: 28px;
-}
-
-.fab-icon-line {
-    position: absolute;
-    background-color: var(--cv-text-on-primary, white);
-    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-    border-radius: 1px;
-}
-
-.fab-icon-line--horizontal {
-    width: 100%;
-    height: 4px;
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-}
-
-.fab-icon-line--vertical {
-    width: 4px;
-    height: 100%;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.fab.fab--active .fab-icon-line--horizontal {
-    transform: translateY(-50%) rotate(45deg);
-}
-
-.fab.fab--active .fab-icon-line--vertical {
-    transform: translateX(-50%) rotate(-45deg);
+.fab.fab--rotated {
+    transform: rotate(45deg);
 }
 
 .fab:hover {
