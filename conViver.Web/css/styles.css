@@ -954,8 +954,8 @@ main {
     position: fixed;
     bottom: var(--cv-spacing-lg, 24px); /* Consistent spacing */
     right: var(--cv-spacing-lg, 24px); /* Consistent spacing */
-    width: 52px; /* Increased from 48px to 52px */
-    height: 52px; /* Increased from 48px to 52px */
+    width: 64px; /* Balance with other UI elements */
+    height: 64px; /* Balance with other UI elements */
     background-color: var(--current-primary-blue, #007bff);
     color: var(--cv-text-on-primary, white);
     border: none;
@@ -970,6 +970,11 @@ main {
     display: none;
     transition: background-color 0.2s ease, transform 0.15s ease-out, box-shadow 0.2s ease-out;
     overflow: hidden; /* Hide parts of lines during transform if needed */
+}
+
+/* Rotate the '+' icon into an 'X' when active */
+.fab.fab--rotated {
+    transform: rotate(45deg);
 }
 
 .fab-icon {
@@ -1042,31 +1047,18 @@ main {
 /* For this example, assuming .fab is the button and .fab-menu is just a wrapper for positioning options */
 
 .fab-menu-options {
-    /* No longer absolute; it will be a flex item in .fab-menu */
-    /* position: absolute; */
-    /* bottom: 70px; */
-    /* right: 0; */
+    position: absolute;
+    bottom: 80px;
+    right: var(--cv-spacing-md);
     display: none;
     flex-direction: column;
     gap: var(--cv-spacing-sm, 8px);
     background-color: var(--current-bg-white);
     padding: var(--cv-spacing-sm, 8px);
     border-radius: var(--cv-border-radius-md, 8px);
-    box-shadow: var(--current-shadow-lg); /* Enhanced shadow for options pop-up */
-    margin-bottom: var(--cv-spacing-md); /* Increased space between options and the FAB (was sm) */
-    /* width: auto; */ /* Let content determine width */
-    min-width: 180px; /* Slightly wider minimum for options */
-    /* transform: translateX(calc(-50% + 26px)); */
-    position: relative;
-    /* The parent .fab-menu (with flex-direction: column-reverse and align-items: flex-end)
-       will stack this above the FAB.
-       align-items: flex-end on the parent will align this options box to the right (end) of the flex container.
-       margin-bottom gives the vertical separation from the FAB.
-    */
-    /* To shift it to the left of the FAB's right edge: */
-    /* 'right' here is relative to its normal position in flex-end alignment. */
-    /* So, a positive 'right' value moves it further to the left. */
-    right: var(--cv-spacing-md); /* Shift options 16px to the left from FAB's right edge */
+    box-shadow: var(--current-shadow-lg);
+    min-width: 180px;
+    z-index: 1051;
 }
 html[data-theme="dark"] .fab-menu-options {
     background-color: var(--cv-dark-gray-200);
