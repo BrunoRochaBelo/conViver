@@ -612,7 +612,9 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
 /* For now, using .user-menu-modal class on the .cv-modal element */
 
 .user-menu-modal .cv-modal-content { /* Styles for the content box of the user menu */
-    /* padding: var(--cv-spacing-md); */ /* Padding is now handled by header/body/footer */
+    padding: 0; /* Header and body manage their own spacing */
+    display: flex;
+    flex-direction: column;
     max-width: 280px; /* Smaller max-width for user menu modal, more like a popover */
     border-radius: var(--cv-border-radius-md); /* Slightly smaller radius for popover feel */
     box-shadow: var(--current-shadow-lg); /* Popovers often have a more distinct shadow */
