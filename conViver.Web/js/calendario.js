@@ -1,4 +1,4 @@
-import { showGlobalFeedback, createErrorStateElement, createEmptyStateElement, debugLog, showModalError, clearModalError } from "./main.js";
+import { showGlobalFeedback, createErrorStateElement, createEmptyStateElement, debugLog, showModalError, clearModalError, openModal, closeModal } from "./main.js";
 import { requireAuth, getUserInfo, getRoles } from "./auth.js";
 import apiClient from "./apiClient.js";
 import { initFabMenu } from "./fabMenu.js";
@@ -173,9 +173,9 @@ function setupEventListeners() {
   // Botões do Modal de Filtros
   if (filtrosModal) {
     filtrosModal.querySelectorAll(".js-modal-filtros-reservas-close").forEach(btn =>
-      btn.addEventListener("click", () => filtrosModal.style.display = "none")
+      btn.addEventListener("click", () => closeModal(filtrosModal))
     );
-    window.addEventListener("click", (e) => { if (e.target === filtrosModal) filtrosModal.style.display = "none"; });
+    window.addEventListener("click", (e) => { if (e.target === filtrosModal) closeModal(filtrosModal); });
     if (aplicarFiltrosModalButton) aplicarFiltrosModalButton.addEventListener("click", aplicarFiltrosDoModal);
     if (limparFiltrosModalButton) limparFiltrosModalButton.addEventListener("click", limparFiltrosDoModal);
   }
@@ -185,7 +185,7 @@ function setupEventListeners() {
     openSortReservasButton.addEventListener("click", () => {
       if (modalSortReservas) {
         sortOrderSelectReservas.value = currentReservasSortOrder; // Supondo que currentReservasSortOrder existe
-        modalSortReservas.style.display = "flex";
+        openModal(modalSortReservas);
         openSortReservasButton.classList.add("rotated");
       }
     });
@@ -194,13 +194,13 @@ function setupEventListeners() {
   if (modalSortReservas) {
     modalSortReservas.querySelectorAll(".js-modal-sort-reservas-close").forEach(btn => {
       btn.addEventListener("click", () => {
-        modalSortReservas.style.display = "none";
+        closeModal(modalSortReservas);
         if (openSortReservasButton) openSortReservasButton.classList.remove("rotated");
       });
     });
     window.addEventListener("click", (event) => {
       if (event.target === modalSortReservas) {
-        modalSortReservas.style.display = "none";
+        closeModal(modalSortReservas);
         if (openSortReservasButton) openSortReservasButton.classList.remove("rotated");
       }
     });

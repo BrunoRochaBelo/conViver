@@ -7,7 +7,9 @@ import {
     showSkeleton,
     hideSkeleton,
     showModalError,
-    clearModalError
+    clearModalError,
+    openModal,
+    closeModal
 } from './main.js';
 import { initFabMenu } from './fabMenu.js';
 import { createProgressBar, showProgress, xhrPost } from './progress.js';
@@ -99,13 +101,13 @@ function openRegistrarVisitanteModal() {
         formRegistrarVisitante.reset();
         clearModalError(modalRegistrarVisitante);
         document.getElementById('visQRCodeEntrada').value = '';
-        modalRegistrarVisitante.style.display = "flex";
+        openModal(modalRegistrarVisitante);
     }
 }
 
 function closeRegistrarVisitanteModal() {
     if (modalRegistrarVisitante) {
-        modalRegistrarVisitante.style.display = "none";
+        closeModal(modalRegistrarVisitante);
     }
 }
 
@@ -113,13 +115,13 @@ function openRegistrarEncomendaModal() {
     if (modalRegistrarEncomenda && formNovaEncomendaModal) {
         formNovaEncomendaModal.reset();
         clearModalError(modalRegistrarEncomenda);
-        modalRegistrarEncomenda.style.display = "flex";
+        openModal(modalRegistrarEncomenda);
     }
 }
 
 function closeRegistrarEncomendaModal() {
     if (modalRegistrarEncomenda) {
-        modalRegistrarEncomenda.style.display = "none";
+        closeModal(modalRegistrarEncomenda);
     }
 }
 
@@ -148,16 +150,16 @@ function setupFilterModalAndButton() {
                 encomendaFilters.forEach(el => el.style.display = 'block');
                 if (modalTitle) modalTitle.textContent = "Filtros de Encomendas";
             }
-            modalFiltrosPortaria.style.display = "flex";
+            openModal(modalFiltrosPortaria);
         });
     }
 
     if (closeFilterModalButton && modalFiltrosPortaria) {
-        closeFilterModalButton.addEventListener("click", () => modalFiltrosPortaria.style.display = "none");
+        closeFilterModalButton.addEventListener("click", () => closeModal(modalFiltrosPortaria));
     }
     if (modalFiltrosPortaria) {
         window.addEventListener("click", (event) => {
-            if (event.target === modalFiltrosPortaria) modalFiltrosPortaria.style.display = "none";
+            if (event.target === modalFiltrosPortaria) closeModal(modalFiltrosPortaria);
         });
     }
 
@@ -178,7 +180,7 @@ function setupFilterModalAndButton() {
             }
 
             loadInitialPortariaItems();
-            if (modalFiltrosPortaria) modalFiltrosPortaria.style.display = "none";
+            if (modalFiltrosPortaria) closeModal(modalFiltrosPortaria);
             updateFilterButtonIndicator();
         });
     }
@@ -194,7 +196,7 @@ function setupFilterModalAndButton() {
             toggleHistoricoFiltersVisibility(false); // Esconder filtros de histórico
 
             loadInitialPortariaItems();
-            if (modalFiltrosPortaria) modalFiltrosPortaria.style.display = "none";
+            if (modalFiltrosPortaria) closeModal(modalFiltrosPortaria);
             updateFilterButtonIndicator();
         });
     }
@@ -234,24 +236,24 @@ function setupSortModalAndButton() {
     if (openSortButton && modalSortPortaria) {
         openSortButton.addEventListener("click", () => {
             if (sortSelect) sortSelect.value = currentPortariaSortOrder;
-            modalSortPortaria.style.display = "flex";
+            openModal(modalSortPortaria);
             openSortButton.classList.add("rotated");
         });
     }
     closeSortButtons.forEach(btn => btn.addEventListener("click", () => {
-        if (modalSortPortaria) modalSortPortaria.style.display = "none";
+        if (modalSortPortaria) closeModal(modalSortPortaria);
         if (openSortButton) openSortButton.classList.remove("rotated");
     }));
     window.addEventListener("click", (e) => {
         if (e.target === modalSortPortaria) {
-            modalSortPortaria.style.display = "none";
+            closeModal(modalSortPortaria);
             if (openSortButton) openSortButton.classList.remove("rotated");
         }
     });
     if (applySortButton && sortSelect) {
         applySortButton.addEventListener("click", () => {
             currentPortariaSortOrder = sortSelect.value;
-            if (modalSortPortaria) modalSortPortaria.style.display = "none";
+            if (modalSortPortaria) closeModal(modalSortPortaria);
             if (openSortButton) {
                  openSortButton.classList.remove("rotated");
                  if (currentPortariaSortOrder !== "desc") openSortButton.classList.add("has-indicator");
@@ -264,7 +266,7 @@ function setupSortModalAndButton() {
         clearSortButtonModal.addEventListener("click", () => {
             sortSelect.value = "desc";
             currentPortariaSortOrder = "desc";
-            modalSortPortaria.style.display = "none";
+            closeModal(modalSortPortaria);
             if (openSortButton) {
                 openSortButton.classList.remove("rotated");
                 openSortButton.classList.remove("has-indicator");

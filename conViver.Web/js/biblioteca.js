@@ -1,6 +1,6 @@
 import apiClient from './apiClient.js';
 import { requireAuth, getUserRoles } from './auth.js'; // Supondo que getUserRoles exista ou será criado
-import { showGlobalFeedback, createErrorStateElement, createEmptyStateElement, debounce, debugLog } from './main.js';
+import { showGlobalFeedback, createErrorStateElement, createEmptyStateElement, debounce, debugLog, openModal, closeModal } from './main.js';
 import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js'; // skeleton.js re-exporta de main.js
 import { createProgressBar, showProgress, xhrPost } from './progress.js';
 
@@ -24,13 +24,13 @@ function initializeBibliotecaPage() {
 
     if (userRoles.includes('Sindico') || userRoles.includes('Administrador')) {
         if (adminSection) adminSection.style.display = 'block';
-        if (uploadDocButton) uploadDocButton.addEventListener('click', () => modalUpload.style.display = 'flex');
+        if (uploadDocButton) uploadDocButton.addEventListener('click', () => openModal(modalUpload));
     }
 
     if (modalUpload) {
-        closeUploadModalButtons.forEach(btn => btn.addEventListener('click', () => modalUpload.style.display = 'none'));
+        closeUploadModalButtons.forEach(btn => btn.addEventListener('click', () => closeModal(modalUpload)));
         window.addEventListener('click', (event) => {
-            if (event.target === modalUpload) modalUpload.style.display = 'none';
+            if (event.target === modalUpload) closeModal(modalUpload);
         });
     }
 
@@ -227,7 +227,7 @@ async function handleUploadDocumento(event) {
         await xhrPost('/api/v1/syndic/docs', formData, p => showProgress(uploadProgressBar, p), true);
         showProgress(uploadProgressBar, 100); // Completa a barra
         form.reset();
-        if (modalUploadElement) modalUploadElement.style.display = 'none';
+        if (modalUploadElement) closeModal(modalUploadElement);
         loadDocumentos(); // Recarrega a lista de documentos
         showGlobalFeedback('Documento enviado com sucesso!', 'success', 2500);
     } catch (error) {

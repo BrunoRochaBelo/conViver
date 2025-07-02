@@ -218,6 +218,25 @@ export function showInlineSpinner(element) {
     };
 }
 
+/**
+ * Abre um modal ajustando o display e bloqueando scroll no body.
+ * @param {HTMLElement} modal Elemento do modal a ser aberto.
+ */
+export function openModal(modal) {
+    if (!modal) return;
+    modal.style.display = 'flex';
+    document.body.classList.add('cv-modal-open');
+}
+
+/**
+ * Fecha um modal e libera o scroll do body.
+ * @param {HTMLElement} modal Elemento do modal a ser fechado.
+ */
+export function closeModal(modal) {
+    if (modal) modal.style.display = 'none';
+    document.body.classList.remove('cv-modal-open');
+}
+
 
 // Exemplo de como poderia ser usado para inicializações (se necessário no futuro):
 // document.addEventListener('DOMContentLoaded', () => {
