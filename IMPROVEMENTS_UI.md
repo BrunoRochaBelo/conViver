@@ -113,43 +113,6 @@ Todas as novas implementações e refinamentos seguiram as diretrizes de estilo 
 **Foco:**
 Consistência visual, transições suaves, uso adequado de cores semânticas, e adaptação aos temas claro e escuro.
 
-## 8. Responsividade e Experiência Mobile (Revisão Atual)
-
-Uma revisão completa foi realizada para garantir que a aplicação Web seja totalmente responsiva e ofereça uma excelente usabilidade em diversos tamanhos de tela, desde desktops até dispositivos móveis. O objetivo foi criar uma experiência coesa e, em mobile, buscar uma sensação similar à de um aplicativo nativo, com inspiração na Apple e no iOS.
-
-**Estratégias Adotadas:**
-
-*   **Mobile-First e Progressive Enhancement:** Os estilos base foram pensados para mobile, com ajustes e adições para telas maiores através de media queries.
-*   **Variáveis CSS:** Uso extensivo de variáveis CSS para tipografia, espaçamentos, cores, facilitando a manutenção e a consistência, inclusive para temas claro/escuro.
-*   **Unidades Relativas:** Priorização de `rem` e `em` para fontes e alguns espaçamentos, permitindo melhor escalabilidade e acessibilidade. `vh`, `vw`, e `%` foram usados para layouts responsivos.
-*   **Layouts Flexíveis:** Uso de Flexbox e CSS Grid para criar layouts que se adaptam naturalmente a diferentes larguras de tela.
-    *   **`styles.css`:** Contém as definições de variáveis, estilos globais para `body`, `html`, `main`, e estilos específicos para páginas de autenticação (Login, Register, etc.), Dashboard, Financeiro, entre outras. Foram introduzidas media queries para ajustar `font-size-base`, tamanhos de cabeçalho (h1-h6), e espaçamentos em breakpoints para tablet (768px) e desktop (1024px).
-    *   **`components.css`:** Contém estilos para componentes reutilizáveis como botões (`.cv-button`), cards (`.cv-card`), inputs (`.cv-input`), modais (`.cv-modal`), header (`.cv-header`), navegação (`.cv-nav`), tabelas (`.cv-table`), etc. Estes foram revisados para garantir que sejam responsivos e tenham boa aparência em todas as telas.
-*   **Tipografia Responsiva:**
-    *   `--cv-font-size-base` ajustado em breakpoints (14px mobile, 15px tablet, 16px desktop).
-    *   Tamanhos de texto (`--cv-font-size-text-md`, `--cv-font-size-text-lg`) e de cabeçalho (`--cv-font-size-h1` a `h6`) são definidos em `rem` e ajustados nos breakpoints.
-*   **Navegação Mobile:**
-    *   O `layout.html` foi atualizado para incluir estruturas para um menu mobile off-canvas (`#mobileNavMenu`, `#mobileNavOverlay`) e um botão de toggle (`#mobileMenuToggle`) visível apenas em mobile.
-    *   O `nav.js` foi refatorado para popular tanto a navegação desktop (`#mainNav`) quanto a mobile (`#mobileNavMenu`), e para gerenciar a abertura/fechamento do menu mobile.
-    *   **Barra de Navegação Inferior (Bottom Navigation Bar):** Uma classe `.cv-bottom-nav` foi adicionada em `components.css` para uma barra de navegação fixa na parte inferior da tela em dispositivos móveis. JavaScript (em `nav.js` ou `main.js`) pode adicionar uma classe `has-bottom-nav` ao `body` para ativar essa navegação e ajustar o `padding-bottom` do `main` content.
-*   **Header Responsivo:**
-    *   O `.cv-header` foi ajustado para ter alturas diferentes para mobile e desktop (controladas por variáveis CSS `--cv-header-height-mobile` e `--cv-header-height-desktop`).
-    *   O título do header é centralizado em mobile e alinhado à esquerda em desktop.
-*   **Modais:**
-    *   Modais (`.cv-modal`) foram ajustados para um comportamento de "bottom sheet" em telas menores (aparecendo da parte inferior) e como um modal centralizado tradicional em telas maiores.
-*   **Tabelas:**
-    *   Tabelas complexas (ex: `.fin-cobrancas__table`) são envolvidas por um `.cv-table-responsive-wrapper` que permite scroll horizontal em telas pequenas. Os tamanhos de fonte e padding dentro das tabelas também são responsivos.
-*   **Formulários de Autenticação:**
-    *   Páginas como `login.html`, `register.html`, `forgot-password.html`, e `reset-password.html` foram revisadas para garantir que os formulários sejam fáceis de usar, com inputs e botões de tamanho adequado para toque, e labels visualmente ocultas (`.visually-hidden`) quando o placeholder é suficiente, mantendo a acessibilidade.
-*   **Consistência Visual iOS:**
-    *   Revisão de `border-radius`, sombras, tipos de botões (primário, secundário, tinted, borderless), e animações para maior alinhamento com a estética iOS.
-    *   Componentes como `switch` e `progress bar` foram refinados.
-
-**Desafios e Soluções:**
-
-*   **Manutenção de Múltiplos Estilos de Navegação:** Gerenciar a navegação desktop, off-canvas mobile e a nova bottom navigation exigiu condicionais em JavaScript e CSS (utility classes como `.hide-on-mobile`, `.hide-on-desktop`, e a classe `body.has-bottom-nav`).
-*   **Conteúdo Denso (Tabelas):** A principal solução foi o scroll horizontal para tabelas, mas para algumas informações, considerar a exibição em formato de card em mobile pode ser uma melhoria futura.
-
 ## Conclusão
 
-Com as melhorias detalhadas, incluindo a recente revisão de responsividade, a aplicação conViver agora oferece uma experiência de usuário mais robusta, adaptável e visualmente coesa em uma ampla gama de dispositivos. O foco na usabilidade mobile e a inspiração na simplicidade e clareza do design iOS contribuem para uma interface mais intuitiva e agradável.
+Essas melhorias visam tornar a aplicação conViver mais responsiva, performática e agradável de usar, fornecendo feedback claro ao usuário em todas as etapas de interação e carregamento de dados.

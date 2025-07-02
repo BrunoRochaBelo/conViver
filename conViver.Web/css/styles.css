@@ -49,20 +49,19 @@
     --cv-font-family-sans-serif: 'Open Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
     --cv-font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-    /* Base Font Sizes - Mobile First */
-    --cv-font-size-base: 14px; /* Base for REM calculations on mobile */
-    --cv-font-size-text-md: 1rem; /* Standard text size (14px on mobile) */
-    --cv-font-size-text-lg: 1.125rem; /* Larger text (16px on mobile) */
+    /* Responsive Font Sizes */
+    --cv-font-size-base: 14px; /* Smaller base for mobile */
+    --cv-font-size-md: 1rem; /* Should be 14px on mobile, 16px on desktop */
+    --cv-font-size-lg: 1.125rem; /* ~16px on mobile, ~18px on desktop */
+    --cv-font-size-xl: 1.25rem; /* ~18px on mobile, ~20px on desktop */
+    /* Add more heading/specific font sizes as needed, e.g. */
+    --cv-font-size-h1: 2rem; /* Adjusted based on new base */
+    --cv-font-size-h2: 1.75rem;
+    --cv-font-size-h3: 1.5rem;
+    --cv-font-size-h4: 1.25rem;
 
-    /* Heading Font Sizes - Mobile First */
-    --cv-font-size-h1: 1.875rem; /* ~30px */
-    --cv-font-size-h2: 1.5rem;    /* ~24px */
-    --cv-font-size-h3: 1.25rem;   /* ~20px */
-    --cv-font-size-h4: 1.125rem;  /* ~18px */
-    --cv-font-size-h5: 1rem;      /* ~16px */
-    --cv-font-size-h6: 0.875rem;  /* ~14px */
 
-    /* Spacing (base 8px for mobile, potentially adjusted for desktop) */
+    /* Spacing (base 8px) */
     --cv-spacing-xs: 4px;
     --cv-spacing-sm: 8px;
     --cv-spacing-md: 16px;
@@ -249,134 +248,39 @@ body {
     margin: 0;
     background-color: var(--current-bg-light);
     color: var(--current-text-primary);
-    line-height: 1.6; /* Slightly increased line-height for better readability */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    font-size: var(--cv-font-size-text-md); /* Default body text size, uses new var */
-    overflow-x: hidden; /* Prevent horizontal scrollbars by default */
+    line-height: 1.5; /* Improved readability */
+    -webkit-font-smoothing: antialiased; /* Smoother fonts on WebKit */
+    -moz-osx-font-smoothing: grayscale; /* Smoother fonts on Firefox */
+    font-size: var(--cv-font-size-md); /* Default body text size */
 }
 
 html {
-    font-size: var(--cv-font-size-base); /* Base for REM: 14px on mobile */
-    box-sizing: border-box; /* Apply border-box to all elements */
-}
-*, *:before, *:after {
-    box-sizing: inherit;
+    font-size: var(--cv-font-size-base); /* Set base for rem units */
 }
 
-
-/* Responsive Adjustments for Font Size and Spacing */
-/* Tablet Breakpoint */
 @media (min-width: 768px) {
     :root {
-        --cv-font-size-base: 15px; /* Slightly increase base for tablets */
-        /* Update text and heading sizes for tablets if needed, or they can inherit from desktop */
-        --cv-font-size-text-md: 1.067rem; /* ~16px on tablet */
-        --cv-font-size-text-lg: 1.2rem;   /* ~18px on tablet */
-
-        --cv-font-size-h1: 2rem;      /* ~30px */
-        --cv-font-size-h2: 1.667rem;  /* ~25px */
-        --cv-font-size-h3: 1.333rem;  /* ~20px */
-        --cv-font-size-h4: 1.133rem;  /* ~17px */
-
-        /* Spacing can also be adjusted if needed, e.g. */
-        /* --cv-spacing-md: 18px; */
-        /* --cv-spacing-lg: 28px; */
-    }
-    body {
-        font-size: var(--cv-font-size-text-md); /* Update body font size for tablet */
+        --cv-font-size-base: 16px; /* Larger base for tablet up */
     }
 }
 
-/* Desktop Breakpoint */
-@media (min-width: 1024px) { /* Common desktop breakpoint */
-    :root {
-        --cv-font-size-base: 16px; /* Standard base for desktop */
-
-        --cv-font-size-text-md: 1rem;    /* 16px on desktop */
-        --cv-font-size-text-lg: 1.125rem; /* 18px on desktop */
-
-        --cv-font-size-h1: 2.25rem;   /* ~36px */
-        --cv-font-size-h2: 1.875rem;  /* ~30px */
-        --cv-font-size-h3: 1.5rem;    /* ~24px */
-        --cv-font-size-h4: 1.25rem;   /* ~20px */
-
-        /* Spacing can be further adjusted for desktop */
-        /* --cv-spacing-md: 20px; */
-        /* --cv-spacing-lg: 30px; */
-        /* --cv-spacing-xl: 40px; */
-    }
-    body {
-        font-size: var(--cv-font-size-text-md); /* Update body font size for desktop */
-    }
-}
-
-
-/* Main Content Wrapper - Base styles (Mobile first) */
+/* Example for a main content wrapper */
+/* If you have a common wrapper class like .cv-container, apply these to it.
+   Otherwise, this 'main' selector is a general example. */
 main {
-    width: 100%;
-    padding: var(--cv-spacing-md); /* Default mobile padding */
-    /* Removed margin-left/right auto for full width on mobile */
-    flex-grow: 1;
-    /* Add margin-top to account for sticky header if nav is not sticky */
-    /* margin-top: var(--cv-header-height); */
-    /* This will be handled by specific page layouts or body padding-top if nav is also sticky */
-    /* Adjusted padding-bottom to be conditional on .has-bottom-nav */
-}
-body.has-bottom-nav main {
-    padding-bottom: calc(var(--cv-bottom-nav-height, 60px) + var(--cv-spacing-md)); /* Add padding for bottom nav */
+  width: 100%;
+  padding: 0 var(--cv-spacing-md); /* Mobile padding */
+  box-sizing: border-box;
+  margin-left: auto; /* Center content */
+  margin-right: auto; /* Center content */
+  flex-grow: 1; /* Example if main is part of a flex column layout for sticky footer */
 }
 
-/* Define bottom nav height, 0 if not present */
-:root {
-    --cv-bottom-nav-height: 0px; /* Default to 0, will be set if bottom nav is active */
-}
-/* body.has-bottom-nav is added by JS when bottom nav is active */
-
-
-/* Tablet and larger screens */
-@media (min-width: 768px) {
-    main {
-        padding-left: var(--cv-spacing-lg);
-        padding-right: var(--cv-spacing-lg);
-        /* Top and bottom padding will be set by .with-sticky-header and .has-bottom-nav contexts */
-    }
-    /* Bottom nav is typically not shown on tablets/desktops, so no padding adjustment needed here by default */
-}
-
-/* Desktop and very large screens - centered content with max-width */
-@media (min-width: 1024px) {
-    main {
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-        padding-left: var(--cv-spacing-xl);
-        padding-right: var(--cv-spacing-xl);
-    }
-}
-
-/* If using sticky header, main content needs top padding to not be obscured */
-main.with-sticky-header {
-    padding-top: calc(var(--cv-header-height-mobile, 50px) + var(--cv-spacing-md));
-}
-@media (min-width: 768px) {
-    main.with-sticky-header {
-        padding-top: calc(var(--cv-header-height-desktop, 60px) + var(--cv-spacing-lg));
-    }
-}
-/* Default bottom padding for main when not affected by bottom nav */
-main:not(body.has-bottom-nav main) {
-    padding-bottom: var(--cv-spacing-md);
-}
-@media (min-width: 768px) {
-    main:not(body.has-bottom-nav main) {
-        padding-bottom: var(--cv-spacing-lg);
-    }
-}
-@media (min-width: 1024px) {
-    main:not(body.has-bottom-nav main) {
-        padding-bottom: var(--cv-spacing-xl);
-    }
+@media (min-width: 1200px) {
+  main {
+    max-width: 1200px;
+    padding: 0 var(--cv-spacing-lg); /* Desktop padding */
+  }
 }
 
 
@@ -394,23 +298,17 @@ main:not(body.has-bottom-nav main) {
 .login-page__container {
     width: 100%;
     max-width: 400px;
-    padding: var(--cv-spacing-md);
-    margin: 0 auto; /* Center container on mobile if screen is wider than max-width */
+    padding: var(--cv-spacing-md); /* Use variable */
 }
 
 /* login-card enhances cv-card for login specific layout */
-.login-card { /* .cv-card provides base styling */
-    padding: var(--cv-spacing-lg); /* Use consistent lg spacing for mobile */
+/* .cv-card will provide base styling like background, border-radius, shadow */
+.login-card {
+    padding: var(--cv-spacing-lg) var(--cv-spacing-xl); /* More padding for login */
 }
-@media (min-width: 768px) {
-    .login-card {
-        padding: var(--cv-spacing-lg) var(--cv-spacing-xl); /* More padding for desktop */
-    }
-}
-
 
 .login-card__title {
-    font-size: var(--cv-font-size-h2); /* Use responsive heading size */
+    font-size: 2rem; /* Or from typographic scale */
     font-weight: 600;
     color: var(--current-text-primary);
     text-align: center;
@@ -436,45 +334,51 @@ main:not(body.has-bottom-nav main) {
 }
 
 .login-form__label {
-    font-size: var(--cv-font-size-text-sm); /* Use responsive var */
+    font-size: 0.9rem;
     color: var(--current-text-secondary);
     margin-bottom: var(--cv-spacing-xs);
 }
 
-/* .login-form__input is now .cv-input */
+/* .login-form__input specific styles are mostly covered by .cv-input now.
+   Ensure .cv-input is applied to the input elements in HTML.
+   Remove old .login-form__input styles to avoid conflict if they are too specific.
+*/
 
-.login-form__button {
-    width: 100%;
-    margin-top: var(--cv-spacing-sm);
-    /* cv-button--large can be defined in components.css for larger default button text/padding if needed */
+.login-form__button { /* Apply to the button if it's not using .cv-button directly */
+    width: 100%; /* Make button full width */
+    margin-top: var(--cv-spacing-sm); /* Use variable */
 }
 
-/* loginFeedback is now using .cv-alert for styling, specific login-form__feedback removed */
-
-
-/* Links for Login, Forgot Password, Register pages - already present later, consolidate if needed */
-.login-form__links {
+.login-form__feedback { /* Base style for feedback messages */
+    display: none; /* Hidden by default */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Standardized padding */
+    margin-top: var(--cv-spacing-md);
+    border-radius: var(--cv-border-radius-md); /* Standardized border-radius */
+    font-size: 0.9rem;
     text-align: center;
-    margin-top: var(--cv-spacing-lg); /* Increased margin for better spacing */
-}
-.login-form__link {
-    color: var(--current-text-link);
-    text-decoration: none;
-    font-size: var(--cv-font-size-text-md); /* Responsive text size */
-    padding: var(--cv-spacing-xs) var(--cv-spacing-sm); /* Add padding for easier tapping */
-}
-.login-form__link:hover {
-    text-decoration: underline;
-    background-color: var(--cv-gray-100-alpha-50); /* Subtle hover */
-}
-html[data-theme="dark"] .login-form__link:hover {
-    background-color: var(--cv-dark-gray-100-alpha-50);
-}
-.login-form__link-separator {
-    margin: 0 var(--cv-spacing-xs); /* Reduced margin for separator */
-    color: var(--current-text-placeholder); /* More subtle separator color */
+    border: var(--cv-border-width) solid transparent;
 }
 
+.login-form__feedback--error {
+    background-color: var(--current-color-error-bg);
+    color: var(--current-semantic-error);
+    border-color: var(--current-semantic-error);
+    display: block; /* Ensure it's visible when class is applied */
+}
+
+.login-form__feedback--success {
+    background-color: var(--current-color-success-bg);
+    color: var(--current-semantic-success);
+    border-color: var(--current-semantic-success);
+    display: block; /* Ensure it's visible when class is applied */
+}
+
+.login-form__feedback--loading {
+    background-color: var(--current-bg-element); /* Was --cv-gray-200 */
+    color: var(--current-text-secondary);
+    border-color: var(--current-border-color); /* Was --cv-gray-400 */
+    display: block; /* Ensure it's visible when class is applied */
+}
 
 /* === Financeiro Page Specific Styles === */
 .financeiro-page {
@@ -483,18 +387,12 @@ html[data-theme="dark"] .login-form__link:hover {
 }
 
 .fin-cobrancas-main {
-    padding-top: var(--cv-spacing-md); /* Adjusted for mobile */
-    padding-bottom: var(--cv-spacing-md);
-}
-@media (min-width: 768px) {
-    .fin-cobrancas-main {
-        padding-top: var(--cv-spacing-lg);
-        padding-bottom: var(--cv-spacing-lg);
-    }
+    padding-top: var(--cv-spacing-lg); /* Use variable */
+    padding-bottom: var(--cv-spacing-lg); /* Use variable */
 }
 
 .fin-cobrancas__title {
-    font-size: var(--cv-font-size-h2); /* Use responsive heading */
+    font-size: 1.8rem;
     color: var(--current-text-primary);
     margin-bottom: var(--cv-spacing-lg);
     text-align: center;
@@ -503,146 +401,103 @@ html[data-theme="dark"] .login-form__link:hover {
 
 .fin-cobrancas__dashboard {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Smaller min for mobile */
-    gap: var(--cv-spacing-sm);
-    margin-bottom: var(--cv-spacing-lg); /* Adjusted margin */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Already good, ensure this is used */
+    gap: var(--cv-spacing-sm); /* Smaller gap for mobile */
+    margin-bottom: var(--cv-spacing-xl);
 }
 @media (min-width: 768px) {
     .fin-cobrancas__dashboard {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Restore for desktop */
-        gap: var(--cv-spacing-md);
-        margin-bottom: var(--cv-spacing-xl);
+        gap: var(--cv-spacing-md); /* Original gap for larger screens */
     }
 }
 
-.fin-summary-card { /* .cv-card provides base */
-    padding: var(--cv-spacing-md);
+/* .fin-summary-card uses .cv-card for base styling */
+.fin-summary-card {
+    padding: var(--cv-spacing-md); /* Use variable */
     text-align: center;
 }
 
 .fin-summary-card__title {
-    font-size: var(--cv-font-size-text-md); /* Use responsive text size */
+    font-size: 1rem;
     color: var(--current-text-secondary);
-    margin-bottom: var(--cv-spacing-xs); /* Reduced margin */
+    margin-bottom: var(--cv-spacing-sm);
 }
 
 .fin-summary-card__value {
-    font-size: var(--cv-font-size-h3); /* Use responsive heading */
+    font-size: 1.75rem;
     font-weight: 600;
     color: var(--current-text-primary);
 }
 
 .fin-cobrancas__actions {
     display: flex;
-    flex-direction: column; /* Stack on mobile */
-    gap: var(--cv-spacing-md);
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
     padding: var(--cv-spacing-md);
     background-color: var(--current-bg-white);
     border-radius: var(--cv-border-radius-md);
     box-shadow: var(--current-shadow-sm);
-    margin-bottom: var(--cv-spacing-lg); /* Adjusted margin */
-}
-@media (min-width: 768px) {
-    .fin-cobrancas__actions {
-        flex-direction: row; /* Row on desktop */
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: var(--cv-spacing-xl);
-    }
+    margin-bottom: var(--cv-spacing-xl);
 }
 
 .fin-actions__group {
     display: flex;
-    flex-direction: column; /* Stack filter/sort on mobile */
+    align-items: center;
     gap: var(--cv-spacing-sm);
-    width: 100%; /* Full width for mobile */
-}
-@media (min-width: 768px) {
-    .fin-actions__group {
-        flex-direction: row; /* Row on desktop */
-        align-items: center;
-        width: auto; /* Auto width for desktop */
-        /* margin-bottom: 0; Removed individual margin-bottom, handled by parent gap */
-    }
+    margin-bottom: var(--cv-spacing-sm);
+    flex-wrap: wrap; /* Allow items within a group to wrap */
 }
 .fin-actions__group .cv-input,
 .fin-actions__group .cv-button {
-    width: 100%; /* Full width for mobile */
-}
-@media (min-width: 768px) {
-    .fin-actions__group .cv-input,
-    .fin-actions__group .cv-button {
-        min-width: 150px;
-        width: auto; /* Auto width for desktop */
-        /* flex-grow: 1; No longer needed due to layout changes */
-        /* margin-top/bottom removed as gap handles spacing */
-    }
+    min-width: 150px; /* Example: ensure buttons/inputs don't get too small */
+    flex-grow: 1; /* Allow them to grow */
+    margin-top: var(--cv-spacing-xs); /* Add some top margin if they wrap */
+    margin-bottom: var(--cv-spacing-xs); /* Add some bottom margin if they wrap */
 }
 
 .fin-actions__group label {
     font-weight: 500;
     color: var(--current-text-primary);
-    margin-bottom: var(--cv-spacing-xs); /* Add margin for stacked labels */
-}
-@media (min-width: 768px) {
-    .fin-actions__group label {
-        margin-bottom: 0; /* No margin for row layout */
-        margin-right: var(--cv-spacing-sm); /* Add right margin for row layout */
-    }
 }
 
+/* .fin-actions__group .cv-input, .fin-actions__group .cv-button will inherit styles */
 
 .fin-cobrancas__table-section {
     background-color: var(--current-bg-white);
-    padding: var(--cv-spacing-md); /* Reduced padding for mobile */
+    padding: var(--cv-spacing-lg);
     border-radius: var(--cv-border-radius-lg);
     box-shadow: var(--current-shadow-md);
-    overflow-x: auto; /* Enable horizontal scroll for table on small screens */
-}
-@media (min-width: 768px) {
-    .fin-cobrancas__table-section {
-        padding: var(--cv-spacing-lg); /* Restore desktop padding */
-    }
 }
 
 .fin-cobrancas__table {
-    margin-top: var(--cv-spacing-md);
+    /* Assuming .cv-table will be defined or this is a custom table */
+    margin-top: var(--cv-spacing-md); /* Use variable */
     width: 100%;
-    min-width: 600px; /* Force scroll on smaller screens if content is wide */
     border-collapse: collapse;
 }
 
-.fin-cobrancas__table th,
-.fin-cobrancas__table td {
-    padding: var(--cv-spacing-sm); /* Consistent padding */
-    font-size: var(--cv-font-size-text-md); /* Responsive text size */
-}
-@media (min-width: 768px) {
-    .fin-cobrancas__table th,
-    .fin-cobrancas__table td {
-        padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Desktop padding */
-    }
-}
-
 .fin-cobrancas__table th {
-    background-color: var(--current-bg-element);
+    background-color: var(--current-bg-element); /* Was --cv-gray-100 */
     color: var(--current-text-primary);
     font-weight: 600;
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
     text-align: left;
     border-bottom: 2px solid var(--current-border-color);
 }
 
 .fin-cobrancas__table td {
     vertical-align: middle;
-    border-bottom: 1px solid var(--current-border-subtle);
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
+    border-bottom: 1px solid var(--current-border-subtle); /* Was --cv-gray-200 */
 }
 
 .fin-cobrancas__table .cv-button {
     padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
-    font-size: 0.8rem; /* Keep smaller buttons in table */
+    font-size: 0.8rem;
     margin-right: var(--cv-spacing-xs);
-    white-space: nowrap; /* Prevent button text from wrapping */
 }
+
 .fin-cobrancas__table .cv-button:last-child {
     margin-right: 0;
 }
@@ -654,76 +509,53 @@ html[data-theme="dark"] .login-form__link:hover {
 }
 
 .db-main {
-    padding-top: var(--cv-spacing-md); /* Adjusted for mobile */
-    padding-bottom: var(--cv-spacing-md);
-}
-@media (min-width: 768px) {
-    .db-main {
-        padding-top: var(--cv-spacing-lg);
-        padding-bottom: var(--cv-spacing-lg);
-    }
+    padding-top: var(--cv-spacing-lg);
+    padding-bottom: var(--cv-spacing-lg);
 }
 
 .db-section {
-    margin-bottom: var(--cv-spacing-lg); /* Adjusted margin */
+    margin-bottom: var(--cv-spacing-xl);
     background-color: var(--current-bg-white);
-    padding: var(--cv-spacing-md); /* Adjusted padding for mobile */
+    padding: var(--cv-spacing-lg);
     border-radius: var(--cv-border-radius-lg);
     box-shadow: var(--current-shadow-md);
 }
-@media (min-width: 768px) {
-    .db-section {
-        margin-bottom: var(--cv-spacing-xl);
-        padding: var(--cv-spacing-lg);
-    }
-}
 
 .db-section__title {
-    font-size: var(--cv-font-size-h3); /* Use responsive heading */
+    font-size: 1.5rem;
     color: var(--current-text-primary);
     margin-top: 0;
-    margin-bottom: var(--cv-spacing-md); /* Adjusted margin */
+    margin-bottom: var(--cv-spacing-lg);
     padding-bottom: var(--cv-spacing-sm);
     border-bottom: var(--cv-border-width) solid var(--current-primary-blue);
     font-weight: 600;
 }
-@media (min-width: 768px) {
-    .db-section__title {
-        font-size: var(--cv-font-size-h2); /* Larger on desktop */
-        margin-bottom: var(--cv-spacing-lg);
-    }
-}
 
 .db-metrics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Smaller min for mobile */
-    gap: var(--cv-spacing-sm);
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Adjusted min value */
+    gap: var(--cv-spacing-sm); /* Smaller gap for mobile */
 }
 @media (min-width: 768px) {
     .db-metrics-grid {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: var(--cv-spacing-lg);
+        gap: var(--cv-spacing-lg); /* Original gap for larger screens */
     }
 }
 
-.db-metric-card { /* .cv-card provides base */
-    padding: var(--cv-spacing-md); /* Adjusted padding */
-}
-@media (min-width: 768px) {
-    .db-metric-card {
-        padding: var(--cv-spacing-lg);
-    }
+/* .db-metric-card uses .cv-card for base styling */
+.db-metric-card {
+    padding: var(--cv-spacing-lg); /* Override .cv-card padding if needed, or ensure consistency */
 }
 
 .db-metric-card__title {
-    font-size: var(--cv-font-size-text-lg); /* Responsive text size */
+    font-size: 1.1rem;
     color: var(--current-text-secondary);
     margin-top: 0;
-    margin-bottom: var(--cv-spacing-xs); /* Reduced margin */
+    margin-bottom: var(--cv-spacing-sm);
 }
 
 .db-metric-card__value {
-    font-size: var(--cv-font-size-h2); /* Responsive heading */
+    font-size: 2.2rem;
     font-weight: 600;
     color: var(--current-primary-blue);
     margin-top: 0;
@@ -731,8 +563,8 @@ html[data-theme="dark"] .login-form__link:hover {
 }
 
 .db-metric-card__subvalue {
-    font-size: var(--cv-font-size-text-md); /* Responsive text size */
-    color: var(--current-text-secondary);
+    font-size: 0.9rem;
+    color: var(--current-text-secondary); /* Was --cv-gray-600 */
     margin-top: 0;
     margin-bottom: var(--cv-spacing-sm);
 }
@@ -741,12 +573,12 @@ html[data-theme="dark"] .login-form__link:hover {
     list-style: none;
     padding: 0;
     margin: 0;
-    font-size: var(--cv-font-size-text-md); /* Responsive text size */
+    font-size: 0.9rem;
 }
 
 .db-metric-card__list li {
     padding: var(--cv-spacing-xs) 0;
-    border-bottom: 1px solid var(--current-border-subtle);
+    border-bottom: 1px solid var(--current-border-subtle); /* Was --cv-gray-200 */
 }
 .db-metric-card__list li:last-child {
     border-bottom: none;
@@ -760,44 +592,32 @@ html[data-theme="dark"] .login-form__link:hover {
 
 .db-columns {
     display: grid;
-    grid-template-columns: 1fr; /* Single column by default for mobile */
-    gap: var(--cv-spacing-lg); /* Adjusted gap */
+    grid-template-columns: 1fr; /* Single column by default */
+    gap: var(--cv-spacing-xl); /* Use variable */
 }
 
 @media (min-width: 992px) { /* Two columns for larger screens */
     .db-columns {
         grid-template-columns: 1fr 1fr;
-        gap: var(--cv-spacing-xl);
     }
     .db-columns .db-section {
-        margin-bottom: 0; /* Sections in columns don't need bottom margin */
+        margin-bottom: 0;
     }
 }
 
 .db-alerts-list {
-    max-height: 250px; /* Slightly reduced max height for mobile */
+    max-height: 300px;
     overflow-y: auto;
     padding: 0;
 }
-@media (min-width: 768px) {
-    .db-alerts-list {
-        max-height: 300px; /* Restore desktop max height */
-    }
-}
 
 .db-alert-item {
-    padding: var(--cv-spacing-sm); /* Adjusted padding */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
     margin-bottom: var(--cv-spacing-sm);
     border-radius: var(--cv-border-radius-sm);
     border: var(--cv-border-width) solid transparent;
-    border-left-width: 4px; /* Slightly thinner accent border */
-    background-color: var(--current-bg-light);
-}
-@media (min-width: 768px) {
-    .db-alert-item {
-        padding: var(--cv-spacing-sm) var(--cv-spacing-md);
-        border-left-width: 5px;
-    }
+    border-left-width: 5px; /* Emphasize left border */
+    background-color: var(--current-bg-light); /* Default background */
 }
 
 .db-alert-item:last-child {
@@ -805,23 +625,22 @@ html[data-theme="dark"] .login-form__link:hover {
 }
 
 .db-alert-item__title {
-    font-weight: 600; /* Adjusted weight */
+    font-weight: bold;
     display: block;
     margin-bottom: var(--cv-spacing-xs);
-    font-size: var(--cv-font-size-text-lg); /* Responsive text size */
+    font-size: 1.05em;
 }
 
 .db-alert-item__message {
-    font-size: var(--cv-font-size-text-md); /* Responsive text size */
+    font-size: 0.9rem;
     color: var(--current-text-secondary);
     display: block;
     margin-bottom: var(--cv-spacing-xs);
-    line-height: 1.4; /* Improved line height for messages */
 }
 
 .db-alert-item__date {
-    font-size: 0.8rem; /* Keep small */
-    color: var(--current-text-placeholder);
+    font-size: 0.8rem;
+    color: var(--current-text-placeholder); /* Was --cv-gray-500 */
     display: block;
     margin-top: var(--cv-spacing-xs);
     text-align: right;
@@ -830,7 +649,7 @@ html[data-theme="dark"] .login-form__link:hover {
 /* Alert Types */
 .db-alert-item--normal {
     border-left-color: var(--current-semantic-info);
-    background-color: var(--current-bg-element);
+    background-color: var(--current-bg-element); /* Was --cv-gray-100 */
 }
 .db-alert-item--normal .db-alert-item__title {
     color: var(--current-semantic-info);
@@ -856,73 +675,51 @@ html[data-theme="dark"] .login-form__link:hover {
     padding: 0;
 }
 
-.db-alerts-list p, .db-activity-feed p {
+.db-alerts-list p, .db-activity-feed p { /* For "Nenhum..." messages */
     color: var(--current-text-secondary);
     font-style: italic;
-    padding: var(--cv-spacing-md); /* Consistent padding */
+    padding: 0 var(--cv-spacing-lg) var(--cv-spacing-lg);
 }
 .db-alerts-list ul, .db-activity-feed ul {
     list-style-type: none;
-    padding: var(--cv-spacing-md); /* Consistent padding */
+    padding:0 var(--cv-spacing-lg) var(--cv-spacing-lg);
     margin: 0;
 }
 .db-alerts-list li, .db-activity-feed li {
     padding: var(--cv-spacing-sm) 0;
-    border-bottom: 1px dashed var(--current-border-subtle);
-    font-size: var(--cv-font-size-text-md); /* Responsive text size */
+    border-bottom: 1px dashed var(--current-border-subtle); /* Was --cv-gray-300 */
+    font-size: 0.95rem;
 }
 .db-alerts-list li:last-child, .db-activity-feed li:last-child {
     border-bottom: none;
 }
 
 .db-activity-feed__subtitle {
-    font-size: var(--cv-font-size-text-lg); /* Responsive text size */
+    font-size: 1.1rem;
     color: var(--current-text-primary);
-    margin: 0 var(--cv-spacing-md) var(--cv-spacing-sm) var(--cv-spacing-md); /* Adjusted margins */
+    margin: 0 var(--cv-spacing-lg) var(--cv-spacing-sm) var(--cv-spacing-lg);
     padding-bottom: var(--cv-spacing-xs);
-    border-bottom: 1px solid var(--current-border-subtle);
-}
-@media (min-width: 768px) {
-    .db-activity-feed__subtitle {
-        margin: 0 var(--cv-spacing-lg) var(--cv-spacing-sm) var(--cv-spacing-lg);
-    }
+    border-bottom: 1px solid var(--current-border-subtle); /* Was --cv-gray-200 */
 }
 .db-activity-feed__subtitle:first-of-type {
     margin-top: 0;
 }
 
 .db-quick-access {
-    display: grid; /* Use grid for better control on mobile */
-    grid-template-columns: 1fr; /* Single column on mobile */
-    gap: var(--cv-spacing-sm); /* Smaller gap for mobile */
-}
-@media (min-width: 576px) { /* Two columns for small tablets / wide mobile */
-    .db-quick-access {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-@media (min-width: 768px) { /* Flex wrap for larger screens */
-    .db-quick-access {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--cv-spacing-md);
-    }
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cv-spacing-md);
 }
 
 .db-quick-access__button {
-    /* .cv-button provides base styling */
+    /* .cv-button provides base, this is for specific overrides or if not using .cv-button class */
+    flex-grow: 1;
     background-color: var(--current-bg-white);
     color: var(--current-primary-blue);
     border: 1px solid var(--current-primary-blue);
     text-align: center;
-    width: 100%; /* Full width for grid layout */
-}
-@media (min-width: 768px) {
-    .db-quick-access__button {
-        flex-grow: 1; /* Allow to grow in flex layout */
-        min-width: 200px; /* Restore min-width for desktop */
-        width: auto; /* Auto width for flex layout */
-    }
+    min-width: 200px;
+    /* Inherit padding, font-family from .cv-button. Add .cv-button class to these elements in HTML. */
 }
 
 .db-quick-access__button:hover {
@@ -932,31 +729,24 @@ html[data-theme="dark"] .login-form__link:hover {
 
 /* Visually hidden class for accessibility */
 .visually-hidden {
-    position: absolute !important; /* Ensure override */
-    width: 1px !important;
-    height: 1px !important;
-    margin: -1px !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    border: 0 !important;
-    white-space: nowrap !important; /* Add for robustness */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
 }
-
 
 /* Chart Styles */
 .db-chart-container {
     margin-top: var(--cv-spacing-md);
     width: 100%;
-    max-width: 200px; /* Smaller max width for mobile charts */
+    max-width: 250px;
     height: auto;
     margin-left: auto;
     margin-right: auto;
-}
-@media (min-width: 768px) {
-    .db-chart-container {
-        max-width: 250px; /* Restore desktop max width */
-    }
 }
 
 .db-chart {
@@ -989,11 +779,18 @@ html[data-theme="dark"] .login-form__link:hover {
 /* End of specific page styles */
 
 /* Inline spinner adjustments, especially within buttons */
-/* Moved to components.css as it's part of .cv-button styling */
+.cv-button .inline-spinner {
+    width: 0.8em; /* Slightly smaller than default text */
+    height: 0.8em;
+    border-width: 0.15em; /* Thinner border for smaller size */
+    margin-left: 0.5em; /* Space it from text if text is on the left */
+    margin-right: 0.2em; /* If text is on the right, or just general spacing */
+    vertical-align: -0.1em; /* Fine-tune vertical alignment with text */
+}
 
 /* Loading Overlay removed */
 
-/* Message Banner - This can be replaced by the new Global Feedback Toast system */
+/* Message Banner */
 .message-banner {
     position: fixed;
     top: 0;
@@ -1025,51 +822,21 @@ html[data-theme="dark"] .login-form__link:hover {
     display: flex;
     align-items: center;
     margin-top: var(--cv-spacing-lg, 20px);
-    margin-bottom: var(--cv-spacing-md); /* Adjusted margin */
+    margin-bottom: 20px;
     padding: var(--cv-spacing-xs) 0;
-    border-bottom: 1px solid var(--current-border-subtle); /* Thinner border for a more iOS-like feel */
-    overflow-x: auto; /* Allow horizontal scrolling for tabs on small screens */
-    white-space: nowrap; /* Prevent tabs from wrapping */
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
 }
-/* Hide scrollbar for tab container */
-.cv-tabs::-webkit-scrollbar {
-    display: none; /* Safari and Chrome */
-}
-.cv-tabs {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-}
-
-
-.cv-tabs > .cv-tab-button { /* Ensure direct children are targeted */
-    display: inline-block; /* For nowrap to work correctly */
-}
-
 .cv-tabs > #open-sort-button,
 .cv-tabs > #open-filter-modal-button {
-    /* These buttons might need to be positioned differently on mobile,
-       perhaps above or below the tab bar, or in a separate actions row. */
     margin-top: var(--cv-spacing-xs);
     margin-bottom: var(--cv-spacing-xs);
-    margin-left: var(--cv-spacing-sm); /* Add some space from tabs */
-    flex-shrink: 0; /* Prevent buttons from shrinking */
 }
-/* For desktop, restore previous layout if needed */
-@media (min-width: 768px) {
-    .cv-tabs {
-        overflow-x: visible; /* No scroll needed on desktop */
-        white-space: normal; /* Allow wrapping if many tabs */
-        border-bottom: 2px solid var(--current-border-subtle); /* Restore thicker border */
-    }
-    .cv-tabs > #open-sort-button {
-        margin-left: auto; /* Push to the right */
-    }
-    .cv-tabs > #open-filter-modal-button {
-        margin-left: var(--cv-spacing-sm); /* Keep space from sort button */
-    }
+.cv-tabs > #open-sort-button {
+    margin-left: auto;
 }
-
+.cv-tabs > #open-filter-modal-button {
+    margin-left: 10px;
+}
 
 #open-sort-button.rotated svg {
     transform: rotate(180deg);
@@ -1079,31 +846,32 @@ html[data-theme="dark"] .login-form__link:hover {
 }
 
 .cv-tab-button {
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Adjusted padding */
+    padding: 10px 20px;
     cursor: pointer;
     border: none;
     background-color: transparent;
-    font-size: var(--cv-font-size-text-md); /* Use responsive text size */
+    font-size: var(--cv-font-size-md, 16px); /* Use variable or fallback */
     font-family: var(--cv-font-family-sans-serif);
     color: var(--current-text-secondary);
-    margin-right: var(--cv-spacing-xs); /* Reduced margin */
-    border-bottom: 2px solid transparent;
-    transition: border-color 0.2s ease, color 0.2s ease; /* Faster transition */
-    white-space: nowrap; /* Ensure button text doesn't wrap */
+    margin-right: 5px; /* Optional: spacing between tabs */
+    border-bottom: 2px solid transparent; /* For active indicator */
+    transition: border-color 0.3s ease, color 0.3s ease;
 }
 
 .cv-tab-button:hover {
-    color: var(--current-primary-blue);
+    color: var(--current-primary-blue, #007bff); /* Use variable or fallback */
 }
 
 .cv-tab-button.active {
-    border-bottom-color: var(--current-primary-blue);
-    font-weight: 600;
-    color: var(--current-primary-blue);
+    border-bottom-color: var(--current-primary-blue, #007bff); /* Use variable or fallback */
+    font-weight: 600; /* Using OpenSansSemibold effectively */
+    color: var(--current-primary-blue, #007bff); /* Use variable or fallback */
 }
 
 .cv-tab-content {
-    padding: var(--cv-spacing-md);
+    padding: var(--cv-spacing-md, 15px); /* Use variable or fallback */
+    /* border: 1px solid var(--current-border-color, #ddd); */ /* Optional */
+    /* border-top: none; */ /* Optional */
     width: 100%;
     max-width: 1200px; /* Max width similar to main content */
     margin-left: auto;
@@ -1153,70 +921,46 @@ html[data-theme="dark"] .login-form__link:hover {
 .filters-container {
     display: flex;
     flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    gap: var(--cv-spacing-sm); /* Smaller gap for mobile */
-    align-items: stretch; /* Stretch items to fill height */
-    flex-direction: column; /* Stack filters vertically on mobile */
-    margin-bottom: var(--cv-spacing-md); /* Adjusted margin */
-    padding: var(--cv-spacing-md);
-    background-color: var(--current-bg-white);
-    border-radius: var(--cv-border-radius-md);
+    gap: var(--cv-spacing-md, 15px); /* Spacing between filter elements */
+    align-items: center;
+    margin-bottom: var(--cv-spacing-lg, 20px);
+    padding: var(--cv-spacing-md, 15px);
+    background-color: var(--current-bg-white, #f8f9fa); /* Use theme variable or fallback */
+    border-radius: var(--cv-border-radius-md, 8px); /* Use theme variable */
     box-shadow: var(--current-shadow-sm);
-}
-@media (min-width: 768px) {
-    .filters-container {
-        flex-direction: row; /* Horizontal layout on desktop */
-        align-items: center; /* Align items center on desktop */
-        gap: var(--cv-spacing-md); /* Restore desktop gap */
-        margin-bottom: var(--cv-spacing-lg);
-    }
 }
 
 .filters-container label {
-    margin-right: var(--cv-spacing-xs);
-    font-weight: 500;
+    margin-right: var(--cv-spacing-xs, 5px);
+    font-weight: 500; /* Slightly bolder labels */
     color: var(--current-text-secondary);
-    margin-bottom: var(--cv-spacing-xs); /* Add margin for stacked labels */
-}
-@media (min-width: 768px) {
-    .filters-container label {
-        margin-bottom: 0; /* No bottom margin for row layout */
-    }
 }
 
 .filters-container .cv-input,
 .filters-container .cv-button {
-    width: 100%; /* Full width for mobile */
+    flex-grow: 1; /* Allow inputs/button to grow */
+    min-width: 150px; /* Minimum width for inputs/button */
 }
+
 @media (min-width: 768px) {
     .filters-container .cv-input,
     .filters-container .cv-button {
-        flex-grow: 1; /* Allow inputs/button to grow */
-        min-width: 150px;
-        width: auto; /* Auto width for desktop */
-    }
-}
-/* Ensure button does not grow excessively if alone in a row */
-@media (min-width: 768px) {
-    .filters-container .cv-button:not(:last-child) {
-        /* flex-grow: 0; */ /* This might be too restrictive, depends on context */
-    }
-    .filters-container .cv-button {
-         flex-grow: 0; /* Generally, buttons shouldn't grow too much */
+        flex-grow: 0; /* Prevent growing too much on larger screens */
     }
 }
 
 
 .fab {
     position: fixed;
-    bottom: var(--cv-spacing-md); /* Adjusted for mobile, less space from bottom */
-    right: var(--cv-spacing-md);  /* Adjusted for mobile */
-    width: 56px; /* Standard FAB size */
-    height: 56px; /* Standard FAB size */
-    background-color: var(--current-primary-blue);
-    color: var(--current-text-on-primary);
+    bottom: var(--cv-spacing-lg, 24px); /* Consistent spacing */
+    right: var(--cv-spacing-lg, 24px); /* Consistent spacing */
+    width: 72px; /* Slightly larger for better tap target */
+    height: 72px; /* Slightly larger for better tap target */
+    background-color: var(--current-primary-blue, #007bff);
+    color: var(--cv-text-on-primary, white);
     border: none;
     border-radius: 50%;
-    font-size: var(--cv-font-size-xl); /* Adjusted icon size */
+    font-size: var(--cv-font-size-lg, 22px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1257,62 +1001,53 @@ html[data-theme="dark"] .login-form__link:hover {
 }
 
 /* Container e menu de opções do FAB */
-.fab-menu {
+.fab-menu { /* This is the overall container for the FAB and its potential menu options */
     position: fixed;
-    bottom: var(--cv-spacing-md); /* Match FAB positioning */
-    right: var(--cv-spacing-md);  /* Match FAB positioning */
-    z-index: 1049;
+    bottom: var(--cv-spacing-lg, 20px); /* Keep consistent with FAB position */
+    right: var(--cv-spacing-lg, 20px);
+    z-index: 1049; /* Slightly below the FAB itself if FAB is part of this, or same if FAB is separate */
     display: flex;
-    flex-direction: column-reverse;
-    align-items: flex-end;
+    flex-direction: column-reverse; /* Options appear above the FAB */
+    align-items: flex-end; /* Align options to the right, matching FAB */
 }
+
+/* This is the actual button that triggers the menu, style it like the .fab above */
+/* If .fab-menu-button is the same as .fab, ensure only one is used in HTML or styles are merged */
+/* For this example, assuming .fab is the button and .fab-menu is just a wrapper for positioning options */
 
 .fab-menu-options {
-    position: absolute; /* Positioned relative to .fab-menu */
-    bottom: calc(56px + var(--cv-spacing-sm)); /* (FAB height + gap) */
-    right: 0; /* Align with the right edge of the FAB */
+    position: absolute;
+    bottom: 96px;
+    right: var(--cv-spacing-md);
     display: none;
     flex-direction: column;
-    gap: var(--cv-spacing-sm);
+    gap: var(--cv-spacing-sm, 8px);
     background-color: var(--current-bg-white);
-    padding: var(--cv-spacing-sm);
-    border-radius: var(--cv-border-radius-md); /* Slightly smaller radius for menu */
-    box-shadow: var(--current-shadow-lg); /* More pronounced shadow for menu */
-    min-width: 200px; /* Good minimum width for options */
-    z-index: 1051; /* Above FAB's z-index if FAB is separate, or if it's the menu itself */
-    animation: fab-options-appear 0.15s ease-out;
+    padding: var(--cv-spacing-sm, 8px);
+    border-radius: var(--cv-border-radius-lg, 14px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.1);
+    min-width: 180px;
+    z-index: 1051;
 }
 html[data-theme="dark"] .fab-menu-options {
-    background-color: var(--cv-dark-gray-300); /* Darker background for dark theme menu */
-    box-shadow: var(--cv-dark-shadow-lg);
+    background-color: var(--cv-dark-gray-200);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.3), 0 20px 40px rgba(0,0,0,0.3);
 }
-
-@keyframes fab-options-appear {
-    from {
-        opacity: 0;
-        transform: translateY(10px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
 .fab-menu--open .fab-menu-options {
     display: flex;
 }
 .fab-menu-options .cv-button {
     width: 100%;
-    justify-content: flex-start; /* Align text to the left */
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Consistent padding */
-    /* Ensure button styles are appropriate for menu items (e.g., borderless or tinted) */
+    justify-content: flex-start;
 }
 
-.fab-menu > .fab { /* If FAB is a direct child of .fab-menu */
-     z-index: 1050; /* Ensure FAB is above options container if they overlap during animation */
+/* If the FAB itself is part of .fab-menu and not a separate element outside it: */
+.fab-menu > .fab {
+     z-index: 1050;
 }
 
-/* Helper class for loading/error/empty messages */
+
+/* Helper class for loading messages if not already present */
 .cv-loading-message, .cv-error-message, .cv-no-more-message {
     padding: var(--cv-spacing-md);
     text-align: center;
@@ -1336,123 +1071,88 @@ html[data-theme="dark"] .fab-menu-options {
     background-color: rgba(0,0,0,0.4); /* Standard overlay, slightly less dim than before */
     align-items: center;
     justify-content: center;
-    padding: var(--cv-spacing-sm); /* Reduced padding for mobile edges */
+    padding: var(--cv-spacing-md); /* Add some padding for smaller screens so modal doesn't touch edges */
     box-sizing: border-box;
-    align-items: flex-end; /* Default to bottom sheet behavior on mobile */
-    justify-content: center; /* Center content vertically if not full height */
 }
-@media (min-width: 768px) { /* Tablet and desktop: Center modal */
-    .cv-modal {
-        padding: var(--cv-spacing-md);
-        align-items: center;
-    }
-}
-
 
 .cv-modal-content {
     background-color: var(--current-bg-white);
-    padding: 0;
+    padding: 0; /* Remove padding here, will be handled by header/body/footer sections */
     border: none;
-    width: 100%; /* Full width on mobile */
-    max-width: 500px; /* Max width for desktop */
-    border-radius: var(--cv-border-radius-lg) var(--cv-border-radius-lg) 0 0; /* Rounded top corners for bottom sheet */
-    position: relative; /* Changed from relative to allow absolute positioning of close button if needed */
-    box-shadow: var(--current-shadow-lg); /* Consistent shadow */
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh; /* Max height for mobile bottom sheet */
-    animation: cv-modal-slide-up 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-@media (min-width: 768px) { /* Desktop: standard modal appearance */
-    .cv-modal-content {
-        border-radius: var(--cv-border-radius-lg); /* All corners rounded */
-        max-height: calc(100vh - var(--cv-spacing-xl) * 2); /* Desktop max height */
-        animation: cv-modal-scale-up 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-}
+    width: 100%;
+    max-width: 500px; /* Slightly smaller max-width, common for iOS alerts/modals */
+    border-radius: var(--cv-border-radius-lg, 14px); /* iOS often uses larger radii like 13-14px for modals */
+    position: relative;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.1); /* Adjusted shadow */
 
+    /* max-height: calc(100vh - (var(--cv-spacing-md) * 2)); */ /* Temporarily remove to restructure */
+    /* overflow-y: auto; */ /* Temporarily remove to restructure */
+
+    display: flex; /* Use flex to structure header, body, footer */
+    flex-direction: column;
+    max-height: calc(100vh - var(--cv-spacing-xl) * 2); /* Ensure modal fits screen with good margin */
+
+    animation: cv-modal-scale-up 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Faster, more iOS-like spring */
+}
 
 html[data-theme="dark"] .cv-modal-content {
      background-color: var(--cv-dark-gray-200);
-     box-shadow: var(--cv-dark-shadow-lg); /* Use consistent dark shadow */
+     box-shadow: 0 12px 24px rgba(0,0,0,0.3), 0 20px 40px rgba(0,0,0,0.3);
 }
 
+/* Utility padding for modals that don't use header/body sections */
 .cv-modal-content--padded {
-    padding: var(--cv-spacing-md); /* Adjusted padding */
-}
-@media (min-width: 768px) {
-    .cv-modal-content--padded {
-        padding: var(--cv-spacing-lg);
-    }
+    padding: var(--cv-spacing-lg);
 }
 
 .cv-modal-header {
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Adjusted padding */
+    padding: var(--cv-spacing-md) var(--cv-spacing-lg);
     border-bottom: 1px solid var(--current-border-subtle);
     display: flex;
+    /* justify-content: space-between; */ /* Replaced by specific title/close button handling */
     align-items: center;
-    min-height: 50px; /* Adjusted min-height */
+    min-height: 56px; /* Standard iOS header height */
     box-sizing: border-box;
-    position: relative;
+    position: relative; /* For absolute positioning of close button if needed */
 }
-@media (min-width: 768px) {
-    .cv-modal-header {
-        padding: var(--cv-spacing-md) var(--cv-spacing-lg);
-        min-height: 56px;
-    }
-}
-
 html[data-theme="dark"] .cv-modal-header {
     border-bottom-color: var(--cv-dark-gray-400);
 }
 
-.cv-modal-header h2 {
+.cv-modal-header h2 { /* Modal Title */
     margin: 0;
-    font-size: var(--cv-font-size-text-lg); /* Responsive title size */
+    font-size: var(--cv-font-size-lg);
     color: var(--current-text-primary);
     font-weight: 600;
     line-height: 1.3;
     text-align: center;
     flex-grow: 1;
-    /* Adjust padding for close button, assuming it's 24px wide + 8px spacing */
-    padding-left: calc(24px + var(--cv-spacing-sm));
-    padding-right: calc(24px + var(--cv-spacing-sm));
+    padding-left: 40px; /* Make space for close button if it's on the left */
+    padding-right: 40px; /* Make space for close button if it's on the right */
+    /* This padding assumes the close button is roughly 30px + 10px spacing */
 }
-@media (min-width: 768px) {
-    .cv-modal-header h2 {
-        font-size: var(--cv-font-size-lg); /* Desktop title size */
-        /* Adjust padding for close button, assuming it's 30px wide + 16px spacing */
-        padding-left: calc(30px + var(--cv-spacing-md));
-        padding-right: calc(30px + var(--cv-spacing-md));
-    }
-}
-
-.cv-modal-header .cv-modal-close { /* Ensure close button is correctly positioned */
-    position: absolute;
-    right: var(--cv-spacing-sm); /* Closer for mobile */
+/* The .cv-modal-close button is expected to be absolutely positioned or handled by flex order */
+/* If close button is always on right: */
+.cv-modal-header .cv-modal-close {
+    position: absolute; /* Simpler to manage for true centering of title */
+    right: var(--cv-spacing-md);
     top: 50%;
     transform: translateY(-50%);
 }
-@media (min-width: 768px) {
-    .cv-modal-header .cv-modal-close {
-        right: var(--cv-spacing-md); /* Desktop spacing */
-    }
-}
+/* If title should be truly centered regardless of close button, and close is part of flex: */
+/* .cv-modal-header { justify-content: center; } */
+/* .cv-modal-header h2 { flex-grow: 0; } */
+/* .cv-modal-header .cv-modal-close { position: absolute; right: var(--cv-spacing-md); ... } */
+/* For this iteration, absolute positioning of close button is robust for title centering. */
 
 
 .cv-modal-body {
-    padding: var(--cv-spacing-md); /* Adjusted padding */
+    padding: var(--cv-spacing-lg);
     overflow-y: auto;
     flex-grow: 1;
     -webkit-overflow-scrolling: touch;
-    font-size: var(--cv-font-size-text-md);
-    line-height: 1.6; /* Improved line height */
-}
-@media (min-width: 768px) {
-    .cv-modal-body {
-        padding: var(--cv-spacing-lg);
-        font-size: var(--cv-font-size-md); /* Restore original desktop size if needed */
-    }
+    font-size: var(--cv-font-size-md); /* Standard body text size */
+    line-height: 1.5;
 }
 .cv-modal-body p:first-child {
     margin-top: 0;
@@ -1462,71 +1162,42 @@ html[data-theme="dark"] .cv-modal-header {
 }
 
 .cv-modal-footer {
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Adjusted padding */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-lg); /* Reduced padding for a tighter footer */
     border-top: 1px solid var(--current-border-subtle);
     display: flex;
-    flex-direction: column; /* Stack buttons on mobile by default */
+    justify-content: flex-end;
     gap: var(--cv-spacing-sm);
     background-color: var(--current-bg-white);
-    border-bottom-left-radius: 0; /* No bottom radius for bottom sheet */
-    border-bottom-right-radius: 0;
-    min-height: auto; /* Auto height for stacked buttons */
-    align-items: stretch; /* Stretch buttons to full width */
+    border-bottom-left-radius: var(--cv-border-radius-lg, 14px);
+    border-bottom-right-radius: var(--cv-border-radius-lg, 14px);
+    min-height: 50px; /* Min height for footer */
+    align-items: center; /* Vertically align buttons if they have different heights */
     box-sizing: border-box;
 }
-@media (min-width: 768px) { /* Desktop: row layout for footer buttons */
-    .cv-modal-footer {
-        flex-direction: row;
-        justify-content: flex-end;
-        min-height: 50px;
-        align-items: center;
-        padding: var(--cv-spacing-sm) var(--cv-spacing-lg);
-        border-bottom-left-radius: var(--cv-border-radius-lg); /* Restore radius */
-        border-bottom-right-radius: var(--cv-border-radius-lg);
-    }
-}
-
 html[data-theme="dark"] .cv-modal-footer {
     background-color: var(--cv-dark-gray-200);
     border-top-color: var(--cv-dark-gray-400);
 }
 
+/* Default modal buttons in footer (non-alert style) */
 .cv-modal-footer .cv-button {
-    width: 100%; /* Full width for stacked buttons on mobile */
-}
-@media (min-width: 768px) {
-    .cv-modal-footer .cv-button {
-        width: auto; /* Auto width for desktop */
-    }
+    /* Use the new button styles by default */
+    /* Example: make primary button more prominent if needed */
 }
 .cv-modal-footer .cv-button.cv-button--primary {
-    /* No specific change needed, inherits from .cv-button */
+    /* font-weight: 600; */ /* Already handled by button style itself */
 }
 
 
+/* iOS-style Alert/Dialog buttons in footer */
 .cv-modal-footer.cv-modal-footer--ios-alert {
-    /* On mobile, iOS alerts often have buttons stacked if more than two, or side-by-side if two */
-    /* This implementation keeps them stacked on mobile for simplicity, side-by-side on desktop */
-    flex-direction: column; /* Stacked on mobile */
     justify-content: center;
     padding: 0;
     gap: 0;
-    border-top-color: var(--current-border-color);
+    border-top-color: var(--current-border-color); /* Thicker/more visible separator for alert buttons */
 }
-@media (min-width: 768px) { /* Desktop: Side-by-side for iOS alert buttons */
-    .cv-modal-footer.cv-modal-footer--ios-alert {
-        flex-direction: row;
-    }
-    .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:not(:first-child) {
-        border-left: 1px solid var(--current-border-color); /* Vertical separators for desktop */
-    }
-    html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:not(:first-child) {
-        border-left-color: var(--cv-dark-gray-500);
-    }
-}
-
 html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert {
-    border-top-color: var(--cv-dark-gray-500);
+    border-top-color: var(--cv-dark-gray-500); /* Even more distinct separator for dark mode alerts */
 }
 
 .cv-modal-footer.cv-modal-footer--ios-alert .cv-button {
@@ -1535,32 +1206,25 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert {
     margin: 0;
     padding-top: var(--cv-spacing-md);
     padding-bottom: var(--cv-spacing-md);
-    font-size: var(--cv-font-size-text-lg); /* Slightly larger text for alert buttons */
-    min-height: 48px;
-    border: none;
-    background-color: transparent;
-    color: var(--current-primary-blue);
-    border-top: 1px solid var(--current-border-color); /* Horizontal separators for stacked mobile buttons */
+    font-size: var(--cv-font-size-md);
+    min-height: 48px; /* Slightly taller alert buttons */
+    border: none; /* Remove individual button borders */
+    /* border-top: 1px solid var(--current-border-subtle); */ /* Top border is now on the footer itself */
+    background-color: transparent; /* Alert buttons are typically transparent */
+    color: var(--current-primary-blue); /* Default action color */
 }
-.cv-modal-footer.cv-modal-footer--ios-alert .cv-button:first-child {
-    border-top: none; /* No top border for the first button in a stack */
+.cv-modal-footer.cv-modal-footer--ios-alert .cv-button:not(:first-child) {
+    border-left: 1px solid var(--current-border-color); /* Vertical separators */
 }
-@media (min-width: 768px) { /* Remove top border for desktop row layout */
-    .cv-modal-footer.cv-modal-footer--ios-alert .cv-button {
-        border-top: none;
-        font-size: var(--cv-font-size-md); /* Restore original desktop size */
-    }
-}
-
-
 html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button {
     color: var(--cv-dark-primary-blue);
-    border-top-color: var(--cv-dark-gray-500); /* Dark theme separator for stacked */
+}
+html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:not(:first-child) {
+    border-left-color: var(--cv-dark-gray-500);
 }
 
-
-.cv-modal-footer.cv-modal-footer--ios-alert .cv-button.cv-button--primary,
-.cv-modal-footer.cv-modal-footer--ios-alert .cv-button:last-child:not(.cv-button--destructive) {
+.cv-modal-footer.cv-modal-footer--ios-alert .cv-button.cv-button--primary, /* Preferred action */
+.cv-modal-footer.cv-modal-footer--ios-alert .cv-button:last-child:not(.cv-button--destructive) { /* Or last button if not destructive */
     font-weight: 600;
 }
 .cv-modal-footer.cv-modal-footer--ios-alert .cv-button.cv-button--destructive {
@@ -1573,7 +1237,7 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button.c
 .cv-modal-footer.cv-modal-footer--ios-alert .cv-button.cv-button--destructive.cv-button--primary {
     font-weight: 600;
 }
-
+/* Hover/Active for iOS alert buttons */
 .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:hover {
     background-color: var(--cv-gray-100-alpha-50);
 }
@@ -1588,18 +1252,6 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:a
 }
 
 
-/* Mobile bottom sheet animation */
-@keyframes cv-modal-slide-up {
-    from {
-        opacity: 0.5; /* Start slightly transparent */
-        transform: translateY(100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-/* Desktop scale-up animation (remains the same) */
 @keyframes cv-modal-scale-up {
     from {
         opacity: 0;
@@ -1611,37 +1263,37 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:a
     }
 }
 
-
-.cv-modal-close {
+/* Remove old global .cv-modal-content h2 and .cv-modal-close as they are now part of .cv-modal-header */
+/*
+.cv-modal-content h2 {
+    margin-top: 0;
+    font-size: var(--cv-font-size-h3);
+    color: var(--current-text-primary);
+    border-bottom: 1px solid var(--current-border-subtle);
+    padding-bottom: var(--cv-spacing-md);
+    margin-bottom: var(--cv-spacing-lg);
+    font-weight: 600;
+}
+*/
+.cv-modal-close { /* This is the actual close button, typically an 'X' icon */
     color: var(--current-text-placeholder);
-    background-color: transparent;
-    border-radius: 50%;
-    width: 24px; /* Smaller close button for mobile */
-    height: 24px;
+    background-color: transparent; /* iOS close buttons are often just icons */
+    border-radius: 50%; /* Circular button */
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: absolute;
-    top: var(--cv-spacing-sm); /* Adjusted for mobile header */
-    right: var(--cv-spacing-sm);
-    font-size: 18px; /* Adjusted icon size */
-    font-weight: normal;
+    top: var(--cv-spacing-md); /* Consistent spacing */
+    right: var(--cv-spacing-md);
+    font-size: 20px; /* Adjust size of '×' */
+    font-weight: normal; /* Not too bold */
     line-height: 1;
     text-decoration: none;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
-@media (min-width: 768px) { /* Desktop close button */
-    .cv-modal-close {
-        width: 30px;
-        height: 30px;
-        top: var(--cv-spacing-md);
-        right: var(--cv-spacing-md);
-        font-size: 20px;
-    }
-}
-
 html[data-theme="dark"] .cv-modal-close {
-    /* Consistent background for dark theme, or can be themed differently */
     background-color: var(--cv-dark-gray-400);
     color: var(--cv-dark-text-placeholder);
 }
@@ -1649,13 +1301,13 @@ html[data-theme="dark"] .cv-modal-close {
 .cv-modal-close:hover,
 .cv-modal-close:focus {
     color: var(--current-text-primary);
-    background-color: var(--cv-gray-300);
+    background-color: var(--cv-gray-300); /* Darken background on hover */
     outline: none;
     text-decoration: none;
     cursor: pointer;
 }
 
-/* Styling for form elements within modal */
+/* Styling for form elements within modal, assuming .cv-form, .cv-form-group, .cv-input, .cv-button are globally styled */
 #form-criar-aviso .cv-form-group {
     margin-bottom: var(--cv-spacing-md, 15px);
 }
@@ -1742,263 +1394,248 @@ html[data-theme="dark"] .cv-modal-close {
 
 /* Enquetes Tab Specific Styles */
 #content-enquetes .cv-section {
-    margin-bottom: var(--cv-spacing-lg); /* Adjusted margin */
-    padding-bottom: var(--cv-spacing-md); /* Adjusted padding */
-    border-bottom: 1px solid var(--current-border-subtle);
+    margin-bottom: var(--cv-spacing-xl, 30px); /* Use theme variable */
+    padding-bottom: var(--cv-spacing-lg, 20px); /* Use theme variable */
+    border-bottom: 1px solid var(--current-border-subtle, #eee); /* Use theme variable */
 }
-@media (min-width: 768px) {
-    #content-enquetes .cv-section {
-        margin-bottom: var(--cv-spacing-xl);
-        padding-bottom: var(--cv-spacing-lg);
-    }
-}
-#content-enquetes .cv-section:last-of-type {
+#content-enquetes .cv-section:last-of-type { /* Use last-of-type for better specificity */
     border-bottom: none;
 }
-#content-enquetes .cv-section h3 {
-    font-size: var(--cv-font-size-h4);
+#content-enquetes .cv-section h3 { /* Sub-section titles */
+    font-size: var(--cv-font-size-h4); /* Use theme variable */
     color: var(--current-text-primary);
     margin-bottom: var(--cv-spacing-md);
 }
 
 
-.enquetes-list .cv-card { /* .cv-card provides base */
-    margin-bottom: var(--cv-spacing-md);
-    padding: var(--cv-spacing-md);
-    /* background-color, border-radius, box-shadow from .cv-card */
+.enquetes-list .cv-card { /* Assuming polls are displayed in cards */
+    margin-bottom: var(--cv-spacing-md, 15px); /* Use theme variable */
+    padding: var(--cv-spacing-md, 15px); /* Use theme variable */
+    background-color: var(--current-bg-white); /* Use theme variable */
+    border-radius: var(--cv-border-radius-md); /* Use theme variable */
+    box-shadow: var(--current-shadow-sm); /* Use theme variable */
 }
 
 .enquetes-list .cv-card h4 { /* Poll question */
-    font-size: var(--cv-font-size-text-lg); /* Responsive text size */
+    font-size: var(--cv-font-size-lg); /* Use theme variable */
     color: var(--current-text-primary);
-    margin-top: 0;
-    margin-bottom: var(--cv-spacing-sm);
-}
-@media (min-width: 768px) {
-    .enquetes-list .cv-card h4 {
-        font-size: var(--cv-font-size-lg); /* Larger on desktop */
-    }
+    margin-top: 0; /* Remove default margin if any */
+    margin-bottom: var(--cv-spacing-sm, 10px); /* Use theme variable */
 }
 
-.enquetes-list .cv-card p { /* Poll metadata */
-    font-size: var(--cv-font-size-text-md); /* Responsive text size */
+.enquetes-list .cv-card p { /* Poll metadata like deadline, author */
+    font-size: 0.9em;
     color: var(--current-text-secondary);
-    margin-bottom: var(--cv-spacing-xs);
+    margin-bottom: var(--cv-spacing-xs, 5px); /* Use theme variable */
 }
 .enquetes-list .cv-card p:last-of-type {
-    margin-bottom: var(--cv-spacing-sm);
+    margin-bottom: var(--cv-spacing-sm); /* More space after last metadata before options/actions */
 }
 
 
 .enquetes-list .cv-card .poll-options {
     margin-top: var(--cv-spacing-sm);
     margin-bottom: var(--cv-spacing-md);
-    display: flex; /* Allow buttons to wrap */
-    flex-wrap: wrap;
-    gap: var(--cv-spacing-sm);
 }
-.enquetes-list .cv-card .poll-options .cv-button {
-    /* margin-right and margin-bottom handled by gap */
+.enquetes-list .cv-card .poll-options .cv-button { /* If options are buttons */
+    margin-right: var(--cv-spacing-xs, 5px); /* Use theme variable */
+    margin-bottom: var(--cv-spacing-xs, 5px); /* Use theme variable */
 }
-.enquetes-list .cv-card .poll-options label { /* For radio/checkbox options */
+/* Example styling for radio/checkbox options if not buttons */
+.enquetes-list .cv-card .poll-options label {
     display: block;
     margin-bottom: var(--cv-spacing-xs);
-    width: 100%; /* Make labels full width for better tap targets if used with inputs */
 }
 
 
 .enquetes-list .cv-card .poll-status {
-    font-size: var(--cv-font-size-text-md); /* Responsive text size */
+    font-size: 0.9em;
     margin-top: var(--cv-spacing-sm);
 }
 .enquetes-list .cv-card .poll-status.voted {
-    color: var(--current-semantic-success);
-    font-weight: 600;
+    color: var(--current-semantic-success, green); /* Use theme variable */
+    font-weight: 600; /* OpenSansSemibold */
 }
 .enquetes-list .cv-card .poll-status.not-voted {
-    color: var(--current-semantic-warning);
+    color: var(--current-semantic-warning, orange); /* Use theme variable */
 }
 .enquetes-list .cv-card .poll-status.closed {
-    color: var(--current-text-placeholder);
+    color: var(--current-text-placeholder, #888);
 }
 
 
 .enquete-resultados-details {
-    padding: var(--cv-spacing-md);
-    background-color: var(--current-bg-element); /* Use themed element background */
-    border-radius: var(--cv-border-radius-md);
-    min-height: auto; /* Auto height */
+    padding: var(--cv-spacing-md, 15px); /* Use theme variable */
+    background-color: var(--cv-gray-100, #f9f9f9); /* Use theme variable for light bg */
+    border-radius: var(--cv-border-radius-md); /* Use theme variable */
+    min-height: 100px;
     margin-bottom: var(--cv-spacing-md);
 }
-.enquete-resultados-details h4 {
-    font-size: var(--cv-font-size-text-lg); /* Responsive */
+.enquete-resultados-details h4 { /* Title for results, e.g., "Resultados para: [Poll Question]" */
+    font-size: var(--cv-font-size-lg);
     margin-bottom: var(--cv-spacing-sm);
 }
+/* Styles for charts or result bars would go here */
 
 
 .js-back-to-active-enquetes {
-    margin-top: var(--cv-spacing-sm);
+    margin-top: var(--cv-spacing-sm, 10px); /* Use theme variable */
 }
 
-/* Form styling for Enquete modal - similar to other forms */
+/* FAB for enquetes - .fab class should cover it unless specific icon/color is needed */
+/* .js-fab-enquetes {} */
+
+/* Modal for Enquetes - .cv-modal and .cv-modal-content should cover it */
+/* #modal-criar-enquete .cv-modal-content {} */
+/* Specific form styling for Enquete modal, if different from Aviso modal */
 #form-criar-enquete .cv-form-group {
-    margin-bottom: var(--cv-spacing-md);
+    margin-bottom: var(--cv-spacing-md, 15px);
 }
 #form-criar-enquete label {
     display: block;
-    margin-bottom: var(--cv-spacing-xs);
+    margin-bottom: var(--cv-spacing-xs, 5px);
     font-weight: 500;
     color: var(--current-text-secondary);
 }
-#form-criar-enquete .cv-input { /* Includes textareas, inputs */
+#form-criar-enquete .cv-input {
     width: 100%;
     box-sizing: border-box;
 }
 #form-criar-enquete textarea.cv-input {
     resize: vertical;
-    min-height: 100px; /* Increased min-height for better usability */
+    min-height: 80px; /* Same as aviso form */
 }
-
+#form-criar-enquete input[type="datetime-local"].cv-input {
+    /* Specific styling for datetime-local if needed */
+}
 
 /* Enhancements for Poll Cards and Results Display */
-.communication__poll-card {
-    margin-bottom: var(--cv-spacing-lg);
+.communication__poll-card { /* This is the new class for individual poll cards */
+    margin-bottom: var(--cv-spacing-lg, 20px); /* More spacing between poll cards */
+    /* .cv-card base styling is inherited. Add specific overrides if needed */
 }
 
-.communication__poll-card h4 {
-    font-size: var(--cv-font-size-text-lg); /* Responsive */
+.communication__poll-card h4 { /* Poll Question */
+    font-size: var(--cv-font-size-lg); /* Already in .enquetes-list .cv-card h4, ensure it applies if class is different */
     color: var(--current-text-primary);
-    margin-bottom: var(--cv-spacing-sm);
-}
-@media (min-width: 768px) {
-    .communication__poll-card h4 {
-        font-size: var(--cv-font-size-lg);
-    }
+    margin-bottom: var(--cv-spacing-sm, 10px);
 }
 
-.communication__poll-card p {
-    font-size: var(--cv-font-size-text-md); /* Responsive */
+.communication__poll-card p { /* Metadata like deadline, status */
+    font-size: 0.9em;
     color: var(--current-text-secondary);
-    margin-bottom: var(--cv-spacing-xs);
+    margin-bottom: var(--cv-spacing-xs, 4px);
 }
 .communication__poll-card p.poll-status {
-    margin-top: var(--cv-spacing-sm);
-    margin-bottom: var(--cv-spacing-md);
+    margin-top: var(--cv-spacing-sm, 8px);
+    margin-bottom: var(--cv-spacing-md, 15px); /* More space after status before options/results link */
 }
 
 
-.poll-options {
-    margin-top: var(--cv-spacing-md);
-    margin-bottom: var(--cv-spacing-md);
-    display: flex; /* Ensure options (buttons or text) flow well */
-    flex-wrap: wrap;
-    gap: var(--cv-spacing-sm);
+.poll-options { /* Container for vote buttons or chosen option text */
+    margin-top: var(--cv-spacing-md, 15px);
+    margin-bottom: var(--cv-spacing-md, 15px);
 }
 
-.poll-options .cv-button.vote-option {
-    /* Spacing handled by gap in .poll-options */
+.poll-options .cv-button.vote-option { /* Specific class for vote buttons */
+    margin-right: var(--cv-spacing-sm, 8px);
+    margin-bottom: var(--cv-spacing-sm, 8px);
 }
-.poll-options p strong {
+.poll-options p strong { /* Styling for the "Sua escolha: XYZ" text */
     color: var(--current-text-primary);
 }
 
 
-.view-results { /* Link/button to view results */
-    font-size: var(--cv-font-size-text-md); /* Responsive */
+.view-results { /* Class for "Ver Resultados Parciais" button */
+    font-size: 0.9em; /* Match other link buttons */
 }
 
 /* Poll Result Bar Styling */
-.poll-result-item {
-    margin-bottom: var(--cv-spacing-sm);
+.poll-result-item { /* Container for one option's result */
+    margin-bottom: var(--cv-spacing-sm, 10px);
 }
 .poll-result-option-text {
     display: block;
-    font-size: var(--cv-font-size-text-md); /* Responsive */
+    font-size: 0.95em;
     color: var(--current-text-secondary);
-    margin-bottom: var(--cv-spacing-xs);
+    margin-bottom: var(--cv-spacing-xs, 4px);
 }
 .poll-result-bar-container {
     width: 100%;
-    background-color: var(--cv-gray-200);
-    border-radius: var(--cv-border-radius-sm);
-    overflow: hidden;
+    background-color: var(--cv-gray-200, #e9ecef); /* Light gray background for the track */
+    border-radius: var(--cv-border-radius-sm, 4px);
+    overflow: hidden; /* Ensure inner bar respects border radius */
 }
 .poll-result-bar {
-    height: 24px; /* Slightly taller bar */
-    line-height: 24px;
-    color: var(--cv-text-on-primary);
+    height: 22px;
+    line-height: 22px; /* Vertically center text */
+    color: var(--cv-text-on-primary, white);
     text-align: center;
-    font-size: 0.8rem; /* Smaller text inside bar */
-    font-weight: 600;
-    border-radius: var(--cv-border-radius-sm);
-    transition: width 0.5s ease-in-out;
-    white-space: nowrap;
-    overflow: hidden;
-    padding: 0 var(--cv-spacing-xs);
+    font-size: 0.85em;
+    font-weight: 600; /* Semibold */
+    border-radius: var(--cv-border-radius-sm, 4px); /* Match container, or slightly less if padding desired */
+    transition: width 0.5s ease-in-out; /* Animate bar width changes */
+    white-space: nowrap; /* Prevent text wrapping */
+    overflow: hidden; /* Hide text if bar is too small, though % should be visible */
+    padding: 0 var(--cv-spacing-xs); /* Small padding for text inside bar */
     box-sizing: border-box;
 }
 
 /* Admin Actions for Poll Cards */
 .communication__poll-card .admin-actions {
-    margin-top: var(--cv-spacing-md);
-    padding-top: var(--cv-spacing-sm);
-    border-top: 1px solid var(--current-border-subtle);
-    text-align: right;
+    margin-top: var(--cv-spacing-md, 15px);
+    padding-top: var(--cv-spacing-sm, 10px);
+    border-top: 1px solid var(--current-border-subtle, #eee);
+    text-align: right; /* Align buttons to the right */
     display: flex;
     justify-content: flex-end;
-    gap: var(--cv-spacing-sm);
+    gap: var(--cv-spacing-sm, 8px);
 }
 
 .communication__poll-card .admin-actions .cv-button-link {
-    font-size: 0.85em;
-    margin-left: 0;
+    /* Uses existing .cv-button-link styling */
+    /* Add specific overrides if needed, e.g., font size or padding */
+    font-size: 0.85em; /* Slightly smaller for admin actions */
+    margin-left: 0; /* Reset margin if .cv-button-link has default left margin */
 }
 
 /* Chamados Tab Specific Styles */
 #content-chamados .cv-section {
-    margin-bottom: var(--cv-spacing-lg); /* Adjusted */
-    padding-bottom: var(--cv-spacing-md); /* Adjusted */
-    border-bottom: 1px solid var(--current-border-subtle);
-}
-@media (min-width: 768px) {
-    #content-chamados .cv-section {
-        margin-bottom: var(--cv-spacing-xl);
-        padding-bottom: var(--cv-spacing-lg);
-    }
+    margin-bottom: var(--cv-spacing-xl, 30px);
+    padding-bottom: var(--cv-spacing-lg, 20px);
+    border-bottom: 1px solid var(--current-border-subtle, #eee);
 }
 #content-chamados .cv-section:last-of-type {
     border-bottom: none;
 }
 #content-chamados .cv-section h3 {
-    font-size: var(--cv-font-size-h4); /* Responsive */
+    font-size: var(--cv-font-size-h4);
     color: var(--current-text-primary);
     margin-bottom: var(--cv-spacing-md);
 }
 
 /* Styling for the list of chamados */
-.chamados-list .cv-card { /* .cv-card provides base */
-    margin-bottom: var(--cv-spacing-md);
-    padding: var(--cv-spacing-md);
-    cursor: pointer;
+.chamados-list .cv-card { /* Assuming chamados are displayed in cards */
+    margin-bottom: var(--cv-spacing-md, 15px);
+    padding: var(--cv-spacing-md, 15px);
+    background-color: var(--current-bg-white);
+    border-radius: var(--cv-border-radius-md);
+    box-shadow: var(--current-shadow-sm);
+    cursor: pointer; /* Indicate items are clickable to see details */
     transition: box-shadow 0.2s ease-in-out;
 }
 .chamados-list .cv-card:hover {
     box-shadow: var(--current-shadow-md);
 }
 .chamados-list .cv-card h4 { /* Chamado Title */
-    font-size: var(--cv-font-size-text-lg); /* Responsive */
+    font-size: var(--cv-font-size-lg);
     color: var(--current-text-primary);
-    margin: 0 0 var(--cv-spacing-xs) 0;
+    margin: 0 0 var(--cv-spacing-xs, 4px) 0;
 }
-@media (min-width: 768px) {
-    .chamados-list .cv-card h4 {
-        font-size: var(--cv-font-size-lg);
-    }
-}
-.chamados-list .cv-card p { /* metadata */
-    font-size: var(--cv-font-size-text-md); /* Responsive */
+.chamados-list .cv-card p { /* metadata like status, date, category */
+    font-size: 0.9em;
     color: var(--current-text-secondary);
-    margin-bottom: var(--cv-spacing-xs);
+    margin-bottom: var(--cv-spacing-xs, 4px);
 }
 .chamados-list .cv-card .chamado-status-aberto { color: var(--current-semantic-warning); font-weight: 600; }
 .chamados-list .cv-card .chamado-status-em_andamento { color: var(--current-semantic-info); font-weight: 600; }
@@ -2007,65 +1644,60 @@ html[data-theme="dark"] .cv-modal-close {
 
 /* Styling for Chamado Detail View */
 .chamado-detail-content {
-    padding: var(--cv-spacing-md);
-    background-color: var(--current-bg-element);
+    padding: var(--cv-spacing-md, 15px);
+    background-color: var(--current-bg-element, #f9f9f9); /* Slightly different bg */
     border-radius: var(--cv-border-radius-md);
-    margin-bottom: var(--cv-spacing-lg);
+    margin-bottom: var(--cv-spacing-lg, 20px);
 }
 .chamado-detail-content p {
-    margin-bottom: var(--cv-spacing-sm);
+    margin-bottom: var(--cv-spacing-sm, 8px);
     line-height: 1.6;
 }
-.chamado-detail-content strong {
-    font-weight: 600;
+.chamado-detail-content strong { /* For labels like "Status:", "Categoria:" */
+    font-weight: 600; /* OpenSansSemibold */
     color: var(--current-text-primary);
 }
 
 .chamado-interactions {
-    margin-top: var(--cv-spacing-lg);
+    margin-top: var(--cv-spacing-lg, 20px);
 }
 .chamado-interactions h4 {
-    font-size: var(--cv-font-size-text-lg); /* Responsive */
+    font-size: var(--cv-font-size-lg);
     margin-bottom: var(--cv-spacing-sm);
-}
-@media (min-width: 768px) {
-    .chamado-interactions h4 {
-        font-size: var(--cv-font-size-lg);
-    }
 }
 .interaction-item {
-    padding: var(--cv-spacing-sm);
-    border: 1px solid var(--current-border-subtle);
-    border-radius: var(--cv-border-radius-sm);
-    margin-bottom: var(--cv-spacing-sm);
+    padding: var(--cv-spacing-sm, 10px);
+    border: 1px solid var(--current-border-subtle, #eee);
+    border-radius: var(--cv-border-radius-sm, 5px);
+    margin-bottom: var(--cv-spacing-sm, 10px);
     background-color: var(--current-bg-white);
 }
 .interaction-item p {
-    margin: 0 0 var(--cv-spacing-xs) 0;
-    white-space: pre-wrap;
+    margin: 0 0 var(--cv-spacing-xs, 5px) 0;
+    white-space: pre-wrap; /* Preserve line breaks in comments */
 }
 .interaction-item .meta {
-    font-size: 0.8rem; /* Keep small */
-    color: var(--current-text-placeholder);
+    font-size: 0.8em;
+    color: var(--current-text-placeholder, #777);
 }
 .interaction-item .meta .author {
-    font-weight: 600;
+    font-weight: 600; /* OpenSansSemibold */
 }
 
-/* Admin-only fields in modal */
+/* Admin-only fields in modal - already have .admin-only-field class for JS control */
 #form-criar-chamado .admin-only-field {
     border-top: 1px dashed var(--current-border-subtle);
     margin-top: var(--cv-spacing-md);
     padding-top: var(--cv-spacing-md);
 }
 
-/* Form styling for Chamado modal */
+/* Specific form styling for Chamado modal, if different */
 #form-criar-chamado .cv-form-group {
-    margin-bottom: var(--cv-spacing-md);
+    margin-bottom: var(--cv-spacing-md, 15px);
 }
 #form-criar-chamado label {
     display: block;
-    margin-bottom: var(--cv-spacing-xs);
+    margin-bottom: var(--cv-spacing-xs, 5px);
     font-weight: 500;
     color: var(--current-text-secondary);
 }
@@ -2075,7 +1707,7 @@ html[data-theme="dark"] .cv-modal-close {
 }
 #form-criar-chamado textarea.cv-input {
     resize: vertical;
-    min-height: 100px; /* Consistent with Enquete form */
+    min-height: 100px;
 }
 
 /* Links for Login, Forgot Password, Register pages */
@@ -2099,28 +1731,18 @@ html[data-theme="dark"] .cv-modal-close {
 /* Destaque visual para itens prioritários do feed (ex: comunicados urgentes,
    enquetes ativas, lembretes de boleto) */
 .feed-item.prio-0 {
-    border-left: 4px solid var(--cv-primary-orange); /* Slightly thinner border */
-    background-color: var(--current-bg-element); /* Use themed element background */
+    border-left: 5px solid var(--cv-primary-orange);
+    background-color: var(--cv-gray-100);
     position: relative;
-    padding-left: var(--cv-spacing-lg); /* Add padding to make space for icon */
-}
-html[data-theme="dark"] .feed-item.prio-0 {
-    background-color: var(--cv-dark-gray-300);
-    border-left-color: var(--cv-dark-primary-orange);
 }
 
 .feed-item.prio-0::before {
-    content: "📌"; /* Using emoji directly */
+    content: "\1F4CC"; /* emoji de alfinete */
     position: absolute;
-    left: var(--cv-spacing-sm); /* Position icon within new padding */
-    top: var(--cv-spacing-md); /* Adjust vertical position */
-    font-size: 1.1em; /* Adjust emoji size if needed */
-    color: var(--current-primary-orange); /* Match border color */
+    left: 5px;
+    top: 5px;
+    font-size: 1.2em; /* Ajustar tamanho do emoji se necessário */
 }
-html[data-theme="dark"] .feed-item.prio-0::before {
-    color: var(--cv-dark-primary-orange);
-}
-
 
 /* Progressive Image Loading Styles for Feed */
 .feed-item__image-container {
@@ -2130,18 +1752,19 @@ html[data-theme="dark"] .feed-item.prio-0::before {
     aspect-ratio: 16 / 9;
     background-color: var(--current-border-subtle); /* Cor de fundo enquanto a imagem não carrega */
     margin-bottom: var(--cv-spacing-sm);
-    overflow: hidden;
-    border-radius: var(--cv-border-radius-sm); /* Smaller radius for images within cards */
+    overflow: hidden; /* Garante que a imagem não ultrapasse o container */
+    border-radius: var(--cv-border-radius-md); /* Consistente com cards */
 }
 
 .feed-item__image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* Cobre o container, pode cortar um pouco da imagem */
     display: block;
-    filter: blur(8px); /* Slightly less blur */
-    transform: scale(1.05); /* Slightly less scale */
-    transition: filter 0.4s ease-out, transform 0.4s ease-out; /* Slightly faster transition */
+    /* Initial blur for LQIP effect - will be overridden by JS once high-res loads */
+    filter: blur(10px);
+    transform: scale(1.1); /* Slightly zoom to avoid blurred edges showing container bg */
+    transition: filter 0.5s ease-out, transform 0.5s ease-out; /* Suaviza a transição */
 }
 
 .feed-item__image.loaded {
@@ -2149,7 +1772,12 @@ html[data-theme="dark"] .feed-item.prio-0::before {
     transform: scale(1);
 }
 
-/* Removed .feed-item__pin as .prio-0::before handles this */
+
+.feed-item__pin {
+    font-size: 0.85em;
+    color: var(--cv-primary-orange);
+    margin-right: 4px;
+}
 
 /* Feed Item Chip/Tag Styles */
 .feed-item__tags {
@@ -2160,119 +1788,83 @@ html[data-theme="dark"] .feed-item.prio-0::before {
 }
 
 .feed-item__tag {
-    background-color: var(--current-bg-element); /* Use themed element background */
-    color: var(--current-text-secondary); /* Use secondary text color */
-    padding: 2px 6px; /* Smaller padding for tags */
+    background-color: var(--cv-gray-200);
+    color: var(--cv-gray-700);
+    padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
     border-radius: var(--cv-border-radius-sm);
-    font-size: 0.7rem; /* Smaller font size */
+    font-size: 0.75rem;
     font-weight: 500;
-    text-transform: uppercase;
-    border: 1px solid var(--current-border-subtle); /* Add subtle border */
+    text-transform: uppercase; /* Opcional */
 }
+
 html[data-theme="dark"] .feed-item__tag {
-    background-color: var(--cv-dark-gray-400); /* Ensure good contrast on dark */
-    color: var(--cv-dark-text-primary);
-    border-color: var(--cv-dark-gray-500);
+    background-color: var(--cv-dark-gray-400);
+    color: var(--cv-dark-gray-900);
 }
 
-/* Type-specific tag colors - ensure good contrast and use theme variables */
-.feed-item__tag--aviso { background-color: var(--current-primary-blue); color: var(--current-text-on-primary); border-color: var(--current-primary-blue); }
-.feed-item__tag--enquete { background-color: var(--current-primary-green); color: var(--current-text-on-primary); border-color: var(--current-primary-green); }
-.feed-item__tag--chamado { background-color: var(--current-primary-orange); color: var(--current-text-on-primary); border-color: var(--current-primary-orange); }
-.feed-item__tag--documento { background-color: var(--current-text-secondary); color: var(--current-bg-white); border-color: var(--current-text-secondary); }
+/* Example of type-specific tag colors (optional) */
+.feed-item__tag--aviso { background-color: var(--cv-primary-blue); color: white; }
+.feed-item__tag--enquete { background-color: var(--cv-primary-green); color: white; }
+.feed-item__tag--chamado { background-color: var(--cv-primary-orange); color: white; }
+.feed-item__tag--documento { background-color: var(--cv-gray-500); color: white; }
 
-html[data-theme="dark"] .feed-item__tag--aviso { background-color: var(--cv-dark-primary-blue); color: var(--cv-dark-text-on-primary-bg); border-color: var(--cv-dark-primary-blue); }
-html[data-theme="dark"] .feed-item__tag--enquete { background-color: var(--cv-dark-primary-green); color: var(--cv-dark-text-on-primary-bg); border-color: var(--cv-dark-primary-green); }
-html[data-theme="dark"] .feed-item__tag--chamado { background-color: var(--cv-dark-primary-orange); color: var(--cv-dark-text-on-primary-bg); border-color: var(--cv-dark-primary-orange); }
-html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-dark-gray-500); color: var(--cv-dark-text-primary); border-color: var(--cv-dark-gray-500); }
+html[data-theme="dark"] .feed-item__tag--aviso { background-color: var(--cv-dark-primary-blue); }
+html[data-theme="dark"] .feed-item__tag--enquete { background-color: var(--cv-dark-primary-green); }
+html[data-theme="dark"] .feed-item__tag--chamado { background-color: var(--cv-dark-primary-orange); }
+/* Note: Dark theme for 'documento' tag might need a different dark gray if cv-gray-500 is too light on dark bg */
+html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-dark-gray-500); }
 
 
-/* Page Title Styles */
-.cv-page-title {
-    font-size: var(--cv-font-size-h1); /* Use responsive H1 */
-    margin-bottom: var(--cv-spacing-md); /* Adjusted margin */
+/* Biblioteca de Documentos Styles */
+.cv-page-title { /* Estilo para o título principal da página, como "Biblioteca de Documentos" */
+    font-size: var(--cv-font-size-h2, 1.75rem);
+    margin-bottom: var(--cv-spacing-lg, 20px);
     color: var(--current-text-primary);
-    font-weight: 600; /* Semibold for titles */
+    font-weight: 600;
     padding-bottom: var(--cv-spacing-sm);
     border-bottom: 1px solid var(--current-border-subtle);
 }
-@media (min-width: 768px) {
-    .cv-page-title {
-        margin-bottom: var(--cv-spacing-lg);
-    }
-}
 
-/* Actions Section (Filters, Upload Buttons, etc.) */
-.cv-section--actions {
+.cv-section--actions { /* Para a seção de filtros e botão de upload */
     display: flex;
-    flex-direction: column; /* Stack on mobile */
-    gap: var(--cv-spacing-sm); /* Smaller gap for mobile */
-    margin-bottom: var(--cv-spacing-md); /* Adjusted margin */
+    flex-wrap: wrap;
+    gap: var(--cv-spacing-md);
+    align-items: center;
+    margin-bottom: var(--cv-spacing-lg);
     padding: var(--cv-spacing-md);
     background-color: var(--current-bg-white);
     border-radius: var(--cv-border-radius-md);
     box-shadow: var(--current-shadow-sm);
 }
-@media (min-width: 768px) {
-    .cv-section--actions {
-        flex-direction: row; /* Row layout for desktop */
-        align-items: center;
-        justify-content: space-between; /* Space out groups of actions */
-        gap: var(--cv-spacing-md);
-        margin-bottom: var(--cv-spacing-lg);
-    }
-}
 .cv-section--actions .cv-input,
 .cv-section--actions .cv-button {
-    width: 100%; /* Full width for mobile */
+    flex-grow: 1; /* Inputs e botões podem crescer */
 }
 @media (min-width: 768px) {
-    .cv-section--actions .cv-input {
-        min-width: 200px; /* Min width for desktop inputs */
-        width: auto; /* Auto width for desktop */
-        flex-grow: 1; /* Allow input to grow */
-    }
+    .cv-section--actions .cv-input,
     .cv-section--actions .cv-button {
-        min-width: auto; /* Buttons take their content size */
-        width: auto;
-        flex-grow: 0; /* Buttons don't grow */
+        flex-grow: 0; /* Não crescer demais em telas maiores */
+        min-width: 200px; /* Largura mínima */
     }
 }
 
 
-/* Card Grid - General */
 .card-grid {
     display: grid;
-    grid-template-columns: 1fr; /* Single column for mobile by default */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: var(--cv-spacing-md);
 }
-@media (min-width: 576px) { /* Two columns for small tablets / wide mobile */
-    .card-grid {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Min width for cards */
-    }
-}
-@media (min-width: 992px) { /* Adjust minmax for larger screens if needed */
-    .card-grid {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    }
-}
 
-/* Feed Grid (Single Column, Centered) */
-.feed-grid {
+.feed-grid { /* Novo estilo para o feed de uma coluna */
     display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--cv-spacing-md); /* Adjusted gap */
-    max-width: 700px;
+    grid-template-columns: 1fr; /* Apenas uma coluna */
+    gap: var(--cv-spacing-lg); /* Espaçamento maior entre itens do feed */
+    max-width: 700px; /* Largura máxima para o feed, centralizado pelo .cv-tab-content */
     margin-left: auto;
     margin-right: auto;
 }
-@media (min-width: 768px) {
-    .feed-grid {
-        gap: var(--cv-spacing-lg);
-    }
-}
-.feed-grid .cv-card {
-    /* Specific adjustments for cards in feed if needed */
+.feed-grid .cv-card { /* Ajustes nos cards dentro do feed, se necessário */
+    /* Por exemplo, se os cards no feed precisarem de margens ou paddings diferentes */
 }
 
 
@@ -2283,129 +1875,94 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: var(--cv-spacing-lg) var(--cv-spacing-md); /* Adjusted padding */
+    padding: var(--cv-spacing-xl) var(--cv-spacing-md);
     text-align: center;
-    min-height: 250px; /* Reduced min-height */
+    min-height: 300px; /* Ensure it takes some space */
     width: 100%;
     box-sizing: border-box;
-    border: 1px dashed var(--current-border-subtle);
-    border-radius: var(--cv-border-radius-md); /* Adjusted radius */
-    background-color: var(--current-bg-element);
-}
-@media (min-width: 768px) {
-    .cv-empty-state, .cv-error-state {
-        padding: var(--cv-spacing-xl) var(--cv-spacing-md);
-        min-height: 300px;
-        border-radius: var(--cv-border-radius-lg);
-    }
+    border: 1px dashed var(--current-border-subtle); /* Adiciona uma borda sutil */
+    border-radius: var(--cv-border-radius-lg); /* Borda arredondada */
+    background-color: var(--current-bg-element); /* Um fundo levemente diferente da página */
 }
 
-.cv-empty-state__image {
-    max-width: 120px; /* Reduced max-width for mobile */
+.cv-empty-state__image { /* Novo estilo para a imagem */
+    max-width: 150px; /* Tamanho máximo da ilustração */
     height: auto;
-    margin-bottom: var(--cv-spacing-md); /* Adjusted margin */
-    opacity: 0.7;
-}
-@media (min-width: 768px) {
-    .cv-empty-state__image {
-        max-width: 150px;
-        margin-bottom: var(--cv-spacing-lg);
-    }
+    margin-bottom: var(--cv-spacing-lg);
+    opacity: 0.7; /* Levemente transparente para suavizar */
 }
 
-.cv-empty-state__icon,
+.cv-empty-state__icon, /* Mantido para compatibilidade ou uso futuro */
 .cv-error-state__icon {
-    margin-bottom: var(--cv-spacing-md); /* Adjusted margin */
+    margin-bottom: var(--cv-spacing-lg);
 }
 .cv-empty-state__icon svg,
 .cv-error-state__icon svg {
-    width: 48px; /* Smaller icons for mobile */
-    height: 48px;
+    width: 64px;
+    height: 64px;
     color: var(--current-text-placeholder);
-}
-@media (min-width: 768px) {
-    .cv-empty-state__icon svg,
-    .cv-error-state__icon svg {
-        width: 64px;
-        height: 64px;
-    }
 }
 .cv-error-state__icon svg {
     color: var(--current-semantic-error);
 }
 
-.cv-empty-state__title,
+.cv-empty-state__title, /* Títulos mais discretos se a imagem for o foco */
 .cv-error-state__title {
-    font-size: var(--cv-font-size-h4); /* Responsive heading */
+    font-size: var(--cv-font-size-h4); /* Um pouco menor que h3 */
     color: var(--current-text-primary);
     margin-top: 0;
-    margin-bottom: var(--cv-spacing-xs);
+    margin-bottom: var(--cv-spacing-xs); /* Menor margem se a descrição for mais importante */
     font-weight: 600;
 }
 
-.cv-empty-state__message,
+.cv-empty-state__message, /* Novo nome para consistência, usado no HTML */
 .cv-empty-state__description,
 .cv-error-state__message {
-    font-size: var(--cv-font-size-text-md); /* Responsive text size */
+    font-size: var(--cv-font-size-md);
     color: var(--current-text-secondary);
-    margin-bottom: var(--cv-spacing-md);
-    max-width: 90%; /* Ensure text doesn't go too wide on mobile */
+    margin-bottom: var(--cv-spacing-md); /* Espaçamento antes das ações */
+    max-width: 450px;
     line-height: 1.6;
 }
-@media (min-width: 768px) {
-    .cv-empty-state__message,
-    .cv-empty-state__description,
-    .cv-error-state__message {
-        max-width: 450px; /* Restore max-width for desktop */
-    }
-}
-.cv-empty-state__message:last-of-type {
+.cv-empty-state__message:last-of-type { /* Remove margem inferior do último parágrafo de mensagem */
     margin-bottom: var(--cv-spacing-lg);
 }
 
 
 .cv-empty-state__actions {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Stack buttons vertically on small screens */
     gap: var(--cv-spacing-sm);
     align-items: center;
-    width: 100%; /* Make actions container full width for mobile */
 }
-@media (min-width: 576px) {
+
+@media (min-width: 576px) { /* Or your preferred breakpoint for horizontal buttons */
     .cv-empty-state__actions {
-        flex-direction: row;
-        justify-content: center; /* Center buttons on wider screens */
-        width: auto; /* Auto width for row layout */
+        flex-direction: row; /* Buttons side-by-side on larger screens */
     }
 }
 
 .cv-empty-state__action,
 .cv-error-state__retry-button {
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Adjusted padding */
-    font-size: var(--cv-font-size-text-md); /* Responsive text size */
-    width: 100%; /* Full width buttons on mobile */
-    max-width: 280px; /* Max width for buttons */
-}
-@media (min-width: 576px) {
-    .cv-empty-state__action,
-    .cv-error-state__retry-button {
-        width: auto; /* Auto width for desktop */
-        padding: var(--cv-spacing-sm) var(--cv-spacing-lg);
-        font-size: var(--cv-font-size-md); /* Original desktop size */
-    }
+    /* .cv-button styles are inherited. Add specific overrides if needed. */
+    /* Example: make buttons slightly larger for empty/error states */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-lg);
+    font-size: var(--cv-font-size-md);
 }
 /* End of .cv-empty-state and .cv-error-state styles */
 
 
-/* Document List (uses .card-grid) */
 .document-list {
-    /* Uses .card-grid for layout, defined above */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--cv-spacing-md);
 }
 
-.document-item { /* .cv-card provides base */
+.document-item { /* Estilo para cada card de documento - usa .cv-card como base */
+    /* .cv-card já fornece background, border, padding, shadow */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: space-between; /* Para alinhar ações na parte inferior */
 }
 
 .document-item__info {
@@ -2413,44 +1970,37 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
 }
 
 .document-item__title {
-    font-size: var(--cv-font-size-text-lg); /* Responsive */
+    font-size: var(--cv-font-size-lg); /* 1.125rem */
     font-weight: 600;
     color: var(--current-text-primary);
     margin-bottom: var(--cv-spacing-xs);
-    line-height: 1.3; /* Improve title readability */
-}
-@media (min-width: 768px) {
-    .document-item__title {
-        font-size: var(--cv-font-size-lg);
-    }
 }
 
 .document-item__meta {
-    font-size: var(--cv-font-size-text-md); /* Responsive */
+    font-size: 0.85rem;
     color: var(--current-text-secondary);
     line-height: 1.4;
 }
 .document-item__meta span {
-    display: block;
+    display: block; /* Cada meta info em uma nova linha, ou usar flex/grid para layout em linha */
     margin-bottom: 2px;
 }
 
 .document-item__actions {
-    margin-top: auto;
+    margin-top: auto; /* Empurra as ações para o final do card se o card tiver altura variável */
     padding-top: var(--cv-spacing-sm);
     border-top: 1px solid var(--current-border-subtle);
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap on small cards */
-    justify-content: flex-end;
-    gap: var(--cv-spacing-xs); /* Smaller gap for action buttons */
+    justify-content: flex-end; /* Alinha botões à direita */
+    gap: var(--cv-spacing-sm);
 }
 .document-item__actions .cv-button {
-    font-size: 0.85rem; /* Slightly smaller buttons */
+    font-size: 0.9rem; /* Botões de ação um pouco menores */
     padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
 }
 
 
-/* Form styling for Document Upload Modal */
+/* Estilos para o modal de upload de documentos, se necessário além do .cv-modal */
 #formUploadDocumento .cv-form-group {
     margin-bottom: var(--cv-spacing-md);
 }
@@ -2460,13 +2010,18 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     font-weight: 500;
     color: var(--current-text-secondary);
 }
-#formUploadDocumento .cv-input {
+#formUploadDocumento .cv-input { /* Garante que inputs dentro do form do modal usem o estilo global */
     width: 100%;
     box-sizing: border-box;
 }
+/* Reservas - Espaços Comuns */
+/* Portaria Cards */
 
-/* Portaria Cards use .card-grid as well */
-/* .card-grid already defined with responsive columns */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--cv-spacing-md);
+}
 
 /* Espaços Comuns */
 .espaco-card {
@@ -2477,61 +2032,43 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
 .espaco-card h4 {
     margin-top: 0;
     margin-bottom: var(--cv-spacing-sm);
-    font-size: var(--cv-font-size-text-lg); /* Responsive */
-    color: var(--current-text-primary);
 }
-@media (min-width: 768px) {
-    .espaco-card h4 {
-        font-size: var(--cv-font-size-lg);
-    }
-}
-
 
 .espaco-card p {
     margin: 0 0 var(--cv-spacing-xs);
-    font-size: var(--cv-font-size-text-md); /* Responsive */
-    color: var(--current-text-secondary);
 }
 
 .espaco-card .espaco-card-actions {
-    margin-top: auto; /* Push actions to bottom */
+    margin-top: auto;
+    display: flex;
+    gap: var(--cv-spacing-sm);
+    justify-content: flex-end;
     padding-top: var(--cv-spacing-sm);
     border-top: 1px solid var(--current-border-subtle);
-    display: flex;
-    flex-wrap: wrap; /* Allow actions to wrap */
-    gap: var(--cv-spacing-xs); /* Smaller gap for actions */
-    justify-content: flex-end;
-}
-.espaco-card .espaco-card-actions .cv-button {
-    font-size: 0.85rem; /* Smaller buttons in card actions */
 }
 
-
-/* Visitantes & Encomendas Cards (can also use .cv-card as a base) */
+/* Visitantes & Encomendas */
 .visitante-card,
 .encomenda-card {
-    /* .cv-card provides base: background, border, padding, shadow, margin-bottom */
-    /* Specific styles if needed beyond .cv-card */
+    background-color: var(--current-bg-white);
+    border: var(--cv-border-width) solid var(--current-border-color);
+    border-radius: var(--cv-border-radius-lg);
+    padding: var(--cv-spacing-md);
+    box-shadow: var(--current-shadow-md);
 }
 
 .visitante-card h4,
 .encomenda-card h4 {
     margin-top: 0;
     margin-bottom: var(--cv-spacing-xs);
-    font-size: var(--cv-font-size-text-lg); /* Responsive */
+    font-size: var(--cv-font-size-lg);
     color: var(--current-text-primary);
-}
-@media (min-width: 768px) {
-    .visitante-card h4,
-    .encomenda-card h4 {
-        font-size: var(--cv-font-size-lg);
-    }
 }
 
 .visitante-card p,
 .encomenda-card p {
     margin: 2px 0;
-    font-size: var(--cv-font-size-text-md); /* Responsive */
+    font-size: 0.9rem;
     color: var(--current-text-secondary);
 }
 
@@ -2539,11 +2076,6 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
 .encomenda-card__acoes {
     margin-top: var(--cv-spacing-sm);
     display: flex;
-    flex-wrap: wrap; /* Allow actions to wrap */
     gap: var(--cv-spacing-xs);
-}
-.visitante-card__acoes .cv-button,
-.encomenda-card__acoes .cv-button {
-    font-size: 0.85rem; /* Smaller buttons */
 }
 

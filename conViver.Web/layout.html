@@ -13,55 +13,34 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
 </head>
 <body>
-    <div id="global-message-banner" class="message-banner"></div> <!-- This can be replaced by new toast system -->
-
+    <div id="global-message-banner" class="message-banner"></div>
     <header class="cv-header">
-        <div class="cv-header__container">
-            <div class="cv-header__left-actions">
-                <button id="mobileMenuToggle" class="cv-button icon-button menu-toggle-button hide-on-desktop" aria-label="Abrir menu" aria-expanded="false">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-                </button>
-            </div>
+        <div class="cv-container cv-header__container">
             <h1 class="cv-header__title">conViver</h1>
-            <div class="cv-header__right-actions">
-                <button id="userMenuButton" class="user-avatar" aria-label="Menu do usuário"></button>
-            </div>
+            <button id="userMenuButton" class="user-avatar"></button>
         </div>
     </header>
-
-    <div id="userMenuModal" class="cv-modal user-menu-modal" role="dialog" aria-modal="true" aria-labelledby="userMenuTitle">
+    <div id="userMenuModal" class="cv-modal user-menu-modal">
         <div class="cv-modal-content">
-            <!-- Header removido do userMenu para um visual mais popover -->
+            <header class="cv-modal-header">
+                <span class="cv-modal-close" id="userMenuClose">&times;</span>
+            </header>
             <div class="cv-modal-body">
-                <ul class="user-menu-list" role="menu">
-                    <li role="none"><button id="goProfileButton" class="cv-button" role="menuitem">Gerenciar Perfil</button></li>
-                    <li role="none"><button id="toggleThemeButton" class="cv-button" role="menuitem">Alterar Tema</button></li>
-                    <li role="none" class="menu-separator"><hr></li>
-                    <li role="none"><button id="userLogoutButton" class="cv-button cv-button--destructive" role="menuitem">Logout</button></li>
-                </ul>
+                <ul class="user-menu-list">
+                <li><button id="toggleThemeButton" class="cv-button">Alterar Tema</button></li>
+                <li><button id="goProfileButton" class="cv-button">Gerenciar Perfil</button></li>
+                <li><button id="userLogoutButton" class="cv-button">Logout</button></li>
+            </ul>
             </div>
         </div>
     </div>
-
-    <nav id="mainNav" class="cv-nav hide-on-mobile"></nav> <!-- Desktop nav -->
-
-    <div id="mobileNavMenu" class="mobile-nav-menu hide-on-desktop" aria-hidden="true">
-        <!-- Conteúdo do menu mobile será populado por nav.js -->
-    </div>
-    <div id="mobileNavOverlay" class="mobile-nav-overlay hide-on-desktop" aria-hidden="true"></div>
-
-    <main id="pageMain"></main> <!-- cv-container class will be added by pageLoader if needed -->
-
-    <div id="fabContainer" class="fab-menu">
-        <!-- FAB and its options will be dynamically added here by fabMenu.js if the page needs it -->
-    </div>
-
+    <nav id="mainNav"></nav>
+    <main id="pageMain" class="cv-container"></main>
     <script src="js/config.js"></script>
-    <script src="js/index.global.min.js"></script> <!-- FullCalendar -->
-    <script type="module" src="js/main.js"></script>
+    <script src="js/index.global.min.js"></script>
     <script type="module" src="js/nav.js"></script>
     <script type="module" src="js/userMenu.js"></script>
-    <script type="module" src="js/fabMenu.js"></script>
+    <script type="module" src="js/main.js"></script>
     <script type="module" src="js/pageLoader.js"></script>
 </body>
 </html>
