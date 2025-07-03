@@ -32,10 +32,11 @@
         <div class="skeleton-line skeleton-block skeleton-line--medium"></div>
       </div>
     </div>
-    <!-- Items carregados via JS -->
+    <!-- Feed items (visitantes) carregados via JS -->
   </section>
   <div class="cv-empty-state" style="display: none;">
-    <img src="/img/illustrations/empty-box.svg" alt="Nenhum item encontrado" class="cv-empty-state__image">
+    <img src="/img/illustrations/empty-box.svg" alt="Nenhum item encontrado"
+         class="cv-empty-state__image">
     <p class="cv-empty-state__message">
       Nenhum item encontrado para os filtros atuais.
     </p>
@@ -44,7 +45,8 @@
     </p>
   </div>
   <div class="cv-error-state" style="display: none;">
-    <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar dados" class="cv-empty-state__image">
+    <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar dados"
+         class="cv-empty-state__image">
     <p class="cv-empty-state__message">
       Falha ao carregar os dados. Verifique sua conexão ou tente novamente.
     </p>
@@ -57,7 +59,7 @@
 
 <div class="cv-tab-content" id="content-encomendas" style="display:none;">
   <section class="portaria__feed card-grid-single-column js-portaria-feed-encomendas">
-    <!-- Skeleton items para encomendas -->
+    <!-- Skeleton items para Encomendas -->
     <div class="feed-skeleton-container" style="display: none;">
       <div class="cv-card feed-skeleton-item">
         <div class="skeleton-title skeleton-block"></div>
@@ -65,10 +67,11 @@
         <div class="skeleton-line skeleton-block skeleton-line--short"></div>
       </div>
     </div>
-    <!-- Items carregados via JS -->
+    <!-- Feed items (encomendas) carregados via JS -->
   </section>
   <div class="cv-empty-state" style="display: none;">
-    <img src="/img/illustrations/empty-box.svg" alt="Nenhuma encomenda encontrada" class="cv-empty-state__image">
+    <img src="/img/illustrations/empty-box.svg" alt="Nenhuma encomenda encontrada"
+         class="cv-empty-state__image">
     <p class="cv-empty-state__message">
       Nenhuma encomenda encontrada para os filtros atuais.
     </p>
@@ -77,7 +80,8 @@
     </p>
   </div>
   <div class="cv-error-state" style="display: none;">
-    <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar encomendas" class="cv-empty-state__image">
+    <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar encomendas"
+         class="cv-empty-state__image">
     <p class="cv-empty-state__message">
       Falha ao carregar as encomendas. Verifique sua conexão ou tente novamente.
     </p>
@@ -104,45 +108,31 @@
       </div>
       <div class="cv-form-group">
         <label for="visUnidadeId">Unidade Destino (ID):</label>
-        <input type="text" id="visUnidadeId" name="unidadeId"
-               class="cv-input" required placeholder="Cole o ID da Unidade aqui">
+        <input type="text" id="visUnidadeId" name="unidadeId" class="cv-input" required placeholder="Cole o ID da Unidade aqui">
       </div>
       <div class="cv-form-group">
         <label for="visMotivo">Motivo da Visita:</label>
         <textarea id="visMotivo" name="motivoVisita" class="cv-input" rows="3"></textarea>
       </div>
       <div class="cv-form-group">
-        <label for="visHorarioSaidaPrevisto">
-          Horário Saída Previsto (Opcional):
-        </label>
-        <input type="datetime-local" id="visHorarioSaidaPrevisto"
-               name="horarioSaidaPrevisto" class="cv-input">
+        <label for="visHorarioSaidaPrevisto">Horário Saída Previsto (Opcional):</label>
+        <input type="datetime-local" id="visHorarioSaidaPrevisto" name="horarioSaidaPrevisto" class="cv-input">
       </div>
       <div class="cv-form-group">
         <label for="visObservacoes">Observações (Opcional):</label>
         <textarea id="visObservacoes" name="observacoes" class="cv-input" rows="3"></textarea>
       </div>
       <div class="cv-form-group">
-        <label for="visQRCodeEntrada">
-          Entrada com QR Code (Pré-Autorizado):
-        </label>
-        <input type="text" id="visQRCodeEntrada" name="qrCodeEntrada"
-               class="cv-input" placeholder="Leia ou digite o QR Code">
-        <button type="button" id="btnValidarQRCode"
-                class="cv-button cv-button--secondary"
-                style="margin-top:8px;">
+        <label for="visQRCodeEntrada">Entrada com QR Code (Pré-Autorizado):</label>
+        <input type="text" id="visQRCodeEntrada" name="qrCodeEntrada" class="cv-input" placeholder="Leia ou digite o QR Code">
+        <button type="button" id="btnValidarQRCode" class="cv-button cv-button--secondary" style="margin-top: 8px;">
           Validar QR Code
         </button>
       </div>
-      <div id="formRegistrarVisitanteError"
-           class="cv-modal-error-message" style="display:none;"></div>
+      <div id="formRegistrarVisitanteError" class="cv-modal-error-message" style="display:none;"></div>
       <div class="cv-form-actions">
-        <button type="button" class="cv-button js-modal-registrar-visitante-close">
-          Cancelar
-        </button>
-        <button type="submit" class="cv-button cv-button--primary">
-          Registrar Entrada
-        </button>
+        <button type="button" class="cv-button js-modal-registrar-visitante-close">Cancelar</button>
+        <button type="submit" class="cv-button cv-button--primary">Registrar Entrada</button>
       </div>
     </form>
   </div>
@@ -154,9 +144,7 @@
     <h2 id="modal-filtros-portaria-title">Filtros</h2>
     <div class="cv-form">
       <div class="cv-form-group" data-filter-context="visitantes">
-        <label for="portaria-tipo-visitante-filter">
-          Tipo de Visualização:
-        </label>
+        <label for="portaria-tipo-visitante-filter">Tipo de Visualização (Visitantes):</label>
         <select id="portaria-tipo-visitante-filter" class="cv-input">
           <option value="atuais">Visitantes Atuais</option>
           <option value="historico">Histórico de Visitantes</option>
@@ -167,26 +155,26 @@
         <input type="text" id="filterUnidadeVisitantes" class="cv-input">
       </div>
       <div class="cv-form-group" data-filter-context="visitantes_historico" style="display:none;">
-        <label for="filterHistDataInicio">Data Início:</label>
+        <label for="filterHistDataInicio">Data Início (Histórico):</label>
         <input type="date" id="filterHistDataInicio" class="cv-input">
       </div>
       <div class="cv-form-group" data-filter-context="visitantes_historico" style="display:none;">
-        <label for="filterHistDataFim">Data Fim:</label>
+        <label for="filterHistDataFim">Data Fim (Histórico):</label>
         <input type="date" id="filterHistDataFim" class="cv-input">
       </div>
       <div class="cv-form-group" data-filter-context="visitantes_historico" style="display:none;">
-        <label for="filterHistNome">Nome do Visitante:</label>
+        <label for="filterHistNome">Nome do Visitante (Histórico):</label>
         <input type="text" id="filterHistNome" class="cv-input">
       </div>
       <div class="cv-form-group" data-filter-context="encomendas" style="display:none;">
-        <label for="filterUnidadeEncomendas">Unidade Destino:</label>
-        <input type="text" id="filterUnidadeEncomendas" class="cv-input">
+        <label for="filterUnidadeEncomendas">Unidade Destino (Encomendas):</label>
+        <input type="text" id="filterUnidadeEncomendas" name="filterUnidadeEncomendas" class="cv-input">
       </div>
       <div class="cv-form-group" data-filter-context="encomendas" style="display:none;">
         <label for="filterStatusEncomenda">Status da Encomenda:</label>
-        <select id="filterStatusEncomenda" class="cv-input">
+        <select id="filterStatusEncomenda" name="filterStatusEncomenda" class="cv-input">
           <option value="">Todos</option>
-          <option value="Recebida">Recebida</option>
+          <option value="Recebida">Recebida (Aguardando Retirada)</option>
           <option value="Entregue">Entregue</option>
           <option value="Devolvida">Devolvida</option>
         </select>
@@ -210,6 +198,7 @@
         <select id="sort-order-select-portaria" class="cv-input">
           <option value="desc">Mais recentes</option>
           <option value="asc">Mais antigos</option>
+          <!-- Adicionar outras opções de ordenação específicas (Ex: Nome, Unidade) via JS -->
         </select>
       </div>
       <div class="cv-form-actions">
