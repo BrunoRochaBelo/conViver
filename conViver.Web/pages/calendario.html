@@ -24,7 +24,7 @@
                 <label for="view-toggle-switch" class="cv-switch-label">Calendário</label>
                 <label class="cv-switch">
                     <input type="checkbox" id="view-toggle-switch"> <!-- Desmarcado = Calendário por padrão -->
-                    <span class="cv-switch-slider round"></span>
+                    <span class="cv-switch-slider round"></button>
                 </label>
                 <label for="view-toggle-switch" class="cv-switch-label">Lista</label>
             </div>
@@ -81,7 +81,7 @@
 
     <div id="modal-filtros-reservas" class="cv-modal" style="display:none;">
         <div class="cv-modal-content cv-modal-content--padded">
-            <span class="cv-modal-close js-modal-filtros-reservas-close">&times;</span>
+            <button type="button" class="cv-modal-close js-modal-filtros-reservas-close" aria-label="Fechar">&times;</button>
             <h2 id="modal-filtros-reservas-title">Filtros de Reservas</h2> <!-- Título dinâmico -->
             <div class="cv-form">
                 <!-- Filtros para Agenda (Calendário e Lista) -->
@@ -157,7 +157,7 @@
 
     <div id="modal-sort-reservas" class="cv-modal" style="display:none;">
         <div class="cv-modal-content cv-modal-content--padded">
-            <span class="cv-modal-close js-modal-sort-reservas-close">&times;</span>
+            <button type="button" class="cv-modal-close js-modal-sort-reservas-close" aria-label="Fechar">&times;</button>
             <h2>Ordenação de Reservas</h2>
             <div class="cv-form">
                 <div class="cv-form-group">
@@ -183,7 +183,7 @@
     <!-- Modais Específicos de Reservas -->
     <div id="modal-nova-reserva" class="cv-modal" style="display:none;">
         <div class="cv-modal-content cv-modal-content--padded">
-            <span class="cv-modal-close js-modal-nova-reserva-close">&times;</span>
+            <button type="button" class="cv-modal-close js-modal-nova-reserva-close" aria-label="Fechar">&times;</button>
             <h2 id="modal-nova-reserva-title">Solicitar Nova Reserva</h2>
             <form id="form-nova-reserva" class="cv-form">
                 <input type="hidden" id="modal-reserva-id" name="reservaId">
@@ -227,7 +227,7 @@
 
     <div id="modal-detalhe-reserva" class="cv-modal" style="display:none;">
         <div class="cv-modal-content cv-modal-content--padded">
-            <span class="cv-modal-close js-modal-detalhe-reserva-close">&times;</span>
+            <button type="button" class="cv-modal-close js-modal-detalhe-reserva-close" aria-label="Fechar">&times;</button>
             <h2 id="modal-detalhe-reserva-title">Detalhes da Reserva</h2>
             <div id="modal-detalhe-reserva-conteudo" style="margin-bottom: var(--cv-spacing-lg);">
             </div>
@@ -247,7 +247,7 @@
 
     <div id="modal-gerenciar-espaco-comum" class="cv-modal" style="display:none;">
         <div class="cv-modal-content cv-modal-content--padded">
-            <span class="cv-modal-close js-modal-gerenciar-espaco-close">&times;</span>
+            <button type="button" class="cv-modal-close js-modal-gerenciar-espaco-close" aria-label="Fechar">&times;</button>
             <h2 id="modal-gerenciar-espaco-title">Adicionar Novo Espaço Comum</h2>
             <form id="form-gerenciar-espaco-comum" class="cv-form">
                 <input type="hidden" id="espaco-comum-id" name="id">
@@ -322,7 +322,7 @@
 
     <div id="modal-termos-uso-reserva" class="cv-modal" style="display:none;">
         <div class="cv-modal-content cv-modal-content--padded">
-            <span class="cv-modal-close js-modal-termos-uso-close">&times;</span>
+            <button type="button" class="cv-modal-close js-modal-termos-uso-close" aria-label="Fechar">&times;</button>
             <h2>Termos de Uso para Reserva de Áreas Comuns</h2>
             <p>Exemplo de Termos:</p>
             <ol>
