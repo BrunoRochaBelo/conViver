@@ -485,7 +485,7 @@ function openCriarAvisoModal() {
     formCriarAviso.reset();
     avisoIdField.value = "";
     criarAvisoModal.querySelector("h2").textContent = "Criar Novo Aviso";
-    formCriarAviso.querySelector('button[type="submit"]').textContent = "Salvar Aviso";
+    formCriarAviso.querySelector('button[type="submit"]').textContent = "Salvar"; // Padronizado
     // Resetar e esconder preview da imagem
     const imgPreview = document.getElementById("aviso-imagem-preview");
     if (imgPreview) {
@@ -541,8 +541,7 @@ function openEditFeedItemModal(itemType, itemId) {
         }
       }
       criarAvisoModal.querySelector("h2").textContent = "Editar Aviso";
-      formCriarAviso.querySelector('button[type="submit"]').textContent =
-        "Salvar Alterações";
+      formCriarAviso.querySelector('button[type="submit"]').textContent = "Salvar"; // Padronizado
       openModal(criarAvisoModal);
     }
   } else {
@@ -2299,7 +2298,7 @@ function openCreateEnqueteModal() {
     formCriarEnquete.reset();
     enqueteIdField.value = "";
     modalEnqueteTitle.textContent = "Nova Enquete";
-    formEnqueteSubmitButton.textContent = "Salvar Enquete";
+    formEnqueteSubmitButton.textContent = "Salvar"; // Padronizado
     openModal(criarEnqueteModal);
   }
 }
@@ -2466,7 +2465,7 @@ function openCreateChamadoModal() {
     formCriarChamado.reset();
     chamadoIdFieldModal.value = "";
     modalChamadoTitle.textContent = "Nova Solicitação";
-    formChamadoSubmitButtonModal.textContent = "Abrir Solicitação";
+    formChamadoSubmitButtonModal.textContent = "Enviar"; // Padronizado
     chamadoStatusModalFormGroup.style.display = "none";
     chamadoCategoriaModalFormGroup.style.display = "block";
     document.getElementById("chamado-descricao-modal").disabled = false;
