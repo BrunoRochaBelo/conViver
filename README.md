@@ -135,6 +135,7 @@ dotnet run
 npx serve conViver.Web --single
 # Acesse http://localhost:3000/login.html para autenticar e usar o dashboard
 * Antes de abrir arquivos de `conViver.Web/wwwroot`, execute `./scripts/sync_wwwroot.sh` (ou `dotnet build`). Os HTML, CSS e JS originais ficam em `conViver.Web/`; o script gera `wwwroot` com `layout.html` e demais arquivos para login e navegação.
+* Após alterar arquivos em `conViver.Web/pages`, `conViver.Web/js` ou `conViver.Web/css`, rode novamente `./scripts/sync_wwwroot.sh` (ou `dotnet build`) para atualizar `wwwroot` e evitar servir versões desatualizadas dos assets.
 
 5. Mobile MAUI
 cd conViver.Mobile
