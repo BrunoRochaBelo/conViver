@@ -170,12 +170,14 @@
     /* Nav specific current vars */
     --current-nav-bg: var(--cv-gray-100);
 
-    /* Header height variable */
-    --cv-header-height: 57px; /* Fallback, adjust based on actual .cv-header final height */
+    /* Header dimension variables */
+    --cv-header-padding-y: clamp(0.5rem, 1.5vh, 0.75rem);
+    --cv-header-padding-x: clamp(1rem, 4vw, 1.5rem);
+    --cv-header-height: clamp(3.5rem, 5vh + 1rem, 4.3125rem); /* ~57px–69px */
 }
 @media (min-width: 768px) {
     :root {
-        --cv-header-height: 69px; /* Fallback for desktop header height */
+        --cv-header-height: clamp(4rem, 5vh + 1rem, 4.5rem);
     }
 }
 
@@ -256,6 +258,12 @@ body {
 
 html {
     font-size: var(--cv-font-size-base); /* Set base for rem units */
+}
+
+/* Responsive header tweaks */
+.cv-header {
+    padding: var(--cv-header-padding-y) var(--cv-header-padding-x);
+    min-height: var(--cv-header-height);
 }
 
 @media (min-width: 768px) {
@@ -1087,7 +1095,8 @@ html[data-theme="dark"] .fab-menu-options {
 
     display: flex; /* Use flex to structure header, body, footer */
     flex-direction: column;
-    max-height: calc(100vh - var(--cv-spacing-xl) * 2); /* Ensure modal fits screen with good margin */
+    max-height: calc(100dvh - var(--cv-spacing-xl) * 2); /* Use dynamic viewport height for mobile */
+    max-height: calc(100vh - var(--cv-spacing-xl) * 2); /* Fallback for older browsers */
     overflow-y: auto;
 
     animation: cv-modal-scale-up 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Faster, more iOS-like spring */
