@@ -320,16 +320,8 @@ async function loadInitialPortariaItems() {
 
     feed.querySelectorAll(`.cv-card:not(.prio-0):not(.feed-skeleton-item)`).forEach(el => el.remove());
     fetchedPortariaItems = [];
-    const errStates = contentEl.querySelectorAll('.cv-error-state');
-    errStates.forEach((el, idx) => {
-        if (idx === 0) el.style.display = 'none';
-        else el.remove();
-    });
-    const emptyStates = contentEl.querySelectorAll('.cv-empty-state');
-    emptyStates.forEach((el, idx) => {
-        if (idx === 0) el.style.display = 'none';
-        else el.remove();
-    });
+    // Remove qualquer estado vazio ou de erro existente dentro da aba ativa
+    contentEl.querySelectorAll('.cv-empty-state, .cv-error-state').forEach(el => el.remove());
 
     let sentinel = document.getElementById(portariaScrollSentinelId);
     if (!sentinel) {
@@ -362,10 +354,13 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
     const feed = contentEl?.querySelector(activePortariaTab === 'visitantes' ? portariaFeedContainerSelector : portariaEncomendasFeedContainerSelector);
     const sentinel = document.getElementById(portariaScrollSentinelId);
     if (!feed || !contentEl) {
-        isLoadingPortariaItems = false;
+        isLoadingPortariaItems = false; // Corrigido: isLoadingPortariaItens -> isLoadingPortariaItems
         if (contentEl) hideSkeleton(contentEl);
         return;
     }
+
+    // Limpar qualquer estado (vazio ou erro) existente antes da nova busca
+    contentEl.querySelectorAll('.cv-error-state, .cv-empty-state').forEach(el => el.remove());
 
     if (!append) showSkeleton(contentEl);
     else {
@@ -404,8 +399,8 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
         const resp = await apiClient.get(endpoint, params);
         const items = resp.data || resp || [];
         hideSkeleton(contentEl);
-        const errEl = contentEl.querySelector(".cv-error-state");
-        if (errEl) errEl.style.display = 'none';
+        // O estado de erro já foi removido no início da função.
+        // Não é necessário tentar escondê-lo aqui novamente.
         const emptyEl = contentEl.querySelector(".cv-empty-state");
         if (emptyEl) emptyEl.style.display = 'none';
         feed.querySelector('.loading-spinner-portaria')?.remove();
@@ -449,13 +444,12 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
             retryButton: {
                 text: "Tentar Novamente",
                 onClick: () => {
-                    contentEl.querySelectorAll(".cv-error-state").forEach(el => el.remove());
+                    contentEl.querySelector(".cv-error-state")?.remove();
                     loadInitialPortariaItems();
                 }
             }
         });
         const target = contentEl.querySelector(portariaFeedContainerSelector + ', ' + portariaEncomendasFeedContainerSelector) || contentEl;
-        contentEl.querySelectorAll('.cv-error-state').forEach(el => el.remove());
         target.appendChild(errState);
         sentinel.style.display = "none";
     } finally {
