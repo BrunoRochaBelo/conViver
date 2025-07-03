@@ -17,12 +17,11 @@
 }
 .cv-button:hover {
     background-color: var(--current-button-default-hover-bg);
-    /* iOS doesn't typically use shadow on default button hover, but a subtle brightness change */
     filter: brightness(95%);
 }
 .cv-button:active {
-    transform: scale(0.96); /* Slightly more pronounced active scale */
-    background-color: var(--cv-gray-300); /* Darker shade for active state, consistent with iOS patterns */
+    transform: scale(0.96);
+    background-color: var(--cv-gray-300);
     filter: brightness(90%);
     box-shadow: none;
 }
@@ -30,11 +29,11 @@
     background-color: var(--current-primary-blue);
     color: var(--current-text-on-primary);
     border-color: var(--current-primary-blue);
-    font-weight: 500; /* Medium weight for primary buttons too */
+    font-weight: 500;
 }
 .cv-button--primary:hover {
     filter: brightness(90%);
-    box-shadow: none; /* iOS primary buttons usually don't have shadow on hover */
+    box-shadow: none;
 }
 .cv-button--primary:active {
     filter: brightness(80%);
@@ -43,17 +42,13 @@
 }
 
 .cv-button--secondary {
-    background-color: var(--current-button-secondary-bg); /* This is a gray in the current vars */
-    color: var(--current-text-on-primary); /* Text on gray might need to be dark or light based on the gray */
-    border-color: var(--current-button-secondary-bg);
-    /* Let's adjust secondary to be more like iOS "gray" or "filled" buttons */
-    background-color: var(--cv-gray-200); /* System Gray 5 Light */
-    color: var(--current-text-primary); /* Black text on light gray */
+    background-color: var(--cv-gray-200);
+    color: var(--current-text-primary);
     border-color: var(--cv-gray-200);
 }
 html[data-theme="dark"] .cv-button--secondary {
-    background-color: var(--cv-dark-gray-400); /* System Gray 4 Dark */
-    color: var(--cv-dark-text-primary); /* White text on dark gray */
+    background-color: var(--cv-dark-gray-400);
+    color: var(--cv-dark-text-primary);
     border-color: var(--cv-dark-gray-400);
 }
 .cv-button--secondary:hover {
@@ -66,14 +61,13 @@ html[data-theme="dark"] .cv-button--secondary {
     box-shadow: none;
 }
 
-/* iOS style "Tinted" button (like a default button but with a light tint background) */
 .cv-button--tinted {
-    background-color: var(--cv-primary-blue-alpha-15); /* Needs to be defined: var(--cv-primary-blue) with low alpha */
+    background-color: var(--cv-primary-blue-alpha-15);
     color: var(--current-primary-blue);
     border-color: transparent;
 }
 html[data-theme="dark"] .cv-button--tinted {
-    background-color: var(--cv-dark-primary-blue-alpha-20); /* Needs to be defined */
+    background-color: var(--cv-dark-primary-blue-alpha-20);
 }
 .cv-button--tinted:hover {
     filter: brightness(95%);
@@ -83,30 +77,29 @@ html[data-theme="dark"] .cv-button--tinted {
     transform: scale(0.96);
 }
 
-/* iOS style "Borderless" or "Text" button - already similar to default .cv-button if bg is transparent */
 .cv-button--borderless {
     background-color: transparent;
     color: var(--current-text-link);
     border-color: transparent;
 }
 .cv-button--borderless:hover {
-    background-color: var(--cv-gray-100-alpha-50); /* Very subtle hover, needs alpha var */
-    filter: none; /* Remove general hover filter if specific bg is used */
+    background-color: var(--cv-gray-100-alpha-50);
+    filter: none;
 }
 html[data-theme="dark"] .cv-button--borderless:hover {
-    background-color: var(--cv-dark-gray-100-alpha-50); /* Needs alpha var */
+    background-color: var(--cv-dark-gray-100-alpha-50);
 }
 .cv-button--borderless:active {
-    background-color: var(--cv-gray-200-alpha-70); /* Subtle active, needs alpha var */
+    background-color: var(--cv-gray-200-alpha-70);
     transform: scale(0.96);
     filter: none;
 }
 
 
 .cv-button.icon-button {
-    padding: var(--cv-spacing-xs); /* iOS icon buttons are often smaller */
-    min-height: 36px; /* Smaller touch target if purely iconic and small */
-    min-width: 36px; /* Ensure it's square or appropriately sized */
+    padding: var(--cv-spacing-xs);
+    min-height: 36px;
+    min-width: 36px;
     width: 40px;
     height: 40px;
     display: flex;
@@ -125,7 +118,6 @@ html[data-theme="dark"] .cv-button--borderless:hover {
     background-color: var(--current-primary-blue);
 }
 
-/* Para animação de rotação do ícone */
 .cv-button.icon-button svg {
     transition: transform 0.3s ease;
 }
@@ -141,7 +133,7 @@ html[data-theme="dark"] .cv-button--borderless:hover {
     cursor: not-allowed;
     border-color: var(--current-button-disabled-border);
     box-shadow: none;
-    filter: none; /* Ensure no brightness filter on disabled state */
+    filter: none;
 }
 
 .cv-card {
@@ -172,7 +164,6 @@ html[data-theme="dark"] .cv-button--borderless:hover {
     margin-bottom: var(--cv-spacing-md);
 }
 
-/* Generic grid layout for card collections */
 .card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -218,7 +209,6 @@ html[data-theme="dark"] .cv-button--borderless:hover {
     box-shadow: 0 0 0 3px var(--current-input-focus-shadow);
 }
 
-/* === Global Feedback Toast Styles === */
 .global-feedback-container {
     position: fixed;
     top: var(--cv-spacing-md, 16px);
@@ -284,9 +274,7 @@ html[data-theme="dark"] .cv-button--borderless:hover {
 .global-feedback-toast--info {
     border-left-color: var(--current-semantic-info, blue);
 }
-/* === End Global Feedback Toast Styles === */
 
-/* === Alert Component Styles === */
 .cv-alert {
     padding: var(--cv-spacing-md);
     margin-bottom: var(--cv-spacing-md);
@@ -323,14 +311,11 @@ html[data-theme="dark"] .cv-button--borderless:hover {
 .cv-alert--hidden {
     display: none;
 }
-/* === End Alert Component Styles === */
 
 @keyframes animatetop {
     from {top: -300px; opacity: 0}
     to {top: 0; opacity: 1}
 }
-
-/* .cv-modal__close e .cv-modal__title foram movidos para styles.css e integrados em .cv-modal-header */
 
 .cv-header {
     background-color: rgba(242, 242, 247, 0.8);
@@ -376,27 +361,18 @@ html[data-theme="dark"] .cv-header {
     }
 }
 
+/* Navegação Principal de Desktop (.cv-nav) */
 .cv-nav {
-    display: none; /* Escondido por padrão (mobile-first), exibido em desktop */
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-    gap: var(--cv-spacing-xs);
+    display: none; /* ESCONDIDO em mobile por padrão */
+    flex-direction: row; /* Estilo Desktop: links em linha */
+    align-items: center;
+    width: auto;
+    gap: var(--cv-spacing-sm);
     background-color: rgba(248, 248, 250, 0.85);
     -webkit-backdrop-filter: blur(18px) saturate(170%);
     backdrop-filter: blur(18px) saturate(170%);
     padding: var(--cv-spacing-sm) var(--cv-spacing-md);
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-}
-.cv-nav__list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: inherit;
-    align-items: inherit;
-    width: 100%;
-    gap: var(--cv-spacing-sm);
 }
 
 html[data-theme="dark"] .cv-nav {
@@ -404,28 +380,38 @@ html[data-theme="dark"] .cv-nav {
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
+.cv-nav__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row; /* Desktop: links em linha */
+    align-items: center;
+    width: auto; /* Desktop: largura automática */
+    gap: var(--cv-spacing-sm);
+}
+
 .cv-nav__link {
     color: var(--current-text-primary);
     text-decoration: none;
-    font-weight: normal;
-    display: flex;
+    font-weight: 500;
+    display: inline-flex; /* Desktop: inline-flex para icon+label */
     align-items: center;
-    width: 100%;
-    text-align: left;
-    padding: var(--cv-spacing-sm);
+    width: auto; /* Desktop: largura automática */
+    text-align: center;
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Padding desktop */
     border-radius: var(--cv-border-radius-md);
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.1s ease-in-out;
-    font-weight: 500;
     gap: var(--cv-spacing-sm);
 }
-.cv-nav__icon { /* Estilo para o ícone dentro do link de navegação */
+.cv-nav__icon {
     width: 20px;
     height: 20px;
     display: inline-block;
     vertical-align: middle;
     flex-shrink: 0;
 }
-.cv-nav__label { /* Estilo para o texto (label) do link de navegação */
+.cv-nav__label {
     line-height: 1;
     margin-left: var(--cv-spacing-xs);
     flex-grow: 1;
@@ -433,24 +419,7 @@ html[data-theme="dark"] .cv-nav {
 
 @media (min-width: 768px) {
     .cv-nav {
-        display: flex; /* Exibido como flex em desktop */
-        flex-direction: row;
-        align-items: center;
-        width: auto;
-    }
-    .cv-nav__list {
-        flex-direction: row;
-        width: auto;
-        align-items: center;
-    }
-    .cv-nav__link {
-        display: inline-flex;
-        width: auto;
-        text-align: center;
-        padding: var(--cv-spacing-sm) var(--cv-spacing-md);
-    }
-    html[data-theme="dark"] .cv-nav {
-        /* border-bottom: none; */
+        display: flex !important; /* MOSTRADO em desktop */
     }
 }
 .cv-nav__link:hover {
@@ -460,7 +429,6 @@ html[data-theme="dark"] .cv-nav {
 html[data-theme="dark"] .cv-nav__link:hover {
     background-color: rgba(255, 255, 255, 0.1);
 }
-
 .cv-nav__link--active {
     color: var(--current-primary-blue) !important;
     font-weight: 600;
@@ -478,16 +446,17 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* --- Mobile Nav Drawer --- */
+
+/* --- Mobile Nav Drawer & Hamburger --- */
 .cv-nav-hamburger {
     background: none;
     border: none;
     padding: var(--cv-spacing-sm);
-    display: flex; /* Visível por padrão, JS ou media query pode esconder em desktop */
+    display: flex; /* MOSTRADO em mobile por padrão (JS controlará para <768px) */
     align-items: center;
     justify-content: center;
-    color: var(--current-text-primary); /* Garante que o ícone SVG herde a cor correta */
-    z-index: 1021; /* Acima do header, mas abaixo do drawer/modal */
+    color: var(--current-text-primary);
+    z-index: 1021;
 }
 .cv-nav-hamburger svg {
     width: 24px;
@@ -496,28 +465,28 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
 
 @media (min-width: 768px) {
     .cv-nav-hamburger {
-        display: none;
+        display: none !important; /* ESCONDIDO em desktop */
     }
 }
 
 .cv-nav--drawer {
     position: fixed;
-    inset: 0; /* top, right, bottom, left = 0 */
-    background-color: rgba(0, 0, 0, 0.4); /* Overlay escuro */
-    display: none; /* Controlado por JS para abrir/fechar */
-    z-index: 1040; /* Alto z-index para ficar sobre o conteúdo */
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: none;
+    z-index: 1040;
 }
 .cv-nav--drawer.open {
-    display: block; /* Mostra o drawer */
+    display: block;
 }
 .cv-nav--drawer__panel {
-    background-color: var(--current-bg-white);
-    width: 280px; /* Largura do painel */
-    max-width: 85%; /* Máximo de 85% da largura da tela */
+    background-color: var(--current-bg-element);
+    width: 280px;
+    max-width: 85%;
     height: 100%;
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
-    overflow-y: auto; /* Para rolagem se os links excederem a altura */
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
@@ -526,7 +495,7 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
     transform: translateX(0);
 }
 html[data-theme="dark"] .cv-nav--drawer__panel {
-    background-color: var(--cv-dark-gray-200); /* Fundo do painel no tema escuro */
+    background-color: var(--cv-dark-bg-element);
 }
 
 .cv-nav--drawer__header {
@@ -541,61 +510,73 @@ html[data-theme="dark"] .cv-nav--drawer__panel {
     font-size: var(--cv-font-size-lg);
     color: var(--current-text-primary);
 }
-/* O botão de fechar no drawer usa .cv-modal-close, que já está estilizado */
 .cv-nav--drawer__header .cv-modal-close {
-    position: static; /* Reset para o contexto do flex header */
+    position: static;
     transform: none;
-    font-size: 1.5rem; /* Pode ajustar se necessário */
+    font-size: 1.5rem;
+    color: var(--current-text-secondary);
 }
-
+.cv-nav--drawer__header .cv-modal-close:hover {
+    color: var(--current-text-primary);
+    background-color: var(--cv-gray-200);
+}
+html[data-theme="dark"] .cv-nav--drawer__header .cv-modal-close {
+    color: var(--cv-dark-text-secondary);
+}
+html[data-theme="dark"] .cv-nav--drawer__header .cv-modal-close:hover {
+    color: var(--cv-dark-text-primary);
+    background-color: var(--cv-dark-gray-400);
+}
 
 .cv-nav--drawer__list {
     list-style: none;
     margin: 0;
-    padding: var(--cv-spacing-sm) 0; /* Espaçamento vertical */
+    padding: var(--cv-spacing-sm) 0;
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
 }
-.cv-nav--drawer__item {
-    /* Se precisar de estilização para o <li> em si */
-}
+.cv-nav--drawer__item { }
 .cv-nav--drawer__link {
     display: flex;
     align-items: center;
-    padding: var(--cv-spacing-md); /* Bom padding para toque */
+    padding: var(--cv-spacing-md);
     text-decoration: none;
     color: var(--current-text-primary);
     font-size: var(--cv-font-size-md);
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    border-bottom: 1px solid var(--current-border-subtle);
 }
+.cv-nav--drawer__list .cv-nav--drawer__item:last-child .cv-nav--drawer__link {
+    border-bottom: none;
+}
+
 .cv-nav--drawer__link:hover,
-.cv-nav--drawer__link.active { /* Estado ativo/hover */
+.cv-nav--drawer__link.active {
     background-color: var(--cv-primary-blue-alpha-15);
     color: var(--current-primary-blue);
 }
 .cv-nav--drawer__link.active {
-    font-weight: 600; /* Destacar link ativo */
+    font-weight: 600;
 }
 .cv-nav--drawer__icon {
     margin-right: var(--cv-spacing-md);
-    width: 22px; /* Tamanho do ícone no drawer */
+    width: 22px;
     height: 22px;
     flex-shrink: 0;
-    color: var(--current-text-secondary); /* Cor padrão para ícones */
+    color: var(--current-text-secondary);
 }
-.cv-nav--drawer__link:hover .cv-nav--drawer__icon,
-.cv-nav--drawer__link.active .cv-nav--drawer__icon {
-    color: var(--current-primary-blue); /* Ícone acompanha cor do texto no hover/active */
+.cv-nav--drawer__link:hover .cv-nav--drawer__icon svg, /* Target SVG inside icon wrapper */
+.cv-nav--drawer__link.active .cv-nav--drawer__icon svg { /* Target SVG inside icon wrapper */
+    stroke: var(--current-primary-blue);
 }
 .cv-nav--drawer__label {
     flex-grow: 1;
 }
 
-
 /* === Bottom Navigation Bar === */
 body.has-bottom-nav {
-    /* Ajuste este valor conforme a altura final da sua bottom-nav */
-    padding-bottom: 70px;
+    padding-bottom: 60px;
 }
 
 .cv-bottom-nav {
@@ -604,16 +585,16 @@ body.has-bottom-nav {
     left: 0;
     right: 0;
     z-index: 1000;
-    display: none; /* JS e media query controlam a exibição */
-    background-color: var(--current-nav-bg); /* Usar variável de tema para fundo da nav */
+    display: none;
+    background-color: var(--current-bg-element);
     -webkit-backdrop-filter: blur(18px) saturate(170%);
     backdrop-filter: blur(18px) saturate(170%);
-    border-top: 1px solid var(--current-border-color); /* Usar variável de tema para borda */
-    /* padding: var(--cv-spacing-xs) 0; */ /* Padding vertical já está no link */
-    height: 60px; /* Altura fixa para a bottom nav */
+    border-top: 1px solid var(--current-border-color);
+    height: 60px;
+    box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
 }
 html[data-theme="dark"] .cv-bottom-nav {
-    background-color: var(--cv-dark-bg-element); /* Ajustado para consistência com drawer */
+    background-color: var(--cv-dark-bg-element);
     border-top: 1px solid var(--cv-dark-gray-400);
 }
 
@@ -623,10 +604,11 @@ html[data-theme="dark"] .cv-bottom-nav {
     padding: 0;
     display: flex;
     justify-content: space-around;
+    align-items: stretch;
     height: 100%;
 }
 .cv-bottom-nav__item {
-    display: flex; /* Para o link preencher o item */
+    display: flex;
     flex-grow: 1;
 }
 
@@ -634,51 +616,46 @@ html[data-theme="dark"] .cv-bottom-nav {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Centraliza conteúdo verticalmente */
-    flex-grow: 1; /* Link preenche o item */
-    color: var(--current-text-secondary); /* Cor mais sutil para itens não ativos */
+    justify-content: center;
+    flex-grow: 1;
+    color: var(--current-text-secondary);
     text-decoration: none;
-    padding: var(--cv-spacing-xs) var(--cv-spacing-xs); /* Padding interno do link */
+    padding: var(--cv-spacing-xs) var(--cv-spacing-xs);
     transition: color 0.2s ease;
-    gap: 2px; /* Pequeno espaço entre ícone e label */
+    gap: 2px;
+    font-size: 0.7rem;
 }
-.cv-bottom-nav__icon {
-    width: 24px; /* Tamanho do ícone */
-    height: 24px;
-    margin-bottom: 2px; /* Espaço entre ícone e label */
+.cv-bottom-nav__icon svg {
+    width: 22px;
+    height: 22px;
+    margin-bottom: 0px;
 }
 .cv-bottom-nav__label {
-    font-size: 0.7rem; /* Tamanho da label bem pequeno */
-    line-height: 1;
+    line-height: 1.1;
     text-align: center;
-    display: block; /* Garante que o span não cause problemas de alinhamento */
+    display: block;
+    font-size: inherit;
 }
 
 .cv-bottom-nav__link:hover {
-    color: var(--current-text-primary); /* Cor ao passar o mouse */
+    color: var(--current-text-primary);
 }
 .cv-bottom-nav__link--active {
     color: var(--current-primary-blue);
-    font-weight: 500; /* Pode ser mais sutil que o 600 do nav principal */
 }
-.cv-bottom-nav__link--active .cv-bottom-nav__icon {
-    /* Se quiser que o ícone também mude de cor no estado ativo */
-    /* color: var(--current-primary-blue); */
+.cv-bottom-nav__link--active .cv-bottom-nav__icon svg { /* Target SVG for active state */
+   stroke: var(--current-primary-blue);
 }
 
-
-/* Ajuste para quando a bottom nav está visível (controlado por JS via classe no body) */
-@media (max-width: 767px) {
+@media (min-width: 768px) {
     .cv-bottom-nav {
-        /* display: block;  O JS cuida disso baseado na config e largura */
-        /* A lógica de exibição está em nav.js, esta media query é mais para garantir
-           que não apareça em desktop se o JS falhar ou a config mudar. */
+        display: none !important;
+    }
+    body.has-bottom-nav {
+        padding-bottom: 0;
     }
 }
-/* A regra @media (min-width: 768px) { .cv-bottom-nav { display: none; } } já existe e está correta. */
 
-
-/* Responsive Table Wrapper */
 .cv-table-responsive-wrapper {
     overflow-x: auto;
     overflow-y: hidden;
@@ -693,7 +670,6 @@ html[data-theme="dark"] .cv-bottom-nav {
     border-collapse: collapse;
 }
 
-/* Utility Classes for Responsiveness */
 .hide-on-mobile {
     display: none !important;
 }
@@ -711,7 +687,6 @@ html[data-theme="dark"] .cv-bottom-nav {
         display: none !important;
     }
 }
-/* User avatar button */
 .user-avatar {
     display: flex;
     align-items: center;
@@ -798,7 +773,6 @@ html[data-theme="dark"] .cv-bottom-nav {
     width: 100%;
 }
 
-/* Skeleton Screen Components */
 .feed-skeleton-container { }
 
 .feed-skeleton-item {
@@ -882,7 +856,6 @@ html[data-theme="dark"] .cv-bottom-nav {
     100% { transform: translateX(100%); }
 }
 
-/* === Status Badge Utility Classes === */
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -910,9 +883,8 @@ html[data-theme="dark"] .cv-bottom-nav {
 .status-badge--danger {
     background-color: var(--current-color-error-bg);
     color: var(--current-semantic-error);
-}/* === End Status Badge Utility Classes === */
+}
 
-/* === Progress Bar Component === */
 .cv-progress {
     width: 100%;
     height: 12px;
@@ -933,9 +905,7 @@ html[data-theme="dark"] .cv-bottom-nav {
     border-radius: var(--cv-border-radius-lg);
     box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
 }
-/* === End Progress Bar Component === */
 
-/* === Inline Spinner Utility === */
 .inline-spinner {
     display: inline-block;
     width: 1em;
@@ -952,10 +922,6 @@ html[data-theme="dark"] .cv-bottom-nav {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
-
-/* ==========================================================================
-   Empty State & Error State Components
-   ========================================================================== */
 
 .cv-empty-state,
 .cv-error-state {
@@ -1020,7 +986,6 @@ html[data-theme="dark"] .cv-bottom-nav {
     min-width: 150px;
 }
 
-/* === Switch Component === */
 .cv-switch-label {
     font-size: var(--cv-font-size-sm, 0.875rem);
     color: var(--current-text-secondary);
@@ -1079,27 +1044,14 @@ input:checked + .cv-switch-slider:before {
 /* === End Switch Component === */
 
 /* --- Mobile Nav Drawer (Adicionado) --- */
-.cv-nav-hamburger {
-    background: none;
-    border: none;
-    padding: var(--cv-spacing-sm);
-    /* display: flex; é definido em JS se necessário, mas CSS pode garantir */
-    display: none; /* Escondido por padrão, JS/media query mostra em mobile */
-    align-items: center;
-    justify-content: center;
-    color: var(--current-text-primary);
-    z-index: 1021;
-}
-.cv-nav-hamburger svg {
-    width: 24px;
-    height: 24px;
-}
+/* .cv-nav-hamburger já existia, mas vamos garantir que está correto para mobile-first */
+/* O display dele é controlado por JS E media query agora */
 
-@media (max-width: 767px) { /* Mostra em mobile */
-    .cv-nav-hamburger {
-        display: flex;
-    }
-}
+/* Estilos para o .cv-nav--drawer__header .cv-modal-close já estão em styles.css (reutilizado) */
+/* ... (Estilos do drawer e bottom nav como adicionados anteriormente) ... */
+
+/* --- Mobile Nav Drawer (Adicionado) --- */
+/* .cv-nav-hamburger é definido em nav.js e seu display controlado lá e por media query abaixo */
 
 .cv-nav--drawer {
     position: fixed;
@@ -1112,7 +1064,7 @@ input:checked + .cv-switch-slider:before {
     display: block;
 }
 .cv-nav--drawer__panel {
-    background-color: var(--current-bg-element); /* Usa variável de tema */
+    background-color: var(--current-bg-element);
     width: 280px;
     max-width: 85%;
     height: 100%;
@@ -1142,7 +1094,7 @@ html[data-theme="dark"] .cv-nav--drawer__panel {
     font-size: var(--cv-font-size-lg);
     color: var(--current-text-primary);
 }
-.cv-nav--drawer__header .cv-modal-close { /* Reutiliza estilo do botão de fechar modal */
+.cv-nav--drawer__header .cv-modal-close {
     position: static;
     transform: none;
     font-size: 1.5rem;
@@ -1167,11 +1119,9 @@ html[data-theme="dark"] .cv-nav--drawer__header .cv-modal-close:hover {
     padding: var(--cv-spacing-sm) 0;
     display: flex;
     flex-direction: column;
-    flex-grow: 1; /* Para ocupar espaço restante */
+    flex-grow: 1;
 }
-.cv-nav--drawer__item {
-    /* Estilos para o <li> se necessário */
-}
+.cv-nav--drawer__item { }
 .cv-nav--drawer__link {
     display: flex;
     align-items: center;
@@ -1194,25 +1144,29 @@ html[data-theme="dark"] .cv-nav--drawer__header .cv-modal-close:hover {
 .cv-nav--drawer__link.active {
     font-weight: 600;
 }
-.cv-nav--drawer__icon { /* Estilo para o ícone SVG dentro do link do drawer */
+.cv-nav--drawer__icon {
     margin-right: var(--cv-spacing-md);
     width: 22px;
     height: 22px;
     flex-shrink: 0;
-    color: var(--current-text-secondary);
+}
+.cv-nav--drawer__icon svg { /* Para garantir que o SVG dentro do wrapper herde a cor */
+    stroke: var(--current-text-secondary);
+    transition: stroke 0.2s ease;
 }
 .cv-nav--drawer__link:hover .cv-nav--drawer__icon svg,
 .cv-nav--drawer__link.active .cv-nav--drawer__icon svg {
-    stroke: var(--current-primary-blue); /* Altera a cor do traço do SVG */
+    stroke: var(--current-primary-blue);
 }
 .cv-nav--drawer__label {
     flex-grow: 1;
 }
 
 
-/* === Bottom Navigation Bar (Adicionado) === */
+/* === Bottom Navigation Bar === */
+/* A classe .has-bottom-nav é adicionada ao body via JS */
 body.has-bottom-nav {
-    padding-bottom: 60px; /* Altura da bottom-nav, ajuste se mudar */
+    padding-bottom: 60px;
 }
 
 .cv-bottom-nav {
@@ -1221,13 +1175,13 @@ body.has-bottom-nav {
     left: 0;
     right: 0;
     z-index: 1000;
-    display: none; /* JS e media query controlam a exibição */
-    background-color: var(--current-bg-element); /* Fundo da navegação, consistente com drawer */
-    -webkit-backdrop-filter: blur(18px) saturate(170%); /* Efeito iOS */
+    display: none;
+    background-color: var(--current-bg-element);
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
     backdrop-filter: blur(18px) saturate(170%);
     border-top: 1px solid var(--current-border-color);
-    height: 60px; /* Altura fixa */
-    box-shadow: 0 -1px 3px rgba(0,0,0,0.05); /* Sombra sutil no topo */
+    height: 60px;
+    box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
 }
 html[data-theme="dark"] .cv-bottom-nav {
     background-color: var(--cv-dark-bg-element);
@@ -1239,13 +1193,13 @@ html[data-theme="dark"] .cv-bottom-nav {
     margin: 0;
     padding: 0;
     display: flex;
-    justify-content: space-around; /* Distribui os itens igualmente */
-    align-items: stretch; /* Faz os itens preencherem a altura */
+    justify-content: space-around;
+    align-items: stretch;
     height: 100%;
 }
 .cv-bottom-nav__item {
     display: flex;
-    flex-grow: 1; /* Cada item ocupa espaço igual */
+    flex-grow: 1;
 }
 
 .cv-bottom-nav__link {
@@ -1259,38 +1213,41 @@ html[data-theme="dark"] .cv-bottom-nav {
     padding: var(--cv-spacing-xs) var(--cv-spacing-xs);
     transition: color 0.2s ease;
     gap: 2px;
-    font-size: 0.7rem; /* Labels pequenas */
+    font-size: 0.7rem;
 }
-.cv-bottom-nav__icon svg { /* Ajusta o tamanho do SVG diretamente */
+.cv-bottom-nav__icon svg {
     width: 22px;
     height: 22px;
-    margin-bottom: 0px; /* Reduzido ou removido, gap no pai controla */
+    margin-bottom: 0px;
+    stroke: var(--current-text-secondary); /* Cor padrão do ícone */
+    transition: stroke 0.2s ease;
 }
 .cv-bottom-nav__label {
-    line-height: 1.1; /* Ajuste para melhor encaixe */
+    line-height: 1.1;
     text-align: center;
     display: block;
-    font-size: inherit; /* Herda do link */
+    font-size: inherit;
 }
 
 .cv-bottom-nav__link:hover {
     color: var(--current-text-primary);
 }
-.cv-bottom-nav__link--active {
-    color: var(--current-primary-blue);
-    /* font-weight: 500; não precisa de bold aqui */
-}
-.cv-bottom-nav__link--active .cv-bottom-nav__icon svg {
-   stroke: var(--current-primary-blue); /* Cor do ícone ativo */
+.cv-bottom-nav__link:hover .cv-bottom-nav__icon svg {
+    stroke: var(--current-text-primary);
 }
 
-/* Controla a exibição da bottom-nav via JS e config */
-/* A media query abaixo é um fallback, mas o JS é primário */
+.cv-bottom-nav__link--active {
+    color: var(--current-primary-blue);
+}
+.cv-bottom-nav__link--active .cv-bottom-nav__icon svg {
+   stroke: var(--current-primary-blue);
+}
+
 @media (min-width: 768px) {
     .cv-bottom-nav {
-        display: none !important; /* Garante que não apareça em desktop */
+        display: none !important;
     }
     body.has-bottom-nav {
-        padding-bottom: 0; /* Remove padding em desktop */
+        padding-bottom: 0;
     }
 }

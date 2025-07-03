@@ -315,8 +315,11 @@ function setupFilterModalAndButton() {
     "clear-filters-button-modal"
   );
 
+  debugLog("Configurando modal de filtros. Elemento modalFiltros:", modalFiltros);
+
   if (openFilterButton && modalFiltros) {
     openFilterButton.addEventListener("click", () => {
+      debugLog("Botão Abrir Filtros clicado. Modal:", modalFiltros);
       const activeTab = document.querySelector(".cv-tab-button.active")?.id;
       modalFiltros.querySelectorAll("[data-filter-context]").forEach((el) => {
         el.style.display = "none";
@@ -333,22 +336,17 @@ function setupFilterModalAndButton() {
       } else {
         modalFiltros.querySelector("h2").textContent = "Filtros do Mural";
       }
-      modalFiltros.style.display = "flex";
+      // Usar openModal para consistência e gerenciamento de cv-modal-open
+      openModal(modalFiltros);
     });
   }
-  if (closeFilterModalButton && modalFiltros) {
-    closeFilterModalButton.addEventListener("click", () => {
-      modalFiltros.style.display = "none";
-    });
-  }
-  if (modalFiltros) {
-    // Close on outside click
-    window.addEventListener("click", (event) => {
-      if (event.target === modalFiltros) {
-        modalFiltros.style.display = "none";
-      }
-    });
-  }
+  // O listener para .js-modal-filtros-close (que inclui o X e o botão Cancelar)
+  // é configurado em setupModalEventListeners e já usa a função global closeModal.
+  // Portanto, o if (closeFilterModalButton && modalFiltros) { ... } anterior foi removido.
+
+  // O listener para fechar clicando fora do modal também é tratado em setupModalEventListeners.
+  // Portanto, o if (modalFiltros) { window.addEventListener("click", ... } anterior foi removido.
+
   if (applyFiltersModalButton) {
     applyFiltersModalButton.addEventListener("click", () => {
       // Determine active tab to show skeleton correctly.
@@ -680,12 +678,13 @@ function setupModalEventListeners() {
   if (criarEnqueteModal) {
     document
       .querySelectorAll(".js-modal-criar-enquete-close")
-      .forEach((b) =>
+      .forEach((b) => {
+        debugLog("Anexando listener de fechar para Criar Enquete Modal:", b);
         b.addEventListener(
           "click",
           () => closeModal(criarEnqueteModal)
-        )
-      );
+        );
+      });
     window.addEventListener("click", (e) => {
       if (e.target === criarEnqueteModal)
         closeModal(criarEnqueteModal);
