@@ -1112,6 +1112,7 @@ input:checked + .cv-switch-slider:before {
 /* Reservas view toggle alignment */
 .reservas-view-toggle {
     display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: flex-end;
     flex-wrap: nowrap;
