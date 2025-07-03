@@ -97,7 +97,7 @@ function closeRegistrarEncomendaModal() {
 
 // --- Filtro ---
 function setupFilterModalAndButton() {
-    const btnClose = document.querySelector(".js-modal-filtros-portaria-close");
+    const btnCloseElements = document.querySelectorAll(".js-modal-filtros-portaria-close");
     const btnApply = document.getElementById("apply-filters-button-portaria-modal");
     const btnClear = document.getElementById("clear-filters-button-portaria-modal");
     const tipoSelect = document.getElementById("portaria-tipo-visitante-filter");
@@ -120,7 +120,7 @@ function setupFilterModalAndButton() {
         openModal(modalFiltrosPortaria);
     });
 
-    btnClose?.addEventListener("click", () => closeModal(modalFiltrosPortaria));
+    btnCloseElements.forEach(btn => btn.addEventListener("click", () => closeModal(modalFiltrosPortaria)));
     window.addEventListener("click", e => e.target === modalFiltrosPortaria && closeModal(modalFiltrosPortaria));
 
     btnApply?.addEventListener("click", () => {
@@ -320,8 +320,16 @@ async function loadInitialPortariaItems() {
 
     feed.querySelectorAll(`.cv-card:not(.prio-0):not(.feed-skeleton-item)`).forEach(el => el.remove());
     fetchedPortariaItems = [];
-    contentEl.querySelector('.cv-error-state')?.classList.add('hidden');
-    contentEl.querySelector('.cv-empty-state')?.classList.add('hidden');
+    const errStates = contentEl.querySelectorAll('.cv-error-state');
+    errStates.forEach((el, idx) => {
+        if (idx === 0) el.style.display = 'none';
+        else el.remove();
+    });
+    const emptyStates = contentEl.querySelectorAll('.cv-empty-state');
+    emptyStates.forEach((el, idx) => {
+        if (idx === 0) el.style.display = 'none';
+        else el.remove();
+    });
 
     let sentinel = document.getElementById(portariaScrollSentinelId);
     if (!sentinel) {
@@ -354,7 +362,7 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
     const feed = contentEl?.querySelector(activePortariaTab === 'visitantes' ? portariaFeedContainerSelector : portariaEncomendasFeedContainerSelector);
     const sentinel = document.getElementById(portariaScrollSentinelId);
     if (!feed || !contentEl) {
-        isLoadingPortariaItens = false;
+        isLoadingPortariaItems = false;
         if (contentEl) hideSkeleton(contentEl);
         return;
     }
@@ -396,8 +404,10 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
         const resp = await apiClient.get(endpoint, params);
         const items = resp.data || resp || [];
         hideSkeleton(contentEl);
-        contentEl.querySelector(".cv-error-state")?.classList.add('hidden');
-        contentEl.querySelector(".cv-empty-state")?.classList.add('hidden');
+        const errEl = contentEl.querySelector(".cv-error-state");
+        if (errEl) errEl.style.display = 'none';
+        const emptyEl = contentEl.querySelector(".cv-empty-state");
+        if (emptyEl) emptyEl.style.display = 'none';
         feed.querySelector('.loading-spinner-portaria')?.remove();
 
         if (items.length) {
@@ -439,12 +449,13 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
             retryButton: {
                 text: "Tentar Novamente",
                 onClick: () => {
-                    contentEl.querySelector(".cv-error-state")?.remove();
+                    contentEl.querySelectorAll(".cv-error-state").forEach(el => el.remove());
                     loadInitialPortariaItems();
                 }
             }
         });
         const target = contentEl.querySelector(portariaFeedContainerSelector + ', ' + portariaEncomendasFeedContainerSelector) || contentEl;
+        contentEl.querySelectorAll('.cv-error-state').forEach(el => el.remove());
         target.appendChild(errState);
         sentinel.style.display = "none";
     } finally {
