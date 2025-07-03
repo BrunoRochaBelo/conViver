@@ -862,6 +862,29 @@ main {
 .cv-tabs-buttons::-webkit-scrollbar {
     display: none;
 }
+
+/* Scroll indicator for tabs on mobile */
+.cv-tabs-buttons {
+    position: relative; /* Needed for absolute positioning of pseudo-element */
+}
+
+.cv-tabs-buttons.has-scroll-indicator::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30px; /* Width of the gradient fade */
+    height: 100%;
+    background: linear-gradient(to left, var(--current-bg-light), transparent); /* Fade to page background */
+    pointer-events: none; /* So it doesn't interfere with clicks/scrolls */
+    z-index: 1; /* Ensure it's above tab buttons if they have backgrounds */
+}
+
+html[data-theme="dark"] .cv-tabs-buttons.has-scroll-indicator::after {
+    background: linear-gradient(to left, var(--cv-dark-bg-page), transparent); /* Fade to dark page background */
+}
+
+
 .cv-tabs > #open-sort-button,
 .cv-tabs > #open-filter-modal-button {
     margin-top: var(--cv-spacing-xs);
@@ -1078,12 +1101,44 @@ html[data-theme="dark"] .fab-menu-options {
 }
 .fab-menu-options .cv-button {
     width: 100%;
-    justify-content: flex-start;
+    justify-content: center; /* Changed from flex-start to center */
 }
 
 /* If the FAB itself is part of .fab-menu and not a separate element outside it: */
 .fab-menu > .fab {
      z-index: 1050;
+}
+
+@media (max-width: 767px) {
+    .fab {
+        width: 60px; /* Smaller FAB */
+        height: 60px;
+        font-size: var(--cv-font-size-md, 18px); /* Adjusted icon size if needed */
+    }
+
+    .fab-menu {
+        /* Ensure it's above bottom nav by default on mobile if bottom nav is a possibility */
+        /* This might be slightly different from body.has-bottom-nav .fab-menu if specific conditions apply */
+        bottom: calc(var(--cv-spacing-md, 16px) + env(safe-area-inset-bottom, 0));
+        right: var(--cv-spacing-md, 16px);
+    }
+
+    body.has-bottom-nav .fab {
+        /* Explicitly adjust FAB itself if its direct parent isn't .fab-menu or if more specific positioning is needed */
+         bottom: calc(70px + var(--cv-spacing-md, 16px) + env(safe-area-inset-bottom, 0));
+    }
+
+    body.has-bottom-nav .fab-menu {
+        /* This rule was already present but ensure it's evaluated correctly with mobile adjustments */
+        /* Higher positioning for FAB menu when bottom nav is visible */
+        bottom: calc(70px + var(--cv-spacing-md, 16px) + env(safe-area-inset-bottom, 0));
+    }
+
+    .fab-menu-options {
+        /* Adjust position of options menu relative to the now smaller/repositioned FAB */
+        bottom: 76px; /* Approx 60px (new FAB height) + 16px spacing */
+        right: var(--cv-spacing-sm, 8px); /* Closer to edge if FAB is also closer */
+    }
 }
 
 
