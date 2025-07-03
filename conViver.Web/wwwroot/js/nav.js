@@ -97,6 +97,9 @@ export function buildNavigation() {
     navContainer.classList.add('cv-nav');
     navContainer.appendChild(container);
 
+    const existingBottom = document.querySelector('.cv-bottom-nav');
+    if (existingBottom) existingBottom.remove();
+
     if (window.innerWidth < 768 && window.APP_CONFIG?.ENABLE_MOBILE_BOTTOM_NAV) {
         const bottomNav = document.createElement('nav');
         bottomNav.className = 'cv-bottom-nav';
@@ -111,7 +114,7 @@ export function buildNavigation() {
             } else {
                 a.href = `${hrefPrefix}${item.href}`;
             }
-            a.innerHTML = item.icon;
+            a.innerHTML = `${item.icon.replace('cv-nav__icon','cv-bottom-nav__icon')}<span class="cv-bottom-nav__label">${item.label}</span>`;
             a.className = 'cv-bottom-nav__link';
             if (currentPage === item.key) {
                 a.classList.add('cv-bottom-nav__link--active');
@@ -122,7 +125,14 @@ export function buildNavigation() {
         });
         bottomNav.appendChild(bottomUl);
         document.body.appendChild(bottomNav);
+        document.body.classList.add('has-bottom-nav');
+    } else {
+        document.body.classList.remove('has-bottom-nav');
     }
 }
 
 document.addEventListener('DOMContentLoaded', buildNavigation);
+window.addEventListener('resize', () => {
+    clearTimeout(window.__cvNavResizeTimeout);
+    window.__cvNavResizeTimeout = setTimeout(buildNavigation, 200);
+});

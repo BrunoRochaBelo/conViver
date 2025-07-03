@@ -636,6 +636,11 @@ body.has-bottom-nav {
     padding-bottom: calc(70px + env(safe-area-inset-bottom, 0));
 }
 
+body.has-bottom-nav .fab-menu {
+    bottom: calc(70px + var(--cv-spacing-lg, 20px) + env(safe-area-inset-bottom, 0));
+}
+
+
 body.has-bottom-nav #mainNav {
     display: none;
 }
@@ -1103,3 +1108,22 @@ input:checked + .cv-switch-slider:before {
     transform: translateX(20px); /* Distância que o círculo desliza */
 }
 /* === End Switch Component === */
+
+/* Reservas view toggle alignment */
+.reservas-view-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: var(--cv-spacing-sm);
+    margin-bottom: var(--cv-spacing-md);
+}
+
+@media (max-width: 767px) {
+    .cv-header {
+        padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
+    }
+    .cv-header__title {
+        font-size: 1.125rem;
+    }
+}

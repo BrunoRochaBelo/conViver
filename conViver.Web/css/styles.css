@@ -842,10 +842,13 @@ main {
 
 .cv-tabs-buttons {
     display: flex;
+    flex: 1;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     gap: var(--cv-spacing-xs);
+    white-space: nowrap;
 }
+
 .cv-tabs-buttons::-webkit-scrollbar {
     display: none;
 }
@@ -1032,6 +1035,10 @@ main {
     display: flex;
     flex-direction: column-reverse; /* Options appear above the FAB */
     align-items: flex-end; /* Align options to the right, matching FAB */
+}
+
+body.has-bottom-nav .fab-menu {
+    bottom: calc(70px + var(--cv-spacing-lg, 20px) + env(safe-area-inset-bottom, 0));
 }
 
 /* This is the actual button that triggers the menu, style it like the .fab above */
