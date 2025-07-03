@@ -195,7 +195,6 @@ export async function initialize() {
   setupFilterModalAndButton();
   setupSortModalAndButton();
   setupModalEventListeners();
-  setupTryAgainButtons(); // Adicionado aqui
 }
 
 if (document.readyState !== "loading") {
@@ -1412,32 +1411,21 @@ async function fetchAndDisplayFeedItems(page, append = false) {
                  muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)").forEach(el => el.remove());
             }
 
-
-            // Usar o cv-error-state que já existe no HTML da aba
-            const errorStateDiv = targetErrorContainer.querySelector(".cv-error-state");
-            if (errorStateDiv) {
-                errorStateDiv.style.display = "flex"; // Ou o display correto para o componente
-                // O botão "Tentar Novamente" no HTML já tem o data-content-id.
-                // A lógica do listener para ele será adicionada separadamente.
-            } else {
-                // Fallback se o div não existir (não deveria acontecer com o HTML atualizado)
-                const errorState = createErrorStateElement({
-                    title: "Falha ao Carregar",
-                    message: error.message || `Não foi possível carregar o conteúdo de ${activeTabContentIdOnError}. Verifique sua conexão e tente novamente.`,
-                    retryButton: {
-                        text: "Tentar Novamente",
-                        onClick: () => {
-                            const currentErrorStateInTab = targetErrorContainer.querySelector(".cv-error-state");
-                            if (currentErrorStateInTab) currentErrorStateInTab.style.display = "none";
-                            showFeedSkeleton(activeTabContentIdOnError);
-                            loadInitialFeedItems(); // Ou uma função específica para a aba
-                        }
+            const errorState = createErrorStateElement({
+                title: "Falha ao Carregar",
+                message: error.message || `Não foi possível carregar o conteúdo de ${activeTabContentIdOnError}. Verifique sua conexão e tente novamente.`,
+                retryButton: {
+                    text: "Tentar Novamente",
+                    onClick: () => {
+                        const currentErrorState = targetErrorContainer.querySelector(".cv-error-state");
+                        if (currentErrorState) currentErrorState.remove();
+                        showFeedSkeleton(activeTabContentIdOnError);
+                        loadInitialFeedItems();
                     }
-                });
-                // Adicionar ao container da aba ativa, não ao muralFeedContainer necessariamente
-                const contentArea = targetErrorContainer.querySelector('.feed-grid, .js-avisos, .enquetes-list, .chamados-list') || targetErrorContainer;
-                contentArea.appendChild(errorState);
-            }
+                }
+            });
+            const contentArea = targetErrorContainer.querySelector('.feed-grid, .js-avisos, .enquetes-list, .chamados-list') || targetErrorContainer;
+            contentArea.appendChild(errorState);
         }
     } else if (append) {
       if (!error.handledByApiClient && error.message) {
@@ -2620,34 +2608,3 @@ async function handleCreateOcorrencia() {
 //     xhr.send(formData);
 //   });
 // }
-
-// --- Botão Tentar Novamente nos Error States ---
-function setupTryAgainButtons() {
-    document.querySelectorAll(".cv-error-state__retry-button").forEach(button => {
-        button.addEventListener("click", (event) => {
-            const buttonEl = event.currentTarget;
-            const contentId = buttonEl.dataset.contentId;
-            if (contentId) {
-                const errorStateDiv = buttonEl.closest(".cv-error-state");
-                if (errorStateDiv) {
-                    errorStateDiv.style.display = "none";
-                }
-
-                // Mostrar skeleton da aba específica antes de tentar recarregar
-                showFeedSkeleton(contentId);
-
-                // Se o contentId for o do mural, ou se a aba ativa for a do mural,
-                // a chamada loadInitialFeedItems já vai lidar com o skeleton do mural.
-                // Se for uma aba específica e não for a mural, o skeleton dela foi ativado acima.
-                // A função loadInitialFeedItems é a principal para carregar o feed.
-                // Ela já usa os filtros e a aba ativa para determinar o que carregar.
-                loadInitialFeedItems();
-            } else {
-                console.warn("Botão 'Tentar Novamente' sem data-content-id definido.");
-                // Fallback geral se não houver contentId (recarrega o feed principal)
-                showFeedSkeleton("content-mural"); // Mostra skeleton do mural como fallback
-                loadInitialFeedItems();
-            }
-        });
-    });
-}
