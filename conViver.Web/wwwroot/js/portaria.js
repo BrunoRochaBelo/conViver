@@ -20,7 +20,7 @@ let modalRegistrarEncomenda, formNovaEncomendaModal;
 let modalFiltrosPortaria, modalSortPortaria;
 let openFilterModalButton, openSortButton;
 
-// --- Estado do Feed ---
+// Estado do feed de Portaria
 let currentPortariaPage = 1;
 let isLoadingPortariaItems = false;
 let noMorePortariaItems = false;
@@ -30,13 +30,14 @@ const portariaScrollSentinelId = "portaria-scroll-sentinel";
 let fetchedPortariaItems = [];
 let currentPortariaSortOrder = "desc";
 let currentPortariaFilters = {};
-let activePortariaTab = "visitantes";
-let tipoVisualizacaoVisitantes = "atuais";
+let activePortariaTab = "visitantes"; // 'visitantes' ou 'encomendas'
+let tipoVisualizacaoVisitantes = "atuais"; // 'atuais' ou 'historico'
 
 // --- Badge de Status ---
 function getStatusBadgeHtml(status) {
     const s = status ? status.toLowerCase() : "";
-    let type = "default", icon = "info";
+    let type = "default";
+    let icon = "info";
     if (s.includes("presente") || s.includes("aguardando") || s.includes("recebida")) {
         type = "warning"; icon = "clock";
     } else if (s.includes("saiu") || s.includes("entregue") || s.includes("concluído")) {
@@ -47,7 +48,7 @@ function getStatusBadgeHtml(status) {
     return `<span class="status-badge status-badge--${type}"><span class="status-icon icon-${icon}"></span>${status}</span>`;
 }
 
-// --- Abas ---
+// --- Configuração das Abas ---
 function setupTabs() {
     const tabButtons = document.querySelectorAll('.cv-tabs-buttons .cv-tab-button');
     const tabContents = document.querySelectorAll('main > .cv-tab-content');
@@ -56,14 +57,17 @@ function setupTabs() {
         button.addEventListener('click', () => {
             tabButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
+
             tabContents.forEach(content => content.style.display = 'none');
 
-            const targetId = button.id.replace('tab-', 'content-');
-            const target = document.getElementById(targetId);
-            if (!target) return;
+            const targetContentId = button.id.replace('tab-', 'content-');
+            const targetContent = document.getElementById(targetContentId);
+            if (!targetContent) return;
 
-            target.style.display = 'block';
-            activePortariaTab = button.id === 'tab-visitantes' ? 'visitantes' : 'encomendas';
+            targetContent.style.display = 'block';
+            activePortariaTab = (button.id === 'tab-visitantes') ? 'visitantes' : 'encomendas';
+
+            // Reset e recarga de feed
             currentPortariaPage = 1;
             noMorePortariaItems = false;
             fetchedPortariaItems = [];
@@ -76,75 +80,82 @@ function setupTabs() {
 
 // --- Modais de Registro ---
 function openRegistrarVisitanteModal() {
-    if (!modalRegistrarVisitante || !formRegistrarVisitante) return;
     formRegistrarVisitante.reset();
     clearModalError(modalRegistrarVisitante);
     document.getElementById('visQRCodeEntrada').value = '';
     openModal(modalRegistrarVisitante);
 }
 function closeRegistrarVisitanteModal() {
-    if (modalRegistrarVisitante) closeModal(modalRegistrarVisitante);
+    closeModal(modalRegistrarVisitante);
 }
 function openRegistrarEncomendaModal() {
-    if (!modalRegistrarEncomenda || !formNovaEncomendaModal) return;
     formNovaEncomendaModal.reset();
     clearModalError(modalRegistrarEncomenda);
     openModal(modalRegistrarEncomenda);
 }
 function closeRegistrarEncomendaModal() {
-    if (modalRegistrarEncomenda) closeModal(modalRegistrarEncomenda);
+    closeModal(modalRegistrarEncomenda);
 }
 
-// --- Filtro ---
+// --- Modal de Filtros e Ordenação ---
+function toggleHistoricoFiltersVisibility(show) {
+    document.querySelectorAll('#modal-filtros-portaria [data-filter-context="visitantes_historico"]')
+        .forEach(el => el.style.display = show ? 'block' : 'none');
+}
+
+function updateFilterButtonIndicator() {
+    const hasFilters = Object.values(currentPortariaFilters).some(v => v && v !== '');
+    const tipoChanged = (activePortariaTab === 'visitantes' && tipoVisualizacaoVisitantes !== 'atuais');
+    openFilterModalButton.classList.toggle('has-indicator', hasFilters || tipoChanged);
+}
+
 function setupFilterModalAndButton() {
-    const btnClose = document.querySelector(".js-modal-filtros-portaria-close");
-    const btnApply = document.getElementById("apply-filters-button-portaria-modal");
-    const btnClear = document.getElementById("clear-filters-button-portaria-modal");
+    const closeBtn = document.querySelector(".js-modal-filtros-portaria-close");
+    const applyBtn = document.getElementById("apply-filters-button-portaria-modal");
+    const clearBtn = document.getElementById("clear-filters-button-portaria-modal");
     const tipoSelect = document.getElementById("portaria-tipo-visitante-filter");
 
-    openFilterModalButton?.addEventListener("click", () => {
-        const visitFilters = modalFiltrosPortaria.querySelectorAll('[data-filter-context="visitantes"], [data-filter-context="visitantes_historico"]');
-        const encFilters   = modalFiltrosPortaria.querySelectorAll('[data-filter-context="encomendas"]');
-        const titleEl      = modalFiltrosPortaria.querySelector("h2");
-
+    openFilterModalButton.addEventListener("click", () => {
+        const visitanteCtx = modalFiltrosPortaria.querySelectorAll('[data-filter-context="visitantes"], [data-filter-context="visitantes_historico"]');
+        const encomendaCtx = modalFiltrosPortaria.querySelectorAll('[data-filter-context="encomendas"]');
+        const title = modalFiltrosPortaria.querySelector("h2");
         if (activePortariaTab === 'visitantes') {
-            visitFilters.forEach(el => el.style.display = 'block');
-            encFilters.forEach(el => el.style.display = 'none');
-            titleEl.textContent = "Filtros de Visitantes";
+            visitanteCtx.forEach(el => el.style.display = 'block');
+            encomendaCtx.forEach(el => el.style.display = 'none');
+            title.textContent = "Filtros de Visitantes";
             toggleHistoricoFiltersVisibility(tipoSelect.value === 'historico');
         } else {
-            visitFilters.forEach(el => el.style.display = 'none');
-            encFilters.forEach(el => el.style.display = 'block');
-            titleEl.textContent = "Filtros de Encomendas";
+            visitanteCtx.forEach(el => el.style.display = 'none');
+            encomendaCtx.forEach(el => el.style.display = 'block');
+            title.textContent = "Filtros de Encomendas";
         }
         openModal(modalFiltrosPortaria);
     });
 
-    btnClose?.addEventListener("click", () => closeModal(modalFiltrosPortaria));
-    window.addEventListener("click", e => e.target === modalFiltrosPortaria && closeModal(modalFiltrosPortaria));
+    closeBtn.addEventListener("click", () => closeModal(modalFiltrosPortaria));
+    window.addEventListener("click", e => { if (e.target === modalFiltrosPortaria) closeModal(modalFiltrosPortaria); });
 
-    btnApply?.addEventListener("click", () => {
+    applyBtn.addEventListener("click", () => {
         currentPortariaFilters = {};
         if (activePortariaTab === 'visitantes') {
             tipoVisualizacaoVisitantes = tipoSelect.value;
             currentPortariaFilters.unidadeId = document.getElementById("filterUnidadeVisitantes").value.trim();
             if (tipoVisualizacaoVisitantes === 'historico') {
                 currentPortariaFilters.dataInicio = document.getElementById("filterHistDataInicio").value;
-                currentPortariaFilters.dataFim    = document.getElementById("filterHistDataFim").value;
+                currentPortariaFilters.dataFim = document.getElementById("filterHistDataFim").value;
                 currentPortariaFilters.nomeVisitante = document.getElementById("filterHistNome").value.trim();
             }
         } else {
             currentPortariaFilters.unidadeIdEncomenda = document.getElementById("filterUnidadeEncomendas").value.trim();
-            currentPortariaFilters.statusEncomenda    = document.getElementById("filterStatusEncomenda").value;
+            currentPortariaFilters.statusEncomenda = document.getElementById("filterStatusEncomenda").value;
         }
         loadInitialPortariaItems();
         closeModal(modalFiltrosPortaria);
         updateFilterButtonIndicator();
     });
 
-    btnClear?.addEventListener("click", () => {
-        modalFiltrosPortaria.querySelectorAll("input[type='text'], input[type='date']").forEach(i => i.value = '');
-        modalFiltrosPortaria.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+    clearBtn.addEventListener("click", () => {
+        modalFiltrosPortaria.querySelectorAll("input, select").forEach(el => el.value = '');
         currentPortariaFilters = {};
         tipoVisualizacaoVisitantes = 'atuais';
         toggleHistoricoFiltersVisibility(false);
@@ -153,33 +164,21 @@ function setupFilterModalAndButton() {
         updateFilterButtonIndicator();
     });
 
-    tipoSelect?.addEventListener("change", e => toggleHistoricoFiltersVisibility(e.target.value === 'historico'));
-}
-function toggleHistoricoFiltersVisibility(show) {
-    document.querySelectorAll('#modal-filtros-portaria [data-filter-context="visitantes_historico"]')
-        .forEach(el => el.style.display = show ? 'block' : 'none');
-}
-function updateFilterButtonIndicator() {
-    if (!openFilterModalButton) return;
-    const hasFieldFilters = Object.values(currentPortariaFilters).some(v => v);
-    const tipoChanged = activePortariaTab === 'visitantes' && tipoVisualizacaoVisitantes !== 'atuais';
-    openFilterModalButton.classList.toggle("has-indicator", hasFieldFilters || tipoChanged);
+    tipoSelect.addEventListener('change', e => toggleHistoricoFiltersVisibility(e.target.value === 'historico'));
 }
 
-// --- Ordenação ---
 function setupSortModalAndButton() {
     const closeBtns = document.querySelectorAll(".js-modal-sort-portaria-close");
-    const btnApply  = document.getElementById("apply-sort-button-portaria");
-    const btnClear  = document.getElementById("clear-sort-button-portaria-modal");
-    const sel       = document.getElementById("sort-order-select-portaria");
+    const applyBtn = document.getElementById("apply-sort-button-portaria");
+    const clearBtn = document.getElementById("clear-sort-button-portaria-modal");
+    const sortSelect = document.getElementById("sort-order-select-portaria");
 
-    openSortButton?.addEventListener("click", () => {
-        sel.value = currentPortariaSortOrder;
+    openSortButton.addEventListener("click", () => {
+        sortSelect.value = currentPortariaSortOrder;
         openModal(modalSortPortaria);
         openSortButton.classList.add("rotated");
     });
-
-    closeBtns.forEach(b => b.addEventListener("click", () => {
+    closeBtns.forEach(btn => btn.addEventListener("click", () => {
         closeModal(modalSortPortaria);
         openSortButton.classList.remove("rotated");
     }));
@@ -190,15 +189,16 @@ function setupSortModalAndButton() {
         }
     });
 
-    btnApply?.addEventListener("click", () => {
-        currentPortariaSortOrder = sel.value;
+    applyBtn.addEventListener("click", () => {
+        currentPortariaSortOrder = sortSelect.value;
         closeModal(modalSortPortaria);
-        openSortButton.classList.remove("rotated");
         openSortButton.classList.toggle("has-indicator", currentPortariaSortOrder !== "desc");
+        openSortButton.classList.remove("rotated");
         loadInitialPortariaItems();
     });
-    btnClear?.addEventListener("click", () => {
-        sel.value = "desc";
+
+    clearBtn.addEventListener("click", () => {
+        sortSelect.value = "desc";
         currentPortariaSortOrder = "desc";
         closeModal(modalSortPortaria);
         openSortButton.classList.remove("rotated", "has-indicator");
@@ -209,141 +209,161 @@ function setupSortModalAndButton() {
 // --- Eventos de Modal ---
 function setupModalEventListeners() {
     // Visitante
-    document.querySelectorAll(".js-modal-registrar-visitante-close")
-        .forEach(btn => btn.addEventListener("click", closeRegistrarVisitanteModal));
-    window.addEventListener("click", e => e.target === modalRegistrarVisitante && closeRegistrarVisitanteModal());
-    formRegistrarVisitante?.addEventListener('submit', handleRegistrarVisitanteSubmit);
-    btnValidarQRCodeModal?.addEventListener('click', handleValidarQRCodeModal);
+    document.querySelectorAll(".js-modal-registrar-visitante-close").forEach(btn =>
+        btn.addEventListener("click", closeRegistrarVisitanteModal)
+    );
+    window.addEventListener("click", e => { if (e.target === modalRegistrarVisitante) closeRegistrarVisitanteModal(); });
+    formRegistrarVisitante.addEventListener('submit', handleRegistrarVisitanteSubmit);
+    btnValidarQRCodeModal.addEventListener('click', handleValidarQRCodeModal);
 
     // Encomenda
-    document.querySelectorAll(".js-modal-registrar-encomenda-close")
-        .forEach(btn => btn.addEventListener("click", closeRegistrarEncomendaModal));
-    window.addEventListener("click", e => e.target === modalRegistrarEncomenda && closeRegistrarEncomendaModal());
-    formNovaEncomendaModal?.addEventListener('submit', handleRegistrarEncomendaSubmit);
+    document.querySelectorAll(".js-modal-registrar-encomenda-close").forEach(btn =>
+        btn.addEventListener("click", closeRegistrarEncomendaModal)
+    );
+    window.addEventListener("click", e => { if (e.target === modalRegistrarEncomenda) closeRegistrarEncomendaModal(); });
+    formNovaEncomendaModal.addEventListener('submit', handleRegistrarEncomendaSubmit);
 
     setupFilterModalAndButton();
     setupSortModalAndButton();
 }
 
-// --- Submits ---
-async function handleRegistrarVisitanteSubmit(e) {
-    e.preventDefault();
-    if (!formRegistrarVisitante) return;
-    const btn = formRegistrarVisitante.querySelector('button[type="submit"]');
-    const oldText = btn.innerHTML;
-    btn.disabled = true; btn.innerHTML = 'Registrando... <span class="inline-spinner"></span>';
+// --- Submissões de Formulário ---
+async function handleRegistrarVisitanteSubmit(event) {
+    event.preventDefault();
+    const submitBtn = formRegistrarVisitante.querySelector('button[type="submit"]');
+    const origText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Registrando... <span class="inline-spinner"></span>';
     clearModalError(modalRegistrarVisitante);
 
-    const data = Object.fromEntries(new FormData(formRegistrarVisitante).entries());
+    const formData = new FormData(formRegistrarVisitante);
+    const data = Object.fromEntries(formData.entries());
     data.documento = data.documento || null;
     data.motivoVisita = data.motivoVisita || null;
     data.horarioSaidaPrevisto = data.horarioSaidaPrevisto
-        ? new Date(data.horarioSaidaPrevisto).toISOString() : null;
+        ? new Date(data.horarioSaidaPrevisto).toISOString()
+        : null;
     data.observacoes = data.observacoes || null;
-    delete data.qrCodeEntrada;
 
     try {
         await apiClient.post('/api/v1/visitantes/registrar-entrada', data);
-        showGlobalFeedback('Entrada de visitante registrada com sucesso!', 'success', 2500);
-        formRegistrarVisitante.reset();
+        showGlobalFeedback('Entrada de visitante registrada!', 'success', 2500);
         closeRegistrarVisitanteModal();
         if (activePortariaTab === 'visitantes') loadInitialPortariaItems();
     } catch (err) {
-        console.error(err);
-        showModalError(modalRegistrarVisitante, err.detalhesValidacao || err.message || 'Falha ao registrar entrada.');
+        console.error('Erro ao registrar visitante:', err);
+        showModalError(
+            modalRegistrarVisitante,
+            err.detalhesValidacao || err.message || 'Falha ao registrar. Verifique os dados.'
+        );
     } finally {
-        btn.innerHTML = oldText; btn.disabled = false;
+        submitBtn.innerHTML = origText;
+        submitBtn.disabled = false;
     }
 }
 
 async function handleValidarQRCodeModal() {
-    const qr = document.getElementById('visQRCodeEntrada')?.value;
-    if (!qr) return;
+    const qrCodeValue = document.getElementById('visQRCodeEntrada')?.value;
+    if (!qrCodeValue) return;
+
     const submitBtn = formRegistrarVisitante.querySelector('button[type="submit"]');
-    const validateBtn = document.getElementById('btnValidarQRCode');
-    const oldText = validateBtn.innerHTML;
-    submitBtn.disabled = validateBtn.disabled = true;
+    const validateBtn = btnValidarQRCodeModal;
+    const origText = validateBtn.innerHTML;
+    submitBtn.disabled = true;
+    validateBtn.disabled = true;
     validateBtn.innerHTML = 'Validando... <span class="inline-spinner"></span>';
     clearModalError(modalRegistrarVisitante);
 
     try {
-        const resp = await apiClient.post('/api/v1/visitantes/validar-qr-code', { qrCodeValue: qr });
-        showGlobalFeedback(`Entrada por QR Code validada para: ${resp.nome}.`, 'success', 3000);
-        formRegistrarVisitante.reset();
+        const resp = await apiClient.post('/api/v1/visitantes/validar-qr-code', { qrCodeValue });
+        showGlobalFeedback(`QR Code validado para: ${resp.nome}`, 'success', 3000);
         closeRegistrarVisitanteModal();
         if (activePortariaTab === 'visitantes') loadInitialPortariaItems();
     } catch (err) {
-        console.error(err);
-        showModalError(modalRegistrarVisitante, err.detalhesValidacao || err.message || 'QR Code inválido.');
+        console.error('Erro validar QR:', err);
+        showModalError(
+            modalRegistrarVisitante,
+            err.detalhesValidacao || err.message || 'QR Code inválido ou expirado.'
+        );
     } finally {
-        validateBtn.innerHTML = oldText;
-        submitBtn.disabled = validateBtn.disabled = false;
+        submitBtn.disabled = false;
+        validateBtn.innerHTML = origText;
+        validateBtn.disabled = false;
     }
 }
 
-async function handleRegistrarEncomendaSubmit(e) {
-    e.preventDefault();
-    if (!formNovaEncomendaModal) return;
-    const btn = formNovaEncomendaModal.querySelector('button[type="submit"]');
-    const oldText = btn.innerHTML;
-    btn.disabled = true; btn.innerHTML = 'Registrando... <span class="inline-spinner"></span>';
+async function handleRegistrarEncomendaSubmit(event) {
+    event.preventDefault();
+    const submitBtn = formNovaEncomendaModal.querySelector('button[type="submit"]');
+    const origText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Registrando... <span class="inline-spinner"></span>';
     clearModalError(modalRegistrarEncomenda);
 
-    const fd = new FormData(formNovaEncomendaModal);
+    const formData = new FormData(formNovaEncomendaModal);
     const data = {
-        unidadeId: fd.get('unidadeId'),
-        descricao: fd.get('descricao'),
-        codigoRastreio: fd.get('codigoRastreio') || null,
-        remetente: fd.get('remetente') || null
+        unidadeId: formData.get('unidadeId'),
+        descricao: formData.get('descricao'),
+        codigoRastreio: formData.get('codigoRastreio') || null,
+        remetente: formData.get('remetente') || null
     };
 
     try {
         await apiClient.post('/syndic/encomendas', data);
-        showGlobalFeedback('Encomenda registrada com sucesso!', 'success', 2500);
-        formNovaEncomendaModal.reset();
+        showGlobalFeedback('Encomenda registrada!', 'success', 2500);
         closeRegistrarEncomendaModal();
         if (activePortariaTab === 'encomendas') loadInitialPortariaItems();
     } catch (err) {
-        console.error(err);
-        showModalError(modalRegistrarEncomenda, err.detalhesValidacao || err.message || 'Falha ao registrar encomenda.');
+        console.error('Erro registrar encomenda:', err);
+        showModalError(
+            modalRegistrarEncomenda,
+            err.detalhesValidacao || err.message || 'Falha ao registrar encomenda.'
+        );
     } finally {
-        btn.innerHTML = oldText; btn.disabled = false;
+        submitBtn.innerHTML = origText;
+        submitBtn.disabled = false;
     }
 }
 
-// --- Feed ---
+// --- Carregamento do Feed ---
 async function loadInitialPortariaItems() {
-    currentPortariaPage = 1; noMorePortariaItems = false; isLoadingPortariaItems = false;
+    currentPortariaPage = 1;
+    noMorePortariaItems = false;
+    isLoadingPortariaItems = false;
     const contentEl = document.getElementById(activePortariaTab === 'visitantes' ? 'content-visitantes' : 'content-encomendas');
-    const feed = contentEl?.querySelector(activePortariaTab === 'visitantes' ? portariaFeedContainerSelector : portariaEncomendasFeedContainerSelector);
-    if (!feed || !contentEl) return;
+    const feedSelector = (activePortariaTab === 'visitantes')
+        ? portariaFeedContainerSelector
+        : portariaEncomendasFeedContainerSelector;
+    const feedContainer = contentEl?.querySelector(feedSelector);
+    if (!feedContainer) return;
 
-    feed.querySelectorAll(`.cv-card:not(.prio-0):not(.feed-skeleton-item)`).forEach(el => el.remove());
+    feedContainer.querySelectorAll('.cv-card:not(.feed-skeleton-item)').forEach(el => el.remove());
     fetchedPortariaItems = [];
-    contentEl.querySelector('.cv-error-state')?.classList.add('hidden');
-    contentEl.querySelector('.cv-empty-state')?.classList.add('hidden');
+    contentEl.querySelectorAll('.cv-error-state, .cv-empty-state').forEach(el => el.remove());
 
     let sentinel = document.getElementById(portariaScrollSentinelId);
     if (!sentinel) {
-        sentinel = document.createElement("div");
+        sentinel = document.createElement('div');
         sentinel.id = portariaScrollSentinelId;
-        sentinel.style.height = "10px";
-        feed.appendChild(sentinel);
+        sentinel.style.height = '10px';
+        feedContainer.appendChild(sentinel);
     }
-    sentinel.style.display = "block";
+    sentinel.style.display = 'block';
+
     showSkeleton(contentEl);
-    await fetchAndDisplayPortariaItems(currentPortariaPage, false);
+    await fetchAndDisplayPortariaItems(1, false);
 }
 
 function setupPortariaFeedObserver() {
     const sentinel = document.getElementById(portariaScrollSentinelId);
     if (!sentinel) return;
-    new IntersectionObserver(async ([entry]) => {
-        if (entry.isIntersecting && !isLoadingPortariaItems && !noMorePortariaItems) {
+    const observer = new IntersectionObserver(async entries => {
+        if (entries[0].isIntersecting && !isLoadingPortariaItems && !noMorePortariaItems) {
             currentPortariaPage++;
             await fetchAndDisplayPortariaItems(currentPortariaPage, true);
         }
-    }, { threshold: 0.1 }).observe(sentinel);
+    }, { root: null, threshold: 0.1 });
+    observer.observe(sentinel);
 }
 
 async function fetchAndDisplayPortariaItems(page, append = false) {
@@ -351,116 +371,126 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
     isLoadingPortariaItems = true;
 
     const contentEl = document.getElementById(activePortariaTab === 'visitantes' ? 'content-visitantes' : 'content-encomendas');
-    const feed = contentEl?.querySelector(activePortariaTab === 'visitantes' ? portariaFeedContainerSelector : portariaEncomendasFeedContainerSelector);
+    const feedSelector = (activePortariaTab === 'visitantes')
+        ? portariaFeedContainerSelector
+        : portariaEncomendasFeedContainerSelector;
+    const feedContainer = contentEl?.querySelector(feedSelector);
     const sentinel = document.getElementById(portariaScrollSentinelId);
-    if (!feed || !contentEl) {
-        isLoadingPortariaItens = false;
+    if (!feedContainer || !contentEl) {
+        isLoadingPortariaItems = false;
         if (contentEl) hideSkeleton(contentEl);
         return;
     }
 
-    if (!append) showSkeleton(contentEl);
-    else {
-        let spinner = sentinel.previousElementSibling;
-        if (!spinner || !spinner.classList.contains('loading-spinner-portaria')) {
+    if (!append) {
+        showSkeleton(contentEl);
+    } else {
+        let spinner = feedContainer.querySelector('.loading-spinner-portaria');
+        if (!spinner) {
             spinner = document.createElement('div');
             spinner.className = 'loading-spinner-portaria';
             spinner.innerHTML = '<span class="inline-spinner"></span>';
-            feed.insertBefore(spinner, sentinel);
+            feedContainer.insertBefore(spinner, sentinel);
         }
         spinner.style.display = 'block';
     }
-    sentinel.style.display = "block";
+    sentinel.style.display = 'block';
 
-    // montar endpoint e params
-    const params = { pageNumber: page, pageSize: 10, sortOrder: currentPortariaSortOrder };
-    let endpoint = '';
+    // Monta endpoint e params
+    let endpoint, params = { pageNumber: page, pageSize: 10, sortOrder: currentPortariaSortOrder };
     if (activePortariaTab === 'visitantes') {
         params.tipo = tipoVisualizacaoVisitantes;
+        if (currentPortariaFilters.unidadeId) params.unidadeId = currentPortariaFilters.unidadeId;
         if (tipoVisualizacaoVisitantes === 'historico') {
             endpoint = '/api/v1/visitantes/historico';
             if (currentPortariaFilters.dataInicio) params.dataInicio = currentPortariaFilters.dataInicio;
-            if (currentPortariaFilters.dataFim)    params.dataFim    = currentPortariaFilters.dataFim;
+            if (currentPortariaFilters.dataFim) params.dataFim = currentPortariaFilters.dataFim;
             if (currentPortariaFilters.nomeVisitante) params.nome = currentPortariaFilters.nomeVisitante;
         } else {
             endpoint = '/api/v1/visitantes/atuais';
         }
-        if (currentPortariaFilters.unidadeId) params.unidadeId = currentPortariaFilters.unidadeId;
     } else {
         endpoint = '/syndic/encomendas';
         if (currentPortariaFilters.unidadeIdEncomenda) params.unidadeId = currentPortariaFilters.unidadeIdEncomenda;
-        if (currentPortariaFilters.statusEncomenda)    params.status    = currentPortariaFilters.statusEncomenda;
+        if (currentPortariaFilters.statusEncomenda) params.status = currentPortariaFilters.statusEncomenda;
     }
 
     try {
         const resp = await apiClient.get(endpoint, params);
         const items = resp.data || resp || [];
-        hideSkeleton(contentEl);
-        contentEl.querySelector(".cv-error-state")?.classList.add('hidden');
-        contentEl.querySelector(".cv-empty-state")?.classList.add('hidden');
-        feed.querySelector('.loading-spinner-portaria')?.remove();
 
-        if (items.length) {
+        hideSkeleton(contentEl);
+        feedContainer.querySelectorAll('.loading-spinner-portaria').forEach(el => el.style.display = 'none');
+        contentEl.querySelectorAll('.cv-error-state, .cv-empty-state').forEach(el => el.remove());
+
+        if (items.length > 0) {
             items.forEach(item => {
-                const typeForCompare = activePortariaTab === 'visitantes'
+                const typeTag = activePortariaTab === 'visitantes'
                     ? (tipoVisualizacaoVisitantes === 'atuais' ? 'visitante_atual' : 'visitante_historico')
                     : 'encomenda';
-                if (fetchedPortariaItems.some(fi => fi.id === item.id && fi.type === typeForCompare)) return;
-                item.type = typeForCompare;
+                if (fetchedPortariaItems.some(fi => fi.id === item.id && fi.type === typeTag)) return;
+                item.type = typeTag;
                 fetchedPortariaItems.push(item);
                 const el = renderPortariaItem(item);
-                feed.insertBefore(el, sentinel);
+                feedContainer.insertBefore(el, sentinel);
             });
-        } else {
-            if (page === 1 && !append && fetchedPortariaItems.length === 0) {
-                const empty = contentEl.querySelector(".cv-empty-state");
-                if (empty) {
-                    const msg = empty.querySelector('.cv-empty-state__message');
-                    const hasF = Object.values(currentPortariaFilters).some(v => v);
-                    msg.textContent = hasF
-                        ? "Nenhum item encontrado para os filtros atuais."
-                        : `Nenhum ${activePortariaTab === 'visitantes'
-                            ? (tipoVisualizacaoVisitantes === 'atuais' ? 'visitante atual' : 'registro no histórico')
-                            : 'item'} encontrado.`;
-                    empty.style.display = "flex";
-                }
+        } else if (page === 1 && !append && fetchedPortariaItems.length === 0) {
+            const hasFilters = Object.values(currentPortariaFilters).some(v => v && v !== '');
+            let description = hasFilters
+                ? 'Nenhum item encontrado para os filtros atuais.'
+                : (activePortariaTab === 'visitantes'
+                    ? (tipoVisualizacaoVisitantes === 'atuais'
+                        ? 'Nenhum visitante atual registrado.'
+                        : 'Nenhum registro histórico de visitantes.')
+                    : 'Nenhuma encomenda registrada.');
+            const roles = getRoles();
+            const isPorteiro = roles.includes('Porteiro') || roles.includes('Sindico') || roles.includes('Administrador');
+            if (!hasFilters && isPorteiro) {
+                description += activePortariaTab === 'visitantes'
+                    ? ' Use o botão (+) para registrar um novo visitante.'
+                    : ' Use o botão (+) para registrar uma nova encomenda.';
             }
+            const emptyEl = createEmptyStateElement({
+                iconHTML: `<img src="/img/illustrations/empty-box.svg" alt="Sem resultados">`,
+                title: 'Nenhum Item Encontrado',
+                description
+            });
+            contentEl.insertBefore(emptyEl, sentinel);
+        } else {
             noMorePortariaItems = true;
-            sentinel.style.display = "none";
+            sentinel.style.display = 'none';
         }
-    } catch (err) {
-        console.error(`Erro ao buscar ${activePortariaTab}:`, err);
+    } catch (error) {
+        console.error(`Erro ao carregar ${activePortariaTab}:`, error);
         hideSkeleton(contentEl);
-        feed.querySelector('.loading-spinner-portaria')?.remove();
-        // criar estado de erro customizável
-        const errState = createErrorStateElement({
-            title: "Falha ao Carregar",
-            message: err.message || `Não foi possível carregar ${activePortariaTab}. Verifique sua conexão ou tente novamente.`,
+        feedContainer.querySelectorAll('.loading-spinner-portaria').forEach(el => el.style.display = 'none');
+
+        const errorState = createErrorStateElement({
+            title: 'Falha ao Carregar',
+            message: error.message || `Erro ao carregar ${activePortariaTab}. Verifique sua conexão.`,
             retryButton: {
-                text: "Tentar Novamente",
+                text: 'Tentar Novamente',
                 onClick: () => {
-                    contentEl.querySelector(".cv-error-state")?.remove();
+                    contentEl.querySelectorAll('.cv-error-state').forEach(el => el.remove());
                     loadInitialPortariaItems();
                 }
             }
         });
-        const target = contentEl.querySelector(portariaFeedContainerSelector + ', ' + portariaEncomendasFeedContainerSelector) || contentEl;
-        target.appendChild(errState);
-        sentinel.style.display = "none";
+        contentEl.appendChild(errorState);
+        sentinel.style.display = 'none';
     } finally {
         isLoadingPortariaItems = false;
     }
 }
 
-// --- Render item ---
 function renderPortariaItem(item) {
     const card = document.createElement('div');
     card.className = 'cv-card portaria-item';
-    card.dataset.id   = item.id;
+    card.dataset.id = item.id;
     card.dataset.type = item.type;
-    let html = '';
 
-    if (item.type.startsWith('visitante')) {
+    let html = '';
+    if (item.type === 'visitante_atual' || item.type === 'visitante_historico') {
         const isAtual = item.type === 'visitante_atual';
         html = `
             <h4>${item.nome}</h4>
@@ -473,13 +503,12 @@ function renderPortariaItem(item) {
             ${item.observacoes ? `<p><strong>Obs:</strong> ${item.observacoes}</p>` : ''}
             <div class="portaria-item__actions">
                 ${isAtual ? `<button class="cv-button cv-button--small btn-registrar-saida-visitante" data-id="${item.id}">Registrar Saída</button>` : ''}
-            </div>
-        `;
+            </div>`;
     } else {
-        const statusEncomenda = item.status || (item.retiradoEm ? 'Entregue' : 'Recebida');
-        const isPendente = ['recebida','aguardando retirada'].some(s => statusEncomenda.toLowerCase().includes(s));
+        const statusEncomenda = item.status || (item.dataRetirada ? 'Entregue' : 'Recebida');
+        const isPendente = ['recebida','aguardando retirada'].includes(statusEncomenda.toLowerCase());
         html = `
-            <h4>Encomenda: ${item.descricao || `ID ${item.id.slice(0,8)}...`}</h4>
+            <h4>Encomenda: ${item.descricao || item.id}</h4>
             <p><strong>Unidade:</strong> ${item.unidade?.descricao || item.unidadeId || 'N/A'}</p>
             ${item.codigoRastreio ? `<p><strong>Rastreio:</strong> ${item.codigoRastreio}</p>` : ''}
             ${item.remetente ? `<p><strong>Remetente:</strong> ${item.remetente}</p>` : ''}
@@ -488,69 +517,66 @@ function renderPortariaItem(item) {
             <p>${getStatusBadgeHtml(statusEncomenda)}</p>
             <div class="portaria-item__actions">
                 ${isPendente ? `<button class="cv-button cv-button--small btn-confirmar-retirada-encomenda" data-id="${item.id}">Confirmar Retirada</button>` : ''}
-            </div>
-        `;
+            </div>`;
     }
-
     card.innerHTML = html;
     return card;
 }
 
-// --- Ações nos itens ---
 function setupPortariaItemActionListeners() {
-    const feedV = document.querySelector(portariaFeedContainerSelector);
-    const feedE = document.querySelector(portariaEncomendasFeedContainerSelector);
-
-    const handleClick = async e => {
-        const btn = e.target;
-        const id  = btn.dataset.id;
-        if (!id) return;
-
-        if (btn.classList.contains('btn-registrar-saida-visitante') && confirm('Registrar saída do visitante?')) {
-            try {
+    document.body.addEventListener('click', async event => {
+        const btn = event.target;
+        const id = btn.dataset.id;
+        if (btn.classList.contains('btn-registrar-saida-visitante')) {
+            if (confirm('Registrar saída do visitante?')) {
                 btn.disabled = true;
-                btn.innerHTML = '<span class="inline-spinner"></span> Registrando...';
-                await apiClient.post(`/api/v1/visitantes/${id}/registrar-saida`, {});
-                showGlobalFeedback('Saída do visitante registrada.', 'success');
-                loadInitialPortariaItems();
-            } catch (err) {
-                console.error(err);
-                showGlobalFeedback('Erro ao registrar saída: ' + (err.message||''), 'error');
-                btn.disabled = false; btn.innerHTML = 'Registrar Saída';
-            }
-        } else if (btn.classList.contains('btn-confirmar-retirada-encomenda') && confirm('Confirmar retirada da encomenda?')) {
-            try {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="inline-spinner"></span> Confirmando...';
-                await apiClient.post(`/syndic/encomendas/${id}/retirar`, {});
-                showGlobalFeedback('Retirada da encomenda confirmada.', 'success');
-                loadInitialPortariaItems();
-            } catch (err) {
-                console.error(err);
-                showGlobalFeedback('Erro ao confirmar retirada: ' + (err.message||''), 'error');
-                btn.disabled = false; btn.innerHTML = 'Confirmar Retirada';
+                btn.innerHTML = '<span class="inline-spinner"></span>';
+                try {
+                    await apiClient.post(`/api/v1/visitantes/${id}/registrar-saida`, {});
+                    showGlobalFeedback('Saída registrada.', 'success');
+                    loadInitialPortariaItems();
+                } catch (err) {
+                    console.error(err);
+                    showGlobalFeedback('Erro ao registrar saída.', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Registrar Saída';
+                }
             }
         }
-    };
-
-    feedV?.addEventListener('click', handleClick);
-    feedE?.addEventListener('click', handleClick);
+        if (btn.classList.contains('btn-confirmar-retirada-encomenda')) {
+            if (confirm('Confirmar retirada da encomenda?')) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="inline-spinner"></span>';
+                try {
+                    await apiClient.post(`/syndic/encomendas/${id}/retirar`, {});
+                    showGlobalFeedback('Retirada confirmada.', 'success');
+                    loadInitialPortariaItems();
+                } catch (err) {
+                    console.error(err);
+                    showGlobalFeedback('Erro ao confirmar retirada.', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Confirmar Retirada';
+                }
+            }
+        }
+    });
 }
 
 // --- Inicialização ---
-export async function initialize() {
+function initialize() {
     requireAuth();
+    // Referências de modal
+    modalRegistrarVisitante = document.getElementById("modal-registrar-visitante");
+    formRegistrarVisitante = document.getElementById("formRegistrarVisitante");
+    btnValidarQRCodeModal = document.getElementById("btnValidarQRCode");
 
-    // mapear modais e botões
-    modalRegistrarVisitante    = document.getElementById("modal-registrar-visitante");
-    formRegistrarVisitante      = document.getElementById("formRegistrarVisitante");
-    btnValidarQRCodeModal       = document.getElementById("btnValidarQRCode");
-    modalRegistrarEncomenda     = document.getElementById("modal-registrar-encomenda");
-    formNovaEncomendaModal      = document.getElementById("formNovaEncomenda");
-    modalFiltrosPortaria        = document.getElementById("modal-filtros-portaria");
-    modalSortPortaria           = document.getElementById("modal-sort-portaria");
-    openFilterModalButton       = document.getElementById("open-filter-modal-button");
-    openSortButton              = document.getElementById("open-sort-button");
+    modalRegistrarEncomenda = document.getElementById("modal-registrar-encomenda");
+    formNovaEncomendaModal = document.getElementById("formNovaEncomenda");
+
+    modalFiltrosPortaria = document.getElementById("modal-filtros-portaria");
+    modalSortPortaria = document.getElementById("modal-sort-portaria");
+    openFilterModalButton = document.getElementById("open-filter-modal-button");
+    openSortButton = document.getElementById("open-sort-button");
 
     setupTabs();
     setupModalEventListeners();
@@ -558,9 +584,9 @@ export async function initialize() {
     setupPortariaItemActionListeners();
 
     const roles = getRoles();
-    const isPorteiroOuSindico = ['Porteiro','Sindico','Administrador'].some(r => roles.includes(r));
+    const isPorteiro = roles.includes('Porteiro') || roles.includes('Sindico') || roles.includes('Administrador');
     const actions = [];
-    if (isPorteiroOuSindico) {
+    if (isPorteiro) {
         actions.push({ label: 'Registrar Visitante', onClick: openRegistrarVisitanteModal });
         actions.push({ label: 'Registrar Encomenda', onClick: openRegistrarEncomendaModal });
     }
