@@ -41,11 +41,7 @@
                 </div>
                 <!-- Feed items (including prioritized ones) will be loaded here by JS (infinite scroll) -->
             </section>
-            <div class="cv-error-state" style="display: none;"> <!-- Adicionado para Erros no Mural -->
-                <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar mural" class="cv-empty-state__image"> <!-- Usar uma imagem de erro genérica ou específica -->
-                <p class="cv-empty-state__message">Falha ao carregar o mural. Verifique sua conexão ou tente novamente.</p>
-                <button class="cv-button cv-button--primary cv-empty-state__action js-try-again-button" data-content-id="content-mural">Tentar Novamente</button>
-            </div>
+            <!-- Static .cv-error-state removed. JS will create it if needed. -->
         </div>
 
         <div class="cv-tab-content" id="content-enquetes" style="display:none;">
@@ -57,16 +53,7 @@
                     <div class="skeleton-line skeleton-block skeleton-line--medium"></div>
                 </div>
             </div>
-            <div class="cv-empty-state" style="display: none;">
-                <img src="/img/illustrations/empty-search.svg" alt="Nenhuma enquete encontrada" class="cv-empty-state__image">
-                <p class="cv-empty-state__message">Nenhuma enquete encontrada para os filtros atuais.</p>
-                <p class="cv-empty-state__message js-sindico-only-message" style="display:none;">Use o botão (+) para criar uma nova enquete.</p>
-            </div>
-            <div class="cv-error-state" style="display: none;"> <!-- Adicionado para Erros em Enquetes -->
-                <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar enquetes" class="cv-empty-state__image">
-                <p class="cv-empty-state__message">Falha ao carregar as enquetes. Verifique sua conexão ou tente novamente.</p>
-                <button class="cv-button cv-button--primary cv-empty-state__action js-try-again-button" data-content-id="content-enquetes">Tentar Novamente</button>
-            </div>
+            <!-- Static .cv-empty-state and .cv-error-state removed. JS will create them if needed. -->
         </div>
 
         <div class="cv-tab-content" id="content-solicitacoes" style="display:none;">
@@ -78,16 +65,7 @@
                     <div class="skeleton-line skeleton-block skeleton-line--short"></div>
                 </div>
             </div>
-            <div class="cv-empty-state" style="display: none;">
-                <img src="/img/illustrations/empty-box.svg" alt="Nenhuma solicitação encontrada" class="cv-empty-state__image">
-                <p class="cv-empty-state__message">Nenhuma solicitação encontrada para os filtros atuais.</p>
-                <p class="cv-empty-state__message">Use o botão (+) para criar uma nova solicitação.</p>
-            </div>
-            <div class="cv-error-state" style="display: none;"> <!-- Adicionado para Erros em Solicitações -->
-                <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar solicitações" class="cv-empty-state__image">
-                <p class="cv-empty-state__message">Falha ao carregar as solicitações. Verifique sua conexão ou tente novamente.</p>
-                <button class="cv-button cv-button--primary cv-empty-state__action js-try-again-button" data-content-id="content-solicitacoes">Tentar Novamente</button>
-            </div>
+            <!-- Static .cv-empty-state and .cv-error-state removed. JS will create them if needed. -->
         </div>
 
         <div class="cv-tab-content" id="content-ocorrencias" style="display:none;">
@@ -99,16 +77,7 @@
                     <div class="skeleton-line skeleton-block skeleton-line--short"></div>
                 </div>
             </div>
-            <div class="cv-empty-state" style="display: none;">
-                <img src="/img/illustrations/problem-solving.svg" alt="Nenhuma ocorrência encontrada" class="cv-empty-state__image">
-                <p class="cv-empty-state__message">Nenhuma ocorrência encontrada para os filtros atuais.</p>
-                <p class="cv-empty-state__message">Use o botão (+) para relatar uma nova ocorrência.</p>
-            </div>
-            <div class="cv-error-state" style="display: none;"> <!-- Adicionado para Erros em Ocorrências -->
-                <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar ocorrências" class="cv-empty-state__image">
-                <p class="cv-empty-state__message">Falha ao carregar as ocorrências. Verifique sua conexão ou tente novamente.</p>
-                <button class="cv-button cv-button--primary cv-empty-state__action js-try-again-button" data-content-id="content-ocorrencias">Tentar Novamente</button>
-            </div>
+            <!-- Static .cv-empty-state and .cv-error-state removed. JS will create them if needed. -->
         </div>
 
 
