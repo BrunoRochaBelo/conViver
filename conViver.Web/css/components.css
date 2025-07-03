@@ -290,11 +290,17 @@ html[data-theme="dark"] .cv-button--borderless:hover {
     padding: 0 var(--cv-spacing-xs, 4px);
     margin-left: var(--cv-spacing-md, 16px);
     cursor: pointer;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, transform 0.15s ease-out, opacity 0.2s ease;
 }
 
 .global-feedback-toast__close-btn:hover {
     color: var(--current-text-primary, #333);
+    opacity: 0.7;
+}
+
+.global-feedback-toast__close-btn:active {
+    transform: scale(0.90);
+    opacity: 0.5;
 }
 
 /* Type-specific styles */

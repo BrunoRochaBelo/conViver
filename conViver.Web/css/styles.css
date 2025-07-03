@@ -152,10 +152,12 @@
     --current-bg-element: var(--cv-bg-white);
     --current-border-subtle: var(--cv-gray-200);
 
-    /* Alpha colors for buttons */
+    /* Alpha colors for buttons and UI elements */
     --cv-primary-blue-alpha-15: rgba(0, 122, 255, 0.15);
     --cv-gray-100-alpha-50: rgba(242, 242, 247, 0.5);
     --cv-gray-200-alpha-70: rgba(229, 229, 234, 0.7);
+    --cv-gray-500-alpha-30: rgba(174, 174, 178, 0.3); /* System Gray 2 with alpha for modal close bg */
+    --cv-gray-600-alpha-50: rgba(142, 142, 147, 0.5); /* System Gray with alpha for modal close bg hover */
 
 
     /* Button specific current vars */
@@ -219,10 +221,13 @@ html[data-theme="dark"] {
     --current-bg-element: var(--cv-dark-bg-element);
     --current-border-subtle: var(--cv-dark-gray-300);
 
-    /* Alpha colors for buttons - Dark */
+    /* Alpha colors for buttons and UI elements - Dark */
     --cv-dark-primary-blue-alpha-20: rgba(10, 132, 255, 0.2);
-    --cv-dark-gray-100-alpha-50: rgba(28, 28, 30, 0.5); /* Assuming cv-dark-gray-100 is #1C1C1E */
-    --cv-dark-gray-200-alpha-70: rgba(44, 44, 46, 0.7); /* Assuming cv-dark-gray-200 is #2C2C2E */
+    --cv-dark-gray-100-alpha-50: rgba(28, 28, 30, 0.5);
+    --cv-dark-gray-200-alpha-70: rgba(44, 44, 46, 0.7);
+    --cv-dark-gray-500-alpha-40: rgba(99, 99, 102, 0.4);  /* System Gray (Dark) 2 with alpha for modal close bg */
+    --cv-dark-gray-600-alpha-60: rgba(142, 142, 147, 0.6); /* System Gray (Dark) with alpha for modal close bg hover */
+
 
     /* Button specific current vars - Dark */
     --current-button-default-bg: var(--cv-dark-gray-300);
@@ -1375,45 +1380,57 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:a
 }
 */
 .cv-modal-close { /* This is the actual close button, typically an 'X' icon */
-    color: var(--current-text-placeholder);
-    background-color: transparent; /* iOS close buttons are often just icons */
-    border-radius: 50%; /* Circular button */
-    width: 30px;
-    height: 30px;
+    background-color: var(--cv-gray-500-alpha-30); /* Light gray circle, iOS style */
+    color: var(--cv-gray-900); /* Darker 'X' for light mode */
+    border-radius: 50%;
+    width: 28px; /* Slightly smaller */
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: absolute;
-    top: var(--cv-spacing-md); /* Consistent spacing */
-    right: var(--cv-spacing-md);
-    font-size: 20px; /* Adjust size of '×' */
-    font-weight: normal; /* Not too bold */
+    top: var(--cv-spacing-sm); /* Closer to edge, 8px */
+    right: var(--cv-spacing-sm); /* Closer to edge, 8px */
+    font-size: 14px; /* Smaller '×' */
+    font-weight: 400; /* Thinner 'X' */
     line-height: 1;
     text-decoration: none;
-    transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease-out;
+    border: none; /* No border for iOS style */
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease-out, opacity 0.2s ease;
 }
 
 .cv-modal-close:hover,
 .cv-modal-close:focus {
-    color: var(--current-primary-blue); /* Use primary color for icon on hover */
-    background-color: var(--cv-gray-200); /* Slightly lighter hover for light theme */
+    background-color: var(--cv-gray-600-alpha-50); /* Slightly darker on hover */
+    color: var(--cv-gray-900); /* Keep 'X' color */
     outline: none;
     text-decoration: none;
-    cursor: pointer;
-    transform: scale(1.1); /* Add a slight scale effect */
+    transform: scale(1.05); /* Subtle scale */
+}
+
+.cv-modal-close:active {
+    transform: scale(0.95); /* Press down effect */
+    background-color: var(--cv-gray-300); /* More opaque / darker when pressed */
+    opacity: 0.8;
 }
 
 html[data-theme="dark"] .cv-modal-close {
-    /* Default state for dark theme - can be same as light or adjusted if needed */
-    /* background-color: var(--cv-dark-gray-300); /* Slightly darker than element bg */
-    /* color: var(--cv-dark-text-placeholder); */
-    /* No specific dark theme default override needed if light theme defaults are fine */
+    background-color: var(--cv-dark-gray-500-alpha-40); /* Dark gray circle for dark mode */
+    color: var(--cv-dark-gray-900); /* Lighter 'X' for dark mode */
 }
 
 html[data-theme="dark"] .cv-modal-close:hover,
 html[data-theme="dark"] .cv-modal-close:focus {
-    color: var(--cv-dark-primary-blue); /* Dark theme primary blue for icon */
-    background-color: var(--cv-dark-gray-500); /* Darker hover for dark theme */
+    background-color: var(--cv-dark-gray-600-alpha-60);
+    color: var(--cv-dark-gray-900); /* Keep 'X' color */
+    transform: scale(1.05);
+}
+
+html[data-theme="dark"] .cv-modal-close:active {
+    transform: scale(0.95);
+    background-color: var(--cv-dark-gray-400);
+    opacity: 0.8;
 }
 
 
