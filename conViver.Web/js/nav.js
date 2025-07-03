@@ -95,7 +95,44 @@ export function buildNavigation() {
     container.appendChild(ul);
     navContainer.innerHTML = '';
     navContainer.classList.add('cv-nav');
+
+    // Hamburger button for mobile
+    const hamburger = document.createElement('button');
+    hamburger.className = 'cv-nav-hamburger';
+    hamburger.setAttribute('aria-label', 'Abrir menu');
+    hamburger.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`;
+
+    navContainer.appendChild(hamburger);
     navContainer.appendChild(container);
+
+    // Drawer element
+    let drawer = document.querySelector('.cv-nav--drawer');
+    if (!drawer) {
+        drawer = document.createElement('div');
+        drawer.className = 'cv-nav--drawer';
+        drawer.innerHTML = '<div class="cv-nav--drawer__panel"></div>';
+        document.body.appendChild(drawer);
+    }
+
+    const drawerPanel = drawer.querySelector('.cv-nav--drawer__panel');
+    drawerPanel.innerHTML = '';
+    drawerPanel.appendChild(ul.cloneNode(true));
+
+    function openDrawer() {
+        drawer.classList.add('open');
+        document.body.classList.add('cv-modal-open');
+    }
+
+    function closeDrawer() {
+        drawer.classList.remove('open');
+        document.body.classList.remove('cv-modal-open');
+    }
+
+    hamburger.addEventListener('click', openDrawer);
+    drawer.addEventListener('click', (e) => { if (e.target === drawer) closeDrawer(); });
+    drawerPanel.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', closeDrawer);
+    });
 }
 
 document.addEventListener('DOMContentLoaded', buildNavigation);

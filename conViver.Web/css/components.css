@@ -546,6 +546,42 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
     background-color: rgba(255, 255, 255, 0.05); /* Very subtle hover for dark mode active link */
 }
 
+/* --- Mobile Nav Drawer --- */
+.cv-nav-hamburger {
+    background: none;
+    border: none;
+    padding: var(--cv-spacing-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+@media (min-width: 768px) {
+    .cv-nav-hamburger { display: none; }
+}
+
+.cv-nav--drawer {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: none;
+    z-index: 1040;
+}
+.cv-nav--drawer.open { display: block; }
+.cv-nav--drawer__panel {
+    background-color: var(--current-bg-white);
+    width: 250px;
+    max-width: 80%;
+    height: 100%;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+.cv-nav--drawer.open .cv-nav--drawer__panel {
+    transform: translateX(0);
+}
+html[data-theme="dark"] .cv-nav--drawer__panel {
+    background-color: var(--cv-dark-gray-200);
+}
+
 /* Responsive Table Wrapper */
 .cv-table-responsive-wrapper {
     overflow-x: auto;
