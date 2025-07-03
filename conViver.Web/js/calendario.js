@@ -1035,10 +1035,18 @@ function initializeFullCalendar() {
     // que já os inclui (dayGrid, timeGrid, list).
     // plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
     nowIndicator: true, // Adiciona o indicador de hora atual
-    // height: 'parent', // REVERTIDO - Deixar FullCalendar gerenciar altura automaticamente (padrão 'auto')
     initialView: "dayGridMonth",
     headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay" },
     buttonText: { today: "Hoje", month: "Mês", week: "Semana", day: "Dia", list: "Lista" },
+    aspectRatio: window.innerWidth < 768 ? 1.0 : 1.35, // Mais quadrado em mobile, padrão em desktop
+    windowResize: function(arg) { // Adicionado para reavaliar aspectRatio no resize
+        if (calendarioReservas) {
+            const newAspectRatio = window.innerWidth < 768 ? 1.0 : 1.35;
+            if (calendarioReservas.getOption('aspectRatio') !== newAspectRatio) {
+                calendarioReservas.setOption('aspectRatio', newAspectRatio);
+            }
+        }
+    },
     events: async (fetchInfo, successCallback, failureCallback) => {
       try {
         const params = {

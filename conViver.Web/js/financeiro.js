@@ -512,7 +512,17 @@ document.addEventListener('DOMContentLoaded', () => {
             labels: despesas.map(d => d.categoria),
             datasets: [{ label: 'Valor', data: despesas.map(d => d.valor), backgroundColor: '#36A2EB' }]
         };
-        despesasChart = new Chart(graficoDespesasEl.getContext('2d'), { type: 'bar', data });
+        despesasChart = new Chart(graficoDespesasEl.getContext('2d'), {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
     }
 
     async function fetchAndRenderDespesas() {
@@ -607,7 +617,14 @@ document.addEventListener('DOMContentLoaded', () => {
             labels: ['Receitas', 'Despesas'],
             datasets: [{ data: [balancete.totalReceitas || 0, balancete.totalDespesas || 0], backgroundColor: ['#36A2EB', '#FF6384'] }]
         };
-        balanceteChart = new Chart(graficoBalanceteEl.getContext('2d'), { type: 'doughnut', data });
+        balanceteChart = new Chart(graficoBalanceteEl.getContext('2d'), {
+            type: 'doughnut',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+            }
+        });
     }
 
     async function fetchAndRenderBalancete() {
@@ -670,7 +687,17 @@ document.addEventListener('DOMContentLoaded', () => {
             labels: (resumo.itens || []).map(i => i.categoria),
             datasets: [{ label: 'Valor', data: (resumo.itens || []).map(i => i.valor), backgroundColor: '#4BC0C0' }]
         };
-        orcamentoChart = new Chart(graficoOrcamentoEl.getContext('2d'), { type: 'bar', data });
+        orcamentoChart = new Chart(graficoOrcamentoEl.getContext('2d'), {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
     }
 
     async function fetchAndRenderOrcamento() {
@@ -726,9 +753,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tendenciasChart) tendenciasChart.destroy();
         const data = {
             labels: tendencias.map(t => t.mes),
-            datasets: [{ label: 'Valor', data: tendencias.map(t => t.valor), backgroundColor: '#FFCE56' }]
+            datasets: [{ label: 'Valor', data: tendencias.map(t => t.valor), backgroundColor: '#FFCE56', borderColor: '#FFB300', fill: false }]
         };
-        tendenciasChart = new Chart(graficoTendenciasEl.getContext('2d'), { type: 'line', data });
+        tendenciasChart = new Chart(graficoTendenciasEl.getContext('2d'), {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
     }
 
     async function fetchAndRenderTendencias() {
