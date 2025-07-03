@@ -503,6 +503,7 @@ html[data-theme="dark"] .cv-bottom-nav {
 }
 @media (max-width: 767px) {
     .cv-bottom-nav { display: block; }
+    #mainNav.cv-nav { display: none; }
 }
 @media (min-width: 768px) {
     .cv-bottom-nav { display: none; }
