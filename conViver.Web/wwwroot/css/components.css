@@ -536,6 +536,14 @@ html[data-theme="dark"] .cv-nav__link:hover {
     padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
     min-height: auto;
 }
+.user-menu-modal .cv-modal-close {
+    position: absolute;
+    top: var(--cv-spacing-sm);
+    right: var(--cv-spacing-sm);
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+}
 .user-menu-list {
     list-style: none;
     margin: 0;
