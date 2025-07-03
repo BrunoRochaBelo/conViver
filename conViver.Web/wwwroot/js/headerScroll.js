@@ -4,16 +4,11 @@ export function initHeaderScroll() {
 
     const mainNav = document.getElementById('mainNav');
     const tabs = document.querySelector('.cv-tabs');
-    const pageMain = document.getElementById('pageMain');
-    const scrollTargets = [window];
-    if (pageMain) scrollTargets.push(pageMain);
+    const scrollElement = document.getElementById('pageMain') || window;
     const threshold = 5;
 
     function getScrollTop() {
-        if (window.scrollY) return window.scrollY;
-        if (document.documentElement.scrollTop) return document.documentElement.scrollTop;
-        if (pageMain) return pageMain.scrollTop;
-        return 0;
+        return scrollElement === window ? window.scrollY : scrollElement.scrollTop;
     }
 
     function setSticky(element, offset) {
@@ -53,7 +48,7 @@ export function initHeaderScroll() {
         }
     }
 
-    scrollTargets.forEach(el => el.addEventListener('scroll', update));
+    scrollElement.addEventListener('scroll', update);
     window.addEventListener('resize', update);
     update();
 }
