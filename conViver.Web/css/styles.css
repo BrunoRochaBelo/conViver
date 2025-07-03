@@ -272,10 +272,15 @@ html {
 }
 @media (max-width: 767px) {
     .cv-header {
-        padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
+        padding: var(--cv-spacing-xs) var(--cv-spacing-sm); /* Approx 4px 8px */
+        min-height: 3rem; /* Approx 48px, reduced from default clamp */
     }
     .cv-header__title {
-        font-size: 1.125rem;
+        font-size: 1.125rem; /* Keep title size or adjust if necessary */
+    }
+    /* Adjust header container height if it's explicitly set or influencing layout */
+    .cv-header__container {
+        min-height: inherit; /* Ensure container doesn't force a larger height */
     }
 }
 
@@ -1182,8 +1187,8 @@ html[data-theme="dark"] .fab-menu-options {
 
     display: flex; /* Use flex to structure header, body, footer */
     flex-direction: column;
-    max-height: calc(100dvh - var(--cv-spacing-xl) * 2); /* Use dynamic viewport height for mobile */
-    max-height: calc(100vh - var(--cv-spacing-xl) * 2); /* Fallback for older browsers */
+    max-height: calc(100dvh - var(--cv-spacing-xl) * 2.5); /* Adjusted max-height */
+    max-height: calc(100vh - var(--cv-spacing-xl) * 2.5); /* Fallback for older browsers */
     overflow-y: auto;
 
     animation: cv-modal-scale-up 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Faster, more iOS-like spring */

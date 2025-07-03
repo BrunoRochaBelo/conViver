@@ -1118,5 +1118,6 @@ input:checked + .cv-switch-slider:before {
     flex-wrap: nowrap;
     gap: var(--cv-spacing-sm);
     margin-bottom: var(--cv-spacing-md);
+    flex-direction: row !important;
 }
 
