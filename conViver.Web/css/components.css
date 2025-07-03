@@ -598,7 +598,7 @@ html[data-theme="dark"] .cv-nav--drawer__panel {
     -webkit-backdrop-filter: blur(18px) saturate(170%);
     backdrop-filter: blur(18px) saturate(170%);
     border-top: 1px solid rgba(0, 0, 0, 0.08);
-    padding: var(--cv-spacing-xs) 0;
+    padding: var(--cv-spacing-xs) 0 calc(var(--cv-spacing-xs) + env(safe-area-inset-bottom, 0));
 }
 html[data-theme="dark"] .cv-bottom-nav {
     background-color: rgba(50, 50, 52, 0.8);
@@ -633,7 +633,11 @@ html[data-theme="dark"] .cv-bottom-nav {
 }
 
 body.has-bottom-nav {
-    padding-bottom: 70px;
+    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0));
+}
+
+body.has-bottom-nav #mainNav {
+    display: none;
 }
 
 .cv-bottom-nav__link--active {
