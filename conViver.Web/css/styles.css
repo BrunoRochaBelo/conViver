@@ -202,26 +202,41 @@
 @media (min-width: 992px) { /* Breakpoint para desktop, ajuste conforme necessário */
     .cv-header--scrolled {
         min-height: var(--cv-header-height-scrolled-desktop) !important;
+        /* O z-index do header deve ser menor para o mainNav ficar por cima */
+        z-index: 1005;
+        position: relative; /* Necessário para z-index funcionar corretamente em alguns casos */
     }
 
     #mainNav.mainNav--scrolled-desktop {
         position: fixed;
-        top: 0; /* Alinha com o topo da viewport */
-        left: 0; /* Ocupa o espaço do header title, verificar alinhamento com o header */
-        right: 0;
-        width: auto; /* Para ocupar a largura disponível */
-        z-index: 1010; /* Acima do header, abaixo do user menu */
-        background-color: var(--current-nav-bg); /* Mantém o fundo da nav */
-        padding-top: var(--cv-spacing-sm); /* Ajustar padding para alinhar com o header reduzido */
-        padding-bottom: var(--cv-spacing-sm);
-        transform: translateY(0); /* Garante que está no topo */
-        /* Ajustar para que o mainNav ocupe o espaço do cv-header__title */
-        /* Isso pode precisar de ajustes no padding do .cv-header__container ou margens negativas */
+        /* Ajustar o 'top' para que o mainNav se posicione DENTRO da área do header original,
+           mas visualmente no lugar do título. A altura do header scrollado será menor. */
+        top: 0;
+        left: var(--cv-header-padding-x); /* Alinhar com o conteúdo do header */
+        right: var(--cv-header-padding-x); /* Alinhar com o conteúdo do header */
+        width: auto; /* Ocupa a largura disponível dentro dos paddings */
+        z-index: 1010; /* Acima do cv-header */
+        background-color: var(--current-nav-bg); /* Necessário para dar fundo ao nav sobreposto */
+        padding-top: 0; /* Remover padding se o alinhamento for pelo top */
+        padding-bottom: 0;
+        /* O mainNav em si não precisa de transform, mas seu conteúdo interno pode precisar de alinhamento */
+        /* O container dentro do mainNav é o que precisa se alinhar */
+        display: flex;
+        align-items: center; /* Para centralizar verticalmente o conteúdo do nav, se aplicável */
+        height: var(--cv-header-height-scrolled-desktop); /* Ocupar a altura do header scrollado */
+    }
+
+    /* Se o #mainNav tiver um container filho como .cv-container, aplicar estilos a ele */
+    #mainNav.mainNav--scrolled-desktop .cv-container {
+        /* Este container deve se alinhar onde o título estava. */
+        /* Ajustes de margem/padding aqui podem ser necessários dependendo da estrutura exata do mainNav */
+        width: 100%; /* Para ocupar o espaço disponível no #mainNav */
     }
 
     .cv-tabs.cv-tabs--fixed-desktop {
         position: fixed;
-        top: var(--cv-header-height-scrolled-desktop); /* Fixa abaixo do header scrollado */
+        /* Deve fixar abaixo da altura VISÍVEL do header scrollado, que é var(--cv-header-height-scrolled-desktop) */
+        top: var(--cv-header-height-scrolled-desktop);
         left: 0;
         right: 0;
         z-index: 1000; /* Abaixo da mainNav e header */
