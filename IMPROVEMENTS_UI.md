@@ -113,45 +113,16 @@ Todas as novas implementações e refinamentos seguiram as diretrizes de estilo 
 **Foco:**
 Consistência visual, transições suaves, uso adequado de cores semânticas, e adaptação aos temas claro e escuro.
 
-## 8. Aprimoramentos de Responsividade e Experiência Mobile (UI/UX)
+## 8. Navegação e Layout Responsivo
 
-Uma revisão completa foi realizada para garantir que a aplicação web seja totalmente responsiva, com ótima usabilidade e coerência visual em dispositivos móveis (smartphones e tablets) e desktops, seguindo a inspiração da Apple e do iOS. As seguintes melhorias foram implementadas:
+Diversos ajustes foram realizados para melhorar a experiência em dispositivos móveis.
 
-*   **CSS Global Refatorado para Mobile-First:**
-    *   Os arquivos CSS globais (`styles.css`, `components.css`) foram revisados e ajustados para seguir a abordagem mobile-first, onde os estilos base são para dispositivos móveis e media queries (`min-width`) são usadas para aplicar progressive enhancement para telas maiores.
-    *   `box-sizing: border-box;` foi aplicado globalmente.
-    *   Ajustes pontuais em unidades (ex: `font-size` do `.cv-modal-close` para `rem`) e paddings de componentes como `.cv-tab-button` foram feitos para melhor adaptação.
-
-*   **Layout Responsivo Geral Consolidado:**
-    *   A estrutura base (`layout.html`, `main`, `.cv-container`) foi verificada e confirmada como adequada para fluidez em diferentes telas.
-    *   O header (`.cv-header`) e a navegação principal de desktop (`.cv-nav`) foram ajustados para que a navegação de desktop seja ocultada em telas mobile, dando lugar às soluções de navegação mobile.
-
-*   **Navegação Mobile Aprimorada:**
-    *   **Menu Off-Canvas (Drawer):**
-        *   Implementada a criação dinâmica do botão hambúrguer no header e do painel lateral (drawer) via JavaScript (`nav.js`).
-        *   O drawer contém os links de navegação principais, um cabeçalho com título e botão de fechar, e é acionado pelo botão hambúrguer.
-        *   Estilos CSS dedicados (`.cv-nav-hamburger`, `.cv-nav--drawer`, `.cv-nav--drawer__panel`, etc.) foram adicionados para aparência, animação e usabilidade, incluindo `overflow-y: auto` para rolagem interna e bloqueio de scroll da página principal quando aberto.
-    *   **Bottom Navigation Bar:**
-        *   A lógica existente em `nav.js` para exibir a barra de navegação inferior em telas mobile (`<768px` e `APP_CONFIG.ENABLE_MOBILE_BOTTOM_NAV === true`) foi mantida e aprimorada.
-        *   Labels textuais foram adicionadas abaixo dos ícones para maior clareza.
-        *   Uma classe `has-bottom-nav` é adicionada ao `<body>` quando a bottom navigation está ativa, e o CSS correspondente aplica um `padding-bottom` para evitar que a barra sobreponha o conteúdo da página.
-        *   A barra é reconstruída dinamicamente no `resize` da janela para garantir a correta exibição/ocultação e aplicação do padding.
-
-*   **Responsividade de Componentes Chave:**
-    *   **Cards e Grids:** Layouts baseados em CSS Grid (`.card-grid`, `.feed-grid`) já ofereciam boa responsividade e foram mantidos.
-    *   **Formulários e Inputs:** Componentes como `.cv-input` e estruturas de formulário (`.cv-form-actions`) já possuíam boa base responsiva (inputs 100% em mobile, empilhamento de botões de ação). Verificações visuais confirmaram sua adequação.
-    *   **Modals:** A estrutura CSS dos modais (`.cv-modal`, `.cv-modal-content`) com `max-width`, `max-height` e `overflow-y: auto` foi confirmada como eficaz para diferentes tamanhos de tela, permitindo rolagem interna do conteúdo.
-    *   **Gráficos (Chart.js):** As opções de inicialização dos gráficos em `financeiro.js` foram ajustadas para `{ responsive: true, maintainAspectRatio: false }` para melhor adaptação à largura do container sem distorções.
-    *   **Abas (`.cv-tabs` em `comunicacao.html`):** Para evitar quebra de layout em telas mobile, o container dos botões de aba (`.cv-tabs-buttons`) agora possui `overflow-x: auto`, permitindo rolagem horizontal das abas se necessário.
-
-*   **Floating Action Button (FAB):**
-    *   Ajustado o posicionamento CSS do container `.fab-menu` para que ele suba quando a bottom navigation bar estiver ativa (através da classe `body.has-bottom-nav`), evitando sobreposição.
-
-*   **Páginas Específicas:**
-    *   **Calendário (`calendario.html`):** A configuração do FullCalendar em `calendario.js` foi ajustada para usar uma `aspectRatio` dinâmica (mais quadrada em mobile) para melhorar a visualização da grade mensal em telas menores. O CSS personalizado já continha boas regras responsivas para a toolbar e elementos do calendário.
-
-Essas melhorias visam tornar a aplicação conViver mais robusta e agradável de usar em qualquer dispositivo, com foco em uma experiência mobile similar à de um app nativo.
+* **Nova tag viewport:** todas as páginas passaram a incluir a meta `viewport` unificada (`width=device-width, initial-scale=1`) garantindo escala correta em smartphones.
+* **Menu off-canvas:** o botão hambúrguer abre um painel lateral (`cv-nav--drawer`) que utiliza classes dedicadas em `components.css` para animação e bloqueio do scroll da página.
+* **Bottom navigation:** quando `APP_CONFIG.ENABLE_MOBILE_BOTTOM_NAV` está `true` e a tela possui largura inferior a 768&nbsp;px, a função `buildNavigation()` adiciona a barra fixa inferior com links essenciais. Para habilitar ou desabilitar, ajuste o valor em `config.js`.
+* **Ajustes em formulários e tabelas:** campos de entrada adotaram a classe `.cv-input`, estados de erro/sucesso e placeholders consistentes. Tabelas podem ser envolvidas por `.cv-table-responsive-wrapper` para permitir rolagem horizontal em telas estreitas.
+* **Aprimoramentos de header e modais:** o cabeçalho ganhou estilo translúcido e comportamento `sticky`. A abertura e fechamento de modais agora adiciona ou remove a classe `cv-modal-open` no `<body>` para impedir rolagem do conteúdo de fundo.
 
 ## Conclusão
 
-Com estas e as melhorias anteriores, a aplicação conViver está mais responsiva, performática e agradável de usar, fornecendo feedback claro ao usuário em todas as etapas de interação e carregamento de dados, e adaptando-se de forma inteligente a diferentes tamanhos de tela.
+Essas melhorias visam tornar a aplicação conViver mais responsiva, performática e agradável de usar, fornecendo feedback claro ao usuário em todas as etapas de interação e carregamento de dados.

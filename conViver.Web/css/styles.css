@@ -1,12 +1,6 @@
 /* Use Open Sans via Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap');
 
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
 :root {
     --current-skeleton-bg: var(--cv-gray-200);
     --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.3); /* Adjusted shimmer for light */
@@ -838,43 +832,18 @@ main {
     margin-top: var(--cv-spacing-lg, 20px);
     margin-bottom: 20px;
     padding: var(--cv-spacing-xs) 0;
-    border-bottom: 2px solid var(--current-border-subtle, #eee);
-    position: relative; /* Para garantir que os botões de ação fiquem bem posicionados */
+    border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
 }
-
-/* Novo wrapper para os botões de aba */
-.cv-tabs-buttons {
-    display: flex;
-    flex-grow: 1; /* Permite que o container dos botões de aba cresça */
-    overflow-x: auto; /* Permite rolagem horizontal se as abas não couberem */
-    -webkit-overflow-scrolling: touch; /* Melhora a rolagem em iOS */
-    scrollbar-width: none; /* Esconde scrollbar no Firefox */
-}
-.cv-tabs-buttons::-webkit-scrollbar { /* Esconde scrollbar em Chrome/Safari */
-    display: none;
-}
-
-.cv-tabs .cv-tab-button {
-    white-space: nowrap; /* Impede que o texto do botão quebre em duas linhas */
-    margin-right: 5px;
-    /* Estilos de padding e font-size já foram ajustados para mobile e desktop */
-}
-.cv-tabs .cv-tab-button:last-child {
-    margin-right: var(--cv-spacing-sm); /* Adiciona um pouco de espaço antes dos botões de filtro/ordem */
-}
-
-
 .cv-tabs > #open-sort-button,
 .cv-tabs > #open-filter-modal-button {
-    margin-top: 0; /* Ajustado de var(--cv-spacing-xs) */
-    margin-bottom: 0; /* Ajustado de var(--cv-spacing-xs) */
-    flex-shrink: 0; /* Impede que os botões de ícone encolham */
+    margin-top: var(--cv-spacing-xs);
+    margin-bottom: var(--cv-spacing-xs);
 }
 .cv-tabs > #open-sort-button {
-    margin-left: auto; /* Mantém à direita */
+    margin-left: auto;
 }
 .cv-tabs > #open-filter-modal-button {
-    margin-left: var(--cv-spacing-xs); /* Reduzido de 10px para consistência */
+    margin-left: 10px;
 }
 
 #open-sort-button.rotated svg {
@@ -885,11 +854,11 @@ main {
 }
 
 .cv-tab-button {
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* 8px 16px, era 10px 20px */
+    padding: 10px 20px;
     cursor: pointer;
     border: none;
     background-color: transparent;
-    font-size: 0.9rem; /* Ligeiramente menor para mobile, ~12.6px na base 14px */
+    font-size: var(--cv-font-size-md, 16px); /* Use variable or fallback */
     font-family: var(--cv-font-family-sans-serif);
     color: var(--current-text-secondary);
     margin-right: 5px; /* Optional: spacing between tabs */
@@ -905,13 +874,6 @@ main {
     border-bottom-color: var(--current-primary-blue, #007bff); /* Use variable or fallback */
     font-weight: 600; /* Using OpenSansSemibold effectively */
     color: var(--current-primary-blue, #007bff); /* Use variable or fallback */
-}
-
-@media (min-width: 768px) {
-    .cv-tab-button {
-        padding: 10px 20px; /* Restaura padding original para desktop */
-        font-size: var(--cv-font-size-md); /* Restaura font-size original para desktop */
-    }
 }
 
 .cv-tab-content {
@@ -1090,11 +1052,6 @@ html[data-theme="dark"] .fab-menu-options {
 /* If the FAB itself is part of .fab-menu and not a separate element outside it: */
 .fab-menu > .fab {
      z-index: 1050;
-}
-
-/* Ajusta a posição do FAB container quando a bottom navigation está visível */
-body.has-bottom-nav .fab-menu {
-    bottom: calc(60px + var(--cv-spacing-lg)); /* 60px (altura bottom-nav) + 24px (espaçamento original) = 84px */
 }
 
 
@@ -1337,7 +1294,7 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:a
     position: absolute;
     top: var(--cv-spacing-md); /* Consistent spacing */
     right: var(--cv-spacing-md);
-    font-size: 1.4rem; /* Approx 20px-22px, scales with base font */
+    font-size: 20px; /* Adjust size of '×' */
     font-weight: normal; /* Not too bold */
     line-height: 1;
     text-decoration: none;
