@@ -1374,46 +1374,52 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:a
     font-weight: 600;
 }
 */
-.cv-modal-close { /* This is the actual close button, typically an 'X' icon */
-    color: var(--current-text-placeholder);
-    background-color: transparent; /* iOS close buttons are often just icons */
-    border-radius: 50%; /* Circular button */
+.cv-modal-close { /* iOS inspired close button */
+    color: var(--current-text-primary);
+    background-color: var(--cv-gray-100-alpha-50);
+    border-radius: 50%;
     width: 30px;
     height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: absolute;
-    top: var(--cv-spacing-md); /* Consistent spacing */
+    top: var(--cv-spacing-md);
     right: var(--cv-spacing-md);
-    font-size: 20px; /* Adjust size of '×' */
-    font-weight: normal; /* Not too bold */
+    font-size: 20px;
+    font-weight: normal;
     line-height: 1;
     text-decoration: none;
+    cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease-out;
 }
 
 .cv-modal-close:hover,
 .cv-modal-close:focus {
-    color: var(--current-primary-blue); /* Use primary color for icon on hover */
-    background-color: var(--cv-gray-200); /* Slightly lighter hover for light theme */
+    color: var(--current-primary-blue);
+    background-color: var(--cv-gray-200-alpha-70);
     outline: none;
     text-decoration: none;
-    cursor: pointer;
-    transform: scale(1.1); /* Add a slight scale effect */
+    transform: scale(1.05);
+}
+
+.cv-modal-close:active {
+    background-color: var(--cv-gray-300);
+    transform: scale(0.95);
 }
 
 html[data-theme="dark"] .cv-modal-close {
-    /* Default state for dark theme - can be same as light or adjusted if needed */
-    /* background-color: var(--cv-dark-gray-300); /* Slightly darker than element bg */
-    /* color: var(--cv-dark-text-placeholder); */
-    /* No specific dark theme default override needed if light theme defaults are fine */
+    background-color: var(--cv-dark-gray-100-alpha-50);
 }
 
 html[data-theme="dark"] .cv-modal-close:hover,
 html[data-theme="dark"] .cv-modal-close:focus {
-    color: var(--cv-dark-primary-blue); /* Dark theme primary blue for icon */
-    background-color: var(--cv-dark-gray-500); /* Darker hover for dark theme */
+    color: var(--cv-dark-primary-blue);
+    background-color: var(--cv-dark-gray-200-alpha-70);
+}
+
+html[data-theme="dark"] .cv-modal-close:active {
+    background-color: var(--cv-dark-gray-300);
 }
 
 

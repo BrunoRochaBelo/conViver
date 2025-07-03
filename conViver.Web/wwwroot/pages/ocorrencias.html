@@ -20,7 +20,7 @@
     <div id="userMenuModal" class="cv-modal user-menu-modal">
         <div class="cv-modal-content">
             <header class="cv-modal-header">
-                <span class="cv-modal-close" id="userMenuClose">&times;</span>
+                <button type="button" class="cv-modal-close" aria-label="Fechar" id="userMenuClose">&times;</button>
             </header>
             <div class="cv-modal-body">
                 <ul class="user-menu-list">
@@ -54,7 +54,7 @@
             <div class="cv-card ocorrencia-card skeleton-item">
                 <div class="ocorrencia-card__header">
                     <h3 class="skeleton-block skeleton-title" style="width: 70%; height: 24px; margin-bottom: 8px;"></h3>
-                    <span class="skeleton-block skeleton-tag" style="width: 80px; height: 20px;"></span>
+                    <span class="skeleton-block skeleton-tag" style="width: 80px; height: 20px;"></button>
                 </div>
                 <p class="skeleton-block skeleton-line" style="width: 50%; margin-top: 12px;"></p>
                 <p class="skeleton-block skeleton-line" style="width: 60%;"></p>
@@ -64,7 +64,7 @@
             <div class="cv-card ocorrencia-card skeleton-item">
                 <div class="ocorrencia-card__header">
                     <h3 class="skeleton-block skeleton-title" style="width: 60%; height: 24px; margin-bottom: 8px;"></h3>
-                    <span class="skeleton-block skeleton-tag" style="width: 70px; height: 20px;"></span>
+                    <span class="skeleton-block skeleton-tag" style="width: 70px; height: 20px;"></button>
                 </div>
                 <p class="skeleton-block skeleton-line" style="width: 45%; margin-top: 12px;"></p>
                 <p class="skeleton-block skeleton-line" style="width: 55%;"></p>
@@ -74,7 +74,7 @@
             <div class="cv-card ocorrencia-card skeleton-item">
                 <div class="ocorrencia-card__header">
                     <h3 class="skeleton-block skeleton-title" style="width: 75%; height: 24px; margin-bottom: 8px;"></h3>
-                    <span class="skeleton-block skeleton-tag" style="width: 90px; height: 20px;"></span>
+                    <span class="skeleton-block skeleton-tag" style="width: 90px; height: 20px;"></button>
                 </div>
                 <p class="skeleton-block skeleton-line" style="width: 55%; margin-top: 12px;"></p>
                 <p class="skeleton-block skeleton-line" style="width: 65%;"></p>
@@ -93,7 +93,7 @@
     <!-- Modal de Cadastro de Nova Ocorrência -->
     <div id="modalNovaOcorrencia" class="cv-modal" style="display:none;">
         <div class="cv-modal-content cv-modal-content--padded"> <!-- Padronizado -->
-            <span class="cv-modal-close" id="closeNovaOcorrenciaModal">&times;</span> <!-- Padronizado -->
+            <button type="button" class="cv-modal-close" aria-label="Fechar" id="closeNovaOcorrenciaModal">&times;</button> <!-- Padronizado -->
             <h2>Nova Ocorrência</h2>
             <form id="formNovaOcorrencia" class="cv-form">
                 <div class="cv-form-group"> <!-- Padronizado -->
@@ -135,17 +135,17 @@
     <!-- Modal de Detalhe da Ocorrência -->
     <div id="modalDetalheOcorrencia" class="cv-modal" style="display:none;">
         <div class="cv-modal-content cv-modal-content--large cv-modal-content--padded"> <!-- Padronizado, mantendo --large se for uma variação válida -->
-            <span class="cv-modal-close" id="closeDetalheOcorrenciaModal">&times;</span> <!-- Padronizado -->
+            <button type="button" class="cv-modal-close" aria-label="Fechar" id="closeDetalheOcorrenciaModal">&times;</button> <!-- Padronizado -->
 
             <div id="detalheOcorrenciaSkeleton" class="feed-skeleton-container" style="display:none; padding-bottom: 20px;">
                 <div class="skeleton-block skeleton-title" style="width: 60%; height: 28px; margin-bottom: 20px;"></div>
                 <div class="ocorrencia-detalhes-grid">
-                    <p><strong class="skeleton-block skeleton-line--short" style="width:80px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:120px; height:1em; display:inline-block;"></span></p>
-                    <p><strong class="skeleton-block skeleton-line--short" style="width:70px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:100px; height:1em; display:inline-block;"></span></p>
-                    <p><strong class="skeleton-block skeleton-line--short" style="width:90px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:80px; height:1em; display:inline-block;"></span></p>
-                    <p><strong class="skeleton-block skeleton-line--short" style="width:100px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:150px; height:1em; display:inline-block;"></span></p>
-                    <p><strong class="skeleton-block skeleton-line--short" style="width:110px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:140px; height:1em; display:inline-block;"></span></p>
-                    <p><strong class="skeleton-block skeleton-line--short" style="width:90px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:160px; height:1em; display:inline-block;"></span></p>
+                    <p><strong class="skeleton-block skeleton-line--short" style="width:80px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:120px; height:1em; display:inline-block;"></button></p>
+                    <p><strong class="skeleton-block skeleton-line--short" style="width:70px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:100px; height:1em; display:inline-block;"></button></p>
+                    <p><strong class="skeleton-block skeleton-line--short" style="width:90px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:80px; height:1em; display:inline-block;"></button></p>
+                    <p><strong class="skeleton-block skeleton-line--short" style="width:100px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:150px; height:1em; display:inline-block;"></button></p>
+                    <p><strong class="skeleton-block skeleton-line--short" style="width:110px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:140px; height:1em; display:inline-block;"></button></p>
+                    <p><strong class="skeleton-block skeleton-line--short" style="width:90px; height:1em; display:inline-block; margin-right: 5px;"></strong> <span class="skeleton-block skeleton-line--medium" style="width:160px; height:1em; display:inline-block;"></button></p>
                 </div>
                 <h3 class="skeleton-block skeleton-subtitle" style="width: 30%; margin-top: 20px; height: 20px;"></h3>
                 <p class="skeleton-block skeleton-line" style="margin-top: 8px;"></p>
@@ -166,12 +166,12 @@
             <div id="detalheOcorrenciaContentLoaded" style="display:none;">
                 <h2 id="detalheTitulo"></h2>
                 <div class="ocorrencia-detalhes-grid">
-                    <p><strong>Categoria:</strong> <span id="detalheCategoria"></span></p>
-                    <p><strong>Status Atual:</strong> <span id="detalheStatus" class="status-tag"></span></p>
-                    <p><strong>Prioridade:</strong> <span id="detalhePrioridade"></span></p>
-                    <p><strong>Data de Abertura:</strong> <span id="detalheDataAbertura"></span></p>
-                    <p><strong>Última Atualização:</strong> <span id="detalheDataAtualizacao"></span></p>
-                    <p><strong>Aberta por:</strong> <span id="detalheUsuarioNome"></span> (<span id="detalheUsuarioUnidade"></span>)</p>
+                    <p><strong>Categoria:</strong> <span id="detalheCategoria"></button></p>
+                    <p><strong>Status Atual:</strong> <span id="detalheStatus" class="status-tag"></button></p>
+                    <p><strong>Prioridade:</strong> <span id="detalhePrioridade"></button></p>
+                    <p><strong>Data de Abertura:</strong> <span id="detalheDataAbertura"></button></p>
+                    <p><strong>Última Atualização:</strong> <span id="detalheDataAtualizacao"></button></p>
+                    <p><strong>Aberta por:</strong> <span id="detalheUsuarioNome"></button> (<span id="detalheUsuarioUnidade"></button>)</p>
                 </div>
 
                 <h3>Descrição:</h3>
@@ -216,7 +216,7 @@
     <!-- Modal para Alterar Status -->
     <div id="modalAlterarStatus" class="cv-modal" style="display:none;">
         <div class="cv-modal-content cv-modal-content--padded"> <!-- Padronizado -->
-            <span class="cv-modal-close" id="closeAlterarStatusModal">&times;</span> <!-- Padronizado -->
+            <button type="button" class="cv-modal-close" aria-label="Fechar" id="closeAlterarStatusModal">&times;</button> <!-- Padronizado -->
             <h2>Alterar Status da Ocorrência</h2>
             <form id="formAlterarStatus" class="cv-form">
                 <input type="hidden" id="ocorrenciaIdParaAlterarStatus">
