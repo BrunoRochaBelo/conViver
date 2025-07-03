@@ -527,10 +527,8 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
         const items = response.data || response || [];
 
         hideSkeleton(currentTabContentEl);
-        const errorState = currentTabContentEl.querySelector(".cv-error-state");
-        if (errorState) errorState.style.display = "none";
-        const emptyState = currentTabContentEl.querySelector(".cv-empty-state");
-        if (emptyState) emptyState.style.display = "none";
+        // Remover estados antigos antes de potencialmente adicionar novos
+        currentTabContentEl.querySelectorAll(".cv-error-state, .cv-empty-state").forEach(el => el.remove());
 
         const spinner = feedContainer.querySelector('.loading-spinner-portaria');
         if (spinner) spinner.style.display = 'none';
@@ -553,17 +551,37 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
                     feedContainer.appendChild(itemElement);
                 }
             });
-        } else {
-            if (page === 1 && !append) {
-                if (fetchedPortariaItems.length === 0) {
-                    if (emptyState) {
-                        const emptyMsg = emptyState.querySelector('.cv-empty-state__message');
-                        if (emptyMsg) {
-                            const hasActiveFilters = Object.values(currentPortariaFilters).some(f => f && f !== '');
-                            emptyMsg.textContent = hasActiveFilters ? "Nenhum item encontrado para os filtros atuais." : `Nenhum ${activePortariaTab === 'visitantes' ? (tipoVisualizacaoVisitantes === 'atuais' ? 'visitante atual' : 'registro no histórico') : 'item'} encontrado.`;
-                        }
-                        emptyState.style.display = "flex";
+        } else { // Nenhum item retornado pela API
+            if (page === 1 && !append) { // Apenas na primeira carga, e não ao tentar carregar mais
+                if (fetchedPortariaItems.length === 0) { // Realmente não há nada para mostrar (nem de cargas anteriores)
+                    const hasActiveFilters = Object.values(currentPortariaFilters).some(f => f && f !== '');
+                    const message = hasActiveFilters ? "Nenhum item encontrado para os filtros atuais." : `Nenhum ${activePortariaTab === 'visitantes' ? (tipoVisualizacaoVisitantes === 'atuais' ? 'visitante atual' : 'registro no histórico') : 'item'} encontrado.`;
+                    const isSindico = getRoles().some(r => ['Sindico', 'Administrador'].includes(r));
+                    let actionButton = null;
+                    if(isSindico && !hasActiveFilters) { // Mostrar botão de adicionar apenas se não houver filtros e for admin
+                        actionButton = {
+                            text: activePortariaTab === 'visitantes' ? "Registrar Visitante" : "Registrar Encomenda",
+                            onClick: activePortariaTab === 'visitantes' ? openRegistrarVisitanteModal : openRegistrarEncomendaModal,
+                            classes: ["cv-button--primary"]
+                        };
+                    } else if (hasActiveFilters) { // Se houver filtros, oferecer para limpar
+                        actionButton = {
+                            text: "Limpar Filtros",
+                            onClick: () => {
+                                const clearBtn = document.getElementById("clear-filters-button-portaria-modal");
+                                if(clearBtn) clearBtn.click();
+                            },
+                            classes: ["cv-button--secondary"]
+                        };
                     }
+
+                    const emptyStateEl = createEmptyStateElement({
+                        title: "Lista Vazia",
+                        description: message,
+                        iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48px" height="48px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"></path></svg>`,
+                        actionButton: actionButton
+                    });
+                    feedContainer.appendChild(emptyStateEl); // Adiciona ao feedContainer
                 }
             }
             noMorePortariaItems = true;
@@ -572,16 +590,21 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
     } catch (error) {
         console.error(`Erro ao buscar ${activePortariaTab}:`, error);
         hideSkeleton(currentTabContentEl);
+        currentTabContentEl.querySelectorAll(".cv-error-state, .cv-empty-state").forEach(el => el.remove());
+
         const spinner = feedContainer.querySelector('.loading-spinner-portaria');
         if (spinner) spinner.style.display = 'none';
 
         if (!append || (append && fetchedPortariaItems.length === 0) ) {
-            const errorState = currentTabContentEl.querySelector(".cv-error-state");
-            if (errorState) {
-                 errorState.style.display = "flex";
-                 const errorMessageP = errorState.querySelector(".cv-empty-state__message");
-                 if(errorMessageP) errorMessageP.textContent = error.message || `Falha ao carregar ${activePortariaTab}. Verifique sua conexão ou tente novamente.`;
-            }
+            const errorStateEl = createErrorStateElement({
+                title: `Erro ao Carregar ${activePortariaTab === 'visitantes' ? 'Visitantes' : 'Encomendas'}`,
+                message: error.message || `Falha ao carregar ${activePortariaTab}. Verifique sua conexão ou tente novamente.`,
+                retryButton: {
+                    text: "Tentar Novamente",
+                    onClick: () => loadInitialPortariaItems() // Recarrega a aba atual
+                }
+            });
+            feedContainer.appendChild(errorStateEl); // Adiciona ao feedContainer
         } else if (append) {
             if (!error.handledByApiClient && error.message) {
                  showGlobalFeedback(error.message || `Erro ao carregar mais ${activePortariaTab}.`, "error");

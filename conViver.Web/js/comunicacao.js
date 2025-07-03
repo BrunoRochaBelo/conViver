@@ -1094,6 +1094,16 @@ async function loadInitialFeedItems() {
   // Show skeleton specifically for the mural's feed area
   showFeedSkeleton("content-mural");
 
+    // Ensure the container is clean before fetching, especially removing old error/empty states
+    const container = document.querySelector(feedContainerSelector);
+    if (container) {
+        const oldError = container.querySelector('.cv-error-state');
+        if (oldError) oldError.remove();
+        const oldEmpty = container.querySelector('.cv-empty-state');
+        if (oldEmpty) oldEmpty.remove();
+    }
+
+
   await fetchAndDisplayFeedItems(currentFeedPage, false);
 }
 
@@ -1437,16 +1447,28 @@ async function fetchAndDisplayFeedItems(page, append = false) {
                 });
                 // Adicionar ao container da aba ativa, não ao muralFeedContainer necessariamente
                 const contentArea = targetErrorContainer.querySelector('.feed-grid, .js-avisos, .enquetes-list, .chamados-list') || targetErrorContainer;
+                // Limpar antes de adicionar o novo estado de erro
+                contentArea.innerHTML = '';
                 contentArea.appendChild(errorState);
             }
         }
     } else if (append) {
+      // Erro ao carregar mais itens (infinite scroll)
+      // Remover o spinner de "carregando mais" se houver
+      const spinner = muralFeedContainer.querySelector('.loading-spinner-feed');
+      if (spinner) spinner.remove();
+      // Opcional: mostrar um pequeno feedback de erro perto do sentinel ou um toast
       if (!error.handledByApiClient && error.message) {
-         showGlobalFeedback(error.message || "Erro ao carregar mais itens.", "error");
+         showGlobalFeedback(error.message || "Erro ao carregar mais itens.", "error", 3000);
+      } else {
+         console.warn("Erro ao carregar mais itens (append), erro já tratado pelo apiClient ou sem mensagem.", error);
       }
-      console.warn("Erro ao carregar mais itens (append).");
+      // Não exibir o sentinel para evitar tentativas contínuas se houver erro
+      if (sentinelElement) sentinelElement.style.display = "none";
+      // Manter noMoreFeedItems como false para permitir nova tentativa se o usuário rolar novamente (ou adicionar um botão "tentar de novo")
+      noMoreFeedItems = false; // Permitir nova tentativa ao rolar
     }
-    if (sentinelElement) sentinelElement.style.display = "none";
+    // if (sentinelElement) sentinelElement.style.display = "none"; // Movido para dentro do else if (append)
   } finally {
     isLoadingFeedItems = false;
     // Skeletons should be hidden by now, but as a safeguard:
@@ -1464,14 +1486,18 @@ async function fetchAndDisplayFeedItems(page, append = false) {
 
     // Restore info messages for Enquetes/Solicitações if they are active and mural is empty
     // This is now handled by displaying a specific EmptyState for the tab.
-    const muralIsEmpty = noMoreFeedItems && page === 1 && muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)").length === 0;
+    const muralIsEmpty = noMoreFeedItems && page === 1 && (!muralFeedContainer || muralFeedContainer.querySelectorAll(".feed-item:not(.feed-skeleton-item)").length === 0);
 
     if (muralIsEmpty) {
         const tabSpecificContentArea = document.getElementById(finalActiveTab);
-        if (tabSpecificContentArea && finalActiveTab !== "content-mural") {
-            // Limpar área de conteúdo da aba específica
-            const existingMessages = tabSpecificContentArea.querySelectorAll(".cv-info-message, .cv-no-items-message, .cv-error-message, .cv-empty-state, .cv-error-state, .feed-skeleton-container");
-            existingMessages.forEach(msg => msg.remove()); // Remove também skeletons se houver
+        // Check if tabSpecificContentArea itself is the one that should display the empty state,
+        // or if it's a sub-container within it (like the muralFeedContainer for the "content-mural" tab).
+        const containerForEmptyState = (finalActiveTab === "content-mural" && muralFeedContainer) ? muralFeedContainer : tabSpecificContentArea;
+
+        if (containerForEmptyState) {
+            // Limpar área de conteúdo da aba específica ou do muralFeedContainer
+            const existingMessages = containerForEmptyState.querySelectorAll(".cv-info-message, .cv-no-items-message, .cv-error-message, .cv-empty-state, .cv-error-state, .feed-skeleton-container, .feed-item:not(.feed-skeleton-item)");
+            existingMessages.forEach(msg => msg.remove());
 
             let emptyStateConfig = null;
             const userRoles = getUserRoles();
