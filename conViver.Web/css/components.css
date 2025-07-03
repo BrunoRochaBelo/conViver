@@ -1119,11 +1119,3 @@ input:checked + .cv-switch-slider:before {
     margin-bottom: var(--cv-spacing-md);
 }
 
-@media (max-width: 767px) {
-    .cv-header {
-        padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
-    }
-    .cv-header__title {
-        font-size: 1.125rem;
-    }
-}

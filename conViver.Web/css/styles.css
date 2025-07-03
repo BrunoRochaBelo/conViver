@@ -270,6 +270,14 @@ html {
     padding: var(--cv-header-padding-y) var(--cv-header-padding-x);
     min-height: var(--cv-header-height);
 }
+@media (max-width: 767px) {
+    .cv-header {
+        padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
+    }
+    .cv-header__title {
+        font-size: 1.125rem;
+    }
+}
 
 @media (min-width: 768px) {
     :root {
