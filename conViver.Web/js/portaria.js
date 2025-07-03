@@ -356,9 +356,15 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
     const feed = contentEl?.querySelector(activePortariaTab === 'visitantes' ? portariaFeedContainerSelector : portariaEncomendasFeedContainerSelector);
     const sentinel = document.getElementById(portariaScrollSentinelId);
     if (!feed || !contentEl) {
-        isLoadingPortariaItens = false;
+        isLoadingPortariaItems = false; // Corrigido: isLoadingPortariaItens -> isLoadingPortariaItems
         if (contentEl) hideSkeleton(contentEl);
         return;
+    }
+
+    // Limpar estado de erro anterior ANTES de mostrar o skeleton ou fazer qualquer outra coisa
+    const existingErrorState = contentEl.querySelector(".cv-error-state");
+    if (existingErrorState) {
+        existingErrorState.remove();
     }
 
     if (!append) showSkeleton(contentEl);
@@ -398,8 +404,8 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
         const resp = await apiClient.get(endpoint, params);
         const items = resp.data || resp || [];
         hideSkeleton(contentEl);
-        const errEl = contentEl.querySelector(".cv-error-state");
-        if (errEl) errEl.style.display = 'none';
+        // O estado de erro já foi removido no início da função.
+        // Não é necessário tentar escondê-lo aqui novamente.
         const emptyEl = contentEl.querySelector(".cv-empty-state");
         if (emptyEl) emptyEl.style.display = 'none';
         feed.querySelector('.loading-spinner-portaria')?.remove();
