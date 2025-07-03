@@ -438,18 +438,22 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
         hideSkeleton(contentEl);
         feed.querySelector('.loading-spinner-portaria')?.remove();
         // criar estado de erro customizável
+        const target = contentEl.querySelector(portariaFeedContainerSelector + ', ' + portariaEncomendasFeedContainerSelector) || contentEl;
+        // Remover possíveis estados anteriores antes de exibir o novo
+        target.querySelectorAll('.cv-error-state, .cv-empty-state').forEach(el => el.remove());
+
         const errState = createErrorStateElement({
             title: "Falha ao Carregar",
             message: err.message || `Não foi possível carregar ${activePortariaTab}. Verifique sua conexão ou tente novamente.`,
             retryButton: {
                 text: "Tentar Novamente",
                 onClick: () => {
-                    contentEl.querySelector(".cv-error-state")?.remove();
+                    target.querySelectorAll(".cv-error-state").forEach(el => el.remove());
                     loadInitialPortariaItems();
                 }
             }
         });
-        const target = contentEl.querySelector(portariaFeedContainerSelector + ', ' + portariaEncomendasFeedContainerSelector) || contentEl;
+
         target.appendChild(errState);
         sentinel.style.display = "none";
     } finally {
