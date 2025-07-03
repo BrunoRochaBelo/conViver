@@ -848,6 +848,7 @@ main {
     gap: var(--cv-spacing-xs);
     white-space: nowrap;
 }
+
 .cv-tabs-buttons::-webkit-scrollbar {
     display: none;
 }
