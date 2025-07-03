@@ -1,4 +1,5 @@
 import apiClient from './apiClient.js';
+import { showInlineSpinner } from './main.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.getElementById('registerForm');
@@ -46,7 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         submitButton.disabled = true;
+        const originalButtonHTML = submitButton.innerHTML;
         submitButton.textContent = 'Registrando...';
+        const removeSpinner = showInlineSpinner(submitButton);
 
         try {
             await apiClient.post('/auth/signup', {
@@ -83,7 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Re-enable button unless success leads to a different state where button is not needed
             // For now, always re-enable for simplicity, allowing user to correct and resubmit.
             submitButton.disabled = false;
-            submitButton.textContent = 'Registrar';
+            submitButton.innerHTML = originalButtonHTML;
+            removeSpinner();
         }
     });
 });

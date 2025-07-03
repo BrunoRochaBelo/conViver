@@ -574,19 +574,22 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
         hideSkeleton(currentTabContentEl);
         const spinner = feedContainer.querySelector('.loading-spinner-portaria');
         if (spinner) spinner.style.display = 'none';
+        const errorState = createErrorStateElement({
+            title: "Falha ao Carregar",
+            message: error.message || `Não foi possível carregar ${activePortariaTab}. Verifique sua conexão ou tente novamente.`,
+            retryButton: {
+                text: "Tentar Novamente",
+                onClick: () => {
+                    const current = currentTabContentEl.querySelector(".cv-error-state");
+                    if (current) current.remove();
+                    loadInitialPortariaItems();
+                }
+            }
+        });
+        const targetArea = currentTabContentEl.querySelector(".js-portaria-feed, .js-portaria-feed-encomendas") || currentTabContentEl;
+        targetArea.appendChild(errorState);
 
-        if (!append || (append && fetchedPortariaItems.length === 0) ) {
-            const errorState = currentTabContentEl.querySelector(".cv-error-state");
-            if (errorState) {
-                 errorState.style.display = "flex";
-                 const errorMessageP = errorState.querySelector(".cv-empty-state__message");
-                 if(errorMessageP) errorMessageP.textContent = error.message || `Falha ao carregar ${activePortariaTab}. Verifique sua conexão ou tente novamente.`;
-            }
-        } else if (append) {
-            if (!error.handledByApiClient && error.message) {
-                 showGlobalFeedback(error.message || `Erro ao carregar mais ${activePortariaTab}.`, "error");
-            }
-        }
+
         if (sentinelElement) sentinelElement.style.display = "none";
     } finally {
         isLoadingPortariaItems = false;
@@ -681,39 +684,6 @@ function setupPortariaItemActionListeners() {
             }
         }
     };
-
-    feedVisitantes?.addEventListener('click', handleActionClick);
-    feedEncomendas?.addEventListener('click', handleActionClick);
-}
-
-function setupTryAgainButtons() {
-    document.querySelectorAll(".cv-error-state__retry-button").forEach(button => {
-        button.addEventListener("click", (event) => {
-            const buttonEl = event.currentTarget;
-            const contentId = buttonEl.dataset.contentId; // Ex: content-visitantes, content-encomendas
-
-            if (contentId) {
-                const errorStateDiv = buttonEl.closest(".cv-error-state");
-                if (errorStateDiv) {
-                    errorStateDiv.style.display = "none";
-                }
-                // Determinar qual aba está ativa e recarregar seus itens
-                // A variável activePortariaTab já deve estar correta.
-                // A função loadInitialPortariaItems usa activePortariaTab.
-                loadInitialPortariaItems();
-            } else {
-                // Fallback geral se não houver contentId (recarrega o feed da aba atualmente ativa)
-                loadInitialPortariaItems();
-            }
-        });
-    });
-}
-
-
-// --- Inicialização ---
-export async function initialize() {
-    requireAuth();
-
     // Inicializar Modais
     modalRegistrarVisitante = document.getElementById("modal-registrar-visitante");
     formRegistrarVisitante = document.getElementById("formRegistrarVisitante");
@@ -732,7 +702,6 @@ export async function initialize() {
     setupModalEventListeners(); // Inclui setup para filtros e sort
     setupPortariaFeedObserver();
     setupPortariaItemActionListeners();
-    setupTryAgainButtons();
 
 
     const roles = getRoles();

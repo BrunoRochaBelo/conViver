@@ -1,418 +1,721 @@
 import apiClient from './apiClient.js';
 import { requireAuth, getRoles } from './auth.js';
-import { showGlobalFeedback } from './main.js';
+import {
+    showGlobalFeedback,
+    createErrorStateElement,
+    createEmptyStateElement,
+    showSkeleton,
+    hideSkeleton,
+    showModalError,
+    clearModalError,
+    openModal,
+    closeModal
+} from './main.js';
 import { initFabMenu } from './fabMenu.js';
-import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
+import { createProgressBar, showProgress, xhrPost } from './progress.js';
 
-// --- Badge de Status ---
+// --- Elementos Globais e Modais ---
+let modalRegistrarVisitante, formRegistrarVisitante, btnValidarQRCodeModal;
+let modalRegistrarEncomenda, formNovaEncomendaModal;
+let modalFiltrosPortaria, modalSortPortaria;
+let openFilterModalButton, openSortButton;
+
+
+// Variáveis de estado para o feed
+let currentPortariaPage = 1;
+let isLoadingPortariaItems = false;
+let noMorePortariaItems = false;
+const portariaFeedContainerSelector = ".js-portaria-feed"; // Para visitantes
+const portariaEncomendasFeedContainerSelector = ".js-portaria-feed-encomendas"; // Para encomendas
+const portariaScrollSentinelId = "portaria-scroll-sentinel";
+let fetchedPortariaItems = []; // Array para armazenar itens do feed (visitantes/encomendas)
+let currentPortariaSortOrder = "desc";
+let currentPortariaFilters = {}; // Para armazenar filtros ativos
+let activePortariaTab = "visitantes"; // 'visitantes' ou 'encomendas'
+let tipoVisualizacaoVisitantes = "atuais"; // 'atuais' ou 'historico'
+
+
+// --- Função de Badge de Status ---
 function getStatusBadgeHtml(status) {
     const s = status ? status.toLowerCase() : "";
-    let type = "success";
-    if (s.includes("pendente") || s.includes("aguardando")) type = "warning";
-    else if (s.includes("cancel") || s.includes("recus") || s.includes("vencid") || s.includes("extraviad") || s.includes("devolvid")) type = "danger";
-    return `<span class="status-badge status-badge--${type}"><span class="status-icon icon-${type}"></span>${status}</span>`;
+    let type = "default"; // default, success, warning, danger, info
+    let icon = "info"; // Ou um ícone padrão
+
+    if (s.includes("presente") || s.includes("aguardando") || s.includes("recebida")) {
+        type = "warning";
+        icon = "clock";
+    } else if (s.includes("saiu") || s.includes("entregue") || s.includes("concluído")) {
+        type = "success";
+        icon = "check-circle";
+    } else if (s.includes("cancel") || s.includes("recus") || s.includes("vencid") || s.includes("extraviad") || s.includes("devolvid")) {
+        type = "danger";
+        icon = "x-circle";
+    }
+    return `<span class="status-badge status-badge--${type}"><span class="status-icon icon-${icon}"></span>${status}</span>`;
 }
+
 
 // --- Configuração das Abas Principais ---
-function setupMainTabs() {
-    const mainTabButtons = document.querySelectorAll('main > .cv-tabs .cv-tab-button');
-    const mainTabContents = document.querySelectorAll('main > .cv-tab-content');
-
-    mainTabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            mainTabButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-
-            mainTabContents.forEach(content => {
-                content.classList.remove('active');
-                content.style.display = 'none';
-            });
-
-            const targetContentId = 'content-' + button.id.split('-').slice(1).join('-');
-            const targetContent = document.getElementById(targetContentId);
-            if (targetContent) {
-                targetContent.classList.add('active');
-                targetContent.style.display = 'block';
-
-                if (button.id === 'tab-controle-visitantes' && !button.dataset.initialized) {
-                    setupVisitantesSubTabs();
-                    button.dataset.initialized = 'true';
-                } else if (button.id === 'tab-gestao-encomendas' && !button.dataset.initialized) {
-                    carregarEncomendas();
-                    setupEncomendas();
-                    button.dataset.initialized = 'true';
-                }
-            }
-        });
-    });
-
-    if (mainTabButtons.length > 0) {
-        mainTabButtons[0].click();
-    }
-}
-
 function setupTabs() {
-    const hasMainTabs = document.querySelectorAll('main > .cv-tabs .cv-tab-button').length > 0;
-    if (hasMainTabs) setupMainTabs();
-    else setupVisitantesSubTabs();
-}
+    const tabButtons = document.querySelectorAll('.cv-tabs-buttons .cv-tab-button');
+    const tabContents = document.querySelectorAll('main > .cv-tab-content'); // Pegar os conteúdos diretos de main
 
-// --- Sub-Abas de Visitantes ---
-function setupVisitantesSubTabs() {
-    const subTabButtons = document.querySelectorAll('#content-controle-visitantes .cv-tabs .cv-tab-button');
-    const subTabContents = document.querySelectorAll('#content-controle-visitantes .cv-subtab-content');
-
-    subTabButtons.forEach(button => {
+    tabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            subTabButtons.forEach(btn => btn.classList.remove('active'));
+            tabButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
-            subTabContents.forEach(content => content.classList.remove('active'));
+            tabContents.forEach(content => {
+                content.style.display = 'none'; // Esconder todos os conteúdos de aba
+                // content.classList.remove('active'); // Remover classe active de todos
+            });
 
-            const targetSubTabId = button.dataset.subtab;
-            const targetContent = document.getElementById(targetSubTabId);
-            if (targetContent) targetContent.classList.add('active');
+            const targetContentId = button.id.replace('tab-', 'content-');
+            const targetContent = document.getElementById(targetContentId);
 
-            if (targetSubTabId === 'visitantes-atuais') {
-                carregarVisitantesAtuais();
-            } else if (targetSubTabId === 'historico-visitantes') {
-                const histList = document.querySelector('.js-historico-visitantes-lista');
-                if (histList && (!histList.hasChildNodes() || button.dataset.refresh === 'true')) {
-                    carregarHistoricoVisitantes();
-                    button.dataset.refresh = 'false';
-                }
-            } else if (targetSubTabId === 'registrar-visitante') {
-                const form = document.getElementById('formRegistrarVisitante');
-                const msg = document.getElementById('registrarVisitanteMsg');
-                form?.reset();
-                if (msg) msg.style.display = 'none';
+            if (targetContent) {
+                targetContent.style.display = 'block'; // Mostrar o conteúdo da aba clicada
+                // targetContent.classList.add('active'); // Adicionar classe active
+                activePortariaTab = button.id === 'tab-visitantes' ? 'visitantes' : 'encomendas';
+
+                currentPortariaPage = 1;
+                noMorePortariaItems = false;
+                fetchedPortariaItems = [];
+                // Resetar filtros aqui ou deixar que o modal de filtro faça isso?
+                // Por enquanto, os filtros são mantidos ao trocar de aba,
+                // mas a função applyFilters no modal irá ajustar a visibilidade dos campos.
+                loadInitialPortariaItems();
             }
         });
     });
 
-    if (subTabButtons.length > 0) subTabButtons[0].click();
+    if (tabButtons.length > 0) {
+        tabButtons[0].click();
+    }
 }
 
-function openSubTab(id) {
-    document.querySelector(`#content-controle-visitantes .cv-tab-button[data-subtab="${id}"]`)?.click();
+
+// --- Modais (Registro) ---
+function openRegistrarVisitanteModal() {
+    if (modalRegistrarVisitante && formRegistrarVisitante) {
+        formRegistrarVisitante.reset();
+        clearModalError(modalRegistrarVisitante);
+        document.getElementById('visQRCodeEntrada').value = '';
+        openModal(modalRegistrarVisitante);
+    }
 }
 
-// --- Visitantes Atuais ---
-async function carregarVisitantesAtuais() {
-    const container = document.querySelector('.js-visitantes-atuais-lista');
-    const loadingMsg = document.getElementById('visitantesAtuaisLoadingMsg');
-    const noDataMsg = document.getElementById('visitantesAtuaisNoDataMsg');
-    const skeleton = document.getElementById('visitantes-skeleton');
+function closeRegistrarVisitanteModal() {
+    if (modalRegistrarVisitante) {
+        closeModal(modalRegistrarVisitante);
+    }
+}
 
-    if (!container || !loadingMsg || !noDataMsg) {
-        console.error('UI visitantes atuais incompleta.');
-        showGlobalFeedback('Erro interno: UI de visitantes atuais incompleta.', 'error');
-        return;
+function openRegistrarEncomendaModal() {
+    if (modalRegistrarEncomenda && formNovaEncomendaModal) {
+        formNovaEncomendaModal.reset();
+        clearModalError(modalRegistrarEncomenda);
+        openModal(modalRegistrarEncomenda);
+    }
+}
+
+function closeRegistrarEncomendaModal() {
+    if (modalRegistrarEncomenda) {
+        closeModal(modalRegistrarEncomenda);
+    }
+}
+
+// --- Modais (Filtro e Ordenação) ---
+function setupFilterModalAndButton() {
+    const closeFilterModalButton = document.querySelector(".js-modal-filtros-portaria-close");
+    const applyFiltersModalButton = document.getElementById("apply-filters-button-portaria-modal");
+    const clearFiltersModalButton = document.getElementById("clear-filters-button-portaria-modal");
+    const tipoVisitanteSelect = document.getElementById("portaria-tipo-visitante-filter");
+
+    if (openFilterModalButton && modalFiltrosPortaria) {
+        openFilterModalButton.addEventListener("click", () => {
+            // Ajustar visibilidade dos campos de filtro com base na aba ativa
+            const visitanteFilters = modalFiltrosPortaria.querySelectorAll('[data-filter-context="visitantes"], [data-filter-context="visitantes_historico"]');
+            const encomendaFilters = modalFiltrosPortaria.querySelectorAll('[data-filter-context="encomendas"]');
+            const modalTitle = modalFiltrosPortaria.querySelector("h2");
+
+            if (activePortariaTab === 'visitantes') {
+                visitanteFilters.forEach(el => el.style.display = 'block');
+                encomendaFilters.forEach(el => el.style.display = 'none');
+                if (modalTitle) modalTitle.textContent = "Filtros de Visitantes";
+                // Ajustar visibilidade dos filtros de histórico
+                toggleHistoricoFiltersVisibility(tipoVisitanteSelect.value === 'historico');
+            } else { // Encomendas
+                visitanteFilters.forEach(el => el.style.display = 'none');
+                encomendaFilters.forEach(el => el.style.display = 'block');
+                if (modalTitle) modalTitle.textContent = "Filtros de Encomendas";
+            }
+            openModal(modalFiltrosPortaria);
+        });
     }
 
-    container.innerHTML = '';
-    loadingMsg.style.display = 'block';
-    noDataMsg.style.display = 'none';
-    if (skeleton) showFeedSkeleton(skeleton);
+    if (closeFilterModalButton && modalFiltrosPortaria) {
+        closeFilterModalButton.addEventListener("click", () => closeModal(modalFiltrosPortaria));
+    }
+    if (modalFiltrosPortaria) {
+        window.addEventListener("click", (event) => {
+            if (event.target === modalFiltrosPortaria) closeModal(modalFiltrosPortaria);
+        });
+    }
+
+    if (applyFiltersModalButton) {
+        applyFiltersModalButton.addEventListener("click", () => {
+            currentPortariaFilters = {}; // Limpa filtros anteriores
+            if (activePortariaTab === 'visitantes') {
+                tipoVisualizacaoVisitantes = tipoVisitanteSelect.value;
+                currentPortariaFilters.unidadeId = document.getElementById("filterUnidadeVisitantes").value.trim();
+                if (tipoVisualizacaoVisitantes === 'historico') {
+                    currentPortariaFilters.dataInicio = document.getElementById("filterHistDataInicio").value;
+                    currentPortariaFilters.dataFim = document.getElementById("filterHistDataFim").value;
+                    currentPortariaFilters.nomeVisitante = document.getElementById("filterHistNome").value.trim();
+                }
+            } else { // Encomendas
+                currentPortariaFilters.unidadeIdEncomenda = document.getElementById("filterUnidadeEncomendas").value.trim();
+                currentPortariaFilters.statusEncomenda = document.getElementById("filterStatusEncomenda").value;
+            }
+
+            loadInitialPortariaItems();
+            if (modalFiltrosPortaria) closeModal(modalFiltrosPortaria);
+            updateFilterButtonIndicator();
+        });
+    }
+
+    if (clearFiltersModalButton && modalFiltrosPortaria) {
+        clearFiltersModalButton.addEventListener("click", () => {
+            // Resetar campos do formulário de filtro
+            modalFiltrosPortaria.querySelectorAll("input[type='text'], input[type='date']").forEach(input => input.value = '');
+            modalFiltrosPortaria.querySelectorAll("select").forEach(select => select.selectedIndex = 0);
+
+            currentPortariaFilters = {};
+            tipoVisualizacaoVisitantes = 'atuais'; // Reset para default
+            toggleHistoricoFiltersVisibility(false); // Esconder filtros de histórico
+
+            loadInitialPortariaItems();
+            if (modalFiltrosPortaria) closeModal(modalFiltrosPortaria);
+            updateFilterButtonIndicator();
+        });
+    }
+
+    if (tipoVisitanteSelect) {
+        tipoVisitanteSelect.addEventListener('change', (event) => {
+            toggleHistoricoFiltersVisibility(event.target.value === 'historico');
+        });
+    }
+}
+
+function toggleHistoricoFiltersVisibility(show) {
+    const historicoFilterElements = document.querySelectorAll('#modal-filtros-portaria [data-filter-context="visitantes_historico"]');
+    historicoFilterElements.forEach(el => el.style.display = show ? 'block' : 'none');
+}
+
+function updateFilterButtonIndicator() {
+    if (!openFilterModalButton) return;
+    const hasFilters = Object.values(currentPortariaFilters).some(val => val && val !== '');
+    // Considerar também tipoVisualizacaoVisitantes se for diferente do padrão 'atuais'
+    const tipoVisitanteChanged = activePortariaTab === 'visitantes' && tipoVisualizacaoVisitantes !== 'atuais';
+
+    if (hasFilters || tipoVisitanteChanged) {
+        openFilterModalButton.classList.add("has-indicator");
+    } else {
+        openFilterModalButton.classList.remove("has-indicator");
+    }
+}
+
+
+function setupSortModalAndButton() {
+    const closeSortButtons = document.querySelectorAll(".js-modal-sort-portaria-close");
+    const applySortButton = document.getElementById("apply-sort-button-portaria");
+    const clearSortButtonModal = document.getElementById("clear-sort-button-portaria-modal");
+    const sortSelect = document.getElementById("sort-order-select-portaria");
+
+    if (openSortButton && modalSortPortaria) {
+        openSortButton.addEventListener("click", () => {
+            if (sortSelect) sortSelect.value = currentPortariaSortOrder;
+            openModal(modalSortPortaria);
+            openSortButton.classList.add("rotated");
+        });
+    }
+    closeSortButtons.forEach(btn => btn.addEventListener("click", () => {
+        if (modalSortPortaria) closeModal(modalSortPortaria);
+        if (openSortButton) openSortButton.classList.remove("rotated");
+    }));
+    window.addEventListener("click", (e) => {
+        if (e.target === modalSortPortaria) {
+            closeModal(modalSortPortaria);
+            if (openSortButton) openSortButton.classList.remove("rotated");
+        }
+    });
+    if (applySortButton && sortSelect) {
+        applySortButton.addEventListener("click", () => {
+            currentPortariaSortOrder = sortSelect.value;
+            if (modalSortPortaria) closeModal(modalSortPortaria);
+            if (openSortButton) {
+                 openSortButton.classList.remove("rotated");
+                 if (currentPortariaSortOrder !== "desc") openSortButton.classList.add("has-indicator");
+                 else openSortButton.classList.remove("has-indicator");
+            }
+            loadInitialPortariaItems();
+        });
+    }
+    if (clearSortButtonModal && sortSelect && modalSortPortaria) {
+        clearSortButtonModal.addEventListener("click", () => {
+            sortSelect.value = "desc";
+            currentPortariaSortOrder = "desc";
+            closeModal(modalSortPortaria);
+            if (openSortButton) {
+                openSortButton.classList.remove("rotated");
+                openSortButton.classList.remove("has-indicator");
+            }
+            loadInitialPortariaItems();
+        });
+    }
+}
+
+
+function setupModalEventListeners() {
+    // Modal Registrar Visitante
+    if (modalRegistrarVisitante && formRegistrarVisitante) {
+        document.querySelectorAll(".js-modal-registrar-visitante-close").forEach(btn => {
+            btn.addEventListener("click", closeRegistrarVisitanteModal);
+        });
+        window.addEventListener("click", (event) => {
+            if (event.target === modalRegistrarVisitante) closeRegistrarVisitanteModal();
+        });
+
+        formRegistrarVisitante.addEventListener('submit', handleRegistrarVisitanteSubmit);
+
+        if (btnValidarQRCodeModal) {
+            btnValidarQRCodeModal.addEventListener('click', handleValidarQRCodeModal);
+        }
+    }
+
+    // Modal Registrar Encomenda
+    if (modalRegistrarEncomenda && formNovaEncomendaModal) {
+        document.querySelectorAll(".js-modal-registrar-encomenda-close").forEach(btn => {
+            btn.addEventListener("click", closeRegistrarEncomendaModal);
+        });
+        window.addEventListener("click", (event) => {
+            if (event.target === modalRegistrarEncomenda) closeRegistrarEncomendaModal();
+        });
+        formNovaEncomendaModal.addEventListener('submit', handleRegistrarEncomendaSubmit);
+    }
+
+    setupFilterModalAndButton();
+    setupSortModalAndButton();
+}
+
+
+async function handleRegistrarVisitanteSubmit(event) {
+    event.preventDefault();
+    if (!formRegistrarVisitante) return;
+
+    const submitButton = formRegistrarVisitante.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = 'Registrando... <span class="inline-spinner"></span>';
+    clearModalError(modalRegistrarVisitante);
+
+    const formData = new FormData(formRegistrarVisitante);
+    const data = Object.fromEntries(formData.entries());
+
+    data.documento = data.documento || null;
+    data.motivoVisita = data.motivoVisita || null;
+    data.horarioSaidaPrevisto = data.horarioSaidaPrevisto ? new Date(data.horarioSaidaPrevisto).toISOString() : null;
+    data.observacoes = data.observacoes || null;
+    delete data.qrCodeEntrada;
 
     try {
-        const visitas = await apiClient.get('/api/v1/visitantes/atuais');
-        loadingMsg.style.display = 'none';
-
-        if (visitas && visitas.length) {
-            visitas.forEach(v => {
-                const card = document.createElement('div');
-                card.className = 'visitante-card cv-card';
-                card.dataset.id = v.id;
-                card.innerHTML = `
-                    <h4>${v.nome}</h4>
-                    <p>${v.documento || ''}</p>
-                    <p>${v.unidadeId ? v.unidadeId.slice(0,8) + '...' : 'N/A'} - ${v.motivoVisita || ''}</p>
-                    <p>Chegada: ${new Date(v.dataChegada).toLocaleString()}</p>
-                    <p>Saída Prevista: ${v.horarioSaidaPrevisto ? new Date(v.horarioSaidaPrevisto).toLocaleString() : ''}</p>
-                    <div class="visitante-card__acoes">
-                        <button class="cv-button cv-button--small btn-registrar-saida" data-id="${v.id}">Registrar Saída</button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        } else {
-            noDataMsg.style.display = 'block';
+        await apiClient.post('/api/v1/visitantes/registrar-entrada', data);
+        showGlobalFeedback('Entrada de visitante registrada com sucesso!', 'success', 2500);
+        formRegistrarVisitante.reset();
+        closeRegistrarVisitanteModal();
+        if (activePortariaTab === 'visitantes') {
+            loadInitialPortariaItems();
         }
     } catch (err) {
-        console.error('Erro ao listar visitantes atuais:', err);
-        loadingMsg.style.display = 'none';
-        container.innerHTML = '<div class="error-message">Falha ao carregar visitantes atuais.</div>';
-        showGlobalFeedback('Erro ao carregar visitantes atuais: ' + (err.message || ''), 'error');
+        console.error('Erro ao registrar entrada de visitante:', err);
+        const errorMessage = err.detalhesValidacao || err.message || 'Falha ao registrar entrada. Verifique os dados e tente novamente.';
+        showModalError(modalRegistrarVisitante, errorMessage);
     } finally {
-        if (skeleton) hideFeedSkeleton(skeleton);
+        submitButton.innerHTML = originalButtonText;
+        submitButton.disabled = false;
     }
 }
 
-function adicionarListenersSaida() {
-    const container = document.querySelector('.js-visitantes-atuais-lista');
-    if (!container) return;
+async function handleValidarQRCodeModal() {
+    const qrCodeValue = document.getElementById('visQRCodeEntrada')?.value;
+    if (!qrCodeValue || !modalRegistrarVisitante) return;
 
-    container.addEventListener('click', async event => {
-        if (event.target.classList.contains('btn-registrar-saida')) {
-            const id = event.target.dataset.id;
-            if (confirm('Deseja realmente registrar a saída do visitante?')) {
+    const submitButton = formRegistrarVisitante.querySelector('button[type="submit"]');
+    const validateButton = document.getElementById('btnValidarQRCode');
+    const originalValidateButtonText = validateButton.innerHTML;
+
+    submitButton.disabled = true;
+    validateButton.disabled = true;
+    validateButton.innerHTML = 'Validando... <span class="inline-spinner"></span>';
+    clearModalError(modalRegistrarVisitante);
+
+    try {
+        const response = await apiClient.post('/api/v1/visitantes/validar-qr-code', { qrCodeValue });
+        showGlobalFeedback(`Entrada por QR Code validada para: ${response.nome}.`, 'success', 3000);
+        formRegistrarVisitante.reset();
+        closeRegistrarVisitanteModal();
+        if (activePortariaTab === 'visitantes') {
+            loadInitialPortariaItems();
+        }
+    } catch (err) {
+        console.error('Erro ao validar QR Code:', err);
+        const errorMessage = err.detalhesValidacao || err.message || 'QR Code inválido, expirado ou já utilizado.';
+        showModalError(modalRegistrarVisitante, errorMessage);
+    } finally {
+        submitButton.disabled = false;
+        validateButton.innerHTML = originalValidateButtonText;
+        validateButton.disabled = false;
+    }
+}
+
+
+async function handleRegistrarEncomendaSubmit(event) {
+    event.preventDefault();
+    if (!formNovaEncomendaModal) return;
+
+    const submitButton = formNovaEncomendaModal.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = 'Registrando... <span class="inline-spinner"></span>';
+    clearModalError(modalRegistrarEncomenda);
+
+    const formData = new FormData(formNovaEncomendaModal);
+    const data = {
+        unidadeId: formData.get('unidadeId'),
+        descricao: formData.get('descricao'),
+        codigoRastreio: formData.get('codigoRastreio') || null,
+        remetente: formData.get('remetente') || null,
+    };
+
+    try {
+        await apiClient.post('/syndic/encomendas', data);
+        showGlobalFeedback('Encomenda registrada com sucesso!', 'success', 2500);
+        formNovaEncomendaModal.reset();
+        closeRegistrarEncomendaModal();
+        if (activePortariaTab === 'encomendas') {
+            loadInitialPortariaItems();
+        }
+    } catch (err) {
+        console.error('Erro ao registrar encomenda:', err);
+        const errorMessage = err.detalhesValidacao || err.message || 'Falha ao registrar encomenda. Verifique os dados e tente novamente.';
+        showModalError(modalRegistrarEncomenda, errorMessage);
+    } finally {
+        submitButton.innerHTML = originalButtonText;
+        submitButton.disabled = false;
+    }
+}
+
+
+// --- Funções de Carregamento e Renderização do Feed (Unificado) ---
+async function loadInitialPortariaItems() {
+    currentPortariaPage = 1;
+    noMorePortariaItems = false;
+    isLoadingPortariaItems = false;
+
+    const currentTabContent = document.getElementById(activePortariaTab === 'visitantes' ? 'content-visitantes' : 'content-encomendas');
+    const feedContainer = currentTabContent?.querySelector(
+        activePortariaTab === 'visitantes' ? portariaFeedContainerSelector : portariaEncomendasFeedContainerSelector
+    );
+    if (!feedContainer || !currentTabContent) return;
+
+    feedContainer.querySelectorAll(`.cv-card:not(.prio-0):not(.feed-skeleton-item)`).forEach(el => el.remove());
+    fetchedPortariaItems = [];
+
+    const oldError = currentTabContent.querySelector('.cv-error-state');
+    if (oldError) oldError.style.display = 'none';
+    const oldEmpty = currentTabContent.querySelector('.cv-empty-state');
+    if (oldEmpty) oldEmpty.style.display = 'none';
+
+    let sentinel = document.getElementById(portariaScrollSentinelId);
+    if (!sentinel) {
+        sentinel = document.createElement("div");
+        sentinel.id = portariaScrollSentinelId;
+        sentinel.style.height = "10px";
+        feedContainer.appendChild(sentinel);
+    }
+    sentinel.style.display = "block";
+
+    showSkeleton(currentTabContent);
+    await fetchAndDisplayPortariaItems(currentPortariaPage, false);
+}
+
+function setupPortariaFeedObserver() {
+    const sentinel = document.getElementById(portariaScrollSentinelId);
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(async (entries) => {
+        if (entries[0].isIntersecting && !isLoadingPortariaItems && !noMorePortariaItems) {
+            currentPortariaPage++;
+            await fetchAndDisplayPortariaItems(currentPortariaPage, true);
+        }
+    }, { root: null, threshold: 0.1 });
+    observer.observe(sentinel);
+}
+
+
+async function fetchAndDisplayPortariaItems(page, append = false) {
+    if (isLoadingPortariaItems) return;
+    isLoadingPortariaItems = true;
+
+    const currentTabContentEl = document.getElementById(
+        activePortariaTab === 'visitantes' ? 'content-visitantes' : 'content-encomendas'
+    );
+    const feedContainer = currentTabContentEl?.querySelector(
+        activePortariaTab === 'visitantes' ? portariaFeedContainerSelector : portariaEncomendasFeedContainerSelector
+    );
+
+    if (!feedContainer || !currentTabContentEl) {
+        isLoadingPortariaItems = false;
+        if(currentTabContentEl) hideSkeleton(currentTabContentEl);
+        return;
+    }
+    const sentinelElement = document.getElementById(portariaScrollSentinelId);
+
+    if (!append) {
+        showSkeleton(currentTabContentEl);
+    } else {
+        if (sentinelElement) {
+            let spinner = sentinelElement.previousElementSibling;
+            if (!spinner || !spinner.classList.contains('loading-spinner-portaria')) {
+                spinner = document.createElement('div');
+                spinner.className = 'loading-spinner-portaria';
+                spinner.innerHTML = '<span class="inline-spinner"></span>';
+                feedContainer.insertBefore(spinner, sentinelElement);
+            }
+            spinner.style.display = 'block';
+        }
+    }
+    if (sentinelElement) sentinelElement.style.display = "block";
+
+    let endpoint = '';
+    const params = {
+        pageNumber: page,
+        pageSize: 10,
+        sortOrder: currentPortariaSortOrder || 'desc',
+    };
+
+    if (activePortariaTab === 'visitantes') {
+        params.tipo = tipoVisualizacaoVisitantes; // 'atuais' ou 'historico'
+        if (currentPortariaFilters.unidadeId) params.unidadeId = currentPortariaFilters.unidadeId;
+        if (tipoVisualizacaoVisitantes === 'historico') {
+            endpoint = '/api/v1/visitantes/historico'; // Endpoint para histórico
+            if (currentPortariaFilters.dataInicio) params.dataInicio = currentPortariaFilters.dataInicio;
+            if (currentPortariaFilters.dataFim) params.dataFim = currentPortariaFilters.dataFim;
+            if (currentPortariaFilters.nomeVisitante) params.nome = currentPortariaFilters.nomeVisitante;
+        } else {
+            endpoint = '/api/v1/visitantes/atuais'; // Endpoint para atuais
+        }
+    } else { // Encomendas
+        endpoint = '/syndic/encomendas';
+        if (currentPortariaFilters.unidadeIdEncomenda) params.unidadeId = currentPortariaFilters.unidadeIdEncomenda;
+        if (currentPortariaFilters.statusEncomenda) params.status = currentPortariaFilters.statusEncomenda;
+    }
+
+    try {
+        const response = await apiClient.get(endpoint, params);
+        const items = response.data || response || [];
+
+        hideSkeleton(currentTabContentEl);
+        const errorState = currentTabContentEl.querySelector(".cv-error-state");
+        if (errorState) errorState.style.display = "none";
+        const emptyState = currentTabContentEl.querySelector(".cv-empty-state");
+        if (emptyState) emptyState.style.display = "none";
+
+        const spinner = feedContainer.querySelector('.loading-spinner-portaria');
+        if (spinner) spinner.style.display = 'none';
+
+        if (items.length > 0) {
+            items.forEach(item => {
+                const itemTypeForComparison = activePortariaTab === 'visitantes' ?
+                                             (tipoVisualizacaoVisitantes === 'atuais' ? 'visitante_atual' : 'visitante_historico')
+                                             : 'encomenda';
+                if (fetchedPortariaItems.some(fi => fi.id === item.id && fi.type === itemTypeForComparison)) {
+                    return;
+                }
+                item.type = itemTypeForComparison;
+                fetchedPortariaItems.push(item);
+
+                const itemElement = renderPortariaItem(item);
+                if (sentinelElement) {
+                    feedContainer.insertBefore(itemElement, sentinelElement);
+                } else {
+                    feedContainer.appendChild(itemElement);
+                }
+            });
+        } else {
+            if (page === 1 && !append) {
+                if (fetchedPortariaItems.length === 0) {
+                    if (emptyState) {
+                        const emptyMsg = emptyState.querySelector('.cv-empty-state__message');
+                        if (emptyMsg) {
+                            const hasActiveFilters = Object.values(currentPortariaFilters).some(f => f && f !== '');
+                            emptyMsg.textContent = hasActiveFilters ? "Nenhum item encontrado para os filtros atuais." : `Nenhum ${activePortariaTab === 'visitantes' ? (tipoVisualizacaoVisitantes === 'atuais' ? 'visitante atual' : 'registro no histórico') : 'item'} encontrado.`;
+                        }
+                        emptyState.style.display = "flex";
+                    }
+                }
+            }
+            noMorePortariaItems = true;
+            if (sentinelElement) sentinelElement.style.display = "none";
+        }
+    } catch (error) {
+        console.error(`Erro ao buscar ${activePortariaTab}:`, error);
+        hideSkeleton(currentTabContentEl);
+        const spinner = feedContainer.querySelector('.loading-spinner-portaria');
+        if (spinner) spinner.style.display = 'none';
+        const errorState = createErrorStateElement({
+            title: "Falha ao Carregar",
+            message: error.message || `Não foi possível carregar ${activePortariaTab}. Verifique sua conexão ou tente novamente.`,
+            retryButton: {
+                text: "Tentar Novamente",
+                onClick: () => {
+                    const current = currentTabContentEl.querySelector(".cv-error-state");
+                    if (current) current.remove();
+                    loadInitialPortariaItems();
+                }
+            }
+        });
+        const targetArea = currentTabContentEl.querySelector(".js-portaria-feed, .js-portaria-feed-encomendas") || currentTabContentEl;
+        targetArea.appendChild(errorState);
+
+
+        if (sentinelElement) sentinelElement.style.display = "none";
+    } finally {
+        isLoadingPortariaItems = false;
+         const spinner = feedContainer.querySelector('.loading-spinner-portaria');
+        if (spinner) spinner.style.display = 'none';
+    }
+}
+
+
+function renderPortariaItem(item) {
+    const card = document.createElement('div');
+    card.className = 'cv-card portaria-item';
+    card.dataset.id = item.id;
+    card.dataset.type = item.type;
+
+    let htmlContent = '';
+
+    if (item.type === 'visitante_atual' || item.type === 'visitante_historico') {
+        const isAtual = item.type === 'visitante_atual';
+        htmlContent = `
+            <h4>${item.nome}</h4>
+            <p><strong>Unidade:</strong> ${item.unidade?.descricao || item.unidadeId || 'N/A'}</p>
+            ${item.motivoVisita ? `<p><strong>Motivo:</strong> ${item.motivoVisita}</p>` : ''}
+            <p><strong>Chegada:</strong> ${new Date(item.dataChegada).toLocaleString('pt-BR')}</p>
+            ${isAtual && item.horarioSaidaPrevisto ? `<p><strong>Saída Prevista:</strong> ${new Date(item.horarioSaidaPrevisto).toLocaleString('pt-BR')}</p>` : ''}
+            ${!isAtual && item.dataSaida ? `<p><strong>Saída:</strong> ${new Date(item.dataSaida).toLocaleString('pt-BR')}</p>` : ''}
+            ${item.status ? `<p>${getStatusBadgeHtml(item.status)}</p>` : ''}
+            ${item.observacoes ? `<p><strong>Obs:</strong> ${item.observacoes}</p>` : ''}
+            <div class="portaria-item__actions">
+                ${isAtual ? `<button class="cv-button cv-button--small btn-registrar-saida-visitante" data-id="${item.id}">Registrar Saída</button>` : ''}
+            </div>
+        `;
+    } else if (item.type === 'encomenda') {
+        // A API de encomendas pode usar 'status' ou 'retiradoEm' para determinar se está pendente.
+        // Adotar uma lógica consistente com a API. Exemplo:
+        const statusEncomenda = item.status || (item.retiradoEm ? 'Entregue' : 'Recebida');
+        const isPendente = statusEncomenda.toLowerCase() === 'recebida' || statusEncomenda.toLowerCase() === 'aguardando retirada';
+        htmlContent = `
+            <h4>Encomenda: ${item.descricao || `ID ${item.id.substring(0,8)}...`}</h4>
+            <p><strong>Unidade:</strong> ${item.unidade?.descricao || item.unidadeId || 'N/A'}</p>
+            ${item.codigoRastreio ? `<p><strong>Rastreio:</strong> ${item.codigoRastreio}</p>` : ''}
+            ${item.remetente ? `<p><strong>Remetente:</strong> ${item.remetente}</p>` : ''}
+            <p><strong>Recebida em:</strong> ${new Date(item.dataRecebimento || item.criadoEm).toLocaleString('pt-BR')}</p>
+            ${item.dataRetirada ? `<p><strong>Retirada em:</strong> ${new Date(item.dataRetirada).toLocaleString('pt-BR')}</p>` : ''}
+            <p>${getStatusBadgeHtml(statusEncomenda)}</p>
+            <div class="portaria-item__actions">
+                ${isPendente ? `<button class="cv-button cv-button--small btn-confirmar-retirada-encomenda" data-id="${item.id}">Confirmar Retirada</button>` : ''}
+            </div>
+        `;
+    }
+    card.innerHTML = htmlContent;
+    return card;
+}
+
+function setupPortariaItemActionListeners() {
+    const feedVisitantes = document.querySelector(portariaFeedContainerSelector);
+    const feedEncomendas = document.querySelector(portariaEncomendasFeedContainerSelector);
+
+    const handleActionClick = async (event) => {
+        const target = event.target;
+        const id = target.dataset.id;
+
+        if (target.classList.contains('btn-registrar-saida-visitante')) {
+            if (id && confirm('Deseja realmente registrar a saída do visitante?')) {
                 try {
+                    target.disabled = true;
+                    target.innerHTML = '<span class="inline-spinner"></span> Registrando...';
                     await apiClient.post(`/api/v1/visitantes/${id}/registrar-saida`, {});
-                    carregarVisitantesAtuais();
+                    showGlobalFeedback('Saída do visitante registrada.', 'success');
+                    loadInitialPortariaItems();
                 } catch (err) {
-                    console.error('Erro ao registrar saída:', err);
-                    const msg = err.response?.data?.message || err.message || '';
-                    showGlobalFeedback('Erro ao registrar saída: ' + msg, 'error');
+                    console.error('Erro ao registrar saída do visitante:', err);
+                    showGlobalFeedback('Erro ao registrar saída: ' + (err.message || ''), 'error');
+                    target.disabled = false;
+                    target.innerHTML = 'Registrar Saída';
+                }
+            }
+        } else if (target.classList.contains('btn-confirmar-retirada-encomenda')) {
+            if (id && confirm('Confirmar retirada da encomenda?')) {
+                try {
+                    target.disabled = true;
+                    target.innerHTML = '<span class="inline-spinner"></span> Confirmando...';
+                    await apiClient.post(`/syndic/encomendas/${id}/retirar`, {});
+                    showGlobalFeedback('Retirada da encomenda confirmada.', 'success');
+                    loadInitialPortariaItems();
+                } catch (err) {
+                    console.error('Erro ao confirmar retirada da encomenda:', err);
+                    showGlobalFeedback('Erro ao confirmar retirada: ' + (err.message || ''), 'error');
+                    target.disabled = false;
+                    target.innerHTML = 'Confirmar Retirada';
                 }
             }
         }
-    });
-}
-
-// --- Registrar Novo Visitante ---
-const formRegistrarVisitante = document.getElementById('formRegistrarVisitante');
-const registrarVisitanteMsg = document.getElementById('registrarVisitanteMsg');
-const btnValidarQRCode = document.getElementById('btnValidarQRCode');
-
-if (formRegistrarVisitante && registrarVisitanteMsg) {
-    formRegistrarVisitante.addEventListener('submit', async event => {
-        event.preventDefault();
-        const data = Object.fromEntries(new FormData(formRegistrarVisitante).entries());
-        data.documento = data.documento || null;
-        data.motivoVisita = data.motivoVisita || null;
-        data.horarioSaidaPrevisto = data.horarioSaidaPrevisto
-            ? new Date(data.horarioSaidaPrevisto).toISOString()
-            : null;
-        data.observacoes = data.observacoes || null;
-        delete data.qrCodeEntrada;
-
-        registrarVisitanteMsg.style.display = 'block';
-        registrarVisitanteMsg.className = 'feedback-message info';
-        registrarVisitanteMsg.textContent = 'Registrando entrada...';
-
-        try {
-            const resp = await apiClient.post('/api/v1/visitantes/registrar-entrada', data);
-            registrarVisitanteMsg.className = 'feedback-message success';
-            registrarVisitanteMsg.textContent = 'Entrada registrada! ID: ' + resp.id;
-            formRegistrarVisitante.reset();
-            if (document.getElementById('visitantes-atuais').classList.contains('active')) {
-                carregarVisitantesAtuais();
-            }
-        } catch (err) {
-            console.error('Erro ao registrar entrada:', err);
-            const msg = err.response?.data?.message || err.message || '';
-            registrarVisitanteMsg.className = 'feedback-message error';
-            registrarVisitanteMsg.textContent = 'Falha ao registrar entrada: ' + msg;
-            showGlobalFeedback('Falha ao registrar entrada: ' + msg, 'error');
-        }
-    });
-}
-
-if (btnValidarQRCode && registrarVisitanteMsg && formRegistrarVisitante) {
-    btnValidarQRCode.addEventListener('click', async () => {
-        const qr = document.getElementById('visQRCodeEntrada').value;
-        if (!qr) return;
-
-        registrarVisitanteMsg.style.display = 'block';
-        registrarVisitanteMsg.className = 'feedback-message info';
-        registrarVisitanteMsg.textContent = 'Validando QR Code...';
-
-        try {
-            const resp = await apiClient.post('/api/v1/visitantes/validar-qr-code', { qrCodeValue: qr });
-            registrarVisitanteMsg.className = 'feedback-message success';
-            registrarVisitanteMsg.textContent = `QR validado para: ${resp.nome}.`;
-            formRegistrarVisitante.reset();
-            openSubTab('visitantes-atuais');
-        } catch (err) {
-            console.error('Erro ao validar QR Code:', err);
-            const msg = err.response?.data?.message || err.message || '';
-            registrarVisitanteMsg.className = 'feedback-message error';
-            registrarVisitanteMsg.textContent = 'Falha ao validar QR Code: ' + msg;
-            showGlobalFeedback('Falha ao validar QR Code: ' + msg, 'error');
-        }
-    });
-}
-
-// --- Histórico de Visitantes ---
-const historicoContainer = document.querySelector('.js-historico-visitantes-lista');
-const historicoLoadingMsg = document.getElementById('historicoLoadingMsg');
-const historicoNoDataMsg = document.getElementById('historicoNoDataMsg');
-
-async function carregarHistoricoVisitantes(filters = {}) {
-    if (!historicoContainer || !historicoLoadingMsg || !historicoNoDataMsg) {
-        console.error('UI histórico de visitantes incompleta.');
-        return;
-    }
-    const skeleton = document.getElementById('historico-skeleton');
-
-    historicoContainer.innerHTML = '';
-    historicoLoadingMsg.style.display = 'block';
-    historicoNoDataMsg.style.display = 'none';
-    if (skeleton) showFeedSkeleton(skeleton);
-
-    try {
-        const params = new URLSearchParams();
-        Object.entries(filters).forEach(([k, v]) => v && params.append(k, v));
-        const visitas = await apiClient.get(`/api/v1/visitantes/historico?${params.toString()}`);
-
-        historicoLoadingMsg.style.display = 'none';
-        if (visitas && visitas.length) {
-            visitas.forEach(v => {
-                const card = document.createElement('div');
-                card.className = 'visitante-card cv-card';
-                card.dataset.id = v.id;
-                card.innerHTML = `
-                    <h4>${v.nome}</h4>
-                    <p>${v.unidadeId ? v.unidadeId.slice(0,8) + '...' : 'N/A'} - ${v.motivoVisita || ''}</p>
-                    <p>${v.documento || ''}</p>
-                    <p>Chegada: ${new Date(v.dataChegada).toLocaleString()}</p>
-                    <p>Saída: ${v.dataSaida ? new Date(v.dataSaida).toLocaleString() : 'Presente'}</p>
-                    ${getStatusBadgeHtml(v.status)}
-                    <p>${v.observacoes || ''}</p>
-                `;
-                historicoContainer.appendChild(card);
-            });
-        } else {
-            historicoNoDataMsg.style.display = 'block';
-        }
-    } catch (err) {
-        console.error('Erro ao listar histórico de visitantes:', err);
-        historicoLoadingMsg.style.display = 'none';
-        historicoContainer.innerHTML = '<div class="error-message">Falha ao carregar histórico.</div>';
-        showGlobalFeedback('Erro ao carregar histórico: ' + (err.message || ''), 'error');
-    } finally {
-        if (skeleton) hideFeedSkeleton(skeleton);
-    }
-}
-
-document.getElementById('btnFiltrarHistorico')?.addEventListener('click', () => {
-    const filters = {
-        unidadeId: document.getElementById('filterHistUnidadeId').value,
-        inicio: document.getElementById('filterHistDataInicio').value,
-        fim: document.getElementById('filterHistDataFim').value,
-        nomeVisitante: document.getElementById('filterHistNome').value
     };
-    Object.keys(filters).forEach(k => !filters[k] && delete filters[k]);
-    carregarHistoricoVisitantes(filters);
-});
+    // Inicializar Modais
+    modalRegistrarVisitante = document.getElementById("modal-registrar-visitante");
+    formRegistrarVisitante = document.getElementById("formRegistrarVisitante");
+    btnValidarQRCodeModal = document.getElementById("btnValidarQRCode");
 
-document.getElementById('btnLimparFiltroHistorico')?.addEventListener('click', () => {
-    ['filterHistUnidadeId','filterHistDataInicio','filterHistDataFim','filterHistNome']
-        .forEach(id => document.getElementById(id).value = '');
-    carregarHistoricoVisitantes();
-});
+    modalRegistrarEncomenda = document.getElementById("modal-registrar-encomenda");
+    formNovaEncomendaModal = document.getElementById("formNovaEncomenda");
 
-// --- Inicialização ---
-export async function initialize() {
-    requireAuth();
+    modalFiltrosPortaria = document.getElementById("modal-filtros-portaria");
+    modalSortPortaria = document.getElementById("modal-sort-portaria");
+    openFilterModalButton = document.getElementById("open-filter-modal-button");
+    openSortButton = document.getElementById("open-sort-button");
+
+
     setupTabs();
-    await carregarVisitantesAtuais();
-    adicionarListenersSaida();
-    await carregarEncomendas();
-    setupEncomendas();
+    setupModalEventListeners(); // Inclui setup para filtros e sort
+    setupPortariaFeedObserver();
+    setupPortariaItemActionListeners();
+
 
     const roles = getRoles();
-    const isSindico = roles.includes('Sindico') || roles.includes('Administrador');
-    const actions = [{ label: 'Registrar Visitante', onClick: () => openSubTab('registrar-visitante') }];
-    if (isSindico) actions.push({ label: 'Registrar Encomenda', onClick: () => openSubTab('gestao-encomendas') });
+    const isPorteiroOuSindico = roles.includes('Porteiro') || roles.includes('Sindico') || roles.includes('Administrador');
+    const actions = [];
+    if (isPorteiroOuSindico) {
+        actions.push({ label: 'Registrar Visitante', onClick: openRegistrarVisitanteModal });
+        actions.push({ label: 'Registrar Encomenda', onClick: openRegistrarEncomendaModal });
+    }
     initFabMenu(actions);
 }
 
-if (document.readyState !== 'loading') initialize();
-else document.addEventListener('DOMContentLoaded', initialize);
-
-// --- Encomendas ---
-async function carregarEncomendas() {
-    const container = document.querySelector('.js-encomendas');
-    const loadingMsg = document.getElementById('encomendasLoadingMsg');
-    const noDataMsg = document.getElementById('encomendasNoDataMsg');
-    const skeleton = document.getElementById('encomendas-skeleton');
-
-    if (!container || !loadingMsg || !noDataMsg) {
-        console.error('UI de encomendas incompleta.');
-        return;
-    }
-
-    container.innerHTML = '';
-    loadingMsg.style.display = 'block';
-    noDataMsg.style.display = 'none';
-    if (skeleton) showFeedSkeleton(skeleton);
-
-    try {
-        const encomendas = await apiClient.get('/syndic/encomendas?status=recebida');
-        loadingMsg.style.display = 'none';
-
-        if (encomendas && encomendas.length) {
-            encomendas.forEach(e => {
-                const card = document.createElement('div');
-                card.className = 'encomenda-card cv-card';
-                card.dataset.id = e.id;
-                const status = e.status || (e.retiradoEm ? 'Retirada' : 'Aguardando');
-                const btn = e.retiradoEm
-                    ? ''
-                    : `<button class="cv-button cv-button--small btn-retirar" data-id="${e.id}">Confirmar Retirada</button>`;
-
-                card.innerHTML = `
-                    <h4>${e.descricao || ''}</h4>
-                    <p>Unidade: ${e.unidadeId.slice(0,8)}...</p>
-                    ${getStatusBadgeHtml(status)}
-                    <div class="encomenda-card__acoes">${btn}</div>
-                `;
-                container.appendChild(card);
-            });
-        } else {
-            noDataMsg.style.display = 'block';
-        }
-    } catch (err) {
-        console.error('Erro ao listar encomendas:', err);
-        container.innerHTML = '<div class="error-message">Falha ao carregar encomendas.</div>';
-    } finally {
-        if (skeleton) hideFeedSkeleton(skeleton);
-    }
-}
-
-function setupEncomendas() {
-    const form = document.getElementById('formNovaEncomenda');
-    const msg = document.getElementById('novaEncomendaMsg');
-    const container = document.querySelector('.js-encomendas');
-
-    form?.addEventListener('submit', async e => {
-        e.preventDefault();
-        const data = {
-            unidadeId: form.unidadeId.value,
-            descricao: form.descricao.value
-        };
-        msg.style.display = 'block';
-        msg.className = 'feedback-message info';
-        msg.textContent = 'Registrando...';
-
-        try {
-            await apiClient.post('/syndic/encomendas', data);
-            msg.className = 'feedback-message success';
-            msg.textContent = 'Encomenda registrada!';
-            form.reset();
-            await carregarEncomendas();
-        } catch (err) {
-            console.error('Erro ao registrar encomenda:', err);
-            msg.className = 'feedback-message error';
-            msg.textContent = 'Erro ao registrar.';
-            showGlobalFeedback('Erro ao registrar encomenda.', 'error');
-        }
-    });
-
-    container?.addEventListener('click', async ev => {
-        if (ev.target.classList.contains('btn-retirar')) {
-            const id = ev.target.dataset.id;
-            if (confirm('Confirmar retirada da encomenda?')) {
-                try {
-                    await apiClient.post(`/syndic/encomendas/${id}/retirar`, {});
-                    await carregarEncomendas();
-                } catch (err) {
-                    console.error('Erro ao registrar retirada:', err);
-                    showGlobalFeedback('Erro ao registrar retirada', 'error');
-                }
-            }
-        }
-    });
+if (document.readyState !== 'loading') {
+    initialize();
+} else {
+    document.addEventListener('DOMContentLoaded', initialize);
 }
