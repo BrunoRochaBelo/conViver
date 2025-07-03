@@ -1,0 +1,749 @@
+/* Estilos personalizados para o FullCalendar - conViver */
+
+/* Estilos base para o calendário para uma aparência mais nativa/Apple */
+.fc {
+    font-family: var(--current-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol");
+    background-color: var(--current-bg-secondary, #f9f9f9); /* Fundo ligeiramente off-white para o card do calendário */
+    border-radius: 12px; /* Cantos arredondados como em apps Apple */
+    padding: var(--cv-spacing-sm, 8px); /* Padding interno reduzido para o calendário */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.07); /* Sombra mais suave */
+    border: 1px solid var(--current-border-subtle, #e5e5e5);
+    color: var(--current-text-primary, #2c2c2c);
+    /* height: 100%; REVERTIDO */
+    /* display: flex; REVERTIDO */
+    /* flex-direction: column; REVERTIDO */
+}
+
+/* Fazer com que o container da visualização do calendário (onde o grid/tabela fica) cresça */
+/* .fc .fc-view-harness { REVERTIDO
+    flex-grow: 1;
+    height: 0;
+    min-height: 0;
+} */
+
+
+/* Garantir que o card que contém o calendário possa se esticar se o #calendario-view-container for flex */
+/* #calendario-view-container { REVERTIDO - Deixar o layout da página principal controlar isso
+    display: flex;
+    flex-direction: column;
+} */
+
+#calendario-view-container > .reservas-section.cv-card {
+    padding: 0; /* Remove o padding padrão de .cv-card - MANTIDO */
+    /* flex-grow: 1; REVERTIDO */
+    /* display: flex; REVERTIDO */
+    /* flex-direction: column; REVERTIDO */
+}
+
+
+/* Remover a borda padrão do FullCalendar se o nosso container já tem uma */
+.fc .fc-view-harness,
+.fc table { /* Afeta tabelas internas, como a do grid de dias */
+    border: none;
+}
+
+/* Ajustes gerais de cor de texto e bordas dentro do calendário */
+.fc th, /* Cabeçalho dos dias da semana */
+.fc td,
+.fc hr,
+.fc thead,
+.fc tbody,
+.fc .fc-scrollgrid, /* Principal container do grid */
+.fc .fc-list,
+.fc .fc-list-empty {
+    border-color: var(--current-border-ultra-subtle, #f0f0f0); /* Borda interna MUITO sutil */
+}
+
+
+/* Links dentro do calendário (como nomes de eventos em list view) */
+.fc a {
+    color: var(--current-primary-accent, #007aff);
+}
+.fc a:hover {
+    color: var(--current-primary-accent-hover, #0056b3);
+    text-decoration: none; /* Remover sublinhado no hover para um look mais de app */
+}
+
+/* Cabeçalho (Toolbar) */
+.fc .fc-toolbar.fc-header-toolbar {
+    margin-bottom: 1.5em;
+    padding: 0.5em 0;
+    border-bottom: 1px solid var(--current-border-subtle, #e5e5e5);
+    display: flex;
+    flex-wrap: wrap; /* Para melhor responsividade */
+    gap: 10px; /* Espaçamento entre os grupos de botões */
+}
+
+.fc .fc-toolbar-title {
+    font-size: clamp(1.4rem, 2.2vw, 1.75rem); /* Tamanho de fonte responsivo */
+    color: var(--current-text-primary, #2c2c2c);
+    font-weight: 600;
+}
+
+/* Botões da Toolbar */
+.fc .fc-button {
+    background-color: var(--current-bg-controls, #efeff0);
+    color: var(--current-text-primary, #2c2c2c);
+    border: 1px solid var(--current-border-controls, #d1d1d6);
+    border-radius: 8px; /* Cantos mais arredondados */
+    padding: 0.5em 0.8em;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    box-shadow: none; /* Remover sombra padrão do FC se houver */
+    text-transform: none; /* Remover uppercase padrão do FC */
+}
+
+.fc .fc-button:hover {
+    background-color: var(--current-bg-controls-hover, #e5e5e7);
+    border-color: var(--current-border-controls-hover, #c7c7cc);
+}
+
+.fc .fc-button:active,
+.fc .fc-button.fc-button-active { /* Botão ativo (ex: visualização atual) */
+    background-color: var(--current-primary-accent, #007aff);
+    color: #ffffff;
+    border-color: var(--current-primary-accent, #007aff);
+}
+.fc .fc-button.fc-button-active:hover {
+     background-color: var(--current-primary-accent-hover, #0056b3);
+     border-color: var(--current-primary-accent-hover, #0056b3);
+}
+
+
+/* Ícones dos botões (prev, next) */
+.fc .fc-icon {
+    font-size: 1.2em; /* Ajustar tamanho do ícone se necessário */
+    /* Se for usar SVGs personalizados no futuro, pode precisar de mais estilos aqui */
+}
+
+/* Botão "Hoje" (Today) */
+.fc .fc-today-button {
+    /* Pode ter um estilo ligeiramente diferente se desejado, mas por enquanto herda .fc-button */
+}
+
+/* Grupo de botões de visualização (Mês, Semana, Dia) */
+.fc .fc-button-group {
+    display: inline-flex; /* Para que os botões fiquem juntos */
+    box-shadow: none;
+}
+
+.fc .fc-button-group > .fc-button {
+    border-radius: 0; /* Remove arredondamento individual */
+    margin-left: -1px; /* Sobrepõe bordas para efeito de grupo */
+}
+.fc .fc-button-group > .fc-button:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+.fc .fc-button-group > .fc-button:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+.fc .fc-button-group > .fc-button:not(:first-child) {
+    margin-left: -1px; /* Garante que a borda se sobreponha */
+}
+.fc .fc-button-group > .fc-button.fc-button-active {
+    /* Estilo de botão ativo já definido acima */
+    position: relative; /* Para garantir que fique por cima de irmãos não ativos */
+    z-index: 1;
+}
+
+/* Ajustes para telas menores */
+@media (max-width: 768px) {
+    .fc {
+        padding: 10px;
+        border-radius: 10px;
+    }
+    .fc .fc-toolbar.fc-header-toolbar {
+        flex-direction: column; /* Empilha os grupos da toolbar */
+        align-items: center;
+    }
+    .fc .fc-toolbar-chunk { /* Cada parte da toolbar: left, center, right */
+        margin-bottom: 10px;
+    }
+    .fc .fc-toolbar-title {
+        font-size: 1.3rem;
+        text-align: center;
+    }
+    .fc .fc-button {
+        padding: 0.6em 1em;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .fc .fc-toolbar.fc-header-toolbar {
+        gap: 5px;
+    }
+     .fc .fc-toolbar-chunk {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+    .fc .fc-button-group {
+        width: 100%;
+    }
+    .fc .fc-button-group > .fc-button {
+        flex-grow: 1; /* Faz os botões do grupo ocuparem espaço igual */
+    }
+}
+
+/* Grid e Células do Calendário */
+
+/* Cabeçalho dos dias da semana (Dom, Seg, Ter...) */
+.fc .fc-col-header-cell { /* th */
+    background-color: transparent; /* Sem fundo extra */
+    padding: 0.75em 0.5em;
+    font-size: 0.8rem;
+    font-weight: 500; /* Um pouco menos de peso que o título */
+    color: var(--current-text-secondary, #666666);
+    text-transform: uppercase;
+    border-bottom-width: 1px; /* Linha sutil abaixo dos nomes dos dias */
+    border-color: var(--current-border-subtle, #e5e5e5);
+}
+.fc .fc-col-header-cell .fc-col-header-cell-cushion { /* Link interno */
+    color: inherit;
+    text-decoration: none;
+    padding: 2px 4px;
+}
+
+/* Células dos dias */
+.fc .fc-daygrid-day-frame { /* Container interno da célula do dia */
+    position: relative;
+    /* REMOVIDO: min-height: 100px; Deixar o FullCalendar gerenciar a altura da célula/linha */
+    display: flex; /* Usar flex para melhor distribuição do espaço interno */
+    flex-direction: column; /* Empilhar top, events, bg */
+    height: 100%; /* Fazer o frame ocupar toda a altura da célula <td> */
+    transition: background-color 0.2s ease;
+}
+.fc .fc-daygrid-day-top {
+    flex-shrink: 0; /* Não encolher a parte do número do dia */
+}
+.fc .fc-daygrid-day-events {
+    flex-grow: 1; /* Permitir que a área de eventos cresça para preencher o espaço */
+    min-height: 1em; /* Altura mínima para a área de eventos, mesmo que vazia */
+    position: relative; /* Para z-index de eventos se necessário */
+}
+
+.fc .fc-daygrid-day:hover .fc-daygrid-day-frame,
+.fc .fc-timegrid-slot:hover { /* Hover em slots de tempo também */
+    background-color: var(--current-bg-subtle-hover, #f0f3f5); /* Fundo sutil no hover */
+}
+
+
+/* Número do dia */
+.fc .fc-daygrid-day-number {
+    float: none; /* Remover float padrão */
+    text-align: center; /* Centralizar número do dia */
+    padding: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--current-text-secondary, #555);
+    width: 32px; /* Largura fixa para criar um círculo/quadrado arredondado */
+    height: 32px;
+    line-height: 16px; /* Ajustar para centralizar verticalmente */
+    border-radius: 50%; /* Círculo */
+    margin: 5px auto 0 auto; /* Centralizar o círculo */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Dia atual (Today) */
+.fc .fc-day-today .fc-daygrid-day-frame {
+    background-color: var(--current-bg-today, #e6f2ff); /* Fundo azul claro sutil para hoje */
+    border-radius: 8px; /* Arredondar o frame do dia atual sutilmente */
+}
+.fc .fc-day-today .fc-daygrid-day-number {
+    background-color: var(--current-primary-accent, #007aff);
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* Dias de outros meses (fc-day-other) */
+.fc .fc-day-other .fc-daygrid-day-number {
+    color: var(--current-text-disabled, #b0b0b0);
+    opacity: 0.7;
+}
+.fc .fc-day-other .fc-daygrid-day-frame {
+    background-color: var(--current-bg-other-month, #f7f7f7); /* Fundo ligeiramente diferente para outros meses */
+}
+
+
+/* Linhas da visualização de semana/dia (TimeGrid) */
+.fc .fc-timegrid-slot { /* Célula de horário */
+    height: 2.8em; /* Altura um pouco maior */
+    border-bottom: 1px solid var(--current-border-ultra-subtle, #f0f0f0);
+}
+.fc .fc-timegrid-slot-label { /* Rótulo da hora (ex: 10:00) */
+    padding: 0 0.75em;
+    font-size: 0.75rem;
+    color: var(--current-text-secondary, #777);
+}
+.fc .fc-timegrid-slot-lane { /* A "pista" onde os eventos ficam */
+     /* Hover já definido acima */
+}
+
+/* Linha horizontal que marca a hora atual na visualização TimeGrid */
+.fc .fc-timegrid-now-indicator-line {
+    border-color: var(--current-semantic-danger, #ff3b30); /* Vermelho Apple para a linha da hora atual */
+    border-width: 0; /* Zerar borda geral se for usar borda específica (ex: border-top) */
+    border-top-width: 2px; /* Espessura da linha */
+    border-top-style: dashed; /* Estilo pontilhado/tracejado */
+    left: 0;
+    right: 0;
+    width: 100%; /* Garantir que ocupe toda a largura */
+}
+.fc .fc-timegrid-now-indicator-arrow {
+    border-color: transparent; /* Zerar bordas da seta para não interferir com a linha */
+    border-top-color: var(--current-semantic-danger, #ff3b30); /* Cor da seta */
+    /* A seta padrão do FC é um triângulo feito com bordas.
+       Se a linha é apenas border-top, a seta pode precisar de ajustes ou ser customizada.
+       Por agora, mantemos a cor da seta. A linha tracejada é o principal. */
+}
+
+html[data-theme='dark'] .fc .fc-timegrid-now-indicator-line {
+    border-color: var(--current-dark-semantic-danger, #ff453a);
+    border-top-color: var(--current-dark-semantic-danger, #ff453a); /* Garantir que a cor do tracejado seja a correta */
+}
+html[data-theme='dark'] .fc .fc-timegrid-now-indicator-arrow {
+    border-top-color: var(--current-dark-semantic-danger, #ff453a);
+}
+
+
+/* Scrollbars, se visíveis (estilização básica, pode variar por navegador) */
+.fc .fc-scroller {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--current-border-controls, #d1d1d6) var(--current-bg-secondary, #f9f9f9); /* Firefox */
+}
+.fc .fc-scroller::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.fc .fc-scroller::-webkit-scrollbar-track {
+    background: var(--current-bg-secondary, #f9f9f9);
+}
+.fc .fc-scroller::-webkit-scrollbar-thumb {
+    background-color: var(--current-border-controls, #d1d1d6);
+    border-radius: 4px;
+    border: 2px solid var(--current-bg-secondary, #f9f9f9);
+}
+.fc .fc-scroller::-webkit-scrollbar-thumb:hover {
+    background-color: var(--current-border-controls-hover, #c7c7cc);
+}
+
+/* List view (Visualização em Lista) */
+.fc-list {
+    border-radius: 8px; /* Cantos arredondados para a lista */
+    overflow: hidden; /* Para que o border-radius funcione com os itens internos */
+}
+.fc .fc-list-day th { /* Cabeçalho do dia na lista */
+    background-color: var(--current-bg-tertiary, #f0f0f0);
+    padding: 10px 15px;
+    color: var(--current-text-primary, #2c2c2c);
+    font-weight: 600;
+}
+.fc .fc-list-event td { /* Célula do evento na lista */
+    padding: 12px 15px;
+}
+.fc .fc-list-event:hover td {
+    background-color: var(--current-bg-subtle-hover, #f0f3f5);
+}
+.fc .fc-list-event-title a {
+    font-weight: 500;
+}
+.fc .fc-list-event-time {
+    font-size: 0.9em;
+    color: var(--current-text-secondary, #555);
+}
+.fc .fc-list-empty { /* Mensagem de lista vazia */
+    padding: 20px;
+    text-align: center;
+    font-style: italic;
+    color: var(--current-text-secondary, #777);
+}
+
+/* Eventos */
+.fc-event {
+    border-radius: 6px; /* Cantos arredondados para os eventos */
+    padding: 4px 8px;   /* Preenchimento interno confortável */
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-width: 1px; /* Manter uma borda sutil */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Sombra muito leve */
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+}
+
+.fc-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+}
+
+/* Cor do texto do evento - FullCalendar geralmente lida bem com isso baseado no backgroundColor do evento.
+   Mas podemos forçar uma cor se necessário, ou garantir bom contraste. */
+.fc .fc-event-main {
+    color: var(--current-event-text-color, inherit); /* Herda ou usa uma variável se definida */
+}
+
+/* Eventos em DayGrid (visualização de mês) */
+.fc-daygrid-event {
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+/* Título do evento */
+.fc .fc-event-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Horário do evento (se exibido) */
+.fc .fc-event-time {
+    font-weight: 400;
+    opacity: 0.85;
+    margin-right: 5px;
+}
+
+
+/* Eventos em TimeGrid (visualização de semana/dia) */
+.fc-timegrid-event .fc-event-main {
+    padding: 5px; /* Ajuste de padding específico para timegrid se necessário */
+}
+
+
+/* Indicador de continuação de evento (quando um evento se estende por vários dias/slots) */
+.fc .fc-event-start-resizer, /* Resizer de início (se editável) */
+.fc .fc-event-end-resizer {  /* Resizer de fim (se editável) */
+    background-color: rgba(255,255,255,0.3); /* Torna os resizers um pouco visíveis */
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.1);
+    bottom: 2px; /* Ajuste de posição */
+}
+.fc .fc-event-start-resizer {
+    left: 2px;
+}
+.fc .fc-event-end-resizer {
+    right: 2px;
+}
+
+
+/* Cores de Eventos Padrão (se não vierem da API ou para ter fallbacks)
+   O FullCalendar usa variáveis CSS para isso também: --fc-event-bg-color, --fc-event-border-color, --fc-event-text-color
+   Podemos sobrescrever essas variáveis globais para o .fc ou definir para tipos específicos de eventos se tivermos classes.
+   Por agora, vamos assumir que as cores dos eventos vêm da API ou as padrões do FC são aceitáveis e serão
+   apenas "decoradas" pelos estilos acima (border-radius, padding, shadow).
+
+   Se quisermos forçar uma cor padrão mais suave:
+*/
+.fc {
+    --fc-event-bg-color: var(--current-primary-accent-light, #d6eaff); /* Um azul claro para eventos padrão */
+    --fc-event-border-color: var(--current-primary-accent, #007aff);
+    --fc-event-text-color: var(--current-primary-accent-dark, #004080); /* Texto mais escuro para contraste com fundo claro */
+}
+
+/* Exemplo de como estilizar eventos com status específicos (requer que o JS adicione classes) */
+.fc-event.fc-event-confirmed {
+    /* --fc-event-bg-color: var(--current-semantic-success-light, #e6fffa);
+    --fc-event-border-color: var(--current-semantic-success, #34c759);
+    --fc-event-text-color: var(--current-semantic-success-dark, #006628); */
+}
+.fc-event.fc-event-pending {
+     /* --fc-event-bg-color: var(--current-semantic-warning-light, #fff8e1);
+    --fc-event-border-color: var(--current-semantic-warning, #ffcc00);
+    --fc-event-text-color: var(--current-semantic-warning-dark, #7a5f00); */
+}
+.fc-event.fc-event-past { /* Eventos passados podem ter uma opacidade menor */
+    opacity: 0.75;
+}
+.fc-event.fc-event-past:hover {
+    opacity: 1; /* Opacidade total no hover */
+}
+
+/* Ajustes para telas menores - Continuação */
+@media (max-width: 768px) {
+    /* ... (estilos da toolbar para 768px já existem acima) ... */
+
+    .fc .fc-col-header-cell { /* Cabeçalho dos dias da semana */
+        font-size: 0.7rem; /* Reduzir um pouco */
+        padding: 0.6em 0.3em;
+    }
+
+    .fc .fc-daygrid-day-frame { /* Células dos dias */
+        /* REMOVIDO: min-height: 80px; */
+    }
+
+    .fc .fc-daygrid-day-number {
+        font-size: 0.75rem;
+        width: 28px;
+        height: 28px;
+        line-height: 12px; /* Ajustar para novo tamanho */
+        padding: 7px; /* Ajustar padding para manter o número centralizado */
+    }
+
+    .fc-event {
+        font-size: 0.75rem; /* Reduzir fonte dos eventos */
+        padding: 3px 6px;
+    }
+
+    .fc .fc-list-event td { /* Célula do evento na lista */
+        padding: 10px 12px;
+    }
+    .fc .fc-list-day th {
+        padding: 8px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* ... (estilos da toolbar para 480px já existem acima) ... */
+
+    .fc {
+        padding: 8px; /* Menos padding no container principal */
+        border-radius: 8px; /* Menor border-radius */
+    }
+
+    .fc .fc-col-header-cell {
+        font-size: 0.65rem;
+        padding: 0.5em 0.2em;
+    }
+     .fc .fc-col-header-cell .fc-col-header-cell-cushion {
+        padding: 1px 2px;
+    }
+
+    .fc .fc-daygrid-day-frame {
+        /* REMOVIDO: min-height: 70px; */
+    }
+
+    .fc .fc-daygrid-day-number {
+        font-size: 0.7rem;
+        width: 24px;
+        height: 24px;
+        line-height: 10px;
+        padding: 6px;
+        margin-top: 3px;
+    }
+
+    .fc-event {
+        font-size: 0.7rem;
+        padding: 2px 4px;
+        border-radius: 4px;
+    }
+
+    .fc .fc-list-event-title a {
+        font-size: 0.85rem; /* Ajustar se o título da lista estiver muito pequeno */
+    }
+    .fc .fc-list-event-time {
+        font-size: 0.8rem;
+    }
+}
+
+/* Considerações de Usabilidade Adicionais */
+
+/* Foco visível para navegação por teclado (importante para acessibilidade) */
+.fc .fc-button:focus,
+.fc .fc-daygrid-day-number:focus, /* Se for clicável/focável */
+.fc .fc-event:focus {
+    outline: 2px solid var(--current-focus-ring-color, #007bff); /* Usar variável de sistema ou um azul */
+    outline-offset: 1px;
+    box-shadow: 0 0 0 3px var(--current-focus-ring-shadow, rgba(0,123,255,0.25)); /* Sombra de foco sutil */
+}
+/* Remover outline padrão se já estivermos lidando com o foco */
+.fc .fc-button:focus:not(:focus-visible) { /* Para navegadores que suportam :focus-visible */
+    outline: none;
+    box-shadow: none;
+}
+/* Para o caso de :focus-visible ser o preferido */
+.fc .fc-button:focus-visible,
+.fc .fc-daygrid-day-number:focus-visible,
+.fc .fc-event:focus-visible {
+    outline: 2px solid var(--current-focus-ring-color, #007bff);
+    outline-offset: 1px;
+    box-shadow: 0 0 0 3px var(--current-focus-ring-shadow, rgba(0,123,255,0.25));
+}
+
+
+/* Garantir que os cursores indiquem clicabilidade */
+.fc .fc-daygrid-day-frame, /* Frame do dia pode ser clicável para adicionar evento */
+.fc .fc-timegrid-slot-lane { /* Slots de horário também */
+    cursor: pointer;
+}
+.fc .fc-daygrid-day-frame:hover,
+.fc .fc-timegrid-slot-lane:hover {
+    background-color: var(--current-bg-subtle-hover, #f0f3f5); /* Reafirmar o hover */
+}
+
+/* ==========================================================================
+   Tema Escuro para FullCalendar
+   ========================================================================== */
+
+html[data-theme='dark'] .fc {
+    background-color: var(--current-dark-bg-secondary, #2c2c2e); /* Fundo escuro para o card do calendário */
+    border-color: var(--current-dark-border-subtle, #3a3a3c);
+    color: var(--current-dark-text-primary, #ffffff);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* Sombra um pouco mais pronunciada no escuro */
+}
+
+html[data-theme='dark'] .fc th, /* Cabeçalho dos dias da semana */
+html[data-theme='dark'] .fc td,
+html[data-theme='dark'] .fc hr,
+html[data-theme='dark'] .fc thead,
+html[data-theme='dark'] .fc tbody,
+html[data-theme='dark'] .fc .fc-scrollgrid,
+html[data-theme='dark'] .fc .fc-list,
+html[data-theme='dark'] .fc .fc-list-empty {
+    border-color: var(--current-dark-border-ultra-subtle, #444446); /* Borda interna MUITO sutil no escuro */
+}
+
+html[data-theme='dark'] .fc a {
+    color: var(--current-dark-primary-accent, #0a84ff); /* Azul Apple mais brilhante para tema escuro */
+}
+html[data-theme='dark'] .fc a:hover {
+    color: var(--current-dark-primary-accent-hover, #389dff);
+}
+
+/* Cabeçalho (Toolbar) - Tema Escuro */
+html[data-theme='dark'] .fc .fc-toolbar.fc-header-toolbar {
+    border-bottom-color: var(--current-dark-border-subtle, #3a3a3c);
+}
+
+html[data-theme='dark'] .fc .fc-toolbar-title {
+    color: var(--current-dark-text-primary, #ffffff);
+}
+
+html[data-theme='dark'] .fc .fc-button {
+    background-color: var(--current-dark-bg-controls, #3a3a3c);
+    color: var(--current-dark-text-primary, #ffffff);
+    border-color: var(--current-dark-border-controls, #545458);
+}
+
+html[data-theme='dark'] .fc .fc-button:hover {
+    background-color: var(--current-dark-bg-controls-hover, #545458);
+    border-color: var(--current-dark-border-controls-hover, #636366);
+}
+
+html[data-theme='dark'] .fc .fc-button:active,
+html[data-theme='dark'] .fc .fc-button.fc-button-active {
+    background-color: var(--current-dark-primary-accent, #0a84ff);
+    color: #ffffff; /* Texto branco no botão ativo azul */
+    border-color: var(--current-dark-primary-accent, #0a84ff);
+}
+html[data-theme='dark'] .fc .fc-button.fc-button-active:hover {
+     background-color: var(--current-dark-primary-accent-hover, #389dff);
+     border-color: var(--current-dark-primary-accent-hover, #389dff);
+}
+
+/* Grid e Células - Tema Escuro */
+html[data-theme='dark'] .fc .fc-col-header-cell { /* Cabeçalho dos dias da semana (Dom, Seg...) */
+    color: var(--current-dark-text-secondary, #8e8e93);
+    border-color: var(--current-dark-border-subtle, #3a3a3c);
+}
+
+html[data-theme='dark'] .fc .fc-daygrid-day:hover .fc-daygrid-day-frame,
+html[data-theme='dark'] .fc .fc-timegrid-slot:hover {
+    background-color: var(--current-dark-bg-subtle-hover, #3a3a3c);
+}
+
+html[data-theme='dark'] .fc .fc-daygrid-day-number {
+    color: var(--current-dark-text-secondary, #aeaeb2);
+}
+
+html[data-theme='dark'] .fc .fc-day-today .fc-daygrid-day-frame {
+    background-color: var(--current-dark-bg-today, #1c3d5f); /* Fundo azul escuro sutil para hoje */
+}
+html[data-theme='dark'] .fc .fc-day-today .fc-daygrid-day-number {
+    background-color: var(--current-dark-primary-accent, #0a84ff);
+    color: #ffffff; /* Texto branco no número do dia atual */
+}
+
+html[data-theme='dark'] .fc .fc-day-other .fc-daygrid-day-number {
+    color: var(--current-dark-text-disabled, #505054);
+}
+html[data-theme='dark'] .fc .fc-day-other .fc-daygrid-day-frame {
+    background-color: var(--current-dark-bg-other-month, #222224); /* Fundo ainda mais escuro para outros meses */
+}
+
+/* Linhas da visualização de semana/dia (TimeGrid) - Tema Escuro */
+html[data-theme='dark'] .fc .fc-timegrid-slot {
+    border-bottom-color: var(--current-dark-border-ultra-subtle, #444446);
+}
+html[data-theme='dark'] .fc .fc-timegrid-slot-label {
+    color: var(--current-dark-text-secondary, #8e8e93);
+}
+html[data-theme='dark'] .fc .fc-timegrid-now-indicator-line {
+    border-color: var(--current-dark-semantic-danger, #ff453a); /* Vermelho Apple mais brilhante para tema escuro */
+}
+html[data-theme='dark'] .fc .fc-timegrid-now-indicator-arrow {
+    border-top-color: var(--current-dark-semantic-danger, #ff453a);
+}
+
+/* Scrollbars - Tema Escuro */
+html[data-theme='dark'] .fc .fc-scroller {
+    scrollbar-color: var(--current-dark-border-controls, #545458) var(--current-dark-bg-secondary, #2c2c2e);
+}
+html[data-theme='dark'] .fc .fc-scroller::-webkit-scrollbar-track {
+    background: var(--current-dark-bg-secondary, #2c2c2e);
+}
+html[data-theme='dark'] .fc .fc-scroller::-webkit-scrollbar-thumb {
+    background-color: var(--current-dark-border-controls, #545458);
+    border-color: var(--current-dark-bg-secondary, #2c2c2e);
+}
+html[data-theme='dark'] .fc .fc-scroller::-webkit-scrollbar-thumb:hover {
+    background-color: var(--current-dark-border-controls-hover, #636366);
+}
+
+/* List view - Tema Escuro */
+html[data-theme='dark'] .fc .fc-list-day th {
+    background-color: var(--current-dark-bg-tertiary, #1c1c1e);
+    color: var(--current-dark-text-primary, #ffffff);
+}
+html[data-theme='dark'] .fc .fc-list-event:hover td {
+    background-color: var(--current-dark-bg-subtle-hover, #3a3a3c);
+}
+html[data-theme='dark'] .fc .fc-list-event-time {
+    color: var(--current-dark-text-secondary, #aeaeb2);
+}
+html[data-theme='dark'] .fc .fc-list-empty {
+    color: var(--current-dark-text-secondary, #8e8e93);
+}
+
+/* Eventos - Tema Escuro */
+/* Ajustar as variáveis CSS do FullCalendar para cores de evento padrão no tema escuro */
+html[data-theme='dark'] .fc {
+    --fc-event-bg-color: var(--current-dark-primary-accent-light, #2a3d5c); /* Um azul escuro/acinzentado para eventos padrão */
+    --fc-event-border-color: var(--current-dark-primary-accent, #0a84ff);
+    --fc-event-text-color: var(--current-dark-primary-accent-text, #d0e8ff); /* Texto claro para contraste com fundo escuro do evento */
+}
+
+/* Exemplo de como estilizar eventos com status específicos no tema escuro */
+html[data-theme='dark'] .fc-event.fc-event-confirmed {
+    /* --fc-event-bg-color: var(--current-dark-semantic-success-light, #1c4a36);
+    --fc-event-border-color: var(--current-dark-semantic-success, #30d158);
+    --fc-event-text-color: var(--current-dark-semantic-success-text, #d4f5dd); */
+}
+html[data-theme='dark'] .fc-event.fc-event-pending {
+     /* --fc-event-bg-color: var(--current-dark-semantic-warning-light, #5c4b00);
+    --fc-event-border-color: var(--current-dark-semantic-warning, #ffd60a);
+    --fc-event-text-color: var(--current-dark-semantic-warning-text, #fff5cc); */
+}
+
+html[data-theme='dark'] .fc-event.fc-event-past {
+    opacity: 0.65; /* Ainda mais sutil no tema escuro */
+}
+html[data-theme='dark'] .fc-event.fc-event-past:hover {
+    opacity: 0.9;
+}
+
+/* Foco visível para tema escuro */
+html[data-theme='dark'] .fc .fc-button:focus-visible,
+html[data-theme='dark'] .fc .fc-daygrid-day-number:focus-visible,
+html[data-theme='dark'] .fc .fc-event:focus-visible {
+    outline-color: var(--current-dark-focus-ring-color, #0a84ff);
+    box-shadow: 0 0 0 3px var(--current-dark-focus-ring-shadow, rgba(10,132,255,0.3));
+}
+
+/* Otimização de Espaço: Remover padding do card que envolve o calendário */
+#calendario-view-container > .reservas-section.cv-card {
+    padding: 0; /* Remove o padding padrão de .cv-card */
+}
