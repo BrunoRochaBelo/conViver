@@ -124,7 +124,7 @@ Diversos ajustes foram realizados para melhorar a experiência em dispositivos m
 * **Controles de visualização alinhados:** `.reservas-view-toggle` recebeu estilo próprio para manter os rótulos e o switch em linha única alinhados à direita.
 * **FAB adaptado para a bottom bar:** quando a navegação inferior está ativa, o menu flutuante sobe alguns pixels para não sobrepor a barra.
 * **Cabeçalho mais compacto em mobile:** reduziu-se o padding e o tamanho do título para aproveitar melhor o espaço em telas pequenas.
-* **Cabeçalho que encolhe ao rolar:** em larguras a partir de 768&nbsp;px o header diminui quando o usuário começa a rolar, fixando a navegação ou as abas logo abaixo dele.
+* **Cabeçalho que encolhe ao rolar:** em larguras a partir de 768&nbsp;px o header diminui quando o usuário começa a rolar. O script escuta a rolagem do `window` e do elemento `#pageMain` (quando existente) para fixar a navegação ou as abas logo abaixo do cabeçalho.
 * **Ajustes em formulários e tabelas:** campos de entrada adotaram a classe `.cv-input`, estados de erro/sucesso e placeholders consistentes. Tabelas podem ser envolvidas por `.cv-table-responsive-wrapper` para permitir rolagem horizontal em telas estreitas.
 * **Aprimoramentos de header e modais:** o cabeçalho ganhou estilo translúcido e comportamento `sticky`. A abertura e fechamento de modais agora adiciona ou remove a classe `cv-modal-open` no `<body>` para impedir rolagem do conteúdo de fundo.
 * **Imagens responsivas:** elementos `<img>` agora possuem `max-width:100%` para evitar estouro do layout em telas menores.
