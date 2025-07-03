@@ -738,7 +738,8 @@ body.has-bottom-nav #mainNav {
 /* For now, using .user-menu-modal class on the .cv-modal element */
 
 .user-menu-modal .cv-modal-content { /* Styles for the content box of the user menu */
-    padding: var(--cv-spacing-xs); /* Ensure inner elements have breathing room */
+    /* padding: var(--cv-spacing-xs); /* Padding será tratado pelo header/body se necessário, ou removido para popover */
+    padding: 0; /* Removido para um look mais justo de popover */
     display: flex;
     flex-direction: column;
     max-width: 280px; /* Smaller max-width for user menu modal, more like a popover */
@@ -751,7 +752,7 @@ body.has-bottom-nav #mainNav {
     margin-left: auto; /* Allows it to be pushed to the right by the parent .cv-modal flex centering */
     position: absolute; /* Take it out of the normal flow of .cv-modal content centering */
     top: calc(var(--cv-header-height, 60px) + var(--cv-spacing-sm)); /* Position below header; needs --cv-header-height var */
-    right: var(--cv-spacing-md);
+    right: var(--cv-spacing-md); /* 16px from right edge */
     width: auto; /* Let content dictate width up to max-width */
     height: auto; /* Let content dictate height */
     /* The parent .cv-modal provides the full screen overlay and initial centering.
@@ -767,36 +768,49 @@ body.has-bottom-nav #mainNav {
 
 
 .user-menu-modal .cv-modal-header {
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Increased padding */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
     min-height: auto; /* No strict min-height */
-    display: flex; /* Use flexbox for layout */
-    justify-content: space-between; /* Pushes title to left and close button to right */
-    align-items: center; /* Vertically aligns items */
-    position: relative; /* Needed for absolute positioning of close button if not using flex order */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* position: relative; /* Not needed if close button is part of flex order and handled by .cv-modal-close general style */
+    border-bottom: 1px solid var(--current-border-subtle); /* Add separator if header is used */
 }
-.user-menu-modal .cv-modal-header h2.user-menu-username { /* Adjusted selector for specificity */
+
+.user-menu-modal .cv-modal-header h2.user-menu-username {
     font-size: var(--cv-font-size-md);
     text-align: left;
-    margin: 0; /* Remove default margins */
-    flex-grow: 1; /* Allows title to take available space */
+    margin: 0;
+    flex-grow: 1;
+    /* Adjust padding if close button is on the right via flex order */
+    padding-right: calc(28px + var(--cv-spacing-sm) * 2); /* width of close button + its own right padding + desired gap */
 }
 
 .user-menu-modal .cv-modal-body {
-    padding: var(--cv-spacing-sm) 0; /* No horizontal padding if list items span full width */
+    padding: var(--cv-spacing-sm); /* Add some padding around the list */
 }
 .user-menu-modal .cv-modal-footer {
     display: none; /* User menus typically don't have a footer with OK/Cancel */
 }
 
+/* The .cv-modal-close inside .user-menu-modal will inherit the new global styles.
+   Its position is already absolute and top/right are relative to .cv-modal-content.
+   The new global .cv-modal-close uses var(--cv-spacing-sm) for top/right, which is 8px.
+   This should be fine for a popover-style menu.
+   No specific overrides for .user-menu-modal .cv-modal-close seem necessary
+   if the global styles are correctly applied and desired.
+   The parent .cv-modal-content has padding:0 now, so the close button will be
+   8px from the visual edge of the popover.
+*/
+/*
 .user-menu-modal .cv-modal-close {
     position: absolute;
-    top: var(--cv-spacing-sm);
-    right: var(--cv-spacing-sm);
-    width: 24px;
-    height: 24px;
-    font-size: 16px;
+    top: var(--cv-spacing-sm); // Should match global .cv-modal-close
+    right: var(--cv-spacing-sm); // Should match global .cv-modal-close
+    // width and height will be inherited from global .cv-modal-close (28px)
+    // font-size will be inherited (14px)
 }
-
+*/
 
 .user-menu-list {
     list-style: none;
