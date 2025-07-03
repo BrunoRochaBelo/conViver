@@ -1445,30 +1445,62 @@ async function fetchAndDisplayFeedItems(page, append = false) {
                         }
                     }
                 });
-                // Adicionar ao container da aba ativa, não ao muralFeedContainer necessariamente
-                const contentArea = targetErrorContainer.querySelector('.feed-grid, .js-avisos, .enquetes-list, .chamados-list') || targetErrorContainer;
-                // Limpar antes de adicionar o novo estado de erro
-                contentArea.innerHTML = '';
-                contentArea.appendChild(errorState);
+                // activeTabContentIdOnError is defined, e.g., "content-mural"
+                // targetErrorContainer is document.getElementById(activeTabContentIdOnError)
+
+                let itemContainerToClear;
+                if (activeTabContentIdOnError === "content-mural" && muralFeedContainer) {
+                    itemContainerToClear = muralFeedContainer; // Specific list for mural tab
+                } else {
+                    // For other tabs, they might have their own specific list containers,
+                    // or they filter the mural. If they filter the mural, clearing muralFeedContainer makes sense.
+                    // If they had their own list, we'd select it here.
+                    // Fallback to targetErrorContainer's direct list child if one exists, else muralFeedContainer
+                    itemContainerToClear = targetErrorContainer.querySelector('.feed-grid, .js-avisos, .enquetes-list, .chamados-list') || muralFeedContainer;
+                }
+
+                if (itemContainerToClear) {
+                    itemContainerToClear.innerHTML = ''; // Clear only items
+                } else if (targetErrorContainer) {
+                    // Fallback: if no specific item container found, clear the whole tab panel
+                    // This should be less likely if structure is consistent.
+                    targetErrorContainer.innerHTML = '';
+                }
+
+                // Remove any old error/empty states that might be direct children of the tab panel
+                if (targetErrorContainer) {
+                    targetErrorContainer.querySelectorAll('.cv-error-state, .cv-empty-state').forEach(el => el.remove());
+                }
+
+                const errorState = createErrorStateElement({
+                    title: "Falha ao Carregar",
+                    message: error.message || `Não foi possível carregar o conteúdo. Verifique sua conexão e tente novamente.`,
+                    retryButton: {
+                        text: "Tentar Novamente",
+                        onClick: () => {
+                            const activeTabButton = document.querySelector(".cv-tabs .cv-tab-button.active");
+                            if (activeTabButton) activeTabButton.click();
+                            else loadInitialFeedItems();
+                        }
+                    }
+                });
+                if (targetErrorContainer) targetErrorContainer.appendChild(errorState);
             }
         }
     } else if (append) {
       // Erro ao carregar mais itens (infinite scroll)
-      // Remover o spinner de "carregando mais" se houver
-      const spinner = muralFeedContainer.querySelector('.loading-spinner-feed');
-      if (spinner) spinner.remove();
-      // Opcional: mostrar um pequeno feedback de erro perto do sentinel ou um toast
+      if (muralFeedContainer){ // Check if muralFeedContainer exists
+        const spinner = muralFeedContainer.querySelector('.loading-spinner-feed');
+        if (spinner) spinner.remove();
+      }
       if (!error.handledByApiClient && error.message) {
          showGlobalFeedback(error.message || "Erro ao carregar mais itens.", "error", 3000);
       } else {
          console.warn("Erro ao carregar mais itens (append), erro já tratado pelo apiClient ou sem mensagem.", error);
       }
-      // Não exibir o sentinel para evitar tentativas contínuas se houver erro
       if (sentinelElement) sentinelElement.style.display = "none";
-      // Manter noMoreFeedItems como false para permitir nova tentativa se o usuário rolar novamente (ou adicionar um botão "tentar de novo")
-      noMoreFeedItems = false; // Permitir nova tentativa ao rolar
+      noMoreFeedItems = false;
     }
-    // if (sentinelElement) sentinelElement.style.display = "none"; // Movido para dentro do else if (append)
   } finally {
     isLoadingFeedItems = false;
     // Skeletons should be hidden by now, but as a safeguard:
