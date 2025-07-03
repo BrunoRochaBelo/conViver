@@ -475,7 +475,7 @@ html[data-theme="dark"] .cv-nav__link:hover {
     -webkit-backdrop-filter: blur(18px) saturate(170%);
     backdrop-filter: blur(18px) saturate(170%);
     border-top: 1px solid rgba(0, 0, 0, 0.08);
-    padding: var(--cv-spacing-xs) 0;
+    padding: var(--cv-spacing-xs) 0 calc(var(--cv-spacing-xs) + env(safe-area-inset-bottom, 0));
 }
 html[data-theme="dark"] .cv-bottom-nav {
     background-color: rgba(50, 50, 52, 0.8);
@@ -496,6 +496,14 @@ html[data-theme="dark"] .cv-bottom-nav {
     text-decoration: none;
     font-size: 0.75rem;
     padding: var(--cv-spacing-xs);
+}
+.cv-bottom-nav__icon {
+    width: 24px;
+    height: 24px;
+}
+
+.cv-bottom-nav__label {
+    line-height: 1;
 }
 .cv-bottom-nav__link--active {
     color: var(--current-primary-blue);
