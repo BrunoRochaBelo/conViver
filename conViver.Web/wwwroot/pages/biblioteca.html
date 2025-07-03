@@ -34,7 +34,7 @@
 
         <!-- Filtros e Ações (para Síndico) -->
         <div class="cv-section cv-section--actions cv-form-group admin-only-section" style="display: none;"> <!-- Ocultar por padrão, JS controla visibilidade -->
-            <button id="uploadDocButton" class="cv-button primary">Upload de Documento</button>
+            <button id="uploadDocButton" class="cv-button cv-button--primary">Upload de Documento</button>
             <input type="text" id="docSearchInput" class="cv-input" placeholder="Buscar documento...">
             <select id="docCategoryFilter" class="cv-input">
                 <option value="">Todas as Categorias</option>
@@ -52,15 +52,32 @@
             <div class="card-grid document-list js-document-list">
                 <!-- Documentos serão carregados aqui por JS -->
                 <div id="biblioteca-skeleton" class="feed-skeleton-container" style="display:none;">
-                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
-                    <div class="cv-card feed-skeleton-item"><div class="skeleton-title skeleton-block"></div><div class="skeleton-line skeleton-block"></div><div class="skeleton-line skeleton-block skeleton-line--short"></div></div>
+                    <!-- Skeleton para um card de documento -->
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-title skeleton-block" style="width: 70%;"></div>
+                        <div class="skeleton-line skeleton-block" style="width: 90%;"></div>
+                        <div class="skeleton-line skeleton-block" style="width: 50%;"></div>
+                        <div class="skeleton-line skeleton-block" style="width: 30%; height: 30px; margin-top: 15px; float: right;"></div>
+                    </div>
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-title skeleton-block" style="width: 60%;"></div>
+                        <div class="skeleton-line skeleton-block" style="width: 100%;"></div>
+                        <div class="skeleton-line skeleton-block" style="width: 40%;"></div>
+                        <div class="skeleton-line skeleton-block" style="width: 30%; height: 30px; margin-top: 15px; float: right;"></div>
+                    </div>
+                     <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-title skeleton-block" style="width: 80%;"></div>
+                        <div class="skeleton-line skeleton-block" style="width: 80%;"></div>
+                        <div class="skeleton-line skeleton-block" style="width: 60%;"></div>
+                        <div class="skeleton-line skeleton-block" style="width: 30%; height: 30px; margin-top: 15px; float: right;"></div>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- Modal de Upload de Documento (para Síndico) -->
         <div id="modalUploadDocumento" class="cv-modal" style="display:none;">
-            <div class="cv-modal-content">
+            <div class="cv-modal-content cv-modal-content--padded">
                 <span class="cv-modal-close js-modal-upload-doc-close">&times;</span>
                 <h2>Upload de Novo Documento</h2>
                 <form id="formUploadDocumento" class="cv-form">
@@ -83,8 +100,8 @@
                         <input type="file" id="doc-file" name="file" class="cv-input" required accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png">
                     </div>
                     <div class="cv-form-actions">
-                        <button type="submit" class="cv-button primary">Salvar Documento</button>
                         <button type="button" class="cv-button js-modal-upload-doc-close">Cancelar</button>
+                        <button type="submit" class="cv-button cv-button--primary">Salvar Documento</button>
                     </div>
                 </form>
             </div>

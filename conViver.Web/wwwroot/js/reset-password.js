@@ -1,4 +1,5 @@
 import apiClient from './apiClient.js';
+import { showInlineSpinner } from './main.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const resetPasswordForm = document.getElementById('resetPasswordForm');
@@ -59,7 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         submitButton.disabled = true;
+        const originalButtonHTML = submitButton.innerHTML;
         submitButton.textContent = 'Redefinindo...';
+        const removeSpinner = showInlineSpinner(submitButton);
 
         try {
             await apiClient.post('/auth/reset-password', {
@@ -78,9 +81,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorMessage = error.message;
             }
             showFeedback(errorMessage);
+        } finally {
             submitButton.disabled = false;
-            submitButton.textContent = 'Redefinir Senha';
+            submitButton.innerHTML = originalButtonHTML;
+            removeSpinner();
         }
-        // No finally block to re-enable button if successful, as form is hidden
     });
 });
