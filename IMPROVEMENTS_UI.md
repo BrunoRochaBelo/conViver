@@ -113,6 +113,16 @@ Todas as novas implementações e refinamentos seguiram as diretrizes de estilo 
 **Foco:**
 Consistência visual, transições suaves, uso adequado de cores semânticas, e adaptação aos temas claro e escuro.
 
+## 8. Navegação e Layout Responsivo
+
+Diversos ajustes foram realizados para melhorar a experiência em dispositivos móveis.
+
+* **Nova tag viewport:** todas as páginas passaram a incluir a meta `viewport` unificada (`width=device-width, initial-scale=1`) garantindo escala correta em smartphones.
+* **Menu off-canvas:** o botão hambúrguer abre um painel lateral (`cv-nav--drawer`) que utiliza classes dedicadas em `components.css` para animação e bloqueio do scroll da página.
+* **Bottom navigation:** quando `APP_CONFIG.ENABLE_MOBILE_BOTTOM_NAV` está `true` e a tela possui largura inferior a 768&nbsp;px, a função `buildNavigation()` adiciona a barra fixa inferior com links essenciais. Para habilitar ou desabilitar, ajuste o valor em `config.js`.
+* **Ajustes em formulários e tabelas:** campos de entrada adotaram a classe `.cv-input`, estados de erro/sucesso e placeholders consistentes. Tabelas podem ser envolvidas por `.cv-table-responsive-wrapper` para permitir rolagem horizontal em telas estreitas.
+* **Aprimoramentos de header e modais:** o cabeçalho ganhou estilo translúcido e comportamento `sticky`. A abertura e fechamento de modais agora adiciona ou remove a classe `cv-modal-open` no `<body>` para impedir rolagem do conteúdo de fundo.
+
 ## Conclusão
 
 Essas melhorias visam tornar a aplicação conViver mais responsiva, performática e agradável de usar, fornecendo feedback claro ao usuário em todas as etapas de interação e carregamento de dados.
