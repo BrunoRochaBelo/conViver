@@ -25,6 +25,9 @@ const feedContainerSelector = ".js-avisos"; // This is specific to the Mural tab
 const feedScrollSentinelId = "notice-scroll-sentinel";
 let fetchedFeedItems = [];
 let currentSortOrder = "desc";
+
+let muralFeedContainer; // Declare at module level, assign in initialize()
+
 // const skeletonCount = 3; // Will be determined by HTML or specific tab logic
 
 function showFeedSkeleton(tabContentId = "content-mural") {
@@ -110,6 +113,22 @@ let criarOcorrenciaModal,
 
 export async function initialize() {
   requireAuth();
+
+  // Initialize muralFeedContainer AFTER DOM is ready
+  muralFeedContainer = document.querySelector("#content-mural " + feedContainerSelector);
+  if (!muralFeedContainer) {
+      console.error("CRITICAL ERROR: Mural feed container ('#content-mural .js-avisos') not found. Communications module will not function correctly.");
+      // Display a user-facing error message directly on the page if possible
+      const communicationPageContainer = document.querySelector('.cv-tabs')?.parentNode || document.body;
+      if (communicationPageContainer) {
+          communicationPageContainer.innerHTML = `
+              <div class="cv-error-state" style="padding: 20px; text-align: center;">
+                  <h3 class="cv-error-state__title">Erro Crítico na Página de Comunicação</h3>
+                  <p class="cv-error-state__message">Não foi possível carregar o componente principal para exibir o feed. Por favor, contate o suporte.</p>
+              </div>`;
+      }
+      return; // Halt further initialization of this module
+  }
 
   // Modals Init
   criarAvisoModal = document.getElementById("modal-criar-aviso");
