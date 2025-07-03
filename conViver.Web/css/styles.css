@@ -176,10 +176,84 @@
     --cv-header-padding-y: clamp(0.5rem, 1.5vh, 0.75rem);
     --cv-header-padding-x: clamp(1rem, 4vw, 1.5rem);
     --cv-header-height: clamp(3.5rem, 5vh + 1rem, 4.3125rem); /* ~57px–69px */
+    --cv-header-height-scrolled-desktop: clamp(3rem, 4vh + 0.5rem, 3.5rem); /* Altura menor para desktop ao rolar */
+    --cv-header-height-scrolled-mobile: clamp(2.5rem, 3vh + 0.5rem, 3rem); /* Altura menor para mobile ao rolar */
 }
 @media (min-width: 768px) {
     :root {
         --cv-header-height: clamp(4rem, 5vh + 1rem, 4.5rem);
+    }
+}
+
+/* Estilos para header com scroll */
+.cv-header--scrolled {
+    min-height: var(--cv-header-height-scrolled-mobile) !important; /* Prioridade para sobrescrever */
+    box-shadow: var(--current-shadow-md); /* Adiciona sombra quando scrollado */
+    transition: min-height 0.3s ease-in-out;
+}
+
+.cv-header--scrolled .cv-header__title {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out, visibility 0s linear 0.2s;
+}
+
+/* Desktop: mainNav sobe e cv-tabs fixa abaixo do header */
+@media (min-width: 992px) { /* Breakpoint para desktop, ajuste conforme necessário */
+    .cv-header--scrolled {
+        min-height: var(--cv-header-height-scrolled-desktop) !important;
+    }
+
+    #mainNav.mainNav--scrolled-desktop {
+        position: fixed;
+        top: 0; /* Alinha com o topo da viewport */
+        left: 0; /* Ocupa o espaço do header title, verificar alinhamento com o header */
+        right: 0;
+        width: auto; /* Para ocupar a largura disponível */
+        z-index: 1010; /* Acima do header, abaixo do user menu */
+        background-color: var(--current-nav-bg); /* Mantém o fundo da nav */
+        padding-top: var(--cv-spacing-sm); /* Ajustar padding para alinhar com o header reduzido */
+        padding-bottom: var(--cv-spacing-sm);
+        transform: translateY(0); /* Garante que está no topo */
+        /* Ajustar para que o mainNav ocupe o espaço do cv-header__title */
+        /* Isso pode precisar de ajustes no padding do .cv-header__container ou margens negativas */
+    }
+
+    .cv-tabs.cv-tabs--fixed-desktop {
+        position: fixed;
+        top: var(--cv-header-height-scrolled-desktop); /* Fixa abaixo do header scrollado */
+        left: 0;
+        right: 0;
+        z-index: 1000; /* Abaixo da mainNav e header */
+        background-color: var(--current-bg-light); /* Fundo para não mostrar conteúdo por baixo */
+        padding-left: var(--cv-header-padding-x); /* Manter alinhamento com conteúdo */
+        padding-right: var(--cv-header-padding-x);
+        margin-top: 0; /* Remove margem original */
+        border-bottom: 2px solid var(--current-border-subtle); /* Mantém a linha visual */
+        box-shadow: var(--current-shadow-sm); /* Sombra sutil */
+    }
+     #pageMain.content--scrolled-desktop {
+        padding-top: calc(var(--cv-header-height-scrolled-desktop) + 50px); /* 50px é uma altura estimada para cv-tabs, ajuste! */
+    }
+}
+
+/* Mobile: cv-tabs sobe e fixa abaixo do header */
+@media (max-width: 991.98px) {
+     .cv-tabs.cv-tabs--fixed-mobile {
+        position: fixed;
+        top: var(--cv-header-height-scrolled-mobile); /* Fixa abaixo do header scrollado */
+        left: 0;
+        right: 0;
+        z-index: 1000; /* Abaixo do header */
+        background-color: var(--current-bg-light);
+        padding-left: var(--cv-header-padding-x);
+        padding-right: var(--cv-header-padding-x);
+        margin-top: 0;
+        border-bottom: 2px solid var(--current-border-subtle);
+        box-shadow: var(--current-shadow-sm);
+    }
+    #pageMain.content--scrolled-mobile {
+       padding-top: calc(var(--cv-header-height-scrolled-mobile) + 50px); /* Ajuste conforme altura real do cv-tabs */
     }
 }
 
