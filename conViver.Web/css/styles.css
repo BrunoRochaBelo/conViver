@@ -834,6 +834,16 @@ main {
     padding: var(--cv-spacing-xs) 0;
     border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
 }
+
+.cv-tabs-buttons {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: var(--cv-spacing-xs);
+}
+.cv-tabs-buttons::-webkit-scrollbar {
+    display: none;
+}
 .cv-tabs > #open-sort-button,
 .cv-tabs > #open-filter-modal-button {
     margin-top: var(--cv-spacing-xs);
