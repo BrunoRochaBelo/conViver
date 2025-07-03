@@ -105,34 +105,80 @@ export function buildNavigation() {
     navContainer.appendChild(hamburger);
     navContainer.appendChild(container);
 
-    // Drawer element
-    let drawer = document.querySelector('.cv-nav--drawer');
-    if (!drawer) {
-        drawer = document.createElement('div');
-        drawer.className = 'cv-nav--drawer';
-        drawer.innerHTML = '<div class="cv-nav--drawer__panel"></div>';
-        document.body.appendChild(drawer);
-    }
+// Inside your navigation initialization function:
 
-    const drawerPanel = drawer.querySelector('.cv-nav--drawer__panel');
-    drawerPanel.innerHTML = '';
-    drawerPanel.appendChild(ul.cloneNode(true));
+// Hamburger & Drawer setup
+const hamburger = document.querySelector('.cv-nav-hamburger');
+const navList = document.querySelector('.cv-nav-list');
 
-    function openDrawer() {
-        drawer.classList.add('open');
-        document.body.classList.add('cv-modal-open');
-    }
-
-    function closeDrawer() {
-        drawer.classList.remove('open');
-        document.body.classList.remove('cv-modal-open');
-    }
-
-    hamburger.addEventListener('click', openDrawer);
-    drawer.addEventListener('click', (e) => { if (e.target === drawer) closeDrawer(); });
-    drawerPanel.querySelectorAll('a').forEach(a => {
-        a.addEventListener('click', closeDrawer);
-    });
+// ▶️ Drawer element
+let drawer = document.querySelector('.cv-nav--drawer');
+if (!drawer) {
+  drawer = document.createElement('div');
+  drawer.className = 'cv-nav--drawer';
+  drawer.innerHTML = '<div class="cv-nav--drawer__panel"></div>';
+  document.body.appendChild(drawer);
 }
+
+const drawerPanel = drawer.querySelector('.cv-nav--drawer__panel');
+drawerPanel.innerHTML = '';
+drawerPanel.appendChild(navList.cloneNode(true));
+
+function openDrawer() {
+  drawer.classList.add('open');
+  document.body.classList.add('cv-modal-open');
+}
+
+function closeDrawer() {
+  drawer.classList.remove('open');
+  document.body.classList.remove('cv-modal-open');
+}
+
+// wire up drawer events
+hamburger.addEventListener('click', openDrawer);
+drawer.addEventListener('click', e => {
+  if (e.target === drawer) closeDrawer();
+});
+drawerPanel.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', closeDrawer);
+});
+
+// ▶️ Bottom navigation bar (mobile-only, if enabled)
+if (
+  window.innerWidth < 768 &&
+  window.APP_CONFIG?.ENABLE_MOBILE_BOTTOM_NAV
+) {
+  const bottomNav = document.createElement('nav');
+  bottomNav.className = 'cv-bottom-nav';
+
+  const bottomUl = document.createElement('ul');
+  bottomUl.className = 'cv-bottom-nav__list';
+
+  items.forEach(item => {
+    const li = document.createElement('li');
+    li.className = 'cv-bottom-nav__item';
+
+    const a = document.createElement('a');
+    a.className = 'cv-bottom-nav__link';
+    a.innerHTML = item.icon;
+
+    // escolhe URL conforme layoutPrefix ou hrefPrefix
+    a.href = item.useLayout
+      ? `${layoutPrefix}${item.key}`
+      : `${hrefPrefix}${item.href}`;
+
+    if (currentPage === item.key) {
+      a.classList.add('cv-bottom-nav__link--active');
+      a.setAttribute('aria-current', 'page');
+    }
+
+    li.appendChild(a);
+    bottomUl.appendChild(li);
+  });
+
+  bottomNav.appendChild(bottomUl);
+  document.body.appendChild(bottomNav);
+}
+
 
 document.addEventListener('DOMContentLoaded', buildNavigation);
