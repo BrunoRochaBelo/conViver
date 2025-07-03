@@ -1,9 +1,12 @@
+import { showSkeleton, hideSkeleton } from './main.js';
+
 export function showFeedSkeleton(selector = '.feed-skeleton-container') {
-  const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
-  if (el) el.style.display = 'block';
+  showSkeleton(selector);
 }
 
 export function hideFeedSkeleton(selector = '.feed-skeleton-container') {
-  const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
-  if (el) el.style.display = 'none';
+  hideSkeleton(selector);
 }
+
+// Re-export generic functions for convenience if modules import from this file
+export { showSkeleton, hideSkeleton };
