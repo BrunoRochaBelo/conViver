@@ -136,3 +136,36 @@ window.addEventListener('resize', () => {
     clearTimeout(window.__cvNavResizeTimeout);
     window.__cvNavResizeTimeout = setTimeout(buildNavigation, 200);
 });
+
+function checkTabsScroll() {
+    const tabsButtons = document.querySelectorAll('.cv-tabs-buttons');
+    tabsButtons.forEach(tabsButton => {
+        if (tabsButton) {
+            const hasOverflow = tabsButton.scrollWidth > tabsButton.clientWidth;
+            if (hasOverflow) {
+                tabsButton.classList.add('has-scroll-indicator');
+            } else {
+                tabsButton.classList.remove('has-scroll-indicator');
+            }
+        }
+    });
+}
+
+// Check on initial load
+document.addEventListener('DOMContentLoaded', checkTabsScroll);
+// Check on resize
+window.addEventListener('resize', checkTabsScroll);
+// Also check after navigation builds, as tabs might be dynamically added
+document.addEventListener('DOMContentLoaded', () => {
+    const mainNav = document.getElementById('mainNav');
+    if(mainNav) {
+        const observer = new MutationObserver(checkTabsScroll);
+        observer.observe(mainNav, { childList: true, subtree: true });
+    }
+    // For subtabs that might be added later
+    const tabContents = document.querySelectorAll('.cv-tab-content');
+    tabContents.forEach(content => {
+        const observer = new MutationObserver(checkTabsScroll);
+        observer.observe(content, { childList: true, subtree: true });
+    });
+});

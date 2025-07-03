@@ -1,7 +1,10 @@
 import apiClient from './apiClient.js';
 import { requireAuth, getUserRoles } from './auth.js'; // Supondo que getUserRoles exista ou será criado
-import { showGlobalFeedback, debugLog } from './main.js';
-import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
+import { showGlobalFeedback, createErrorStateElement, createEmptyStateElement, debounce, debugLog, openModal, closeModal } from './main.js';
+import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js'; // skeleton.js re-exporta de main.js
+import { createProgressBar, showProgress, xhrPost } from './progress.js';
+
+let uploadProgressBar;
 
 document.addEventListener('DOMContentLoaded', async () => {
     requireAuth();
@@ -16,27 +19,29 @@ function initializeBibliotecaPage() {
     const uploadDocButton = document.getElementById('uploadDocButton');
     const modalUpload = document.getElementById('modalUploadDocumento');
     const formUpload = document.getElementById('formUploadDocumento');
+    uploadProgressBar = createProgressBar();
     const closeUploadModalButtons = document.querySelectorAll('.js-modal-upload-doc-close');
 
     if (userRoles.includes('Sindico') || userRoles.includes('Administrador')) {
         if (adminSection) adminSection.style.display = 'block';
-        if (uploadDocButton) uploadDocButton.addEventListener('click', () => modalUpload.style.display = 'flex');
+        if (uploadDocButton) uploadDocButton.addEventListener('click', () => openModal(modalUpload));
     }
 
     if (modalUpload) {
-        closeUploadModalButtons.forEach(btn => btn.addEventListener('click', () => modalUpload.style.display = 'none'));
+        closeUploadModalButtons.forEach(btn => btn.addEventListener('click', () => closeModal(modalUpload)));
         window.addEventListener('click', (event) => {
-            if (event.target === modalUpload) modalUpload.style.display = 'none';
+            if (event.target === modalUpload) closeModal(modalUpload);
         });
     }
 
     if (formUpload) {
+        formUpload.appendChild(uploadProgressBar);
         formUpload.addEventListener('submit', handleUploadDocumento);
     }
 
     const searchInput = document.getElementById('docSearchInput');
     const categoryFilter = document.getElementById('docCategoryFilter');
-    if (searchInput) searchInput.addEventListener('input', () => loadDocumentos());
+    if (searchInput) searchInput.addEventListener('input', debounce(loadDocumentos, 300));
     if (categoryFilter) categoryFilter.addEventListener('change', () => loadDocumentos());
 
     debugLog('Página da Biblioteca inicializada.');
@@ -63,32 +68,91 @@ async function loadDocumentos() {
         }
 
         const documentos = await apiClient.get('/api/v1/app/docs', params);
+        listContainer.innerHTML = ''; // Limpar antes de adicionar conteúdo ou empty state
 
         if (!documentos || documentos.length === 0) {
-            listContainer.innerHTML = '<p>Nenhum documento encontrado.</p>';
+            const userRoles = getUserRoles();
+            const isSindico = userRoles.includes('Sindico') || userRoles.includes('Administrador');
+            let actionButton = null;
+            if (isSindico) {
+                actionButton = {
+                    text: "Adicionar Documento",
+                    onClick: () => {
+                        const uploadDocButton = document.getElementById('uploadDocButton');
+                        if (uploadDocButton) uploadDocButton.click();
+                    },
+                    classes: ["cv-button--primary"]
+                };
+            }
+
+            const emptyState = createEmptyStateElement({
+                iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 2c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6H6zm8 7h-2V4l4 4h-2z"/></svg>`, // Ícone de Documento
+                title: "Biblioteca Vazia",
+                description: isSindico
+                    ? "Ainda não há documentos disponíveis. Adicione atas, regulamentos e outros arquivos importantes aqui."
+                    : "Ainda não há documentos disponíveis na biblioteca.",
+                actionButton: actionButton
+            });
+            listContainer.appendChild(emptyState);
             return;
         }
 
         // Filtro frontend para searchTerm (simples, apenas no título)
         const filteredDocumentos = documentos.filter(doc =>
             doc.tituloDescritivo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            doc.nomeArquivoOriginal.toLowerCase().includes(searchTerm.toLowerCase())
+            (doc.nomeArquivoOriginal && doc.nomeArquivoOriginal.toLowerCase().includes(searchTerm.toLowerCase())) || // Adicionado check para nomeArquivoOriginal
+            (doc.categoria && doc.categoria.toLowerCase().includes(searchTerm.toLowerCase())) // Adicionado filtro por categoria
         );
 
         if (filteredDocumentos.length === 0) {
-            listContainer.innerHTML = '<p>Nenhum documento encontrado para os filtros aplicados.</p>';
+            const emptyState = createEmptyStateElement({
+                iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>`, // Ícone de Lupa
+                title: "Nenhum Documento Encontrado",
+                description: "Não encontramos documentos que correspondam à sua busca ou filtro. Tente palavras-chave diferentes ou ajuste a categoria.",
+                 actionButton: (searchTerm || category) ? { // Mostrar botão apenas se houver filtro/busca
+                    text: "Limpar Busca/Filtro",
+                    onClick: () => {
+                        const searchInput = document.getElementById('docSearchInput');
+                        const categoryFilter = document.getElementById('docCategoryFilter');
+                        if (searchInput) searchInput.value = '';
+                        if (categoryFilter) categoryFilter.value = '';
+                        loadDocumentos(); // Recarregar
+                    },
+                    classes: ["cv-button--secondary"]
+                } : null
+            });
+            listContainer.appendChild(emptyState);
             return;
         }
 
         renderDocumentos(filteredDocumentos, listContainer);
     } catch (error) {
         console.error('Erro ao carregar documentos:', error);
-        listContainer.innerHTML = '<p class="cv-error-message">Erro ao carregar documentos. Tente novamente mais tarde.</p>';
-        showGlobalFeedback('Erro ao carregar documentos.', 'error');
+        listContainer.innerHTML = ''; // Limpa qualquer conteúdo anterior
+        const errorState = createErrorStateElement({
+            title: "Falha ao Carregar Documentos",
+            message: error.message || "Não foi possível buscar os documentos. Verifique sua conexão e tente novamente.",
+            retryButton: {
+                text: "Tentar Novamente",
+                onClick: () => {
+                    const currentErrorState = listContainer.querySelector(".cv-error-state");
+                    if (currentErrorState) currentErrorState.remove();
+                    if (skeleton) showFeedSkeleton(skeleton); // Mostrar skeleton ao tentar novamente
+                    loadDocumentos();
+                }
+            }
+        });
+        listContainer.appendChild(errorState);
+        // showGlobalFeedback é opcional aqui, pois o Error State já é um feedback visual forte.
+        // Se o erro for muito genérico ou precisar de atenção extra, pode ser mantido.
+        // Por ora, vamos remover para evitar redundância.
+        // showGlobalFeedback('Erro ao carregar documentos.', 'error');
     } finally {
         if (skeleton) hideFeedSkeleton(skeleton);
     }
 }
+
+function renderDocumentos(documentos, container) { // Adicionado 'container' como parâmetro
     container.innerHTML = ''; // Limpa a lista
     const userRoles = getUserRoles();
     const isSindico = userRoles.includes('Sindico') || userRoles.includes('Administrador');
@@ -135,36 +199,47 @@ async function loadDocumentos() {
 async function handleUploadDocumento(event) {
     event.preventDefault();
     const form = event.target;
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    const modalUploadElement = document.getElementById('modalUploadDocumento'); // Obter o elemento do modal
+
+    submitButton.disabled = true;
+    submitButton.innerHTML = 'Enviando... <span class="inline-spinner"></span>';
+    if (modalUploadElement) clearModalError(modalUploadElement); // Limpar erros anteriores
+
     const formData = new FormData(form);
 
-    // Adicionando log para verificar o conteúdo do FormData
-    for (let [key, value] of formData.entries()) {
-        debugLog(`${key}: ${value instanceof File ? value.name : value}`);
+    // Validação básica do arquivo (exemplo: verificar se um arquivo foi selecionado)
+    const fileInput = form.querySelector('input[type="file"]');
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        if (modalUploadElement) showModalError(modalUploadElement, "Por favor, selecione um arquivo para enviar.");
+        else showGlobalFeedback("Por favor, selecione um arquivo para enviar.", "warning"); // Fallback
+        submitButton.innerHTML = originalButtonText;
+        submitButton.disabled = false;
+        return;
     }
 
 
-    try {
-        // O endpoint é /api/v1/syndic/docs
-        const response = await apiClient.post('/api/v1/syndic/docs', formData, true); // true para indicar que é FormData
+    uploadProgressBar.style.display = 'block'; // Garante que a barra seja exibida
+    showProgress(uploadProgressBar, 0);
 
-        if (response) { // apiClient.post deve retornar o DTO do documento criado ou um objeto de sucesso
-            form.reset();
-            document.getElementById('modalUploadDocumento').style.display = 'none';
-            loadDocumentos(); // Recarrega a lista
-        } else {
-            // Se o apiClient.post retornar null ou undefined em caso de erro já tratado por ele
-            // não precisamos mostrar outro feedback de erro aqui.
-            // Caso contrário, se ele lança exceção, o catch abaixo tratará.
-            // Se ele retorna um objeto de erro específico:
-            // showGlobalFeedback(response.message || 'Erro ao enviar documento.', 'error');
-        }
+    try {
+        await xhrPost('/api/v1/syndic/docs', formData, p => showProgress(uploadProgressBar, p), true);
+        showProgress(uploadProgressBar, 100); // Completa a barra
+        form.reset();
+        if (modalUploadElement) closeModal(modalUploadElement);
+        loadDocumentos(); // Recarrega a lista de documentos
+        showGlobalFeedback('Documento enviado com sucesso!', 'success', 2500);
     } catch (error) {
         console.error('Erro ao enviar documento:', error);
-        // A mensagem de erro já deve ser exibida pelo showGlobalFeedback dentro do apiClient em caso de falha de rede ou HTTP status >= 400
-        // Apenas para garantir, se o erro não for tratado lá:
-        if (!error.handledByApiClient) { // Supondo que apiClient adicione essa flag
-             showGlobalFeedback(error.message || 'Falha no upload do documento. Verifique os campos e tente novamente.', 'error');
-        }
+        const errorMessage = error.message || 'Falha no upload do documento. Verifique o arquivo e tente novamente.';
+        if (modalUploadElement) showModalError(modalUploadElement, errorMessage);
+        else showGlobalFeedback(errorMessage, 'error'); // Fallback
+        showProgress(uploadProgressBar, 0); // Resetar barra em caso de erro também
+    } finally {
+        uploadProgressBar.style.display = 'none'; // Esconde a barra após o processo
+        submitButton.innerHTML = originalButtonText;
+        submitButton.disabled = false;
     }
 }
 
@@ -172,11 +247,12 @@ async function handleDeleteDocumento(docId, card) {
     if (card) card.style.display = 'none';
     try {
         await apiClient.delete(`/api/v1/syndic/docs/${docId}`);
+        showGlobalFeedback("Documento excluído com sucesso!", "success", 2500);
         if (card) card.remove();
-        else loadDocumentos();
+        else loadDocumentos(); // Recarrega a lista se o card não foi passado ou não encontrado
     } catch (error) {
         console.error(`Erro ao excluir documento ${docId}:`, error);
-        if (card) card.style.display = '';
+        if (card) card.style.display = ''; // Reexibe o card se a exclusão falhar
         showGlobalFeedback('Falha ao remover documento.', 'error');
     }
 }

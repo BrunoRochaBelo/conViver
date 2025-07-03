@@ -152,6 +152,12 @@
     --current-bg-element: var(--cv-bg-white);
     --current-border-subtle: var(--cv-gray-200);
 
+    /* Alpha colors for buttons */
+    --cv-primary-blue-alpha-15: rgba(0, 122, 255, 0.15);
+    --cv-gray-100-alpha-50: rgba(242, 242, 247, 0.5);
+    --cv-gray-200-alpha-70: rgba(229, 229, 234, 0.7);
+
+
     /* Button specific current vars */
     --current-button-default-bg: var(--cv-gray-200);
     --current-button-default-hover-bg: var(--cv-gray-300);
@@ -163,7 +169,18 @@
 
     /* Nav specific current vars */
     --current-nav-bg: var(--cv-gray-100);
+
+    /* Header dimension variables */
+    --cv-header-padding-y: clamp(0.5rem, 1.5vh, 0.75rem);
+    --cv-header-padding-x: clamp(1rem, 4vw, 1.5rem);
+    --cv-header-height: clamp(3.5rem, 5vh + 1rem, 4.3125rem); /* ~57px–69px */
 }
+@media (min-width: 768px) {
+    :root {
+        --cv-header-height: clamp(4rem, 5vh + 1rem, 4.5rem);
+    }
+}
+
 
 html[data-theme="dark"] {
     --current-skeleton-bg: var(--cv-dark-gray-300);
@@ -202,6 +219,11 @@ html[data-theme="dark"] {
     --current-bg-element: var(--cv-dark-bg-element);
     --current-border-subtle: var(--cv-dark-gray-300);
 
+    /* Alpha colors for buttons - Dark */
+    --cv-dark-primary-blue-alpha-20: rgba(10, 132, 255, 0.2);
+    --cv-dark-gray-100-alpha-50: rgba(28, 28, 30, 0.5); /* Assuming cv-dark-gray-100 is #1C1C1E */
+    --cv-dark-gray-200-alpha-70: rgba(44, 44, 46, 0.7); /* Assuming cv-dark-gray-200 is #2C2C2E */
+
     /* Button specific current vars - Dark */
     --current-button-default-bg: var(--cv-dark-gray-300);
     --current-button-default-hover-bg: var(--cv-dark-gray-400);
@@ -234,8 +256,32 @@ body {
     font-size: var(--cv-font-size-md); /* Default body text size */
 }
 
+img {
+    max-width: 100%;
+    height: auto;
+}
+
 html {
     font-size: var(--cv-font-size-base); /* Set base for rem units */
+}
+
+/* Responsive header tweaks */
+.cv-header {
+    padding: var(--cv-header-padding-y) var(--cv-header-padding-x);
+    min-height: var(--cv-header-height);
+}
+@media (max-width: 767px) {
+    .cv-header {
+        padding: var(--cv-spacing-xs) var(--cv-spacing-sm); /* Approx 4px 8px */
+        min-height: 3rem; /* Approx 48px, reduced from default clamp */
+    }
+    .cv-header__title {
+        font-size: 1.125rem; /* Keep title size or adjust if necessary */
+    }
+    /* Adjust header container height if it's explicitly set or influencing layout */
+    .cv-header__container {
+        min-height: inherit; /* Ensure container doesn't force a larger height */
+    }
 }
 
 @media (min-width: 768px) {
@@ -806,15 +852,44 @@ main {
     padding: var(--cv-spacing-xs) 0;
     border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
 }
+
 .cv-tabs-buttons {
     display: flex;
     flex: 1;
+    min-width: 0;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
     gap: var(--cv-spacing-xs);
     white-space: nowrap;
 }
-.cv-tabs-buttons::-webkit-scrollbar { display: none; }
+
+.cv-tabs-buttons::-webkit-scrollbar {
+    display: none;
+}
+
+/* Scroll indicator for tabs on mobile */
+.cv-tabs-buttons {
+    position: relative; /* Needed for absolute positioning of pseudo-element */
+}
+
+.cv-tabs-buttons.has-scroll-indicator::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30px; /* Width of the gradient fade */
+    height: 100%;
+    background: linear-gradient(to left, var(--current-bg-light), transparent); /* Fade to page background */
+    pointer-events: none; /* So it doesn't interfere with clicks/scrolls */
+    z-index: 1; /* Ensure it's above tab buttons if they have backgrounds */
+}
+
+html[data-theme="dark"] .cv-tabs-buttons.has-scroll-indicator::after {
+    background: linear-gradient(to left, var(--cv-dark-bg-page), transparent); /* Fade to dark page background */
+}
+
+
 .cv-tabs > #open-sort-button,
 .cv-tabs > #open-filter-modal-button {
     margin-top: var(--cv-spacing-xs);
@@ -941,65 +1016,85 @@ main {
 
 .fab {
     position: fixed;
-    bottom: var(--cv-spacing-lg, 20px);
-    right: var(--cv-spacing-lg, 20px);
-    width: 72px;
-    height: 72px;
+    bottom: var(--cv-spacing-lg, 24px); /* Consistent spacing */
+    right: var(--cv-spacing-lg, 24px); /* Consistent spacing */
+    width: 72px; /* Slightly larger for better tap target */
+    height: 72px; /* Slightly larger for better tap target */
     background-color: var(--current-primary-blue, #007bff);
     color: var(--cv-text-on-primary, white);
     border: none;
     border-radius: 50%;
-    font-size: var(--cv-font-size-xl, 24px);
+    font-size: var(--cv-font-size-lg, 22px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     box-shadow: var(--current-shadow-md, 0 2px 10px rgba(0,0,0,0.2));
     cursor: pointer;
     z-index: 1050;
     display: none;
-    transition: background-color 0.3s ease, transform 0.2s ease-out;
+    transition: background-color 0.2s ease, transform 0.15s ease-out, box-shadow 0.2s ease-out;
+    overflow: hidden; /* Hide parts of lines during transform if needed */
 }
 
+/* Rotate the '+' icon into an 'X' when active */
 .fab.fab--rotated {
     transform: rotate(45deg);
 }
 
+/* Keep rotation when hovering or pressing the button */
 .fab.fab--rotated:hover {
-    transform: rotate(45deg) translateY(-2px);
+    transform: scale(1.05) rotate(45deg);
 }
 
 .fab.fab--rotated:active {
-    transform: rotate(45deg) translateY(0px);
+    transform: scale(0.95) rotate(45deg);
 }
 
+
 .fab:hover {
-    background-color: var(--cv-dark-primary-blue, #0056b3); /* Darken for hover, use theme variable if available */
-    transform: translateY(-2px); /* Slight lift on hover */
+    /* iOS FAB hover usually involves a subtle scale and shadow change, not typically color change */
+    filter: brightness(95%); /* Slightly darken the primary blue */
+    transform: scale(1.05); /* Slight scale up on hover */
+    box-shadow: var(--current-shadow-lg); /* More pronounced shadow on hover */
 }
 
 .fab:active {
-    transform: translateY(0px); /* Press down effect */
+    transform: scale(0.95); /* Press down effect */
+    filter: brightness(85%); /* Darker for active state */
+    box-shadow: var(--current-shadow-sm); /* Less shadow when pressed */
 }
 
 /* Container e menu de opções do FAB */
-.fab-menu {
+.fab-menu { /* This is the overall container for the FAB and its potential menu options */
     position: fixed;
-    bottom: var(--cv-spacing-lg, 20px);
+    bottom: var(--cv-spacing-lg, 20px); /* Keep consistent with FAB position */
     right: var(--cv-spacing-lg, 20px);
-    z-index: 1050;
+    z-index: 1049; /* Slightly below the FAB itself if FAB is part of this, or same if FAB is separate */
+    display: flex;
+    flex-direction: column-reverse; /* Options appear above the FAB */
+    align-items: flex-end; /* Align options to the right, matching FAB */
 }
 
 body.has-bottom-nav .fab-menu {
     bottom: calc(70px + var(--cv-spacing-lg, 20px) + env(safe-area-inset-bottom, 0));
 }
+
+/* This is the actual button that triggers the menu, style it like the .fab above */
+/* If .fab-menu-button is the same as .fab, ensure only one is used in HTML or styles are merged */
+/* For this example, assuming .fab is the button and .fab-menu is just a wrapper for positioning options */
+
 .fab-menu-options {
     position: absolute;
     bottom: 96px;
-    right: var(--cv-spacing-md, 16px);
+    right: var(--cv-spacing-md);
     display: none;
     flex-direction: column;
-    gap: var(--cv-spacing-xs, 5px);
+    gap: var(--cv-spacing-sm, 8px);
     background-color: var(--current-bg-white);
     padding: var(--cv-spacing-sm, 8px);
     border-radius: var(--cv-border-radius-lg, 14px);
     box-shadow: 0 12px 24px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.1);
+    min-width: 180px;
     z-index: 1051;
 }
 html[data-theme="dark"] .fab-menu-options {
@@ -1011,7 +1106,44 @@ html[data-theme="dark"] .fab-menu-options {
 }
 .fab-menu-options .cv-button {
     width: 100%;
-    justify-content: flex-start;
+    justify-content: center; /* Changed from flex-start to center */
+}
+
+/* If the FAB itself is part of .fab-menu and not a separate element outside it: */
+.fab-menu > .fab {
+     z-index: 1050;
+}
+
+@media (max-width: 767px) {
+    .fab {
+        width: 60px; /* Smaller FAB */
+        height: 60px;
+        font-size: var(--cv-font-size-md, 18px); /* Adjusted icon size if needed */
+    }
+
+    .fab-menu {
+        /* Ensure it's above bottom nav by default on mobile if bottom nav is a possibility */
+        /* This might be slightly different from body.has-bottom-nav .fab-menu if specific conditions apply */
+        bottom: calc(var(--cv-spacing-md, 16px) + env(safe-area-inset-bottom, 0));
+        right: var(--cv-spacing-md, 16px);
+    }
+
+    body.has-bottom-nav .fab {
+        /* Explicitly adjust FAB itself if its direct parent isn't .fab-menu or if more specific positioning is needed */
+         bottom: calc(70px + var(--cv-spacing-md, 16px) + env(safe-area-inset-bottom, 0));
+    }
+
+    body.has-bottom-nav .fab-menu {
+        /* This rule was already present but ensure it's evaluated correctly with mobile adjustments */
+        /* Higher positioning for FAB menu when bottom nav is visible */
+        bottom: calc(70px + var(--cv-spacing-md, 16px) + env(safe-area-inset-bottom, 0));
+    }
+
+    .fab-menu-options {
+        /* Adjust position of options menu relative to the now smaller/repositioned FAB */
+        bottom: 76px; /* Approx 60px (new FAB height) + 16px spacing */
+        right: var(--cv-spacing-sm, 8px); /* Closer to edge if FAB is also closer */
+    }
 }
 
 
@@ -1045,22 +1177,179 @@ html[data-theme="dark"] .fab-menu-options {
 
 .cv-modal-content {
     background-color: var(--current-bg-white);
-    padding: var(--cv-spacing-lg); /* e.g. 24px */
-    border: none; /* Remove default border, rely on shadow and bg */
-    width: 100%; /* Take full width of padding container on small screens */
-    max-width: 560px; /* Apple modals are often not excessively wide */
-    border-radius: var(--cv-border-radius-lg); /* e.g. 12px, consistent with other elements */
+    padding: 0; /* Remove padding here, will be handled by header/body/footer sections */
+    border: none;
+    width: 100%;
+    max-width: 500px; /* Slightly smaller max-width, common for iOS alerts/modals */
+    border-radius: var(--cv-border-radius-lg, 14px); /* iOS often uses larger radii like 13-14px for modals */
     position: relative;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1), 0 20px 60px rgba(0,0,0,0.15); /* Softer, more layered shadow */
-    max-height: calc(100vh - (var(--cv-spacing-md) * 2)); /* Ensure modal fits with padding */
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.1); /* Adjusted shadow */
+
+    display: flex; /* Use flex to structure header, body, footer */
+    flex-direction: column;
+    max-height: calc(100dvh - var(--cv-spacing-xl) * 2.5); /* Adjusted max-height */
+    max-height: calc(100vh - var(--cv-spacing-xl) * 2.5); /* Fallback for older browsers */
     overflow-y: auto;
-    animation: cv-modal-scale-up 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+
+    animation: cv-modal-scale-up 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Faster, more iOS-like spring */
 }
 
 html[data-theme="dark"] .cv-modal-content {
-     background-color: var(--cv-dark-gray-200); /* Slightly darker element background for modals in dark mode */
-     box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 20px 60px rgba(0,0,0,0.35);
+     background-color: var(--cv-dark-gray-200);
+     box-shadow: 0 12px 24px rgba(0,0,0,0.3), 0 20px 40px rgba(0,0,0,0.3);
 }
+
+/* Utility padding for modals that don't use header/body sections */
+.cv-modal-content--padded {
+    padding: var(--cv-spacing-lg);
+}
+
+.cv-modal-header {
+    padding: var(--cv-spacing-md) var(--cv-spacing-lg);
+    border-bottom: 1px solid var(--current-border-subtle);
+    display: flex;
+    /* justify-content: space-between; */ /* Replaced by specific title/close button handling */
+    align-items: center;
+    min-height: 56px; /* Standard iOS header height */
+    box-sizing: border-box;
+    position: relative; /* For absolute positioning of close button if needed */
+}
+html[data-theme="dark"] .cv-modal-header {
+    border-bottom-color: var(--cv-dark-gray-400);
+}
+
+.cv-modal-header h2 { /* Modal Title */
+    margin: 0;
+    font-size: var(--cv-font-size-lg);
+    color: var(--current-text-primary);
+    font-weight: 600;
+    line-height: 1.3;
+    text-align: center;
+    flex-grow: 1;
+    padding-left: 40px; /* Make space for close button if it's on the left */
+    padding-right: 40px; /* Make space for close button if it's on the right */
+    /* This padding assumes the close button is roughly 30px + 10px spacing */
+}
+/* The .cv-modal-close button is expected to be absolutely positioned or handled by flex order */
+/* If close button is always on right: */
+.cv-modal-header .cv-modal-close {
+    position: absolute; /* Simpler to manage for true centering of title */
+    right: var(--cv-spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+}
+/* If title should be truly centered regardless of close button, and close is part of flex: */
+/* .cv-modal-header { justify-content: center; } */
+/* .cv-modal-header h2 { flex-grow: 0; } */
+/* .cv-modal-header .cv-modal-close { position: absolute; right: var(--cv-spacing-md); ... } */
+/* For this iteration, absolute positioning of close button is robust for title centering. */
+
+
+.cv-modal-body {
+    padding: var(--cv-spacing-lg);
+    overflow-y: auto;
+    flex-grow: 1;
+    -webkit-overflow-scrolling: touch;
+    font-size: var(--cv-font-size-md); /* Standard body text size */
+    line-height: 1.5;
+}
+.cv-modal-body p:first-child {
+    margin-top: 0;
+}
+.cv-modal-body p:last-child {
+    margin-bottom: 0;
+}
+
+.cv-modal-footer {
+    padding: var(--cv-spacing-sm) var(--cv-spacing-lg); /* Reduced padding for a tighter footer */
+    border-top: 1px solid var(--current-border-subtle);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--cv-spacing-sm);
+    background-color: var(--current-bg-white);
+    border-bottom-left-radius: var(--cv-border-radius-lg, 14px);
+    border-bottom-right-radius: var(--cv-border-radius-lg, 14px);
+    min-height: 50px; /* Min height for footer */
+    align-items: center; /* Vertically align buttons if they have different heights */
+    box-sizing: border-box;
+}
+html[data-theme="dark"] .cv-modal-footer {
+    background-color: var(--cv-dark-gray-200);
+    border-top-color: var(--cv-dark-gray-400);
+}
+
+/* Default modal buttons in footer (non-alert style) */
+.cv-modal-footer .cv-button {
+    /* Use the new button styles by default */
+    /* Example: make primary button more prominent if needed */
+}
+.cv-modal-footer .cv-button.cv-button--primary {
+    /* font-weight: 600; */ /* Already handled by button style itself */
+}
+
+
+/* iOS-style Alert/Dialog buttons in footer */
+.cv-modal-footer.cv-modal-footer--ios-alert {
+    justify-content: center;
+    padding: 0;
+    gap: 0;
+    border-top-color: var(--current-border-color); /* Thicker/more visible separator for alert buttons */
+}
+html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert {
+    border-top-color: var(--cv-dark-gray-500); /* Even more distinct separator for dark mode alerts */
+}
+
+.cv-modal-footer.cv-modal-footer--ios-alert .cv-button {
+    flex-grow: 1;
+    border-radius: 0;
+    margin: 0;
+    padding-top: var(--cv-spacing-md);
+    padding-bottom: var(--cv-spacing-md);
+    font-size: var(--cv-font-size-md);
+    min-height: 48px; /* Slightly taller alert buttons */
+    border: none; /* Remove individual button borders */
+    /* border-top: 1px solid var(--current-border-subtle); */ /* Top border is now on the footer itself */
+    background-color: transparent; /* Alert buttons are typically transparent */
+    color: var(--current-primary-blue); /* Default action color */
+}
+.cv-modal-footer.cv-modal-footer--ios-alert .cv-button:not(:first-child) {
+    border-left: 1px solid var(--current-border-color); /* Vertical separators */
+}
+html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button {
+    color: var(--cv-dark-primary-blue);
+}
+html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:not(:first-child) {
+    border-left-color: var(--cv-dark-gray-500);
+}
+
+.cv-modal-footer.cv-modal-footer--ios-alert .cv-button.cv-button--primary, /* Preferred action */
+.cv-modal-footer.cv-modal-footer--ios-alert .cv-button:last-child:not(.cv-button--destructive) { /* Or last button if not destructive */
+    font-weight: 600;
+}
+.cv-modal-footer.cv-modal-footer--ios-alert .cv-button.cv-button--destructive {
+    color: var(--current-semantic-error);
+    font-weight: 400;
+}
+html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button.cv-button--destructive {
+    color: var(--cv-dark-semantic-error);
+}
+.cv-modal-footer.cv-modal-footer--ios-alert .cv-button.cv-button--destructive.cv-button--primary {
+    font-weight: 600;
+}
+/* Hover/Active for iOS alert buttons */
+.cv-modal-footer.cv-modal-footer--ios-alert .cv-button:hover {
+    background-color: var(--cv-gray-100-alpha-50);
+}
+html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:hover {
+    background-color: var(--cv-dark-gray-100-alpha-50);
+}
+.cv-modal-footer.cv-modal-footer--ios-alert .cv-button:active {
+    background-color: var(--cv-gray-200-alpha-70);
+}
+html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:active {
+    background-color: var(--cv-dark-gray-200-alpha-70);
+}
+
 
 @keyframes cv-modal-scale-up {
     from {
@@ -1073,19 +1362,21 @@ html[data-theme="dark"] .cv-modal-content {
     }
 }
 
-.cv-modal-content h2 { /* Modal Title */
+/* Remove old global .cv-modal-content h2 and .cv-modal-close as they are now part of .cv-modal-header */
+/*
+.cv-modal-content h2 {
     margin-top: 0;
-    font-size: var(--cv-font-size-h3); /* 1.5rem */
+    font-size: var(--cv-font-size-h3);
     color: var(--current-text-primary);
     border-bottom: 1px solid var(--current-border-subtle);
-    padding-bottom: var(--cv-spacing-md); /* Increased padding for title section */
-    margin-bottom: var(--cv-spacing-lg); /* Increased margin after title */
-    font-weight: 600; /* Semibold */
+    padding-bottom: var(--cv-spacing-md);
+    margin-bottom: var(--cv-spacing-lg);
+    font-weight: 600;
 }
-
-.cv-modal-close {
+*/
+.cv-modal-close { /* This is the actual close button, typically an 'X' icon */
     color: var(--current-text-placeholder);
-    background-color: var(--cv-gray-200); /* Light gray background for the button itself */
+    background-color: transparent; /* iOS close buttons are often just icons */
     border-radius: 50%; /* Circular button */
     width: 30px;
     height: 30px;
@@ -1099,21 +1390,32 @@ html[data-theme="dark"] .cv-modal-content {
     font-weight: normal; /* Not too bold */
     line-height: 1;
     text-decoration: none;
-    transition: background-color 0.2s ease, color 0.2s ease;
-}
-html[data-theme="dark"] .cv-modal-close {
-    background-color: var(--cv-dark-gray-400);
-    color: var(--cv-dark-text-placeholder);
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease-out;
 }
 
 .cv-modal-close:hover,
 .cv-modal-close:focus {
-    color: var(--current-text-primary);
-    background-color: var(--cv-gray-300); /* Darken background on hover */
+    color: var(--current-primary-blue); /* Use primary color for icon on hover */
+    background-color: var(--cv-gray-200); /* Slightly lighter hover for light theme */
     outline: none;
     text-decoration: none;
     cursor: pointer;
+    transform: scale(1.1); /* Add a slight scale effect */
 }
+
+html[data-theme="dark"] .cv-modal-close {
+    /* Default state for dark theme - can be same as light or adjusted if needed */
+    /* background-color: var(--cv-dark-gray-300); /* Slightly darker than element bg */
+    /* color: var(--cv-dark-text-placeholder); */
+    /* No specific dark theme default override needed if light theme defaults are fine */
+}
+
+html[data-theme="dark"] .cv-modal-close:hover,
+html[data-theme="dark"] .cv-modal-close:focus {
+    color: var(--cv-dark-primary-blue); /* Dark theme primary blue for icon */
+    background-color: var(--cv-dark-gray-500); /* Darker hover for dark theme */
+}
+
 
 /* Basic form layout */
 .cv-form {
@@ -1909,3 +2211,6 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     display: flex;
     gap: var(--cv-spacing-xs);
 }
+
+
+body.cv-modal-open { overflow: hidden; }

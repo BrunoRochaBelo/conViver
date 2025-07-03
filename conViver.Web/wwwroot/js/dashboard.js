@@ -1,9 +1,17 @@
 import apiClient, { ApiError } from './apiClient.js';
 import { requireAuth, getUserRoles } from './auth.js';
-import { formatCurrency, formatDate, showGlobalFeedback, debugLog } from './main.js'; // Updated import
+import {
+    formatCurrency,
+    formatDate,
+    showGlobalFeedback,
+    createErrorStateElement, // Adicionado
+    createEmptyStateElement, // Adicionado
+    showSkeleton,            // Adicionado
+    hideSkeleton             // Adicionado
+    , debugLog
+} from './main.js';
 import messages from './messages.js';
 import { initFabMenu } from './fabMenu.js';
-import { showFeedSkeleton, hideFeedSkeleton } from './skeleton.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     requireAuth(); // Ensures user is authenticated before proceeding
@@ -19,11 +27,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const inadimplenciaChartCanvas = document.getElementById('inadimplenciaChart');
     let inadimplenciaChartInstance = null; // Para manter a instância do gráfico
 
-    const dashboardSkeleton = document.getElementById('dashboard-skeleton');
-    // Loading indicator (simple text for now, could be a spinner) - Kept for local loading messages if still desired
-    const showLoading = (container, message = "Carregando...") => {
-        if (container) container.innerHTML = `<p class="loading-message">${message}</p>`;
-    };
+    // Referência ao container principal do conteúdo do dashboard para ErrorState global
+    const dashboardContentWrapper = document.querySelector('.dashboard-layout'); // Assumindo que .dashboard-layout engloba todo o conteúdo mutável
+
+    // Skeletons para seções individuais (IDs ou classes que devem estar no HTML)
+    const metricasSkeleton = document.getElementById('metricas-skeleton'); // Exemplo de ID
+    const alertasSkeleton = document.getElementById('alertas-skeleton');
+    const atividadesSkeleton = document.getElementById('atividades-skeleton');
+    const chartSkeleton = document.getElementById('chart-skeleton'); // Para a área do gráfico
+
+    // O dashboardSkeleton global pode ser usado para cobrir tudo inicialmente
+    const globalDashboardSkeleton = document.getElementById('dashboard-skeleton');
+
 
     const clearAllSections = () => {
         if (inadimplenciaPercentEl) inadimplenciaPercentEl.textContent = '--%';
@@ -63,10 +78,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.warn('Dados de inadimplência não disponíveis para o gráfico.');
             const ctx = inadimplenciaChartCanvas.getContext('2d');
             ctx.clearRect(0, 0, inadimplenciaChartCanvas.width, inadimplenciaChartCanvas.height);
-            // Optionally display a message on the canvas
-            // ctx.font = "14px Arial";
-            // ctx.textAlign = "center";
-            // ctx.fillText("Dados do gráfico indisponíveis", inadimplenciaChartCanvas.width/2, inadimplenciaChartCanvas.height/2);
+
+            // Exibir mensagem diretamente no canvas
+            ctx.font = "14px 'Open Sans', sans-serif";
+            ctx.fillStyle = 'var(--current-text-secondary, #6c757d)';
+            ctx.textAlign = "center";
+            ctx.fillText("Dados do gráfico indisponíveis", inadimplenciaChartCanvas.width / 2, inadimplenciaChartCanvas.height / 2);
+
+            // Se houvesse um container HTML para o gráfico, poderíamos usar EmptyState:
+            // const chartContainer = inadimplenciaChartCanvas.parentNode;
+            // if (chartContainer) {
+            //     chartContainer.innerHTML = ''; // Limpa o canvas anterior
+            //     const emptyState = createEmptyStateElement({ title: "Gráfico Indisponível", description: "Não há dados para exibir o gráfico de inadimplência."});
+            //     chartContainer.appendChild(emptyState);
+            // }
             return;
         }
 
@@ -162,7 +187,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                     proximasDespesasEl.appendChild(li);
                 });
             } else {
-                proximasDespesasEl.innerHTML = '<li>Nenhuma despesa próxima.</li>';
+                // proximasDespesasEl.innerHTML = '<li>Nenhuma despesa próxima.</li>';
+                proximasDespesasEl.innerHTML = ''; // Clear before adding empty state
+                const emptyState = createEmptyStateElement({
+                    title: "Sem Próximas Despesas",
+                    description: "Nenhuma despesa com vencimento próximo encontrada.",
+                    iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="32px" height="32px"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>`, // Icon for finance/calendar
+                    actionButton: {
+                        text: "Ver Financeiro",
+                        onClick: () => { window.location.href = 'financeiro.html'; }, // Navigate to financeiro page
+                        classes: ["cv-button--secondary", "cv-button--small"]
+                    }
+                });
+                proximasDespesasEl.appendChild(emptyState);
             }
         }
         renderInadimplenciaChart(metricas); // Call chart rendering
@@ -197,9 +234,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 container.appendChild(alertItemDiv);
             });
         } else {
-            const noAlertsMessage = document.createElement('p');
-            noAlertsMessage.textContent = 'Nenhum alerta no momento.';
-            container.appendChild(noAlertsMessage);
+            // container.innerHTML = ''; // Já feito no início da função
+            const emptyState = createEmptyStateElement({
+                iconHTML: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="32px" height="32px"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>`, // Ícone de sino
+                title: "Sem Alertas",
+                description: "Nenhum alerta novo para exibir no momento.",
+                // Assuming there isn't a dedicated "all alerts" page. If there were, an actionButton could be:
+                // actionButton: {
+                //     text: "Ver Todos os Alertas",
+                //     onClick: () => { window.location.href = '/alertas.html'; },
+                //     classes: ["cv-button--secondary", "cv-button--small"]
+                // }
+            });
+            container.appendChild(emptyState);
         }
     }
 
@@ -211,26 +258,67 @@ document.addEventListener('DOMContentLoaded', async () => {
         const filteredAtividades = atividades ? atividades.filter(a => a.tipo === tipo) : [];
 
         if (filteredAtividades.length > 0) {
+            const ul = document.createElement('ul'); // Garante que é uma lista
+            ul.className = 'db-activity-list'; // Adiciona uma classe para estilização se necessário
             filteredAtividades.forEach(atividade => {
                 const li = document.createElement('li');
-                const cleanDescricao = atividade.descricao.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                li.textContent = `${cleanDescricao} (Ocorrido em: ${formatDate(new Date(atividade.dataOcorrencia))})`;
-                container.appendChild(li);
+                // Sanitizar a descrição é uma boa prática, mas se a API já retorna texto seguro, pode ser opcional.
+                // A substituição de < > é uma sanitização muito básica. Considerar bibliotecas se o HTML for complexo.
+                const cleanDescricao = atividade.descricao // .replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                li.innerHTML = `<strong>${tipo}:</strong> ${cleanDescricao} <span class="text-muted">(${formatDate(new Date(atividade.dataOcorrencia))})</span>`;
+                ul.appendChild(li);
             });
+            container.appendChild(ul);
         } else {
-            container.innerHTML = `<li>${placeholderMessage}</li>`;
+            let icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="32px" height="32px"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 12H5V5h14v9z"/></svg>`; // Ícone de chat/lista
+            if (tipo === "Aviso") {
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="32px" height="32px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>`; // Ícone de aviso/info
+            }
+            let actionButton = null;
+            if (tipo === "Chamado") {
+                actionButton = {
+                    text: "Ver Solicitações",
+                    onClick: () => { window.location.href = 'comunicacao.html#solicitacoes'; }, // Navigate to solicitacoes tab
+                    classes: ["cv-button--secondary", "cv-button--small"]
+                };
+            } else if (tipo === "Aviso") {
+                actionButton = {
+                    text: "Ver Mural",
+                    onClick: () => { window.location.href = 'comunicacao.html#mural'; }, // Navigate to mural
+                    classes: ["cv-button--secondary", "cv-button--small"]
+                };
+            }
+
+            const emptyState = createEmptyStateElement({
+                iconHTML: icon,
+                title: tipo === "Chamado" ? "Sem Solicitações Recentes" : "Sem Avisos Recentes",
+                description: placeholderMessage, // Usa o placeholderMessage como descrição
+                actionButton: actionButton
+            });
+            container.appendChild(emptyState);
         }
     }
 
     async function carregarDadosDashboard() {
-        if (dashboardSkeleton) showFeedSkeleton(dashboardSkeleton);
+        // Remover ErrorState anterior, se houver
+        if (dashboardContentWrapper) {
+            const existingErrorState = dashboardContentWrapper.querySelector('.cv-error-state');
+            if (existingErrorState) existingErrorState.remove();
+            // Garantir que o conteúdo principal (onde os cards/skeletons vão) esteja visível
+            const mainDashboardArea = dashboardContentWrapper.querySelector('.dashboard-grid-container'); // Supondo uma classe para a área de conteúdo
+            if (mainDashboardArea) mainDashboardArea.style.display = '';
+        }
 
-        // Set loading states for all sections (local indicators can remain or be removed if global is sufficient)
-        showLoading(inadimplenciaPercentEl.parentNode, 'Carregando métricas...');
-        showLoading(alertasEl, '<p>Carregando alertas...</p>');
-        showLoading(ultimosChamadosEl.parentNode.parentNode, 'Carregando atividades...');
+        // Mostrar skeletons individuais ou um global
+        if (globalDashboardSkeleton) showSkeleton(globalDashboardSkeleton);
+        // Ou, para granularidade:
+        // if (metricasSkeleton) showSkeleton(metricasSkeleton);
+        // if (alertasSkeleton) showSkeleton(alertasSkeleton);
+        // if (atividadesSkeleton) showSkeleton(atividadesSkeleton);
+        // if (chartSkeleton) showSkeleton(chartSkeleton);
 
-        // Clear previous chart if any
+
+        // Limpar gráfico anterior
         if (inadimplenciaChartInstance) {
             inadimplenciaChartInstance.destroy();
             inadimplenciaChartInstance = null;
@@ -242,41 +330,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             debugLog('Buscando dados do dashboard...');
-            const dados = await apiClient.get('/dashboard/geral');
+            // apiClient.get pode ser modificado para não precisar passar o skeleton global se vamos controlar por seção
+            const dados = await apiClient.get('/dashboard/geral' /*, { showSkeleton: globalDashboardSkeleton } */);
             debugLog('Dados recebidos:', dados);
-
-            // Clear local loading messages (optional, as global feedback is present)
-            // clearLoading(inadimplenciaPercentEl.parentNode, '');
-            // clearLoading(alertasEl, '<p>Nenhum alerta no momento.</p>');
-            // clearLoading(ultimosChamadosEl.parentNode.parentNode, '');
 
             if (dados) {
                 renderMetricas(dados.metricas || null);
-                renderAlertas(dados.alertas, alertasEl);
+                renderAlertas(dados.alertas, alertasEl); // `alertasEl` é o container, renderAlertas o preenche
                 renderAtividades(dados.atividadesRecentes, ultimosChamadosEl, "Chamado", "Nenhum chamado recente.");
                 renderAtividades(dados.atividadesRecentes, ultimosAvisosEl, "Aviso", "Nenhum aviso recente.");
             } else {
-                showGlobalFeedback("Não foi possível carregar os dados do dashboard. Resposta vazia.", 'error');
-                clearAllSections();
+                // Se dados for null/undefined mas não houve exceção (improvável com apiClient)
+                throw new ApiError("Resposta vazia do servidor ao carregar dados do dashboard.", null, null, "Resposta inesperada");
             }
         } catch (error) {
             console.error('Erro ao carregar o dashboard:', error);
-            clearAllSections();
-            let errorMessage = 'Ocorreu um erro inesperado ao carregar o dashboard.';
-            if (error instanceof ApiError) {
-                if (!error.status) {
-                    errorMessage = messages.erroConexao;
-                } else if (error.status >= 500) {
-                    errorMessage = messages.erroServidor;
-                } else {
-                    errorMessage = error.message;
-                }
-            } else if (error.message) {
-                errorMessage = error.message;
+
+            if (dashboardContentWrapper) {
+                // Esconder o conteúdo principal do dashboard para dar lugar ao ErrorState
+                const mainDashboardArea = dashboardContentWrapper.querySelector('.dashboard-grid-container');
+                if (mainDashboardArea) mainDashboardArea.style.display = 'none';
+
+                const errorState = createErrorStateElement({
+                    title: "Falha ao Carregar o Dashboard",
+                    message: error.message || "Não foi possível buscar os dados do dashboard. Verifique sua conexão e tente novamente.",
+                    retryButton: {
+                        text: "Tentar Novamente",
+                        onClick: carregarDadosDashboard // Chama a própria função para tentar novamente
+                    }
+                });
+                // Adiciona o error state ao wrapper principal do dashboard
+                dashboardContentWrapper.appendChild(errorState);
+            } else {
+                // Fallback se o wrapper não for encontrado
+                clearAllSections(); // Comportamento antigo
+                showGlobalFeedback(error.message || 'Ocorreu um erro inesperado ao carregar o dashboard.', 'error');
             }
-            showGlobalFeedback(errorMessage, 'error');
         } finally {
-            if (dashboardSkeleton) hideFeedSkeleton(dashboardSkeleton);
+            if (globalDashboardSkeleton) hideSkeleton(globalDashboardSkeleton);
+            // Ou, para granularidade:
+            // if (metricasSkeleton) hideSkeleton(metricasSkeleton);
+            // if (alertasSkeleton) hideSkeleton(alertasSkeleton);
+            // if (atividadesSkeleton) hideSkeleton(atividadesSkeleton);
+            // if (chartSkeleton) hideSkeleton(chartSkeleton);
         }
     }
 

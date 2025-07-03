@@ -1,15 +1,11 @@
-import { showGlobalFeedback, createErrorStateElement, createEmptyStateElement, debugLog, showModalError, clearModalError } from "./main.js";
+import { showGlobalFeedback, createErrorStateElement, createEmptyStateElement, debugLog, showModalError, clearModalError, openModal, closeModal } from "./main.js";
 import { requireAuth, getUserInfo, getRoles } from "./auth.js";
 import apiClient from "./apiClient.js";
 import { initFabMenu } from "./fabMenu.js";
 
 // FullCalendar (global)
-const {
-  Calendar: FullCalendarCalendar,
-  dayGridPlugin,
-  timeGridPlugin,
-  listPlugin,
-} = window.FullCalendar || {};
+const FullCalendarCalendar = window.FullCalendar?.Calendar;
+// Os plugins (dayGridPlugin, timeGridPlugin, listPlugin) são incluídos automaticamente pelo bundle standard index.global.min.js
 
 // --- State & Constants ---
 let espacosComunsList = [];
@@ -177,9 +173,9 @@ function setupEventListeners() {
   // Botões do Modal de Filtros
   if (filtrosModal) {
     filtrosModal.querySelectorAll(".js-modal-filtros-reservas-close").forEach(btn =>
-      btn.addEventListener("click", () => filtrosModal.style.display = "none")
+      btn.addEventListener("click", () => closeModal(filtrosModal))
     );
-    window.addEventListener("click", (e) => { if (e.target === filtrosModal) filtrosModal.style.display = "none"; });
+    window.addEventListener("click", (e) => { if (e.target === filtrosModal) closeModal(filtrosModal); });
     if (aplicarFiltrosModalButton) aplicarFiltrosModalButton.addEventListener("click", aplicarFiltrosDoModal);
     if (limparFiltrosModalButton) limparFiltrosModalButton.addEventListener("click", limparFiltrosDoModal);
   }
@@ -189,7 +185,7 @@ function setupEventListeners() {
     openSortReservasButton.addEventListener("click", () => {
       if (modalSortReservas) {
         sortOrderSelectReservas.value = currentReservasSortOrder; // Supondo que currentReservasSortOrder existe
-        modalSortReservas.style.display = "flex";
+        openModal(modalSortReservas);
         openSortReservasButton.classList.add("rotated");
       }
     });
@@ -198,13 +194,13 @@ function setupEventListeners() {
   if (modalSortReservas) {
     modalSortReservas.querySelectorAll(".js-modal-sort-reservas-close").forEach(btn => {
       btn.addEventListener("click", () => {
-        modalSortReservas.style.display = "none";
+        closeModal(modalSortReservas);
         if (openSortReservasButton) openSortReservasButton.classList.remove("rotated");
       });
     });
     window.addEventListener("click", (event) => {
       if (event.target === modalSortReservas) {
-        modalSortReservas.style.display = "none";
+        closeModal(modalSortReservas);
         if (openSortReservasButton) openSortReservasButton.classList.remove("rotated");
       }
     });
@@ -226,7 +222,12 @@ function setupModalCrudListeners() {
     const modalNovaReserva = document.getElementById("modal-nova-reserva");
     const formNovaReserva = document.getElementById("form-nova-reserva");
     if (modalNovaReserva) {
-        modalNovaReserva.querySelector(".js-modal-nova-reserva-close")?.addEventListener("click", () => modalNovaReserva.style.display = "none");
+        // Adiciona listener para todos os botões de fechar dentro do modal de nova reserva
+        modalNovaReserva.querySelectorAll(".js-modal-nova-reserva-close").forEach(btn => {
+            btn.addEventListener("click", () => {
+                modalNovaReserva.style.display = "none";
+            });
+        });
         window.addEventListener("click", (e) => { if (e.target === modalNovaReserva) modalNovaReserva.style.display = "none"; });
         formNovaReserva?.addEventListener("submit", handleSalvarReservaFormSubmit);
     }
@@ -1020,13 +1021,21 @@ function createEspacoCard(espaco) { // Para a lista de gerenciamento de espaços
 // --- FullCalendar ---
 function initializeFullCalendar() {
   const el = document.getElementById("calendario-reservas");
-  if (!el || !FullCalendarCalendar) {
-    console.error("Elemento do FullCalendar ou biblioteca não encontrados.");
+  if (!el) {
+    console.error("Elemento do FullCalendar (#calendario-reservas) não encontrado.");
+    return;
+  }
+  if (!FullCalendarCalendar) {
+    console.error("Biblioteca FullCalendar não encontrada globalmente (FullCalendar.Calendar). Verifique se o bundle index.global.min.js está carregado corretamente.");
     return;
   }
   calendarioReservas = new FullCalendarCalendar(el, {
     locale: "pt-br",
-    plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
+    // Não é necessário listar os plugins aqui se estiver usando o bundle standard (index.global.min.js)
+    // que já os inclui (dayGrid, timeGrid, list).
+    // plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
+    nowIndicator: true, // Adiciona o indicador de hora atual
+    // height: 'parent', // REVERTIDO - Deixar FullCalendar gerenciar altura automaticamente (padrão 'auto')
     initialView: "dayGridMonth",
     headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay" },
     buttonText: { today: "Hoje", month: "Mês", week: "Semana", day: "Dia", list: "Lista" },

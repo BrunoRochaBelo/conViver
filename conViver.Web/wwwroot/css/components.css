@@ -1,60 +1,112 @@
 .cv-button {
     /* ... existing display, text-align, etc. ... */
     font-family: var(--cv-font-family-sans-serif);
-    font-weight: 600;
+    font-weight: 500; /* iOS uses medium weight more often than semibold */
     padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* e.g., 8px 16px */
-    border-radius: var(--cv-border-radius-md); /* e.g., 8px */
+    border-radius: var(--cv-border-radius-md); /* e.g., 8px - iOS often uses slightly smaller radii for buttons, like 6-8px */
     border: var(--cv-border-width) solid transparent;
     cursor: pointer;
-    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.15s ease-in-out;
+    transition: background-color 0.15s ease-out, color 0.15s ease-out, border-color 0.15s ease-out, box-shadow 0.15s ease-out, transform 0.1s ease-out;
     background-color: var(--current-button-default-bg);
-    color: var(--current-text-primary);
+    color: var(--current-text-link); /* Default buttons in iOS often use the tint color for text */
+    min-height: 44px; /* iOS touch target size guideline */
+    display: inline-flex; /* To align text and potential icons */
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2; /* Adjust line height for better vertical centering if needed */
 }
 .cv-button:hover {
     background-color: var(--current-button-default-hover-bg);
-    box-shadow: var(--current-shadow-sm);
+    /* iOS doesn't typically use shadow on default button hover, but a subtle brightness change */
+    filter: brightness(95%);
 }
 .cv-button:active {
-    transform: scale(0.97);
+    transform: scale(0.96); /* Slightly more pronounced active scale */
+    background-color: var(--cv-gray-300); /* Darker shade for active state, consistent with iOS patterns */
+    filter: brightness(90%);
     box-shadow: none;
 }
 .cv-button--primary {
     background-color: var(--current-primary-blue);
     color: var(--current-text-on-primary);
     border-color: var(--current-primary-blue);
+    font-weight: 500; /* Medium weight for primary buttons too */
 }
 .cv-button--primary:hover {
-    /* For hover on primary, typically a slightly darker shade of its current color.
-       This requires either predefined darker shades for both light/dark primary blue,
-       or using filter: brightness(90%); which is simpler. Let's try filter. */
     filter: brightness(90%);
-    box-shadow: var(--current-shadow-sm);
+    box-shadow: none; /* iOS primary buttons usually don't have shadow on hover */
 }
 .cv-button--primary:active {
-    filter: brightness(80%); /* Even darker for active */
-    transform: scale(0.97);
-    box-shadow: none; /* Keep box-shadow none for primary active */
-}
-/* Add similar updates for --secondary, --danger, --info, :disabled states */
-/* Example for a generic secondary button, if it exists, or other variants */
-.cv-button--secondary {
-    background-color: var(--current-button-secondary-bg);
-    color: var(--current-text-on-primary); /* Assuming secondary buttons also have light text */
-    border-color: var(--current-button-secondary-bg);
-}
-.cv-button--secondary:hover {
-    background-color: var(--current-button-secondary-hover-bg);
-    border-color: var(--current-button-secondary-hover-bg);
-    box-shadow: var(--current-shadow-sm);
-}
-.cv-button--secondary:active {
-    filter: brightness(90%); /* Similar to primary, slightly darker on active */
-    transform: scale(0.97);
+    filter: brightness(80%);
+    transform: scale(0.96);
     box-shadow: none;
 }
 
+.cv-button--secondary {
+    background-color: var(--current-button-secondary-bg); /* This is a gray in the current vars */
+    color: var(--current-text-on-primary); /* Text on gray might need to be dark or light based on the gray */
+    border-color: var(--current-button-secondary-bg);
+    /* Let's adjust secondary to be more like iOS "gray" or "filled" buttons */
+    background-color: var(--cv-gray-200); /* System Gray 5 Light */
+    color: var(--current-text-primary); /* Black text on light gray */
+    border-color: var(--cv-gray-200);
+}
+html[data-theme="dark"] .cv-button--secondary {
+    background-color: var(--cv-dark-gray-400); /* System Gray 4 Dark */
+    color: var(--cv-dark-text-primary); /* White text on dark gray */
+    border-color: var(--cv-dark-gray-400);
+}
+.cv-button--secondary:hover {
+    filter: brightness(92%);
+    box-shadow: none;
+}
+.cv-button--secondary:active {
+    filter: brightness(85%);
+    transform: scale(0.96);
+    box-shadow: none;
+}
+
+/* iOS style "Tinted" button (like a default button but with a light tint background) */
+.cv-button--tinted {
+    background-color: var(--cv-primary-blue-alpha-15); /* Needs to be defined: var(--cv-primary-blue) with low alpha */
+    color: var(--current-primary-blue);
+    border-color: transparent;
+}
+html[data-theme="dark"] .cv-button--tinted {
+    background-color: var(--cv-dark-primary-blue-alpha-20); /* Needs to be defined */
+}
+.cv-button--tinted:hover {
+    filter: brightness(95%);
+}
+.cv-button--tinted:active {
+    filter: brightness(90%);
+    transform: scale(0.96);
+}
+
+/* iOS style "Borderless" or "Text" button - already similar to default .cv-button if bg is transparent */
+.cv-button--borderless {
+    background-color: transparent;
+    color: var(--current-text-link);
+    border-color: transparent;
+}
+.cv-button--borderless:hover {
+    background-color: var(--cv-gray-100-alpha-50); /* Very subtle hover, needs alpha var */
+    filter: none; /* Remove general hover filter if specific bg is used */
+}
+html[data-theme="dark"] .cv-button--borderless:hover {
+    background-color: var(--cv-dark-gray-100-alpha-50); /* Needs alpha var */
+}
+.cv-button--borderless:active {
+    background-color: var(--cv-gray-200-alpha-70); /* Subtle active, needs alpha var */
+    transform: scale(0.96);
+    filter: none;
+}
+
+
 .cv-button.icon-button {
-    padding: var(--cv-spacing-xs);
+    padding: var(--cv-spacing-xs); /* iOS icon buttons are often smaller */
+    min-height: 36px; /* Smaller touch target if purely iconic and small */
+    min-width: 36px; /* Ensure it's square or appropriately sized */
     width: 40px;
     height: 40px;
     display: flex;
@@ -71,6 +123,14 @@
     height: 8px;
     border-radius: 50%;
     background-color: var(--current-primary-blue);
+}
+
+/* Para animação de rotação do ícone */
+.cv-button.icon-button svg {
+    transition: transform 0.3s ease;
+}
+.cv-button.icon-button.rotated svg {
+    transform: rotate(180deg);
 }
 
 .cv-button:disabled,
@@ -409,8 +469,7 @@ html[data-theme="dark"] .cv-nav {
     border-radius: var(--cv-border-radius-md);
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.1s ease-in-out;
     font-weight: 500;
-    /* Increased gap for better separation between icon and label */
-    gap: var(--cv-spacing-sm);
+    gap: var(--cv-spacing-sm); /* Aumentado de xs para sm (4px para 8px) */
 }
 .cv-nav__icon {
     width: 20px;
@@ -452,15 +511,79 @@ html[data-theme="dark"] .cv-nav__link:hover {
 }
 
 .cv-nav__link--active {
-    background-color: var(--current-primary-blue);
-    color: var(--current-text-on-primary) !important; /* Ensure text color overrides default */
-    font-weight: 600; /* Semibold for active link */
-    box-shadow: 0 1px 3px rgba(0, 122, 255, 0.2); /* Subtle shadow for active link */
+    /* background-color: var(--current-primary-blue); */ /* Remove background color */
+    /* color: var(--current-text-on-primary) !important; */ /* Remove text color change to on-primary */
+    color: var(--current-primary-blue) !important; /* Ensure active link text is primary blue */
+    font-weight: 600; /* Semibold for active link - iOS often uses bold or a different weight for selected tab */
+    /* box-shadow: 0 1px 3px rgba(0, 122, 255, 0.2); */ /* Remove box shadow */
+
+    /* iOS style active tab indicator: often just a color change for the text/icon, or a subtle underline/pill */
+    /* Option 1: Just color change (already done by setting color to --current-primary-blue) */
+
+    /* Option 2: Subtle bottom border (more common in web, but can be iOS-like if minimal) */
+    /* border-bottom: 2px solid var(--current-primary-blue); */
+    /* padding-bottom: calc(var(--cv-spacing-sm) - 2px); */ /* Adjust padding to account for border */
+
+    /* Option 3: Pill shape background (less common for nav links, more for segmented controls) */
+    /* background-color: var(--cv-primary-blue-alpha-15); */ /* Light tinted background */
+    /* border-radius: 16px; */ /* Pill shape */
+    /* padding: var(--cv-spacing-xs) var(--cv-spacing-md); */ /* Adjust padding for pill */
+
+    /* Let's go with a simple text color change and font weight, which is very iOS like for tabs */
+    background-color: transparent; /* Explicitly ensure no background color from default state */
 }
 .cv-nav__link--active:hover {
-    background-color: var(--current-primary-blue); /* Keep background color */
-    filter: brightness(90%); /* Similar to primary button hover */
-    color: var(--current-text-on-primary); /* Keep text color */
+    /* background-color: var(--current-primary-blue); */ /* Remove background color on hover */
+    /* filter: brightness(90%); */ /* No filter needed if bg is transparent */
+    color: var(--current-primary-blue) !important; /* Keep text color as primary blue on hover */
+    background-color: rgba(0, 0, 0, 0.03); /* Very subtle hover for light mode active link */
+}
+html[data-theme="dark"] .cv-nav__link--active {
+    color: var(--cv-dark-primary-blue) !important; /* Ensure active link text is dark primary blue */
+}
+html[data-theme="dark"] .cv-nav__link--active:hover {
+    color: var(--cv-dark-primary-blue) !important; /* Keep text color */
+    background-color: rgba(255, 255, 255, 0.05); /* Very subtle hover for dark mode active link */
+}
+
+/* --- Mobile Nav Drawer --- */
+.cv-nav-hamburger {
+    background: none;
+    border: none;
+    padding: var(--cv-spacing-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+@media (min-width: 768px) {
+    .cv-nav-hamburger {
+        display: none;
+    }
+}
+
+.cv-nav--drawer {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: none;
+    z-index: 1040;
+}
+.cv-nav--drawer.open {
+    display: block;
+}
+.cv-nav--drawer__panel {
+    background-color: var(--current-bg-white);
+    width: 250px;
+    max-width: 80%;
+    height: 100%;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+.cv-nav--drawer.open .cv-nav--drawer__panel {
+    transform: translateX(0);
+}
+html[data-theme="dark"] .cv-nav--drawer__panel {
+    background-color: var(--cv-dark-gray-200);
 }
 
 /* === Bottom Navigation Bar === */
@@ -481,6 +604,7 @@ html[data-theme="dark"] .cv-bottom-nav {
     background-color: rgba(50, 50, 52, 0.8);
     border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
+
 .cv-bottom-nav__list {
     list-style: none;
     margin: 0;
@@ -488,6 +612,7 @@ html[data-theme="dark"] .cv-bottom-nav {
     display: flex;
     justify-content: space-around;
 }
+
 .cv-bottom-nav__link {
     display: flex;
     flex-direction: column;
@@ -497,6 +622,7 @@ html[data-theme="dark"] .cv-bottom-nav {
     font-size: 0.75rem;
     padding: var(--cv-spacing-xs);
 }
+
 .cv-bottom-nav__icon {
     width: 24px;
     height: 24px;
@@ -504,10 +630,6 @@ html[data-theme="dark"] .cv-bottom-nav {
 
 .cv-bottom-nav__label {
     line-height: 1;
-}
-.cv-bottom-nav__link--active {
-    color: var(--current-primary-blue);
-    font-weight: 600;
 }
 
 body.has-bottom-nav {
@@ -518,15 +640,27 @@ body.has-bottom-nav .fab-menu {
     bottom: calc(70px + var(--cv-spacing-lg, 20px) + env(safe-area-inset-bottom, 0));
 }
 
+
 body.has-bottom-nav #mainNav {
     display: none;
 }
+
+.cv-bottom-nav__link--active {
+    color: var(--current-primary-blue);
+    font-weight: 600;
+}
+
 @media (max-width: 767px) {
-    .cv-bottom-nav { display: block; }
+    .cv-bottom-nav {
+        display: block;
+    }
 }
 @media (min-width: 768px) {
-    .cv-bottom-nav { display: none; }
+    .cv-bottom-nav {
+        display: none;
+    }
 }
+
 
 /* Responsive Table Wrapper */
 .cv-table-responsive-wrapper {
@@ -593,17 +727,61 @@ body.has-bottom-nav #mainNav {
     border-radius: 50%;
 }
 /* User menu modal overrides */
-.user-menu-modal .cv-modal-content {
-    padding: var(--cv-spacing-xs);
+/* Assuming userMenuModal has the ID 'userMenuModal' or a specific class like '.user-menu-modal-instance' */
+/* Let's use a more specific selector if possible, e.g., #userMenuModal .cv-modal-content */
+/* For now, using .user-menu-modal class on the .cv-modal element */
+
+.user-menu-modal .cv-modal-content { /* Styles for the content box of the user menu */
+    padding: var(--cv-spacing-xs); /* Ensure inner elements have breathing room */
     display: flex;
     flex-direction: column;
-    max-width: 300px; /* Smaller max-width for user menu modal */
-    /* Ensure it still gets the primary modal animation and shadow from styles.css */
+    max-width: 280px; /* Smaller max-width for user menu modal, more like a popover */
+    border-radius: var(--cv-border-radius-md); /* Slightly smaller radius for popover feel */
+    box-shadow: var(--current-shadow-lg); /* Popovers often have a more distinct shadow */
+    /* Override general modal animation if a different one is desired, e.g., fade-in or slide-from-top */
+    /* animation: user-menu-pop-in 0.2s ease-out; */
+    /* margin-top: 60px; */ /* Control positioning with top/right */
+    /* margin-right: var(--cv-spacing-md); */ /* Control positioning with top/right */
+    margin-left: auto; /* Allows it to be pushed to the right by the parent .cv-modal flex centering */
+    position: absolute; /* Take it out of the normal flow of .cv-modal content centering */
+    top: calc(var(--cv-header-height, 60px) + var(--cv-spacing-sm)); /* Position below header; needs --cv-header-height var */
+    right: var(--cv-spacing-md);
+    width: auto; /* Let content dictate width up to max-width */
+    height: auto; /* Let content dictate height */
+    /* The parent .cv-modal provides the full screen overlay and initial centering.
+       These absolute positioning rules then place the .cv-modal-content specifically for the user menu. */
 }
+
+/* Define --cv-header-height in :root or where .cv-header is styled */
+/* Example, if header height is dynamic, JS might need to set this variable.
+   For a fixed example:
+   :root { --cv-header-height: 56px; }
+   @media (min-width: 768px) { :root { --cv-header-height: 68px; } }
+*/
+
+
 .user-menu-modal .cv-modal-header {
-    padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
-    min-height: auto;
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Increased padding */
+    min-height: auto; /* No strict min-height */
+    display: flex; /* Use flexbox for layout */
+    justify-content: space-between; /* Pushes title to left and close button to right */
+    align-items: center; /* Vertically aligns items */
+    position: relative; /* Needed for absolute positioning of close button if not using flex order */
 }
+.user-menu-modal .cv-modal-header h2.user-menu-username { /* Adjusted selector for specificity */
+    font-size: var(--cv-font-size-md);
+    text-align: left;
+    margin: 0; /* Remove default margins */
+    flex-grow: 1; /* Allows title to take available space */
+}
+
+.user-menu-modal .cv-modal-body {
+    padding: var(--cv-spacing-sm) 0; /* No horizontal padding if list items span full width */
+}
+.user-menu-modal .cv-modal-footer {
+    display: none; /* User menus typically don't have a footer with OK/Cancel */
+}
+
 .user-menu-modal .cv-modal-close {
     position: absolute;
     top: var(--cv-spacing-sm);
@@ -612,6 +790,8 @@ body.has-bottom-nav #mainNav {
     height: 24px;
     font-size: 16px;
 }
+
+
 .user-menu-list {
     list-style: none;
     margin: 0;
@@ -641,74 +821,93 @@ body.has-bottom-nav #mainNav {
 }
 
 /* Base for skeleton placeholder elements */
-.skeleton-title,
-.skeleton-line {
-    background-color: var(--current-skeleton-bg, var(--cv-gray-200)); /* Use a themeable color or fallback */
-    border-radius: 4px; /* Consistent border radius for placeholders */
-    margin-bottom: 10px; /* Spacing between lines */
+.skeleton-block {
+    background-color: var(--current-skeleton-bg, var(--cv-gray-200));
+    border-radius: var(--cv-border-radius-sm); /* Consistent 4px radius */
+    margin-bottom: var(--cv-spacing-sm); /* 8px */
+}
+.skeleton-block:last-child {
+    margin-bottom: 0;
 }
 
 /* Specifics for title placeholder */
 .skeleton-title {
     width: 60%;
-    height: 20px; /* Larger height for title */
+    height: 1.25rem; /* Approx 20px, aligns with --cv-font-size-xl */
+    margin-bottom: var(--cv-spacing-md); /* 16px, more space after a title */
 }
 
 /* Specifics for text line placeholders */
 .skeleton-line {
-    width: 100%; /* Full width by default */
-    height: 16px;
+    width: 100%;
+    height: 0.875rem; /* Approx 14px, aligns with --cv-font-size-base or md */
+}
+.skeleton-line--short { /* More descriptive class name */
+    width: 75%;
+}
+.skeleton-line--medium {
+    width: 90%;
+}
+.skeleton-line--long { /* Explicitly full width if needed, otherwise default is 100% */
+    width: 100%;
 }
 
-.skeleton-line.short {
-    width: 75%; /* Shorter line variant */
+
+/* For simulating an image placeholder */
+.skeleton-image {
+    width: 100%;
+    aspect-ratio: 16 / 9; /* Or common image aspect ratio */
+    margin-bottom: var(--cv-spacing-sm);
 }
 
-.skeleton-line:last-child {
-    margin-bottom: 0; /* No margin for the last line in a group */
+/* For simulating an avatar placeholder */
+.skeleton-avatar {
+    width: 40px; /* Example size */
+    height: 40px;
+    border-radius: 50%; /* Circular */
+    margin-right: var(--cv-spacing-sm);
+    float: left; /* Example layout */
+}
+.skeleton-block-group {
+    display: flex;
+    flex-direction: column;
 }
 
-/* Shimmer Animation */
+
+/* Shimmer Animation - remains the same */
 .feed-skeleton-item::after {
     content: '';
     position: absolute;
     top: 0;
-    left: 0; /* Start from the left edge of the item */
+    left: 0;
     height: 100%;
-    width: 100%; /* Cover the entire item */
+    width: 100%;
     background: linear-gradient(
         90deg,
         transparent,
-        var(--current-skeleton-shimmer-color, rgba(255, 255, 255, 0.5)), /* Themeable shimmer */
+        var(--current-skeleton-shimmer-color, rgba(255, 255, 255, 0.5)),
         transparent
     );
-    transform: translateX(-100%); /* Start off-screen to the left */
-    animation: skeleton-shimmer 1.5s infinite; /* Slower, smoother animation */
+    transform: translateX(-100%);
+    animation: skeleton-shimmer 1.5s infinite;
 }
 
 @keyframes skeleton-shimmer {
-    0% {
-        transform: translateX(-100%);
-    }
-    50% { /* Add a midpoint for a more noticeable shimmer pass */
-        transform: translateX(100%);
-    }
-    100% {
-        transform: translateX(100%); /* Keep it off-screen at the end before looping */
-    }
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(100%); }
+    100% { transform: translateX(100%); }
 }
 
-/* Ensure dark theme variables are defined in styles.css or :root */
-/* Example:
-:root {
+/* Theme variables for skeleton (ensure these are in :root and html[data-theme="dark"]) */
+/* :root {
     --current-skeleton-bg: var(--cv-gray-200);
     --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.5);
 }
 html[data-theme="dark"] {
-    --current-skeleton-bg: var(--cv-gray-700); // Or a darker shade
-    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.1); // More subtle shimmer for dark
-}
-*/
+    --current-skeleton-bg: var(--cv-dark-gray-300); // Adjusted for dark theme
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.1);
+} */
+
 
 /* === Status Badge Utility Classes === */
 .status-badge {
@@ -738,8 +937,108 @@ html[data-theme="dark"] {
 .status-badge--danger {
     background-color: var(--current-color-error-bg);
     color: var(--current-semantic-error);
+}/* === End Status Badge Utility Classes === */
+
+/* === Progress Bar Component === */
+.cv-progress {
+    width: 100%;
+    height: 12px; /* Aumentar a altura para melhor visibilidade */
+    background-color: var(--current-border-subtle); /* Usar uma cor de fundo mais sutil */
+    border-radius: var(--cv-border-radius-lg); /* Raio de borda maior, mais Apple-like */
+    overflow: hidden;
+    display: none; /* Controlado por JS */
+    margin-top: var(--cv-spacing-md); /* Aumentar margem superior para espaçamento */
+    margin-bottom: var(--cv-spacing-sm);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.075); /* Sombra interna sutil */
 }
-/* === End Status Badge Utility Classes === */
+
+.cv-progress__bar {
+    height: 100%;
+    width: 0%;
+    background-color: var(--current-primary-blue);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transição mais suave */
+    border-radius: var(--cv-border-radius-lg); /* Garante que a barra interna também tenha cantos arredondados */
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1); /* Efeito de profundidade sutil */
+}
+
+/* === End Progress Bar Component === */
+
+/* === Inline Spinner Utility === */
+.inline-spinner {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: cv-inline-spin 0.75s linear infinite;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+@keyframes cv-inline-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+
+/* === Switch Component === */
+.cv-switch-label {
+    font-size: var(--cv-font-size-sm, 0.875rem); /* Tamanho da label */
+    color: var(--current-text-secondary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.cv-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;  /* Largura do switch */
+    height: 28px; /* Altura do switch */
+}
+
+.cv-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.cv-switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--cv-gray-300); /* Cor do fundo do switch desligado */
+    transition: .4s;
+    border-radius: 28px; /* Para torná-lo arredondado */
+}
+
+.cv-switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px; /* Tamanho do círculo deslizante */
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .cv-switch-slider {
+    background-color: var(--current-primary-blue); /* Cor do fundo do switch ligado */
+}
+
+input:focus + .cv-switch-slider {
+    box-shadow: 0 0 1px var(--current-primary-blue); /* Efeito de foco */
+}
+
+input:checked + .cv-switch-slider:before {
+    transform: translateX(20px); /* Distância que o círculo desliza */
+}
+/* === End Switch Component === */
 
 /* Reservas view toggle alignment */
 .reservas-view-toggle {
@@ -750,13 +1049,6 @@ html[data-theme="dark"] {
     flex-wrap: nowrap;
     gap: var(--cv-spacing-sm);
     margin-bottom: var(--cv-spacing-md);
+    flex-direction: row !important;
 }
 
-@media (max-width: 767px) {
-    .cv-header {
-        padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
-    }
-    .cv-header__title {
-        font-size: 1.125rem;
-    }
-}
