@@ -710,7 +710,7 @@ function setupPortariaItemActionListeners() {
 }
 
 function setupTryAgainButtons() {
-    document.querySelectorAll(".js-try-again-button").forEach(button => {
+    document.querySelectorAll(".cv-error-state__retry-button").forEach(button => {
         button.addEventListener("click", (event) => {
             const buttonEl = event.currentTarget;
             const contentId = buttonEl.dataset.contentId; // Ex: content-visitantes, content-encomendas
