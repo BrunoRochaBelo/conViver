@@ -1,262 +1,220 @@
-<div class="cv-tabs">
-  <div class="cv-tabs-buttons">
-    <button class="cv-tab-button active" id="tab-visitantes">Visitantes</button>
-    <button class="cv-tab-button" id="tab-encomendas">Encomendas</button>
-  </div>
-  <button id="open-sort-button" class="cv-button icon-button" title="Ordenar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="6 9 12 15 18 9"></polyline>
-    </svg>
-  </button>
-  <button id="open-filter-modal-button" class="cv-button icon-button" title="Filtros">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-    </svg>
-  </button>
-</div>
 
-<div class="cv-tab-content active" id="content-visitantes">
-  <section class="portaria__feed card-grid-single-column js-portaria-feed">
-    <!-- Skeleton items -->
-    <div class="feed-skeleton-container" style="display: none;">
-      <div class="cv-card feed-skeleton-item">
-        <div class="skeleton-title skeleton-block"></div>
-        <div class="skeleton-line skeleton-block"></div>
-        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
-      </div>
-      <div class="cv-card feed-skeleton-item">
-        <div class="skeleton-title skeleton-block"></div>
-        <div class="skeleton-line skeleton-block"></div>
-        <div class="skeleton-line skeleton-block skeleton-line--medium"></div>
-      </div>
+
+        <div class="cv-tabs">
+            <div class="cv-tabs-buttons">
+                <button class="cv-tab-button active" id="tab-visitantes">Visitantes</button>
+                <button class="cv-tab-button" id="tab-encomendas">Encomendas</button>
+            </div>
+            <button id="open-sort-button" class="cv-button icon-button" title="Ordenar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <button id="open-filter-modal-button" class="cv-button icon-button" title="Filtros">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+            </button>
+        </div>
+
+        <div class="cv-tab-content active" id="content-visitantes">
+            <section class="portaria__feed card-grid-single-column js-portaria-feed">
+                <!-- Skeleton items -->
+                <div class="feed-skeleton-container" style="display: none;">
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-title skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                    </div>
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-title skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--medium"></div>
+                    </div>
+                </div>
+                <!-- Feed items (visitantes ou encomendas) will be loaded here by JS -->
+            </section>
+            <div class="cv-empty-state" style="display: none;">
+                <img src="/img/illustrations/empty-box.svg" alt="Nenhum item encontrado" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Nenhum item encontrado para os filtros atuais.</p>
+                <p class="cv-empty-state__message js-sindico-only-message" style="display:none;">Use o botão (+) para registrar um novo visitante ou encomenda.</p>
+            </div>
+            <div class="cv-error-state" style="display: none;">
+                <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar dados" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Falha ao carregar os dados. Verifique sua conexão ou tente novamente.</p>
+                <button class="cv-button cv-button--primary cv-error-state__retry-button" data-content-id="content-visitantes">Tentar Novamente</button>
+            </div>
+        </div>
+
+        <div class="cv-tab-content" id="content-encomendas" style="display:none;">
+             <section class="portaria__feed card-grid-single-column js-portaria-feed-encomendas">
+                <!-- Skeleton items for Encomendas -->
+                <div class="feed-skeleton-container" style="display: none;">
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-title skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                    </div>
+                </div>
+            </section>
+            <div class="cv-empty-state" style="display: none;">
+                <img src="/img/illustrations/empty-box.svg" alt="Nenhuma encomenda encontrada" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Nenhuma encomenda encontrada para os filtros atuais.</p>
+                 <p class="cv-empty-state__message js-sindico-only-message" style="display:none;">Use o botão (+) para registrar uma nova encomenda.</p>
+            </div>
+            <div class="cv-error-state" style="display: none;">
+                <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar encomendas" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Falha ao carregar as encomendas. Verifique sua conexão ou tente novamente.</p>
+                <button class="cv-button cv-button--primary cv-error-state__retry-button" data-content-id="content-encomendas">Tentar Novamente</button>
+            </div>
+        </div>
+
+
+    <!-- Modais -->
+    <div id="modal-registrar-visitante" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content cv-modal-content--padded">
+            <span class="cv-modal-close js-modal-registrar-visitante-close">&times;</span>
+            <h2>Registrar Novo Visitante</h2>
+            <form id="formRegistrarVisitante" class="cv-form">
+                <div class="cv-form-group">
+                    <label for="visNome">Nome Completo:</label>
+                    <input type="text" id="visNome" name="nome" class="cv-input" required>
+                </div>
+                <div class="cv-form-group">
+                    <label for="visDocumento">Documento (RG/CPF):</label>
+                    <input type="text" id="visDocumento" name="documento" class="cv-input">
+                </div>
+                <div class="cv-form-group">
+                    <label for="visUnidadeId">Unidade Destino (ID):</label>
+                    <input type="text" id="visUnidadeId" name="unidadeId" class="cv-input" required placeholder="Cole o ID da Unidade aqui">
+                </div>
+                <div class="cv-form-group">
+                    <label for="visMotivo">Motivo da Visita:</label>
+                    <textarea id="visMotivo" name="motivoVisita" class="cv-input" rows="3"></textarea>
+                </div>
+                <div class="cv-form-group">
+                    <label for="visHorarioSaidaPrevisto">Horário Saída Previsto (Opcional):</label>
+                    <input type="datetime-local" id="visHorarioSaidaPrevisto" name="horarioSaidaPrevisto" class="cv-input">
+                </div>
+                <div class="cv-form-group">
+                    <label for="visObservacoes">Observações (Opcional):</label>
+                    <textarea id="visObservacoes" name="observacoes" class="cv-input" rows="3"></textarea>
+                </div>
+                <div class="cv-form-group">
+                    <label for="visQRCodeEntrada">Entrada com QR Code (Pré-Autorizado):</label>
+                    <input type="text" id="visQRCodeEntrada" name="qrCodeEntrada" class="cv-input" placeholder="Leia ou digite o QR Code">
+                    <button type="button" id="btnValidarQRCode" class="cv-button cv-button--secondary" style="margin-top: 8px;">Validar QR Code</button>
+                </div>
+                <div id="formRegistrarVisitanteError" class="cv-modal-error-message" style="display:none;"></div>
+                <div class="cv-form-actions">
+                    <button type="button" class="cv-button js-modal-registrar-visitante-close">Cancelar</button>
+                    <button type="submit" class="cv-button cv-button--primary">Registrar Entrada</button>
+                </div>
+            </form>
+        </div>
     </div>
-    <!-- Items carregados via JS -->
-  </section>
-  <div class="cv-empty-state" style="display: none;">
-    <img src="/img/illustrations/empty-box.svg"
-         alt="Nenhum item encontrado"
-         class="cv-empty-state__image">
-    <p class="cv-empty-state__message">
-      Nenhum item encontrado para os filtros atuais.
-    </p>
-    <p class="cv-empty-state__message js-sindico-only-message" style="display:none;">
-      Use o botão (+) para registrar um novo visitante ou encomenda.
-    </p>
-  </div>
-  <div class="cv-error-state" style="display: none;">
-    <img src="/img/illustrations/undraw_warning_cyit.svg"
-         alt="Erro ao carregar dados"
-         class="cv-empty-state__image">
-    <p class="cv-empty-state__message">
-      Falha ao carregar os dados. Verifique sua conexão ou tente novamente.
-    </p>
-    <button class="cv-button cv-button--primary cv-error-state__retry-button"
-            data-content-id="content-visitantes">
-      Tentar Novamente
-    </button>
-  </div>
-</div>
 
-<div class="cv-tab-content" id="content-encomendas" style="display:none;">
-  <section class="portaria__feed card-grid-single-column js-portaria-feed-encomendas">
-    <!-- Skeleton items para encomendas -->
-    <div class="feed-skeleton-container" style="display: none;">
-      <div class="cv-card feed-skeleton-item">
-        <div class="skeleton-title skeleton-block"></div>
-        <div class="skeleton-line skeleton-block"></div>
-        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
-      </div>
+    <div id="modal-filtros-portaria" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content cv-modal-content--padded">
+            <span class="cv-modal-close js-modal-filtros-portaria-close">&times;</span>
+            <h2 id="modal-filtros-portaria-title">Filtros</h2>
+            <div class="cv-form">
+                <div class="cv-form-group" data-filter-context="visitantes">
+                    <label for="portaria-tipo-visitante-filter">Tipo de Visualização (Visitantes):</label>
+                    <select id="portaria-tipo-visitante-filter" class="cv-input">
+                        <option value="atuais">Visitantes Atuais</option>
+                        <option value="historico">Histórico de Visitantes</option>
+                    </select>
+                </div>
+                <div class="cv-form-group" data-filter-context="visitantes">
+                    <label for="filterUnidadeVisitantes">Unidade (Ex: A101):</label>
+                    <input type="text" id="filterUnidadeVisitantes" class="cv-input">
+                </div>
+                <div class="cv-form-group" data-filter-context="visitantes_historico" style="display:none;">
+                    <label for="filterHistDataInicio">Data Início (Histórico):</label>
+                    <input type="date" id="filterHistDataInicio" class="cv-input">
+                </div>
+                <div class="cv-form-group" data-filter-context="visitantes_historico" style="display:none;">
+                    <label for="filterHistDataFim">Data Fim (Histórico):</label>
+                    <input type="date" id="filterHistDataFim" class="cv-input">
+                </div>
+                <div class="cv-form-group" data-filter-context="visitantes_historico" style="display:none;">
+                    <label for="filterHistNome">Nome do Visitante (Histórico):</label>
+                    <input type="text" id="filterHistNome" class="cv-input">
+                </div>
+
+                <!-- Filtros para Encomendas (aparecem quando a aba Encomendas está ativa) -->
+                <div class="cv-form-group" data-filter-context="encomendas" style="display:none;">
+                    <label for="filterUnidadeEncomendas">Unidade Destino (Encomendas):</label>
+                    <input type="text" id="filterUnidadeEncomendas" name="filterUnidadeEncomendas" class="cv-input">
+                </div>
+                 <div class="cv-form-group" data-filter-context="encomendas" style="display:none;">
+                    <label for="filterStatusEncomenda">Status da Encomenda:</label>
+                    <select id="filterStatusEncomenda" name="filterStatusEncomenda" class="cv-input">
+                        <option value="">Todos</option>
+                        <option value="Recebida">Recebida (Aguardando Retirada)</option>
+                        <option value="Entregue">Entregue</option>
+                        <option value="Devolvida">Devolvida</option>
+                    </select>
+                </div>
+
+                <div class="cv-form-actions">
+                    <button type="button" class="cv-button js-modal-filtros-portaria-close">Cancelar</button>
+                    <button type="button" id="clear-filters-button-portaria-modal" class="cv-button">Limpar Filtros</button>
+                    <button id="apply-filters-button-portaria-modal" class="cv-button cv-button--primary">Aplicar Filtros</button>
+                </div>
+            </div>
+        </div>
     </div>
-    <!-- Items carregados via JS -->
-  </section>
-  <div class="cv-empty-state" style="display: none;">
-    <img src="/img/illustrations/empty-box.svg"
-         alt="Nenhuma encomenda encontrada"
-         class="cv-empty-state__image">
-    <p class="cv-empty-state__message">
-      Nenhuma encomenda encontrada para os filtros atuais.
-    </p>
-    <p class="cv-empty-state__message js-sindico-only-message" style="display:none;">
-      Use o botão (+) para registrar uma nova encomenda.
-    </p>
-  </div>
-  <div class="cv-error-state" style="display: none;">
-    <img src="/img/illustrations/undraw_warning_cyit.svg"
-         alt="Erro ao carregar encomendas"
-         class="cv-empty-state__image">
-    <p class="cv-empty-state__message">
-      Falha ao carregar as encomendas. Verifique sua conexão ou tente novamente.
-    </p>
-    <button class="cv-button cv-button--primary cv-error-state__retry-button"
-            data-content-id="content-encomendas">
-      Tentar Novamente
-    </button>
-  </div>
-</div>
 
-<!-- Modais Portaria -->
-
-<div id="modal-registrar-visitante" class="cv-modal" style="display:none;">
-  <div class="cv-modal-content cv-modal-content--padded">
-    <span class="cv-modal-close js-modal-registrar-visitante-close">&times;</span>
-    <h2>Registrar Novo Visitante</h2>
-    <form id="formRegistrarVisitante" class="cv-form">
-      <div class="cv-form-group">
-        <label for="visNome">Nome Completo:</label>
-        <input type="text" id="visNome" name="nome" class="cv-input" required>
-      </div>
-      <div class="cv-form-group">
-        <label for="visDocumento">Documento (RG/CPF):</label>
-        <input type="text" id="visDocumento" name="documento" class="cv-input">
-      </div>
-      <div class="cv-form-group">
-        <label for="visUnidadeId">Unidade Destino (ID):</label>
-        <input type="text" id="visUnidadeId" name="unidadeId"
-               class="cv-input" required placeholder="Cole o ID da Unidade aqui">
-      </div>
-      <div class="cv-form-group">
-        <label for="visMotivo">Motivo da Visita:</label>
-        <textarea id="visMotivo" name="motivoVisita" class="cv-input" rows="3"></textarea>
-      </div>
-      <div class="cv-form-group">
-        <label for="visHorarioSaidaPrevisto">
-          Horário Saída Previsto (Opcional):
-        </label>
-        <input type="datetime-local" id="visHorarioSaidaPrevisto"
-               name="horarioSaidaPrevisto" class="cv-input">
-      </div>
-      <div class="cv-form-group">
-        <label for="visObservacoes">Observações (Opcional):</label>
-        <textarea id="visObservacoes" name="observacoes" class="cv-input" rows="3"></textarea>
-      </div>
-      <div class="cv-form-group">
-        <label for="visQRCodeEntrada">
-          Entrada com QR Code (Pré-Autorizado):
-        </label>
-        <input type="text" id="visQRCodeEntrada" name="qrCodeEntrada"
-               class="cv-input" placeholder="Leia ou digite o QR Code">
-        <button type="button" id="btnValidarQRCode"
-                class="cv-button cv-button--secondary"
-                style="margin-top:8px;">
-          Validar QR Code
-        </button>
-      </div>
-      <div id="formRegistrarVisitanteError"
-           class="cv-modal-error-message" style="display:none;"></div>
-      <div class="cv-form-actions">
-        <button type="button" class="cv-button js-modal-registrar-visitante-close">
-          Cancelar
-        </button>
-        <button type="submit" class="cv-button cv-button--primary">
-          Registrar Entrada
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div id="modal-filtros-portaria" class="cv-modal" style="display:none;">
-  <div class="cv-modal-content cv-modal-content--padded">
-    <span class="cv-modal-close js-modal-filtros-portaria-close">&times;</span>
-    <h2 id="modal-filtros-portaria-title">Filtros</h2>
-    <div class="cv-form">
-      <div class="cv-form-group" data-filter-context="visitantes">
-        <label for="portaria-tipo-visitante-filter">
-          Tipo de Visualização:
-        </label>
-        <select id="portaria-tipo-visitante-filter" class="cv-input">
-          <option value="atuais">Visitantes Atuais</option>
-          <option value="historico">Histórico de Visitantes</option>
-        </select>
-      </div>
-      <div class="cv-form-group" data-filter-context="visitantes">
-        <label for="filterUnidadeVisitantes">Unidade (Ex: A101):</label>
-        <input type="text" id="filterUnidadeVisitantes" class="cv-input">
-      </div>
-      <div class="cv-form-group" data-filter-context="visitantes_historico" style="display:none;">
-        <label for="filterHistDataInicio">Data Início:</label>
-        <input type="date" id="filterHistDataInicio" class="cv-input">
-      </div>
-      <div class="cv-form-group" data-filter-context="visitantes_historico" style="display:none;">
-        <label for="filterHistDataFim">Data Fim:</label>
-        <input type="date" id="filterHistDataFim" class="cv-input">
-      </div>
-      <div class="cv-form-group" data-filter-context="visitantes_historico" style="display:none;">
-        <label for="filterHistNome">Nome do Visitante:</label>
-        <input type="text" id="filterHistNome" class="cv-input">
-      </div>
-      <div class="cv-form-group" data-filter-context="encomendas" style="display:none;">
-        <label for="filterUnidadeEncomendas">Unidade Destino:</label>
-        <input type="text" id="filterUnidadeEncomendas" name="filterUnidadeEncomendas"
-               class="cv-input">
-      </div>
-      <div class="cv-form-group" data-filter-context="encomendas" style="display:none;">
-        <label for="filterStatusEncomenda">Status da Encomenda:</label>
-        <select id="filterStatusEncomenda" name="filterStatusEncomenda" class="cv-input">
-          <option value="">Todos</option>
-          <option value="Recebida">Recebida</option>
-          <option value="Entregue">Entregue</option>
-          <option value="Devolvida">Devolvida</option>
-        </select>
-      </div>
-      <div class="cv-form-actions">
-        <button type="button" class="cv-button js-modal-filtros-portaria-close">Cancelar</button>
-        <button type="button" id="clear-filters-button-portaria-modal" class="cv-button">Limpar Filtros</button>
-        <button id="apply-filters-button-portaria-modal" class="cv-button cv-button--primary">Aplicar Filtros</button>
-      </div>
+    <div id="modal-sort-portaria" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content cv-modal-content--padded">
+            <span class="cv-modal-close js-modal-sort-portaria-close">&times;</span>
+            <h2>Ordenação</h2>
+            <div class="cv-form">
+                <div class="cv-form-group">
+                    <label for="sort-order-select-portaria">Ordenar por:</label>
+                    <select id="sort-order-select-portaria" class="cv-input">
+                        <option value="desc">Mais recentes</option>
+                        <option value="asc">Mais antigos</option>
+                        <!-- Adicionar outras opções de ordenação específicas (Ex: Nome, Unidade) via JS -->
+                    </select>
+                </div>
+                <div class="cv-form-actions">
+                    <button type="button" class="cv-button js-modal-sort-portaria-close">Cancelar</button>
+                    <button type="button" id="clear-sort-button-portaria-modal" class="cv-button">Limpar Ordenação</button>
+                    <button id="apply-sort-button-portaria" class="cv-button cv-button--primary">Aplicar</button>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<div id="modal-sort-portaria" class="cv-modal" style="display:none;">
-  <div class="cv-modal-content cv-modal-content--padded">
-    <span class="cv-modal-close js-modal-sort-portaria-close">&times;</span>
-    <h2>Ordenação</h2>
-    <div class="cv-form">
-      <div class="cv-form-group">
-        <label for="sort-order-select-portaria">Ordenar por:</label>
-        <select id="sort-order-select-portaria" class="cv-input">
-          <option value="desc">Mais recentes</option>
-          <option value="asc">Mais antigos</option>
-        </select>
-      </div>
-      <div class="cv-form-actions">
-        <button type="button" class="cv-button js-modal-sort-portaria-close">Cancelar</button>
-        <button type="button" id="clear-sort-button-portaria-modal" class="cv-button">Limpar Ordenação</button>
-        <button id="apply-sort-button-portaria" class="cv-button cv-button--primary">Aplicar</button>
-      </div>
+    <div id="modal-registrar-encomenda" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content cv-modal-content--padded">
+            <span class="cv-modal-close js-modal-registrar-encomenda-close">&times;</span>
+            <h2>Registrar Nova Encomenda</h2>
+            <form id="formNovaEncomenda" class="cv-form">
+                <div class="cv-form-group">
+                    <label for="encUnidadeId">Unidade Destino (ID):</label>
+                    <input type="text" id="encUnidadeId" name="unidadeId" class="cv-input" required>
+                </div>
+                <div class="cv-form-group">
+                    <label for="encDescricao">Descrição/Observações:</label>
+                    <input type="text" id="encDescricao" name="descricao" class="cv-input">
+                </div>
+                <div class="cv-form-group">
+                    <label for="encCodigoRastreio">Código de Rastreio (Opcional):</label>
+                    <input type="text" id="encCodigoRastreio" name="codigoRastreio" class="cv-input">
+                </div>
+                <div class="cv-form-group">
+                    <label for="encRemetente">Remetente (Opcional):</label>
+                    <input type="text" id="encRemetente" name="remetente" class="cv-input">
+                </div>
+                <div id="formNovaEncomendaError" class="cv-modal-error-message" style="display:none;"></div>
+                <div class="cv-form-actions">
+                    <button type="button" class="cv-button js-modal-registrar-encomenda-close">Cancelar</button>
+                    <button type="submit" class="cv-button cv-button--primary">Registrar Encomenda</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
-</div>
-
-<div id="modal-registrar-encomenda" class="cv-modal" style="display:none;">
-  <div class="cv-modal-content cv-modal-content--padded">
-    <span class="cv-modal-close js-modal-registrar-encomenda-close">&times;</span>
-    <h2>Registrar Nova Encomenda</h2>
-    <form id="formNovaEncomenda" class="cv-form">
-      <div class="cv-form-group">
-        <label for="encUnidadeId">Unidade Destino (ID):</label>
-        <input type="text" id="encUnidadeId" name="unidadeId" class="cv-input" required>
-      </div>
-      <div class="cv-form-group">
-        <label for="encDescricao">Descrição/Observações:</label>
-        <input type="text" id="encDescricao" name="descricao" class="cv-input">
-      </div>
-      <div class="cv-form-group">
-        <label for="encCodigoRastreio">Código de Rastreio (Opcional):</label>
-        <input type="text" id="encCodigoRastreio" name="codigoRastreio" class="cv-input">
-      </div>
-      <div class="cv-form-group">
-        <label for="encRemetente">Remetente (Opcional):</label>
-        <input type="text" id="encRemetente" name="remetente" class="cv-input">
-      </div>
-      <div id="formNovaEncomendaError" class="cv-modal-error-message" style="display:none;"></div>
-      <div class="cv-form-actions">
-        <button type="button" class="cv-button js-modal-registrar-encomenda-close">Cancelar</button>
-        <button type="submit" class="cv-button cv-button--primary">Registrar Encomenda</button>
-      </div>
-    </form>
-  </div>
-</div>
