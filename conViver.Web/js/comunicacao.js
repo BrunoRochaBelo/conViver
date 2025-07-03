@@ -1413,28 +1413,31 @@ async function fetchAndDisplayFeedItems(page, append = false) {
             }
 
 
-            const contentArea = targetErrorContainer.querySelector('.feed-grid, .js-avisos, .enquetes-list, .chamados-list') || targetErrorContainer;
-            const errorMessages = {
-                'content-mural': 'Falha ao carregar o mural. Verifique sua conexão ou tente novamente.',
-                'content-enquetes': 'Falha ao carregar as enquetes. Verifique sua conexão ou tente novamente.',
-                'content-solicitacoes': 'Falha ao carregar as solicitações. Verifique sua conexão ou tente novamente.',
-                'content-ocorrencias': 'Falha ao carregar as ocorrências. Verifique sua conexão ou tente novamente.'
-            };
-            const errorState = createErrorStateElement({
-                iconHTML: `<img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro">`,
-                title: 'Falha ao Carregar',
-                message: error.message || errorMessages[activeTabContentIdOnError] || 'Erro ao carregar dados.',
-                retryButton: {
-                    text: 'Tentar Novamente',
-                    onClick: () => {
-                        const currentErrorStateInTab = targetErrorContainer.querySelector('.cv-error-state');
-                        if (currentErrorStateInTab) currentErrorStateInTab.remove();
-                        showFeedSkeleton(activeTabContentIdOnError);
-                        loadInitialFeedItems();
+            // Usar o cv-error-state que já existe no HTML da aba
+            const errorStateDiv = targetErrorContainer.querySelector(".cv-error-state");
+            if (errorStateDiv) {
+                errorStateDiv.style.display = "flex"; // Ou o display correto para o componente
+                // O botão "Tentar Novamente" no HTML já tem o data-content-id.
+                // A lógica do listener para ele será adicionada separadamente.
+            } else {
+                // Fallback se o div não existir (não deveria acontecer com o HTML atualizado)
+                const errorState = createErrorStateElement({
+                    title: "Falha ao Carregar",
+                    message: error.message || `Não foi possível carregar o conteúdo de ${activeTabContentIdOnError}. Verifique sua conexão e tente novamente.`,
+                    retryButton: {
+                        text: "Tentar Novamente",
+                        onClick: () => {
+                            const currentErrorStateInTab = targetErrorContainer.querySelector(".cv-error-state");
+                            if (currentErrorStateInTab) currentErrorStateInTab.style.display = "none";
+                            showFeedSkeleton(activeTabContentIdOnError);
+                            loadInitialFeedItems(); // Ou uma função específica para a aba
+                        }
                     }
-                }
-            });
-            contentArea.appendChild(errorState);
+                });
+                // Adicionar ao container da aba ativa, não ao muralFeedContainer necessariamente
+                const contentArea = targetErrorContainer.querySelector('.feed-grid, .js-avisos, .enquetes-list, .chamados-list') || targetErrorContainer;
+                contentArea.appendChild(errorState);
+            }
         }
     } else if (append) {
       if (!error.handledByApiClient && error.message) {

@@ -1,533 +1,437 @@
-<!-- === Comunicação: Abas Principais === -->
-<div class="cv-tabs" id="communication-tabs">
-  <div class="cv-tabs-buttons">
-    <button class="cv-tab-button active" id="tab-mural">Mural</button>
-    <button class="cv-tab-button" id="tab-enquetes">Enquetes</button>
-    <button class="cv-tab-button" id="tab-solicitacoes">Solicitações</button>
-    <button class="cv-tab-button" id="tab-ocorrencias">Ocorrências</button>
-  </div>
-  <button id="open-sort-button" class="cv-button icon-button" title="Ordenar">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="6 9 12 15 18 9"></polyline>
-    </svg>
-  </button>
-  <button id="open-filter-modal-button" class="cv-button icon-button" title="Filtros">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-    </svg>
-  </button>
-</div>
+        <div class="cv-tabs">
+            <div class="cv-tabs-buttons">
+                <button class="cv-tab-button active" id="tab-mural">Mural</button>
+                <button class="cv-tab-button" id="tab-enquetes">Enquetes</button>
+                <button class="cv-tab-button" id="tab-solicitacoes">Solicitações</button>
+                <button class="cv-tab-button" id="tab-ocorrencias">Ocorrências</button>
+            </div>
+            <button id="open-sort-button" class="cv-button icon-button" title="Ordenar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <button id="open-filter-modal-button" class="cv-button icon-button" title="Filtros">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+            </button>
+        </div>
 
-<!-- === Aba: Mural === -->
-<div class="cv-tab-content" id="content-mural">
-  <section class="communication__mural feed-grid js-avisos">
-    <!-- Skeleton items -->
-    <div class="feed-skeleton-container" style="display: none;">
-      <div class="cv-card feed-skeleton-item">
-        <div class="skeleton-image skeleton-block"></div>
-        <div class="skeleton-title skeleton-block"></div>
-        <div class="skeleton-line skeleton-block"></div>
-        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
-      </div>
-      <div class="cv-card feed-skeleton-item">
-        <div class="skeleton-title skeleton-block"></div>
-        <div class="skeleton-line skeleton-block"></div>
-        <div class="skeleton-line skeleton-block skeleton-line--medium"></div>
-        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
-      </div>
-      <div class="cv-card feed-skeleton-item">
-        <div class="skeleton-image skeleton-block"></div>
-        <div class="skeleton-title skeleton-block"></div>
-        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
-      </div>
+        <div class="cv-tab-content" id="content-mural">
+            <section class="communication__mural feed-grid js-avisos">
+                <!-- Skeleton items for Mural -->
+                <div class="feed-skeleton-container" style="display: none;">
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-image skeleton-block"></div>
+                        <div class="skeleton-title skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                    </div>
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-title skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--medium"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                    </div>
+                    <div class="cv-card feed-skeleton-item">
+                        <div class="skeleton-image skeleton-block"></div>
+                        <div class="skeleton-title skeleton-block"></div>
+                        <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                    </div>
+                </div>
+                <!-- Feed items (including prioritized ones) will be loaded here by JS (infinite scroll) -->
+            </section>
+            <div class="cv-error-state" style="display: none;"> <!-- Adicionado para Erros no Mural -->
+                <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar mural" class="cv-empty-state__image"> <!-- Usar uma imagem de erro genérica ou específica -->
+                <p class="cv-empty-state__message">Falha ao carregar o mural. Verifique sua conexão ou tente novamente.</p>
+                <button class="cv-button cv-button--primary cv-error-state__retry-button" data-content-id="content-mural">Tentar Novamente</button>
+            </div>
+        </div>
+
+        <div class="cv-tab-content" id="content-enquetes" style="display:none;">
+            <!-- Skeleton items for Enquetes -->
+            <div class="feed-skeleton-container" style="display: none;">
+                <div class="cv-card feed-skeleton-item">
+                    <div class="skeleton-title skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block skeleton-line--medium"></div>
+                </div>
+            </div>
+            <div class="cv-empty-state" style="display: none;">
+                <img src="/img/illustrations/empty-search.svg" alt="Nenhuma enquete encontrada" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Nenhuma enquete encontrada para os filtros atuais.</p>
+                <p class="cv-empty-state__message js-sindico-only-message" style="display:none;">Use o botão (+) para criar uma nova enquete.</p>
+            </div>
+            <div class="cv-error-state" style="display: none;"> <!-- Adicionado para Erros em Enquetes -->
+                <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar enquetes" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Falha ao carregar as enquetes. Verifique sua conexão ou tente novamente.</p>
+                <button class="cv-button cv-button--primary cv-error-state__retry-button" data-content-id="content-enquetes">Tentar Novamente</button>
+            </div>
+        </div>
+
+        <div class="cv-tab-content" id="content-solicitacoes" style="display:none;">
+            <!-- Skeleton items for Solicitacoes -->
+            <div class="feed-skeleton-container" style="display: none;">
+                <div class="cv-card feed-skeleton-item">
+                    <div class="skeleton-title skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                </div>
+            </div>
+            <div class="cv-empty-state" style="display: none;">
+                <img src="/img/illustrations/empty-box.svg" alt="Nenhuma solicitação encontrada" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Nenhuma solicitação encontrada para os filtros atuais.</p>
+                <p class="cv-empty-state__message">Use o botão (+) para criar uma nova solicitação.</p>
+            </div>
+            <div class="cv-error-state" style="display: none;"> <!-- Adicionado para Erros em Solicitações -->
+                <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar solicitações" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Falha ao carregar as solicitações. Verifique sua conexão ou tente novamente.</p>
+                <button class="cv-button cv-button--primary cv-error-state__retry-button" data-content-id="content-solicitacoes">Tentar Novamente</button>
+            </div>
+        </div>
+
+        <div class="cv-tab-content" id="content-ocorrencias" style="display:none;">
+            <!-- Skeleton items for Ocorrencias -->
+            <div class="feed-skeleton-container" style="display: none;">
+                <div class="cv-card feed-skeleton-item">
+                    <div class="skeleton-title skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block"></div>
+                    <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+                </div>
+            </div>
+            <div class="cv-empty-state" style="display: none;">
+                <img src="/img/illustrations/problem-solving.svg" alt="Nenhuma ocorrência encontrada" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Nenhuma ocorrência encontrada para os filtros atuais.</p>
+                <p class="cv-empty-state__message">Use o botão (+) para relatar uma nova ocorrência.</p>
+            </div>
+            <div class="cv-error-state" style="display: none;"> <!-- Adicionado para Erros em Ocorrências -->
+                <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar ocorrências" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Falha ao carregar as ocorrências. Verifique sua conexão ou tente novamente.</p>
+                <button class="cv-button cv-button--primary cv-error-state__retry-button" data-content-id="content-ocorrencias">Tentar Novamente</button>
+            </div>
+        </div>
+
+
+    <!-- Modais Globais -->
+
+    <div id="modal-filtros" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content cv-modal-content--padded">
+            <span class="cv-modal-close js-modal-filtros-close">&times;</span>
+            <h2>Filtros do Mural</h2>
+            <div class="cv-form">
+                <div class="cv-form-group">
+                    <label for="category-filter-modal">Categoria:</label>
+                    <select id="category-filter-modal" name="category-filter-modal" class="cv-input">
+                        <option value="">Todas</option>
+                        <option value="comunicados">Comunicados</option>
+                        <option value="enquete">Enquetes</option>
+                        <option value="solicitacoes">Solicitações (Chamados/Ocorrências)</option>
+                        <option value="ocorrencias">Ocorrências</option>
+                        <option value="servicos">Serviços (OS)</option>
+                        <option value="documentos">Documentos</option>
+                        <option value="reservas">Reservas</option>
+                        <option value="financeiro">Financeiro</option>
+                        <option value="portaria">Portaria (Encomendas)</option>
+                        <option value="urgente">Urgente</option>
+                    </select>
+                </div>
+                <div class="cv-form-group">
+                    <label for="period-filter-modal">Período (Mês/Ano):</label>
+                    <input type="month" id="period-filter-modal" name="period-filter-modal" class="cv-input">
+                </div>
+                <div class="cv-form-group" data-filter-context="enquetes" style="display:none;">
+                    <label for="enquete-author-filter">Autor:</label>
+                    <select id="enquete-author-filter" class="cv-input">
+                        <option value="todas">Todas</option>
+                        <option value="minhas">Minhas</option>
+                    </select>
+                </div>
+                <div class="cv-form-group" data-filter-context="enquetes" style="display:none;">
+                    <label for="enquete-status-filter">Situação:</label>
+                    <select id="enquete-status-filter" class="cv-input">
+                        <option value="">Todas</option>
+                        <option value="Aberta">Em Aberto</option>
+                        <option value="Concluida">Concluídas</option>
+                        <option value="Cancelada">Canceladas</option>
+                    </select>
+                </div>
+                <div class="cv-form-group" data-filter-context="solicitacoes" style="display:none;">
+                    <label for="solicitacao-author-filter">Autor:</label>
+                    <select id="solicitacao-author-filter" class="cv-input">
+                        <option value="todas">Todas</option>
+                        <option value="minhas">Minhas</option>
+                    </select>
+                </div>
+                <div class="cv-form-group" data-filter-context="solicitacoes" style="display:none;">
+                    <label for="solicitacao-status-filter">Situação:</label>
+                    <select id="solicitacao-status-filter" class="cv-input">
+                        <option value="">Todas</option>
+                        <option value="Aberto">Em Aberto</option>
+                        <option value="EmAndamento">Em Andamento</option>
+                        <option value="Concluido">Concluídas</option>
+                        <option value="Cancelado">Canceladas</option>
+                    </select>
+                </div>
+                <div class="cv-form-group" data-filter-context="ocorrencias" style="display:none;">
+                    <label for="ocorrencia-author-filter">Autor:</label>
+                    <select id="ocorrencia-author-filter" class="cv-input">
+                        <option value="todas">Todas</option>
+                        <option value="minhas">Minhas</option>
+                    </select>
+                </div>
+                <div class="cv-form-group" data-filter-context="ocorrencias" style="display:none;">
+                    <label for="ocorrencia-status-filter">Situação:</label>
+                    <select id="ocorrencia-status-filter" class="cv-input">
+                        <option value="">Todas</option>
+                        <option value="ABERTA">Em Aberto</option>
+                        <option value="EM_ATENDIMENTO">Em Atendimento</option>
+                        <option value="RESOLVIDA">Resolvidas</option>
+                        <option value="CANCELADA">Canceladas</option>
+                    </select>
+                </div>
+                <div class="cv-form-actions">
+                    <button type="button" class="cv-button js-modal-filtros-close">Cancelar</button>
+                    <button type="button" id="clear-filters-button-modal" class="cv-button">Limpar</button>
+                    <button id="apply-filters-button-modal" class="cv-button cv-button--primary">Aplicar</button>
+                </div>
+            </div>
+        </div>
     </div>
-    <!-- Avisos carregados via JS -->
-  </section>
-  <div class="cv-error-state" style="display: none;">
-    <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar mural"
-         class="cv-empty-state__image">
-    <p class="cv-empty-state__message">
-      Falha ao carregar o mural. Verifique sua conexão ou tente novamente.
-    </p>
-    <button class="cv-button cv-button--primary cv-error-state__retry-button"
-            data-content-id="content-mural">
-      Tentar Novamente
-    </button>
-  </div>
-</div>
 
-<!-- === Aba: Enquetes === -->
-<div class="cv-tab-content" id="content-enquetes" style="display:none;">
-  <div class="feed-skeleton-container" style="display: none;">
-    <div class="cv-card feed-skeleton-item">
-      <div class="skeleton-title skeleton-block"></div>
-      <div class="skeleton-line skeleton-block"></div>
-      <div class="skeleton-line skeleton-block skeleton-line--medium"></div>
+    <div id="modal-sort" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content cv-modal-content--padded">
+            <span class="cv-modal-close js-modal-sort-close">&times;</span>
+            <h2>Ordenação</h2>
+            <div class="cv-form">
+                <div class="cv-form-group">
+                    <label for="sort-order-select">Ordenar por:</label>
+                    <select id="sort-order-select" class="cv-input">
+                        <option value="desc">Mais recentes</option>
+                        <option value="asc">Mais antigos</option>
+                    </select>
+                </div>
+                <div class="cv-form-actions">
+                    <button type="button" class="cv-button js-modal-sort-close">Cancelar</button>
+                    <button type="button" id="clear-sort-button-modal" class="cv-button">Limpar</button>
+                    <button id="apply-sort-button" class="cv-button cv-button--primary">Ordenar</button>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="cv-empty-state" style="display: none;">
-    <img src="/img/illustrations/empty-search.svg" alt="Nenhuma enquete encontrada"
-         class="cv-empty-state__image">
-    <p class="cv-empty-state__message">
-      Nenhuma enquete encontrada para os filtros atuais.
-    </p>
-    <p class="cv-empty-state__message js-sindico-only-message" style="display:none;">
-      Use o botão (+) para criar uma nova enquete.
-    </p>
-  </div>
-  <div class="cv-error-state" style="display: none;">
-    <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar enquetes"
-         class="cv-empty-state__image">
-    <p class="cv-empty-state__message">
-      Falha ao carregar as enquetes. Verifique sua conexão ou tente novamente.
-    </p>
-    <button class="cv-button cv-button--primary cv-error-state__retry-button"
-            data-content-id="content-enquetes">
-      Tentar Novamente
-    </button>
-  </div>
-</div>
 
-<!-- === Aba: Solicitações === -->
-<div class="cv-tab-content" id="content-solicitacoes" style="display:none;">
-  <div class="feed-skeleton-container" style="display: none;">
-    <div class="cv-card feed-skeleton-item">
-      <div class="skeleton-title skeleton-block"></div>
-      <div class="skeleton-line skeleton-block"></div>
-      <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+    <div id="modal-criar-aviso" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content cv-modal-content--padded">
+            <span class="cv-modal-close js-modal-criar-aviso-close">&times;</span>
+            <h2>Criar Novo Aviso</h2>
+            <form id="form-criar-aviso" class="cv-form">
+                <input type="hidden" id="aviso-id" name="id">
+                <div class="cv-form-group">
+                    <label for="aviso-titulo">Título:</label>
+                    <input type="text" id="aviso-titulo" name="titulo" class="cv-input" required>
+                </div>
+                <div class="cv-form-group">
+                    <label for="aviso-corpo">Corpo do Aviso:</label>
+                    <textarea id="aviso-corpo" name="corpo" class="cv-input" rows="5" required></textarea>
+                </div>
+                <div class="cv-form-group">
+                    <label for="aviso-imagem">Imagem (Opcional):</label>
+                    <input type="file" id="aviso-imagem" name="imagem" class="cv-input" accept="image/*">
+                    <img id="aviso-imagem-preview" src="#" alt="Pré-visualização da imagem" style="max-width: 100%; max-height: 200px; margin-top: 10px; display: none;" loading="lazy">
+                </div>
+                <div class="cv-form-group">
+                    <label for="aviso-anexos">Anexos (PDFs, etc. Opcional):</label>
+                    <input type="file" id="aviso-anexos" name="anexos" class="cv-input" multiple>
+                </div>
+                <div class="cv-form-group">
+                    <label for="aviso-categorias">Categorias:</label>
+                    <select id="aviso-categorias" name="categorias" class="cv-input" multiple>
+                        <option value="manutencao">🛠️ Manutenção</option>
+                        <option value="reservas">🏡 Reservas</option>
+                        <option value="comunicados">📢 Comunicados Gerais</option>
+                        <option value="enquetes">🗳️ Enquetes</option>
+                        <option value="assembleias">🧑‍⚖️ Assembleias</option>
+                        <option value="urgente">🚨 Urgente</option>
+                    </select>
+                    <small>Segure Ctrl/Cmd para selecionar múltiplas.</small>
+                </div>
+                <div class="cv-form-actions">
+                    <button type="button" class="cv-button js-modal-criar-aviso-close">Cancelar</button>
+                    <button type="submit" class="cv-button cv-button--primary">Salvar</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
-  <div class="cv-empty-state" style="display: none;">
-    <img src="/img/illustrations/empty-box.svg" alt="Nenhuma solicitação encontrada"
-         class="cv-empty-state__image">
-    <p class="cv-empty-state__message">
-      Nenhuma solicitação encontrada para os filtros atuais.
-    </p>
-    <p class="cv-empty-state__message">
-      Use o botão (+) para criar uma nova solicitação.
-    </p>
-  </div>
-  <div class="cv-error-state" style="display: none;">
-    <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar solicitações"
-         class="cv-empty-state__image">
-    <p class="cv-empty-state__message">
-      Falha ao carregar as solicitações. Verifique sua conexão ou tente novamente.
-    </p>
-    <button class="cv-button cv-button--primary cv-error-state__retry-button"
-            data-content-id="content-solicitacoes">
-      Tentar Novamente
-    </button>
-  </div>
-</div>
 
-<!-- === Aba: Ocorrências === -->
-<div class="cv-tab-content" id="content-ocorrencias" style="display:none;">
-  <div class="feed-skeleton-container" style="display: none;">
-    <div class="cv-card feed-skeleton-item">
-      <div class="skeleton-title skeleton-block"></div>
-      <div class="skeleton-line skeleton-block"></div>
-      <div class="skeleton-line skeleton-block skeleton-line--short"></div>
+    <div id="modal-enquete-detalhe" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content cv-modal-content--padded">
+            <span class="cv-modal-close js-modal-enquete-detalhe-close">&times;</span>
+            <h2 id="modal-enquete-detalhe-titulo">Detalhes da Enquete</h2>
+            <div id="modal-enquete-detalhe-descricao" class="enquete-descricao" style="margin-bottom: 15px;"></div>
+            <div id="modal-enquete-detalhe-opcoes-container">
+            </div>
+            <div id="modal-enquete-detalhe-status" class="enquete-status" style="margin-top: 15px;"></div>
+            <div class="cv-form-actions">
+                <button type="button" class="cv-button js-modal-enquete-detalhe-close">Cancelar</button>
+                <button type="button" id="modal-enquete-submit-voto" class="cv-button cv-button--primary" style="display:none;">Votar</button>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="cv-empty-state" style="display: none;">
-    <img src="/img/illustrations/problem-solving.svg" alt="Nenhuma ocorrência encontrada"
-         class="cv-empty-state__image">
-    <p class="cv-empty-state__message">
-      Nenhuma ocorrência encontrada para os filtros atuais.
-    </p>
-    <p class="cv-empty-state__message">
-      Use o botão (+) para relatar uma nova ocorrência.
-    </p>
-  </div>
-  <div class="cv-error-state" style="display: none;">
-    <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar ocorrências"
-         class="cv-empty-state__image">
-    <p class="cv-empty-state__message">
-      Falha ao carregar as ocorrências. Verifique sua conexão ou tente novamente.
-    </p>
-    <button class="cv-button cv-button--primary cv-error-state__retry-button"
-            data-content-id="content-ocorrencias">
-      Tentar Novamente
-    </button>
-  </div>
-</div>
 
-<!-- === Modais Globais === -->
-
-<!-- Filtros do Mural -->
-<div id="modal-filtros" class="cv-modal" style="display:none;">
-  <div class="cv-modal-content cv-modal-content--padded">
-    <span class="cv-modal-close js-modal-filtros-close">&times;</span>
-    <h2>Filtros do Mural</h2>
-    <div class="cv-form">
-      <div class="cv-form-group">
-        <label for="category-filter-modal">Categoria:</label>
-        <select id="category-filter-modal" class="cv-input">
-          <option value="">Todas</option>
-          <option value="comunicados">Comunicados</option>
-          <option value="enquete">Enquetes</option>
-          <option value="solicitacoes">Solicitações</option>
-          <option value="ocorrencias">Ocorrências</option>
-          <option value="servicos">Serviços (OS)</option>
-          <option value="documentos">Documentos</option>
-          <option value="reservas">Reservas</option>
-          <option value="financeiro">Financeiro</option>
-          <option value="portaria">Portaria</option>
-          <option value="urgente">Urgente</option>
-        </select>
-      </div>
-      <div class="cv-form-group">
-        <label for="period-filter-modal">Período (Mês/Ano):</label>
-        <input type="month" id="period-filter-modal" class="cv-input">
-      </div>
-      <div class="cv-form-group" data-filter-context="enquetes" style="display:none;">
-        <label for="enquete-author-filter">Autor:</label>
-        <select id="enquete-author-filter" class="cv-input">
-          <option value="todas">Todas</option>
-          <option value="minhas">Minhas</option>
-        </select>
-      </div>
-      <div class="cv-form-group" data-filter-context="enquetes" style="display:none;">
-        <label for="enquete-status-filter">Situação:</label>
-        <select id="enquete-status-filter" class="cv-input">
-          <option value="">Todas</option>
-          <option value="Aberta">Em Aberto</option>
-          <option value="Concluida">Concluídas</option>
-          <option value="Cancelada">Canceladas</option>
-        </select>
-      </div>
-      <div class="cv-form-group" data-filter-context="solicitacoes" style="display:none;">
-        <label for="solicitacao-author-filter">Autor:</label>
-        <select id="solicitacao-author-filter" class="cv-input">
-          <option value="todas">Todas</option>
-          <option value="minhas">Minhas</option>
-        </select>
-      </div>
-      <div class="cv-form-group" data-filter-context="solicitacoes" style="display:none;">
-        <label for="solicitacao-status-filter">Situação:</label>
-        <select id="solicitacao-status-filter" class="cv-input">
-          <option value="">Todas</option>
-          <option value="Aberto">Em Aberto</option>
-          <option value="EmAndamento">Em Andamento</option>
-          <option value="Concluido">Concluídas</option>
-          <option value="Cancelado">Canceladas</option>
-        </select>
-      </div>
-      <div class="cv-form-group" data-filter-context="ocorrencias" style="display:none;">
-        <label for="ocorrencia-author-filter">Autor:</label>
-        <select id="ocorrencia-author-filter" class="cv-input">
-          <option value="todas">Todas</option>
-          <option value="minhas">Minhas</option>
-        </select>
-      </div>
-      <div class="cv-form-group" data-filter-context="ocorrencias" style="display:none;">
-        <label for="ocorrencia-status-filter">Situação:</label>
-        <select id="ocorrencia-status-filter" class="cv-input">
-          <option value="">Todas</option>
-          <option value="ABERTA">Em Aberto</option>
-          <option value="EM_ATENDIMENTO">Em Atendimento</option>
-          <option value="RESOLVIDA">Resolvidas</option>
-          <option value="CANCELADA">Canceladas</option>
-        </select>
-      </div>
-      <div class="cv-form-actions">
-        <button type="button" class="cv-button js-modal-filtros-close">Cancelar</button>
-        <button type="button" id="clear-filters-button-modal" class="cv-button">Limpar</button>
-        <button id="apply-filters-button-modal" class="cv-button cv-button--primary">Aplicar</button>
-      </div>
+    <div id="modal-chamado-detalhe" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content cv-modal-content--padded">
+            <span class="cv-modal-close js-modal-chamado-detalhe-close">&times;</span>
+            <h2 id="modal-chamado-detalhe-titulo">Detalhes da Solicitação</h2>
+            <div id="modal-chamado-detalhe-conteudo" class="chamado-detalhe-view">
+            </div>
+            <div id="modal-chamado-detalhe-interacoes" class="chamado-interactions-view" style="margin-top:15px;">
+                <h4>Histórico de Interações:</h4>
+            </div>
+            <div id="sindico-chamado-update-section" class="admin-only-field" style="display:none; margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 15px;">
+                <h4>Atualização do Síndico</h4>
+                <div class="cv-form-group" id="modal-chamado-status-update-group">
+                    <label for="modal-chamado-status-select">Novo Status:</label>
+                    <select id="modal-chamado-status-select" class="cv-input">
+                        <option value="Aberto">Aberto</option>
+                        <option value="EmAndamento">Em Andamento</option>
+                        <option value="Concluido">Concluído</option>
+                        <option value="Cancelado">Cancelado</option>
+                    </select>
+                </div>
+                <div class="cv-form-group" id="modal-chamado-resposta-sindico-group">
+                    <label for="modal-chamado-resposta-textarea">Resposta do Síndico:</label>
+                    <textarea id="modal-chamado-resposta-textarea" class="cv-input" rows="3"></textarea>
+                </div>
+                <button id="modal-chamado-submit-sindico-update" class="cv-button cv-button--primary" style="margin-top: 10px; display:none;">Salvar Atualização</button>
+            </div>
+            <div id="modal-chamado-add-comment-section" class="cv-form-group" style="margin-top:20px; display:none;">
+                <label for="modal-chamado-comment-text">Adicionar Comentário/Resposta:</label>
+                <textarea id="modal-chamado-comment-text" class="cv-input" rows="3"></textarea>
+                <button id="modal-chamado-submit-comment" class="cv-button cv-button--primary" style="margin-top:10px;">Enviar</button>
+            </div>
+            <div class="cv-form-actions" style="margin-top:20px;">
+                <button type="button" class="cv-button js-modal-chamado-detalhe-close">Cancelar</button>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- Ordenação -->
-<div id="modal-sort" class="cv-modal" style="display:none;">
-  <div class="cv-modal-content cv-modal-content--padded">
-    <span class="cv-modal-close js-modal-sort-close">&times;</span>
-    <h2>Ordenação</h2>
-    <div class="cv-form">
-      <div class="cv-form-group">
-        <label for="sort-order-select">Ordenar por:</label>
-        <select id="sort-order-select" class="cv-input">
-          <option value="desc">Mais recentes</option>
-          <option value="asc">Mais antigos</option>
-        </select>
-      </div>
-      <div class="cv-form-actions">
-        <button type="button" class="cv-button js-modal-sort-close">Cancelar</button>
-        <button type="button" id="clear-sort-button-modal" class="cv-button">Limpar</button>
-        <button id="apply-sort-button" class="cv-button cv-button--primary">Ordenar</button>
-      </div>
+    <div id="modal-criar-enquete" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content cv-modal-content--padded">
+            <span class="cv-modal-close js-modal-criar-enquete-close">&times;</span>
+            <h2 id="modal-enquete-title">Nova Enquete</h2>
+            <form id="form-criar-enquete" class="cv-form">
+                <input type="hidden" id="enquete-id" name="id">
+                <div class="cv-form-group">
+                    <label for="enquete-pergunta">Pergunta:</label>
+                    <input type="text" id="enquete-pergunta" name="pergunta" class="cv-input" required>
+                </div>
+                <div class="cv-form-group">
+                    <label for="enquete-opcoes">Opções (uma por linha):</label>
+                    <textarea id="enquete-opcoes" name="opcoes" class="cv-input" rows="4" required></textarea>
+                </div>
+                <div class="cv-form-group">
+                    <label for="enquete-prazo">Prazo Final:</label>
+                    <input type="datetime-local" id="enquete-prazo" name="prazo" class="cv-input" required>
+                </div>
+                <div class="cv-form-group">
+                    <label for="enquete-tipo">Tipo:</label>
+                    <select id="enquete-tipo" name="tipo" class="cv-input" required>
+                        <option value="informal">Enquete Informal</option>
+                        <option value="formal_assembleia">Votação Formal (Assembleia)</option>
+                    </select>
+                </div>
+                <div class="cv-form-actions">
+                    <button type="button" class="cv-button js-modal-criar-enquete-close">Cancelar</button>
+                    <button type="submit" id="form-enquete-submit-button" class="cv-button cv-button--primary">Salvar</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- Criar Novo Aviso -->
-<div id="modal-criar-aviso" class="cv-modal" style="display:none;">
-  <div class="cv-modal-content cv-modal-content--padded">
-    <span class="cv-modal-close js-modal-criar-aviso-close">&times;</span>
-    <h2>Criar Novo Aviso</h2>
-    <form id="form-criar-aviso" class="cv-form">
-      <input type="hidden" id="aviso-id" name="id">
-      <div class="cv-form-group">
-        <label for="aviso-titulo">Título:</label>
-        <input type="text" id="aviso-titulo" name="titulo" class="cv-input" required>
-      </div>
-      <div class="cv-form-group">
-        <label for="aviso-corpo">Corpo do Aviso:</label>
-        <textarea id="aviso-corpo" name="corpo" class="cv-input" rows="5" required></textarea>
-      </div>
-      <div class="cv-form-group">
-        <label for="aviso-imagem">Imagem (Opcional):</label>
-        <input type="file" id="aviso-imagem" name="imagem" class="cv-input" accept="image/*">
-        <img id="aviso-imagem-preview" src="#" alt="Pré-visualização da imagem"
-             style="max-width:100%;max-height:200px;margin-top:10px;display:none;"
-             loading="lazy">
-      </div>
-      <div class="cv-form-group">
-        <label for="aviso-anexos">Anexos (PDFs, etc.):</label>
-        <input type="file" id="aviso-anexos" name="anexos" class="cv-input" multiple>
-      </div>
-      <div class="cv-form-group">
-        <label for="aviso-categorias">Categorias:</label>
-        <select id="aviso-categorias" name="categorias" class="cv-input" multiple>
-          <option value="manutencao">🛠️ Manutenção</option>
-          <option value="reservas">🏡 Reservas</option>
-          <option value="comunicados">📢 Comunicados</option>
-          <option value="enquetes">🗳️ Enquetes</option>
-          <option value="assembleias">🧑‍⚖️ Assembleias</option>
-          <option value="urgente">🚨 Urgente</option>
-        </select>
-        <small>Segure Ctrl/Cmd para selecionar múltiplas.</small>
-      </div>
-      <div class="cv-form-actions">
-        <button type="button" class="cv-button js-modal-criar-aviso-close">Cancelar</button>
-        <button type="submit" class="cv-button cv-button--primary">Salvar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Detalhe da Enquete -->
-<div id="modal-enquete-detalhe" class="cv-modal" style="display:none;">
-  <div class="cv-modal-content cv-modal-content--padded">
-    <span class="cv-modal-close js-modal-enquete-detalhe-close">&times;</span>
-    <h2 id="modal-enquete-detalhe-titulo">Detalhes da Enquete</h2>
-    <div id="modal-enquete-detalhe-descricao" class="enquete-descricao"
-         style="margin-bottom:15px;"></div>
-    <div id="modal-enquete-detalhe-opcoes-container"></div>
-    <div id="modal-enquete-detalhe-status" class="enquete-status"
-         style="margin-top:15px;"></div>
-    <div class="cv-form-actions">
-      <button type="button" class="cv-button js-modal-enquete-detalhe-close">Cancelar</button>
-      <button type="button" id="modal-enquete-submit-voto"
-              class="cv-button cv-button--primary" style="display:none;">
-        Votar
-      </button>
+    <div id="modal-criar-chamado" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content cv-modal-content--padded">
+            <span class="cv-modal-close js-modal-criar-chamado-close">&times;</span>
+            <h2 id="modal-chamado-title">Nova Solicitação</h2>
+            <form id="form-criar-chamado" class="cv-form">
+                <input type="hidden" id="chamado-id" name="id">
+                <div class="cv-form-group">
+                    <label for="chamado-titulo-modal">Título Resumido:</label>
+                    <input type="text" id="chamado-titulo-modal" name="titulo" class="cv-input" required>
+                </div>
+                <div class="cv-form-group">
+                    <label for="chamado-descricao-modal">Descrição Detalhada:</label>
+                    <textarea id="chamado-descricao-modal" name="descricao" class="cv-input" rows="5" required></textarea>
+                </div>
+                <div class="cv-form-group js-chamado-categoria-form-group">
+                    <label for="chamado-categoria-modal">Categoria:</label>
+                    <select id="chamado-categoria-modal" name="categoria" class="cv-input" required>
+                        <option value="limpeza">Limpeza</option>
+                        <option value="seguranca">Segurança</option>
+                        <option value="manutencao_geral">Manutenção Geral</option>
+                        <option value="barulho">Barulho</option>
+                        <option value="outros">Outros</option>
+                    </select>
+                </div>
+                <div class="cv-form-group">
+                    <label for="chamado-anexos-modal">Anexos (Fotos, Documentos - Opcional):</label>
+                    <input type="file" id="chamado-anexos-modal" name="anexos" class="cv-input" multiple accept="image/*,application/pdf">
+                </div>
+                <div class="cv-form-group admin-only-field js-chamado-status-form-group" style="display:none;">
+                    <label for="chamado-status-modal">Status (Admin):</label>
+                    <select id="chamado-status-modal" name="status" class="cv-input">
+                        <option value="aberto">Aberto</option>
+                        <option value="em_andamento">Em Andamento</option>
+                        <option value="concluido">Concluído</option>
+                    </select>
+                </div>
+                <div class="cv-form-actions">
+                    <button type="button" class="cv-button js-modal-criar-chamado-close">Cancelar</button>
+                    <button type="submit" id="form-chamado-submit-button" class="cv-button cv-button--primary">Enviar</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- Detalhe da Solicitação -->
-<div id="modal-chamado-detalhe" class="cv-modal" style="display:none;">
-  <div class="cv-modal-content cv-modal-content--padded">
-    <span class="cv-modal-close js-modal-chamado-detalhe-close">&times;</span>
-    <h2 id="modal-chamado-detalhe-titulo">Detalhes da Solicitação</h2>
-    <div id="modal-chamado-detalhe-conteudo" class="chamado-detalhe-view"></div>
-    <div id="modal-chamado-detalhe-interacoes" class="chamado-interactions-view"
-         style="margin-top:15px;">
-      <h4>Histórico de Interações:</h4>
+    <!-- Modal de Cadastro de Nova Ocorrência -->
+    <div id="modalNovaOcorrencia" class="cv-modal" style="display:none;">
+        <div class="cv-modal-content cv-modal-content--padded"> <!-- Alterado de cv-modal__content -->
+            <span class="cv-modal-close js-modal-criar-ocorrencia-close" id="closeNovaOcorrenciaModal">&times;</span> <!-- Alterado de cv-modal__close-button -->
+            <h2>Nova Ocorrência</h2>
+            <form id="formNovaOcorrencia" class="cv-form">
+                <div class="cv-form-group"> <!-- Alterado de cv-form__group -->
+                    <label for="ocorrenciaTitulo">Título (obrigatório):</label> <!-- Removida classe cv-form__label -->
+                    <input type="text" id="ocorrenciaTitulo" name="titulo" class="cv-input" required maxlength="100"> <!-- Alterado de cv-form__input -->
+                </div>
+                <div class="cv-form-group"> <!-- Alterado de cv-form__group -->
+                    <label for="ocorrenciaDescricao">Descrição (obrigatório):</label> <!-- Removida classe cv-form__label -->
+                    <textarea id="ocorrenciaDescricao" name="descricao" class="cv-input" rows="5" required maxlength="1000"></textarea> <!-- Alterado de cv-form__textarea para cv-input -->
+                </div>
+                <div class="cv-form-group"> <!-- Alterado de cv-form__group -->
+                    <label for="ocorrenciaCategoria">Categoria (obrigatório):</label> <!-- Removida classe cv-form__label -->
+                    <select id="ocorrenciaCategoria" name="categoria" class="cv-input" required> <!-- Alterado de cv-form__select para cv-input -->
+                        <option value="">Selecione...</option>
+                        <!-- Options serão populadas pelo JS -->
+                    </select>
+                </div>
+                <div class="cv-form-group"> <!-- Alterado de cv-form__group -->
+                    <label for="ocorrenciaPrioridade">Prioridade:</label> <!-- Removida classe cv-form__label -->
+                    <select id="ocorrenciaPrioridade" name="prioridade" class="cv-input"> <!-- Alterado de cv-form__select para cv-input -->
+                        <option value="NORMAL">Normal</option>
+                        <option value="URGENTE">Urgente</option>
+                    </select>
+                </div>
+                <div class="cv-form-group"> <!-- Alterado de cv-form__group -->
+                    <label for="ocorrenciaAnexos">Anexos (opcional, máx 10MB por arquivo):</label> <!-- Removida classe cv-form__label -->
+                    <input type="file" id="ocorrenciaAnexos" name="anexos" class="cv-input" multiple accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.aac,.mp3,.wav"> <!-- Alterado de cv-form__input-file para cv-input -->
+                    <div id="anexosPreviewContainer" class="anexos-preview"></div>
+                </div>
+                <div id="formNovaOcorrenciaErrors" class="cv-form__errors" style="display:none;"></div> <!-- Mantido cv-form__errors por enquanto -->
+                <div class="cv-form-actions"> <!-- Alterado de cv-form__actions -->
+                    <button type="button" id="cancelNovaOcorrencia" class="cv-button js-modal-criar-ocorrencia-close">Cancelar</button>
+                    <button type="submit" class="cv-button cv-button--primary">Enviar</button>
+                </div>
+            </form>
+        </div>
     </div>
-    <div id="sindico-chamado-update-section" class="admin-only-field"
-         style="display:none; margin-top:20px; border-top:1px dashed #ccc; padding-top:15px;">
-      <h4>Atualização do Síndico</h4>
-      <div class="cv-form-group" id="modal-chamado-status-update-group">
-        <label for="modal-chamado-status-select">Novo Status:</label>
-        <select id="modal-chamado-status-select" class="cv-input">
-          <option value="Aberto">Aberto</option>
-          <option value="EmAndamento">Em Andamento</option>
-          <option value="Concluido">Concluído</option>
-          <option value="Cancelado">Cancelado</option>
-        </select>
-      </div>
-      <div class="cv-form-group" id="modal-chamado-resposta-sindico-group">
-        <label for="modal-chamado-resposta-textarea">Resposta do Síndico:</label>
-        <textarea id="modal-chamado-resposta-textarea" class="cv-input"
-                  rows="3"></textarea>
-      </div>
-      <button id="modal-chamado-submit-sindico-update"
-              class="cv-button cv-button--primary"
-              style="margin-top:10px; display:none;">
-        Salvar Atualização
-      </button>
-    </div>
-    <div id="modal-chamado-add-comment-section" class="cv-form-group"
-         style="margin-top:20px; display:none;">
-      <label for="modal-chamado-comment-text">Adicionar Comentário:</label>
-      <textarea id="modal-chamado-comment-text" class="cv-input"
-                rows="3"></textarea>
-      <button id="modal-chamado-submit-comment"
-              class="cv-button cv-button--primary"
-              style="margin-top:10px;">
-        Enviar
-      </button>
-    </div>
-    <div class="cv-form-actions" style="margin-top:20px;">
-      <button type="button" class="cv-button js-modal-chamado-detalhe-close">
-        Cancelar
-      </button>
-    </div>
-  </div>
-</div>
 
-<!-- Criar Nova Enquete -->
-<div id="modal-criar-enquete" class="cv-modal" style="display:none;">
-  <div class="cv-modal-content cv-modal-content--padded">
-    <span class="cv-modal-close js-modal-criar-enquete-close">&times;</span>
-    <h2 id="modal-enquete-title">Nova Enquete</h2>
-    <form id="form-criar-enquete" class="cv-form">
-      <input type="hidden" id="enquete-id" name="id">
-      <div class="cv-form-group">
-        <label for="enquete-pergunta">Pergunta:</label>
-        <input type="text" id="enquete-pergunta" name="pergunta"
-               class="cv-input" required>
-      </div>
-      <div class="cv-form-group">
-        <label for="enquete-opcoes">Opções (uma por linha):</label>
-        <textarea id="enquete-opcoes" name="opcoes" class="cv-input"
-                  rows="4" required></textarea>
-      </div>
-      <div class="cv-form-group">
-        <label for="enquete-prazo">Prazo Final:</label>
-        <input type="datetime-local" id="enquete-prazo" name="prazo"
-               class="cv-input" required>
-      </div>
-      <div class="cv-form-group">
-        <label for="enquete-tipo">Tipo:</label>
-        <select id="enquete-tipo" name="tipo" class="cv-input" required>
-          <option value="informal">Enquete Informal</option>
-          <option value="formal_assembleia">Votação Formal</option>
-        </select>
-      </div>
-      <div class="cv-form-actions">
-        <button type="button" class="cv-button js-modal-criar-enquete-close">
-          Cancelar
-        </button>
-        <button type="submit" id="form-enquete-submit-button"
-                class="cv-button cv-button--primary">
-          Salvar
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
+    <!-- Floating Action Button menu is initialized via JS -->
 
-<!-- Criar Nova Solicitação -->
-<div id="modal-criar-chamado" class="cv-modal" style="display:none;">
-  <div class="cv-modal-content cv-modal-content--padded">
-    <span class="cv-modal-close js-modal-criar-chamado-close">&times;</span>
-    <h2 id="modal-chamado-title">Nova Solicitação</h2>
-    <form id="form-criar-chamado" class="cv-form">
-      <input type="hidden" id="chamado-id" name="id">
-      <div class="cv-form-group">
-        <label for="chamado-titulo-modal">Título Resumido:</label>
-        <input type="text" id="chamado-titulo-modal" name="titulo"
-               class="cv-input" required>
-      </div>
-      <div class="cv-form-group">
-        <label for="chamado-descricao-modal">Descrição Detalhada:</label>
-        <textarea id="chamado-descricao-modal" name="descricao"
-                  class="cv-input" rows="5" required></textarea>
-      </div>
-      <div class="cv-form-group js-chamado-categoria-form-group">
-        <label for="chamado-categoria-modal">Categoria:</label>
-        <select id="chamado-categoria-modal" name="categoria"
-                class="cv-input" required>
-          <option value="limpeza">Limpeza</option>
-          <option value="seguranca">Segurança</option>
-          <option value="manutencao_geral">Manutenção Geral</option>
-          <option value="barulho">Barulho</option>
-          <option value="outros">Outros</option>
-        </select>
-      </div>
-      <div class="cv-form-group">
-        <label for="chamado-anexos-modal">Anexos (Fotos, PDF):</label>
-        <input type="file" id="chamado-anexos-modal" name="anexos"
-               class="cv-input" multiple accept="image/*,application/pdf">
-      </div>
-      <div class="cv-form-group admin-only-field js-chamado-status-form-group"
-           style="display:none;">
-        <label for="chamado-status-modal">Status (Admin):</label>
-        <select id="chamado-status-modal" name="status" class="cv-input">
-          <option value="aberto">Aberto</option>
-          <option value="em_andamento">Em Andamento</option>
-          <option value="concluido">Concluído</option>
-        </select>
-      </div>
-      <div class="cv-form-actions">
-        <button type="button" class="cv-button js-modal-criar-chamado-close">
-          Cancelar
-        </button>
-        <button type="submit" id="form-chamado-submit-button"
-                class="cv-button cv-button--primary">
-          Enviar
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Criar Nova Ocorrência -->
-<div id="modalNovaOcorrencia" class="cv-modal" style="display:none;">
-  <div class="cv-modal-content cv-modal-content--padded">
-    <span class="cv-modal-close js-modal-criar-ocorrencia-close">&times;</span>
-    <h2>Nova Ocorrência</h2>
-    <form id="formNovaOcorrencia" class="cv-form">
-      <div class="cv-form-group">
-        <label for="ocorrenciaTitulo">Título (obrigatório):</label>
-        <input type="text" id="ocorrenciaTitulo" name="titulo"
-               class="cv-input" required maxlength="100">
-      </div>
-      <div class="cv-form-group">
-        <label for="ocorrenciaDescricao">Descrição (obrigatório):</label>
-        <textarea id="ocorrenciaDescricao" name="descricao"
-                  class="cv-input" rows="5" required maxlength="1000"></textarea>
-      </div>
-      <div class="cv-form-group">
-        <label for="ocorrenciaCategoria">Categoria (obrigatório):</label>
-        <select id="ocorrenciaCategoria" name="categoria"
-                class="cv-input" required>
-          <option value="">Selecione...</option>
-          <!-- Opções via JS -->
-        </select>
-      </div>
-      <div class="cv-form-group">
-        <label for="ocorrenciaPrioridade">Prioridade:</label>
-        <select id="ocorrenciaPrioridade" name="prioridade"
-                class="cv-input">
-          <option value="NORMAL">Normal</option>
-          <option value="URGENTE">Urgente</option>
-        </select>
-      </div>
-      <div class="cv-form-group">
-        <label for="ocorrenciaAnexos">Anexos (opcional):</label>
-        <input type="file" id="ocorrenciaAnexos" name="anexos"
-               class="cv-input" multiple accept="image/*,application/pdf">
-        <div id="anexosPreviewContainer" class="anexos-preview"></div>
-      </div>
-      <div id="formNovaOcorrenciaErrors" class="cv-form__errors"
-           style="display:none;"></div>
-      <div class="cv-form-actions">
-        <button type="button" class="cv-button js-modal-criar-ocorrencia-close">
-          Cancelar
-        </button>
-        <button type="submit" class="cv-button cv-button--primary">
-          Enviar
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- O menu FAB é inicializado por JavaScript; não há botão estático aqui. -->
