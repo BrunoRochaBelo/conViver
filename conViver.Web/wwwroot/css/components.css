@@ -736,6 +736,7 @@ html[data-theme="dark"] {
 /* Reservas view toggle alignment */
 .reservas-view-toggle {
     display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: flex-end;
     flex-wrap: nowrap;
