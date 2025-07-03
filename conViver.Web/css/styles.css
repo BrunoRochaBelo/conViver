@@ -2030,16 +2030,12 @@ html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-
     margin-bottom: var(--cv-spacing-lg);
 }
 .cv-empty-state__icon svg,
-.cv-error-state__icon svg,
-.cv-empty-state__icon img, /* Added support for img tag */
-.cv-error-state__icon img { /* Added support for img tag */
-    width: 64px;  /* Default icon size */
-    height: 64px; /* Default icon size */
-    color: var(--current-text-placeholder); /* Default color for SVG icons */
-    object-fit: contain; /* Ensure image icons scale nicely */
+.cv-error-state__icon svg {
+    width: 64px;
+    height: 64px;
+    color: var(--current-text-placeholder);
 }
-.cv-error-state__icon svg,
-.cv-error-state__icon img { /* Ensure error icon color applies to img too if needed, though typically SVG fill is used */
+.cv-error-state__icon svg {
     color: var(--current-semantic-error);
 }
 

@@ -34,7 +34,16 @@
                 </div>
                 <!-- Feed items (visitantes ou encomendas) will be loaded here by JS -->
             </section>
-            <!-- Static .cv-empty-state and .cv-error-state removed. JS will create them. -->
+            <div class="cv-empty-state" style="display: none;">
+                <img src="/img/illustrations/empty-box.svg" alt="Nenhum item encontrado" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Nenhum item encontrado para os filtros atuais.</p>
+                <p class="cv-empty-state__message js-sindico-only-message" style="display:none;">Use o botão (+) para registrar um novo visitante ou encomenda.</p>
+            </div>
+            <div class="cv-error-state" style="display: none;">
+                <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar dados" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Falha ao carregar os dados. Verifique sua conexão ou tente novamente.</p>
+                <button class="cv-button cv-button--primary cv-empty-state__action js-try-again-button" data-content-id="content-visitantes">Tentar Novamente</button>
+            </div>
         </div>
 
         <div class="cv-tab-content" id="content-encomendas" style="display:none;">
@@ -48,7 +57,16 @@
                     </div>
                 </div>
             </section>
-            <!-- Static .cv-empty-state and .cv-error-state removed. JS will create them. -->
+            <div class="cv-empty-state" style="display: none;">
+                <img src="/img/illustrations/empty-box.svg" alt="Nenhuma encomenda encontrada" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Nenhuma encomenda encontrada para os filtros atuais.</p>
+                 <p class="cv-empty-state__message js-sindico-only-message" style="display:none;">Use o botão (+) para registrar uma nova encomenda.</p>
+            </div>
+            <div class="cv-error-state" style="display: none;">
+                <img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro ao carregar encomendas" class="cv-empty-state__image">
+                <p class="cv-empty-state__message">Falha ao carregar as encomendas. Verifique sua conexão ou tente novamente.</p>
+                <button class="cv-button cv-button--primary cv-empty-state__action js-try-again-button" data-content-id="content-encomendas">Tentar Novamente</button>
+            </div>
         </div>
 
 
