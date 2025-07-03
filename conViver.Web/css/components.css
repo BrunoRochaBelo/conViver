@@ -623,6 +623,19 @@ html[data-theme="dark"] .cv-bottom-nav {
     padding: var(--cv-spacing-xs);
 }
 
+.cv-bottom-nav__icon {
+    width: 24px;
+    height: 24px;
+}
+
+.cv-bottom-nav__label {
+    line-height: 1;
+}
+
+body.has-bottom-nav {
+    padding-bottom: 70px;
+}
+
 .cv-bottom-nav__link--active {
     color: var(--current-primary-blue);
     font-weight: 600;
