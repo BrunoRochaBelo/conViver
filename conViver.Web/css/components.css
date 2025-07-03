@@ -643,8 +643,11 @@ html[data-theme="dark"] .cv-bottom-nav {
 /* Responsive Table Wrapper */
 .cv-table-responsive-wrapper {
     overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
     width: 100%;
     margin-bottom: var(--cv-spacing-md); /* Space below scrollable table */
+    display: block;
 }
 
 /* Apply to actual <table> elements, ensure it can be overridden for specific table needs */

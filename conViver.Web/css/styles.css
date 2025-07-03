@@ -1305,6 +1305,19 @@ html[data-theme="dark"] .cv-modal-close {
     cursor: pointer;
 }
 
+/* Basic form layout */
+.cv-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cv-spacing-md);
+}
+
+.cv-form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--cv-spacing-md);
+}
+
 /* Styling for form elements within modal, assuming .cv-form, .cv-form-group, .cv-input, .cv-button are globally styled */
 #form-criar-aviso .cv-form-group {
     margin-bottom: var(--cv-spacing-md, 15px);
@@ -1342,6 +1355,16 @@ html[data-theme="dark"] .cv-modal-close {
     gap: var(--cv-spacing-sm, 10px); /* Space between buttons */
 }
 /* .cv-form-actions .cv-button {} */ /* General button styling is applied */
+
+@media (max-width: 576px) {
+    .cv-form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .cv-form-actions .cv-button {
+        width: 100%;
+    }
+}
 
 /* Notice Card Action Buttons */
 .communication__post-actions {
