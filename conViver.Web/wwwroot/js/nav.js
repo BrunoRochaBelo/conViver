@@ -96,6 +96,33 @@ export function buildNavigation() {
     navContainer.innerHTML = '';
     navContainer.classList.add('cv-nav');
     navContainer.appendChild(container);
+
+    if (window.innerWidth < 768 && window.APP_CONFIG?.ENABLE_MOBILE_BOTTOM_NAV) {
+        const bottomNav = document.createElement('nav');
+        bottomNav.className = 'cv-bottom-nav';
+        const bottomUl = document.createElement('ul');
+        bottomUl.className = 'cv-bottom-nav__list';
+        items.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'cv-bottom-nav__item';
+            const a = document.createElement('a');
+            if (item.useLayout) {
+                a.href = `${layoutPrefix}${item.key}`;
+            } else {
+                a.href = `${hrefPrefix}${item.href}`;
+            }
+            a.innerHTML = item.icon;
+            a.className = 'cv-bottom-nav__link';
+            if (currentPage === item.key) {
+                a.classList.add('cv-bottom-nav__link--active');
+                a.setAttribute('aria-current', 'page');
+            }
+            li.appendChild(a);
+            bottomUl.appendChild(li);
+        });
+        bottomNav.appendChild(bottomUl);
+        document.body.appendChild(bottomNav);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', buildNavigation);
