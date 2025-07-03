@@ -320,16 +320,10 @@ async function loadInitialPortariaItems() {
 
     feed.querySelectorAll(`.cv-card:not(.prio-0):not(.feed-skeleton-item)`).forEach(el => el.remove());
     fetchedPortariaItems = [];
-    const errStates = contentEl.querySelectorAll('.cv-error-state');
-    errStates.forEach((el, idx) => {
-        if (idx === 0) el.style.display = 'none';
-        else el.remove();
-    });
-    const emptyStates = contentEl.querySelectorAll('.cv-empty-state');
-    emptyStates.forEach((el, idx) => {
-        if (idx === 0) el.style.display = 'none';
-        else el.remove();
-    });
+    const errStateEl = contentEl.querySelector('.cv-error-state');
+    if (errStateEl) errStateEl.style.display = 'none';
+    const emptyStateEl = contentEl.querySelector('.cv-empty-state');
+    if (emptyStateEl) emptyStateEl.style.display = 'none';
 
     let sentinel = document.getElementById(portariaScrollSentinelId);
     if (!sentinel) {
@@ -362,7 +356,7 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
     const feed = contentEl?.querySelector(activePortariaTab === 'visitantes' ? portariaFeedContainerSelector : portariaEncomendasFeedContainerSelector);
     const sentinel = document.getElementById(portariaScrollSentinelId);
     if (!feed || !contentEl) {
-        isLoadingPortariaItems = false;
+        isLoadingPortariaItens = false;
         if (contentEl) hideSkeleton(contentEl);
         return;
     }
@@ -449,13 +443,12 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
             retryButton: {
                 text: "Tentar Novamente",
                 onClick: () => {
-                    contentEl.querySelectorAll(".cv-error-state").forEach(el => el.remove());
+                    contentEl.querySelector(".cv-error-state")?.remove();
                     loadInitialPortariaItems();
                 }
             }
         });
         const target = contentEl.querySelector(portariaFeedContainerSelector + ', ' + portariaEncomendasFeedContainerSelector) || contentEl;
-        contentEl.querySelectorAll('.cv-error-state').forEach(el => el.remove());
         target.appendChild(errState);
         sentinel.style.display = "none";
     } finally {

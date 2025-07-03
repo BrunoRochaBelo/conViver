@@ -19,7 +19,7 @@
     <div id="userMenuModal" class="cv-modal user-menu-modal">
         <div class="cv-modal-content">
             <header class="cv-modal-header">
-                <span class="cv-modal-close" id="userMenuClose">&times;</span>
+                <button type="button" class="cv-modal-close" aria-label="Fechar" id="userMenuClose">&times;</button>
             </header>
             <div class="cv-modal-body">
                 <ul class="user-menu-list">
@@ -49,21 +49,21 @@
                 <div class="cv-card fin-summary-card">
                     <h4 class="fin-summary-card__title">Inadimplência</h4>
                     <div class="fin-summary-skeleton js-summary-inadimplencia-skeleton" style="display:none;">
-                        <span class="skeleton-block" style="width: 70px; height: 28px; display: block; margin-top: 5px; background-color: #e0e0e0;"></span>
+                        <span class="skeleton-block" style="width: 70px; height: 28px; display: block; margin-top: 5px; background-color: #e0e0e0;"></button>
                     </div>
                     <p class="fin-summary-card__value js-summary-inadimplencia">--%</p>
                 </div>
                 <div class="cv-card fin-summary-card">
                     <h4 class="fin-summary-card__title">Pix no Mês</h4>
                     <div class="fin-summary-skeleton js-summary-pix-skeleton" style="display:none;">
-                        <span class="skeleton-block" style="width: 100px; height: 28px; display: block; margin-top: 5px; background-color: #e0e0e0;"></span>
+                        <span class="skeleton-block" style="width: 100px; height: 28px; display: block; margin-top: 5px; background-color: #e0e0e0;"></button>
                     </div>
                     <p class="fin-summary-card__value js-summary-pix">R$ --</p>
                 </div>
                 <div class="cv-card fin-summary-card">
                     <h4 class="fin-summary-card__title">Boletos Pendentes</h4>
                     <div class="fin-summary-skeleton js-summary-pendentes-skeleton" style="display:none;">
-                        <span class="skeleton-block" style="width: 50px; height: 28px; display: block; margin-top: 5px; background-color: #e0e0e0;"></span>
+                        <span class="skeleton-block" style="width: 50px; height: 28px; display: block; margin-top: 5px; background-color: #e0e0e0;"></button>
                     </div>
                     <p class="fin-summary-card__value js-summary-pendentes">--</p>
                 </div>
@@ -101,7 +101,7 @@
         <!-- Modal (inicialmente oculto) -->
         <div id="modalCobranca" class="cv-modal js-modal-cobranca" style="display: none;">
             <div class="cv-modal-content cv-modal-content--padded"> <!-- Padronizado de __content para -content -->
-                <span class="cv-modal-close js-modal-close-cobranca">&times;</span> <!-- Padronizado de __close para -close -->
+                <button type="button" class="cv-modal-close js-modal-close-cobranca" aria-label="Fechar">&times;</button> <!-- Padronizado de __close para -close -->
                 <h3 id="modalCobrancaTitle" class="cv-modal-title">Nova Cobrança</h3> <!-- Padronizado de __title para -title (assumindo que existe ou será estilizado) -->
                 <div id="modalCobrancaBody" class="cv-modal-body"> <!-- Padronizado de __body para -body (assumindo que existe ou será estilizado) -->
                     <!-- Formulário ou detalhes aqui -->
