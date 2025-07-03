@@ -64,3 +64,49 @@
 .ocorrencia-card__prioridade--urgente {
     background-color: var(--current-semantic-danger, #dc3545);
 }
+
+/* Optimistic UI and Highlight */
+.ocorrencias-lista .ocorrencia-card {
+    /* Existing styles from above */
+    margin-bottom: var(--cv-spacing-md, 15px);
+    padding: var(--cv-spacing-md, 15px);
+    background-color: var(--current-bg-white, #fff);
+    border-radius: var(--cv-border-radius-md, 8px);
+    box-shadow: var(--current-shadow-sm, 0 2px 4px rgba(0,0,0,0.1));
+    cursor: pointer;
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out, max-height 0.3s ease-out, box-shadow 0.2s ease-in-out;
+    will-change: opacity, transform, max-height;
+    overflow: hidden; /* Para a animação de max-height funcionar bem */
+}
+
+.ocorrencias-lista .ocorrencia-card.cv-card--deleting {
+    opacity: 0;
+    transform: scale(0.95);
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    border-width: 0 !important;
+    /* A transição para max-height precisa de um tempo um pouco maior para ser suave */
+    /* transition-duration: 0.3s, 0.3s, 0.5s;  -- Adjust if needed via individual properties */
+}
+
+.cv-card--highlight {
+    animation: highlight-animation 2s ease-out;
+}
+
+@keyframes highlight-animation {
+    0% {
+        box-shadow: 0 0 0 0 var(--current-color-primary-transparent, rgba(52, 152, 219, 0.2));
+        transform: scale(1);
+    }
+    25% {
+        box-shadow: 0 0 10px 5px var(--current-color-primary-transparent, rgba(52, 152, 219, 0.2));
+        transform: scale(1.01);
+    }
+    100% {
+        box-shadow: 0 0 0 0 var(--current-color-primary-transparent, rgba(52, 152, 219, 0.2));
+        transform: scale(1);
+    }
+}

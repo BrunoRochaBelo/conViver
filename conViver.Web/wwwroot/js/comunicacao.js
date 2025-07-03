@@ -9,7 +9,9 @@ import {
     createEmptyStateElement,
     showModalError, // Importar de main.js
     clearModalError, // Importar de main.js
-    debugLog
+    debugLog,
+    openModal,
+    closeModal
 } from "./main.js";
 import { initFabMenu } from "./fabMenu.js";
 import { xhrPost } from './progress.js'; // Importar xhrPost
@@ -424,26 +426,26 @@ function setupSortModalAndButton() {
   if (openSortButton && sortModal) {
     openSortButton.addEventListener("click", () => {
       if (sortSelect) sortSelect.value = currentSortOrder;
-      sortModal.style.display = "flex";
+      openModal(sortModal);
       openSortButton.classList.add("rotated");
     });
   }
   closeSortButtons.forEach((btn) =>
     btn.addEventListener("click", () => {
-      sortModal.style.display = "none";
+      closeModal(sortModal);
       openSortButton.classList.remove("rotated");
     })
   );
   window.addEventListener("click", (e) => {
     if (e.target === sortModal) {
-      sortModal.style.display = "none";
+      closeModal(sortModal);
       openSortButton.classList.remove("rotated");
     }
   });
   if (applySortButton && sortSelect) {
     applySortButton.addEventListener("click", () => {
       currentSortOrder = sortSelect.value;
-      sortModal.style.display = "none";
+      closeModal(sortModal);
       openSortButton.classList.remove("rotated");
       if (currentSortOrder !== "desc")
         openSortButton.classList.add("has-indicator");
@@ -463,7 +465,7 @@ function setupSortModalAndButton() {
     clearSortButton.addEventListener("click", () => {
       sortSelect.value = "desc"; // Valor padrão
       currentSortOrder = "desc";
-      sortModal.style.display = "none";
+      closeModal(sortModal);
       openSortButton.classList.remove("rotated");
       openSortButton.classList.remove("has-indicator"); // Remover indicador
 
@@ -483,7 +485,7 @@ function openCriarAvisoModal() {
     formCriarAviso.reset();
     avisoIdField.value = "";
     criarAvisoModal.querySelector("h2").textContent = "Criar Novo Aviso";
-    formCriarAviso.querySelector('button[type="submit"]').textContent = "Salvar Aviso";
+    formCriarAviso.querySelector('button[type="submit"]').textContent = "Salvar"; // Padronizado
     // Resetar e esconder preview da imagem
     const imgPreview = document.getElementById("aviso-imagem-preview");
     if (imgPreview) {
@@ -491,7 +493,7 @@ function openCriarAvisoModal() {
         imgPreview.src = "#";
     }
     document.getElementById("aviso-imagem").value = ""; // Limpar o input file
-    criarAvisoModal.style.display = "flex";
+    openModal(criarAvisoModal);
   }
 }
 
@@ -539,9 +541,8 @@ function openEditFeedItemModal(itemType, itemId) {
         }
       }
       criarAvisoModal.querySelector("h2").textContent = "Editar Aviso";
-      formCriarAviso.querySelector('button[type="submit"]').textContent =
-        "Salvar Alterações";
-      criarAvisoModal.style.display = "flex";
+      formCriarAviso.querySelector('button[type="submit"]').textContent = "Salvar"; // Padronizado
+      openModal(criarAvisoModal);
     }
   } else {
     showGlobalFeedback(
@@ -551,7 +552,7 @@ function openEditFeedItemModal(itemType, itemId) {
   }
 }
 function closeCriarAvisoModal() {
-  if (criarAvisoModal) criarAvisoModal.style.display = "none";
+  if (criarAvisoModal) closeModal(criarAvisoModal);
 }
 
 function setupModalEventListeners() {
@@ -648,12 +649,12 @@ function setupModalEventListeners() {
     closeButtons.forEach((btn) =>
       btn.addEventListener(
         "click",
-        () => (modalEnqueteDetalhe.style.display = "none")
+        () => closeModal(modalEnqueteDetalhe)
       )
     );
     window.addEventListener("click", (event) => {
       if (event.target === modalEnqueteDetalhe)
-        modalEnqueteDetalhe.style.display = "none";
+        closeModal(modalEnqueteDetalhe);
     });
   }
 
@@ -665,12 +666,12 @@ function setupModalEventListeners() {
     closeButtonsChamado.forEach((btn) =>
       btn.addEventListener(
         "click",
-        () => (modalChamadoDetalhe.style.display = "none")
+        () => closeModal(modalChamadoDetalhe)
       )
     );
     window.addEventListener("click", (event) => {
       if (event.target === modalChamadoDetalhe)
-        modalChamadoDetalhe.style.display = "none";
+        closeModal(modalChamadoDetalhe);
     });
   }
 
@@ -681,12 +682,12 @@ function setupModalEventListeners() {
       .forEach((b) =>
         b.addEventListener(
           "click",
-          () => (criarEnqueteModal.style.display = "none")
+          () => closeModal(criarEnqueteModal)
         )
       );
     window.addEventListener("click", (e) => {
       if (e.target === criarEnqueteModal)
-        criarEnqueteModal.style.display = "none";
+        closeModal(criarEnqueteModal);
     });
     if (formCriarEnquete) {
       formCriarEnquete.addEventListener("submit", async (e) => {
@@ -743,13 +744,13 @@ function setupModalEventListeners() {
             // showGlobalFeedback("Enquete atualizada com sucesso!", "success", 2500);
 
             // Por ora, como só exibe warning, podemos fechar o modal se desejado.
-            if (criarEnqueteModal) criarEnqueteModal.style.display = "none";
+            if (criarEnqueteModal) closeModal(criarEnqueteModal);
             formCriarEnquete.reset();
 
           } else {
             await handleCreateEnquete(enqueteData); // Agora só faz a chamada e recarrega o feed
             // Sucesso da criação:
-            if (criarEnqueteModal) criarEnqueteModal.style.display = "none";
+            if (criarEnqueteModal) closeModal(criarEnqueteModal);
             formCriarEnquete.reset();
             showGlobalFeedback("Nova enquete criada com sucesso! Ela aparecerá no feed.", "success", 2500);
           }
@@ -772,12 +773,12 @@ function setupModalEventListeners() {
       .querySelectorAll(".js-modal-criar-chamado-close")
       .forEach((btn) => {
         btn.addEventListener("click", () => {
-          if (criarChamadoModal) criarChamadoModal.style.display = "none";
+          if (criarChamadoModal) closeModal(criarChamadoModal);
         });
       });
     window.addEventListener("click", (event) => {
       if (event.target === criarChamadoModal)
-        criarChamadoModal.style.display = "none";
+        closeModal(criarChamadoModal);
     });
     if (
       formCriarChamado &&
@@ -808,7 +809,7 @@ function setupModalEventListeners() {
             // atualmente só exibe um warning. Se fosse uma edição real, o tratamento seria similar.
             chamadoData.status = document.getElementById("chamado-status-modal").value;
             await handleUpdateChamado(currentChamadoId, chamadoData); // Mostra warning global
-            if (criarChamadoModal) criarChamadoModal.style.display = "none"; // Fecha no "sucesso" do warning
+            if (criarChamadoModal) closeModal(criarChamadoModal); // Fecha no "sucesso" do warning
             formCriarChamado.reset();
           } else {
             // Validação simples antes de chamar a API
@@ -817,7 +818,7 @@ function setupModalEventListeners() {
             }
             await handleCreateChamado(chamadoData);
             // Sucesso:
-            if (criarChamadoModal) criarChamadoModal.style.display = "none";
+            if (criarChamadoModal) closeModal(criarChamadoModal);
             formCriarChamado.reset();
             showGlobalFeedback("Nova solicitação aberta com sucesso! Ela aparecerá no feed.", "success", 2500);
           }
@@ -839,12 +840,12 @@ function setupModalEventListeners() {
       .forEach((btn) =>
         btn.addEventListener(
           "click",
-          () => (criarOcorrenciaModal.style.display = "none")
+          () => closeModal(criarOcorrenciaModal)
         )
       );
     window.addEventListener("click", (event) => {
       if (event.target === criarOcorrenciaModal)
-        criarOcorrenciaModal.style.display = "none";
+        closeModal(criarOcorrenciaModal);
     });
     if (formCriarOcorrencia) {
       formCriarOcorrencia.addEventListener("submit", async (event) => {
@@ -1774,7 +1775,7 @@ async function handleEnqueteClick(itemId, targetElementOrCard) {
     '<p class="cv-loading-message"><span class="spinner spinner-small"></span> Carregando detalhes da enquete...</p>';
   modalEnqueteDetalheStatus.innerHTML = "";
   modalEnqueteSubmitVotoButton.style.display = "none";
-  modalEnqueteDetalhe.style.display = "flex";
+  openModal(modalEnqueteDetalhe);
 
   try {
     const enquete = await apiClient.get(
@@ -1997,7 +1998,7 @@ async function handleChamadoClick(
   );
   if (userCommentSection) userCommentSection.style.display = "none";
 
-  modalChamadoDetalhe.style.display = "flex";
+  openModal(modalChamadoDetalhe);
 
   let endpoint = "";
   if (itemType === "Chamado")
@@ -2008,7 +2009,7 @@ async function handleChamadoClick(
     endpoint = `/api/v1/ordensservico/app/ordensservico/${itemId}`;
   else {
     showGlobalFeedback(`Detalhes para ${itemType} não suportados.`, "error");
-    if (modalChamadoDetalhe) modalChamadoDetalhe.style.display = "none";
+    if (modalChamadoDetalhe) closeModal(modalChamadoDetalhe);
     return;
   }
 
@@ -2185,7 +2186,7 @@ async function submitChamadoUpdateBySindico(chamadoId) {
       respostaDoSindico: respostaDoSindico,
     });
     // Sucesso:
-    if (modalChamadoDetalhe) modalChamadoDetalhe.style.display = "none";
+    if (modalChamadoDetalhe) closeModal(modalChamadoDetalhe);
     await loadInitialFeedItems();
     showGlobalFeedback("Chamado atualizado com sucesso!", "success", 2500);
   } catch (error) {
@@ -2271,8 +2272,8 @@ function openCreateEnqueteModal() {
     formCriarEnquete.reset();
     enqueteIdField.value = "";
     modalEnqueteTitle.textContent = "Nova Enquete";
-    formEnqueteSubmitButton.textContent = "Salvar Enquete";
-    criarEnqueteModal.style.display = "flex";
+    formEnqueteSubmitButton.textContent = "Salvar"; // Padronizado
+    openModal(criarEnqueteModal);
   }
 }
 
@@ -2438,11 +2439,11 @@ function openCreateChamadoModal() {
     formCriarChamado.reset();
     chamadoIdFieldModal.value = "";
     modalChamadoTitle.textContent = "Nova Solicitação";
-    formChamadoSubmitButtonModal.textContent = "Abrir Solicitação";
+    formChamadoSubmitButtonModal.textContent = "Enviar"; // Padronizado
     chamadoStatusModalFormGroup.style.display = "none";
     chamadoCategoriaModalFormGroup.style.display = "block";
     document.getElementById("chamado-descricao-modal").disabled = false;
-    criarChamadoModal.style.display = "flex";
+    openModal(criarChamadoModal);
   }
 }
 
@@ -2460,7 +2461,7 @@ function openCreateOcorrenciaModal() {
     if (ocorrenciaPrioridadeSelect) {
       ocorrenciaPrioridadeSelect.value = "NORMAL";
     }
-    criarOcorrenciaModal.style.display = "flex";
+    openModal(criarOcorrenciaModal);
   }
 }
 

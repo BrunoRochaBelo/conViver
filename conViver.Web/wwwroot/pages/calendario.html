@@ -80,7 +80,7 @@
     <!-- <button class="fab" id="fab-nova-reserva" title="Nova Reserva" style="display: none;">+</button> -->
 
     <div id="modal-filtros-reservas" class="cv-modal" style="display:none;">
-        <div class="cv-modal-content">
+        <div class="cv-modal-content cv-modal-content--padded">
             <span class="cv-modal-close js-modal-filtros-reservas-close">&times;</span>
             <h2 id="modal-filtros-reservas-title">Filtros de Reservas</h2> <!-- Título dinâmico -->
             <div class="cv-form">
@@ -147,16 +147,16 @@
                 </div>
 
                 <div class="cv-form-actions">
-                    <button id="aplicar-filtros-modal-reservas" class="cv-button cv-button--primary">Aplicar Filtros</button>
-                    <button type="button" id="limpar-filtros-modal-reservas" class="cv-button">Limpar Filtros</button>
                     <button type="button" class="cv-button js-modal-filtros-reservas-close">Cancelar</button>
+                    <button type="button" id="limpar-filtros-modal-reservas" class="cv-button">Limpar Filtros</button>
+                    <button id="aplicar-filtros-modal-reservas" class="cv-button cv-button--primary">Aplicar Filtros</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="modal-sort-reservas" class="cv-modal" style="display:none;">
-        <div class="cv-modal-content">
+        <div class="cv-modal-content cv-modal-content--padded">
             <span class="cv-modal-close js-modal-sort-reservas-close">&times;</span>
             <h2>Ordenação de Reservas</h2>
             <div class="cv-form">
@@ -172,9 +172,9 @@
                     </select>
                 </div>
                 <div class="cv-form-actions">
-                    <button id="apply-sort-button-reservas" class="cv-button cv-button--primary">Aplicar</button>
-                    <button type="button" id="clear-sort-button-reservas-modal" class="cv-button">Limpar Ordenação</button>
                     <button type="button" class="cv-button js-modal-sort-reservas-close">Cancelar</button>
+                    <button type="button" id="clear-sort-button-reservas-modal" class="cv-button">Limpar Ordenação</button>
+                    <button id="apply-sort-button-reservas" class="cv-button cv-button--primary">Aplicar</button>
                 </div>
             </div>
         </div>
@@ -182,7 +182,7 @@
 
     <!-- Modais Específicos de Reservas -->
     <div id="modal-nova-reserva" class="cv-modal" style="display:none;">
-        <div class="cv-modal-content">
+        <div class="cv-modal-content cv-modal-content--padded">
             <span class="cv-modal-close js-modal-nova-reserva-close">&times;</span>
             <h2 id="modal-nova-reserva-title">Solicitar Nova Reserva</h2>
             <form id="form-nova-reserva" class="cv-form">
@@ -218,15 +218,15 @@
                 </div>
                 <div id="modal-reserva-taxa-info" class="cv-alert cv-alert--info" style="margin-bottom: var(--cv-spacing-md); font-weight: bold; display:none;"></div>
                 <div class="cv-form-actions">
-                    <button type="submit" id="btn-submit-nova-reserva" class="cv-button cv-button--primary">Solicitar Reserva</button>
                     <button type="button" class="cv-button js-modal-nova-reserva-close">Cancelar</button>
+                    <button type="submit" id="btn-submit-nova-reserva" class="cv-button cv-button--primary">Solicitar Reserva</button>
                 </div>
             </form>
         </div>
     </div>
 
     <div id="modal-detalhe-reserva" class="cv-modal" style="display:none;">
-        <div class="cv-modal-content">
+        <div class="cv-modal-content cv-modal-content--padded">
             <span class="cv-modal-close js-modal-detalhe-reserva-close">&times;</span>
             <h2 id="modal-detalhe-reserva-title">Detalhes da Reserva</h2>
             <div id="modal-detalhe-reserva-conteudo" style="margin-bottom: var(--cv-spacing-lg);">
@@ -246,7 +246,7 @@
     </div>
 
     <div id="modal-gerenciar-espaco-comum" class="cv-modal" style="display:none;">
-        <div class="cv-modal-content">
+        <div class="cv-modal-content cv-modal-content--padded">
             <span class="cv-modal-close js-modal-gerenciar-espaco-close">&times;</span>
             <h2 id="modal-gerenciar-espaco-title">Adicionar Novo Espaço Comum</h2>
             <form id="form-gerenciar-espaco-comum" class="cv-form">
@@ -313,15 +313,15 @@
                     <label for="espaco-permite-visualizacao-publica" style="display:inline-block; vertical-align: middle;">Permitir que outros condôminos vejam detalhes das reservas (além de "ocupado")</label>
                 </div>
                 <div class="cv-form-actions">
-                    <button type="submit" class="cv-button cv-button--primary">Salvar Espaço Comum</button>
                     <button type="button" class="cv-button js-modal-gerenciar-espaco-close">Cancelar</button>
+                    <button type="submit" class="cv-button cv-button--primary">Salvar Espaço Comum</button>
                 </div>
             </form>
         </div>
     </div>
 
     <div id="modal-termos-uso-reserva" class="cv-modal" style="display:none;">
-        <div class="cv-modal-content">
+        <div class="cv-modal-content cv-modal-content--padded">
             <span class="cv-modal-close js-modal-termos-uso-close">&times;</span>
             <h2>Termos de Uso para Reserva de Áreas Comuns</h2>
             <p>Exemplo de Termos:</p>
