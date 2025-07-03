@@ -434,22 +434,6 @@ html[data-theme="dark"] .cv-header {
     }
 }
 
-/* Compact header when page is scrolled */
-.cv-header--compact {
-    padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
-    min-height: 2.75rem;
-}
-
-.cv-header--compact .cv-header__title {
-    display: none;
-}
-
-/* Sticky helpers for navigation or tabs under the header */
-.cv-sticky-under-header {
-    position: sticky;
-    z-index: 1010;
-}
-
 .cv-nav {
     display: flex;
     flex-direction: column;
