@@ -119,9 +119,14 @@ Diversos ajustes foram realizados para melhorar a experiência em dispositivos m
 
 * **Nova tag viewport:** todas as páginas passaram a incluir a meta `viewport` unificada (`width=device-width, initial-scale=1`) garantindo escala correta em smartphones.
 * **Menu off-canvas:** o botão hambúrguer abre um painel lateral (`cv-nav--drawer`) que utiliza classes dedicadas em `components.css` para animação e bloqueio do scroll da página.
-* **Bottom navigation:** quando `APP_CONFIG.ENABLE_MOBILE_BOTTOM_NAV` está `true` e a tela possui largura inferior a 768&nbsp;px, a função `buildNavigation()` adiciona a barra fixa inferior com links essenciais. Para habilitar ou desabilitar, ajuste o valor em `config.js`.
+* **Bottom navigation:** quando `APP_CONFIG.ENABLE_MOBILE_BOTTOM_NAV` está `true` e a tela possui largura inferior a 768&nbsp;px, `buildNavigation()` cria a barra inferior com ícones e labels. O `<body>` recebe a classe `has-bottom-nav` para adicionar padding e a barra é recriada dinamicamente no `resize` da janela. O menu principal (`#mainNav`) é oculto automaticamente e o `env(safe-area-inset-bottom)` garante espaçamento adequado em aparelhos com notch.
+* **Abas roláveis:** o container `.cv-tabs-buttons` agora permite rolagem horizontal em telas estreitas, evitando quebra de layout das abas.
+* **Controles de visualização alinhados:** `.reservas-view-toggle` recebeu estilo próprio para manter os rótulos e o switch em linha única alinhados à direita.
+* **FAB adaptado para a bottom bar:** quando a navegação inferior está ativa, o menu flutuante sobe alguns pixels para não sobrepor a barra.
+* **Cabeçalho mais compacto em mobile:** reduziu-se o padding e o tamanho do título para aproveitar melhor o espaço em telas pequenas.
 * **Ajustes em formulários e tabelas:** campos de entrada adotaram a classe `.cv-input`, estados de erro/sucesso e placeholders consistentes. Tabelas podem ser envolvidas por `.cv-table-responsive-wrapper` para permitir rolagem horizontal em telas estreitas.
 * **Aprimoramentos de header e modais:** o cabeçalho ganhou estilo translúcido e comportamento `sticky`. A abertura e fechamento de modais agora adiciona ou remove a classe `cv-modal-open` no `<body>` para impedir rolagem do conteúdo de fundo.
+* **Imagens responsivas:** elementos `<img>` agora possuem `max-width:100%` para evitar estouro do layout em telas menores.
 
 ## Conclusão
 

@@ -598,7 +598,7 @@ html[data-theme="dark"] .cv-nav--drawer__panel {
     -webkit-backdrop-filter: blur(18px) saturate(170%);
     backdrop-filter: blur(18px) saturate(170%);
     border-top: 1px solid rgba(0, 0, 0, 0.08);
-    padding: var(--cv-spacing-xs) 0;
+    padding: var(--cv-spacing-xs) 0 calc(var(--cv-spacing-xs) + env(safe-area-inset-bottom, 0));
 }
 html[data-theme="dark"] .cv-bottom-nav {
     background-color: rgba(50, 50, 52, 0.8);
@@ -621,6 +621,27 @@ html[data-theme="dark"] .cv-bottom-nav {
     text-decoration: none;
     font-size: 0.75rem;
     padding: var(--cv-spacing-xs);
+}
+
+.cv-bottom-nav__icon {
+    width: 24px;
+    height: 24px;
+}
+
+.cv-bottom-nav__label {
+    line-height: 1;
+}
+
+body.has-bottom-nav {
+    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0));
+}
+
+body.has-bottom-nav .fab-menu {
+    bottom: calc(70px + var(--cv-spacing-lg, 20px) + env(safe-area-inset-bottom, 0));
+}
+
+body.has-bottom-nav #mainNav {
+    display: none;
 }
 
 .cv-bottom-nav__link--active {
@@ -1086,3 +1107,22 @@ input:checked + .cv-switch-slider:before {
     transform: translateX(20px); /* Distância que o círculo desliza */
 }
 /* === End Switch Component === */
+
+/* Reservas view toggle alignment */
+.reservas-view-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: var(--cv-spacing-sm);
+    margin-bottom: var(--cv-spacing-md);
+}
+
+@media (max-width: 767px) {
+    .cv-header {
+        padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
+    }
+    .cv-header__title {
+        font-size: 1.125rem;
+    }
+}

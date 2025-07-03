@@ -256,6 +256,11 @@ body {
     font-size: var(--cv-font-size-md); /* Default body text size */
 }
 
+img {
+    max-width: 100%;
+    height: auto;
+}
+
 html {
     font-size: var(--cv-font-size-base); /* Set base for rem units */
 }
@@ -834,6 +839,18 @@ main {
     padding: var(--cv-spacing-xs) 0;
     border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
 }
+
+.cv-tabs-buttons {
+    display: flex;
+    flex: 1;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: var(--cv-spacing-xs);
+    white-space: nowrap;
+}
+.cv-tabs-buttons::-webkit-scrollbar {
+    display: none;
+}
 .cv-tabs > #open-sort-button,
 .cv-tabs > #open-filter-modal-button {
     margin-top: var(--cv-spacing-xs);
@@ -1017,6 +1034,10 @@ main {
     display: flex;
     flex-direction: column-reverse; /* Options appear above the FAB */
     align-items: flex-end; /* Align options to the right, matching FAB */
+}
+
+body.has-bottom-nav .fab-menu {
+    bottom: calc(70px + var(--cv-spacing-lg, 20px) + env(safe-area-inset-bottom, 0));
 }
 
 /* This is the actual button that triggers the menu, style it like the .fab above */
