@@ -207,8 +207,7 @@ html[data-theme="dark"] .cv-button--borderless:hover {
 }
 .cv-input--error:focus {
     border-color: var(--current-semantic-error);
-    /* Assuming --current-input-focus-shadow is adaptable or we need a semantic error focus shadow */
-    box-shadow: 0 0 0 3px var(--current-input-focus-shadow); /* This might need adjustment if focus shadow is always blue */
+    box-shadow: 0 0 0 3px var(--current-input-focus-shadow);
 }
 .cv-input--success {
     border-color: var(--current-semantic-success);
@@ -216,43 +215,19 @@ html[data-theme="dark"] .cv-button--borderless:hover {
 }
 .cv-input--success:focus {
     border-color: var(--current-semantic-success);
-    /* Assuming --current-input-focus-shadow is adaptable or we need a semantic success focus shadow */
-    box-shadow: 0 0 0 3px var(--current-input-focus-shadow); /* This might need adjustment */
+    box-shadow: 0 0 0 3px var(--current-input-focus-shadow);
 }
-
-/* REMOVED .cv-modal__content from components.css to rely on .cv-modal-content in styles.css for consistency */
-/*
-.cv-modal__content {
-    background-color: var(--current-bg-white);
-    margin: 5% auto;
-    padding: var(--cv-spacing-lg);
-    border: none;
-    width: 90%;
-    max-width: 500px;
-    border-radius: var(--cv-border-radius-lg);
-    position: relative;
-    box-shadow: var(--current-shadow-lg);
-    animation-name: animatetop;
-    animation-duration: 0.4s;
-    animation-timing-function: ease-out;
-}
-@media (min-width: 768px) {
-    .cv-modal__content {
-        margin: 10% auto;
-    }
-}
-*/
 
 /* === Global Feedback Toast Styles === */
 .global-feedback-container {
     position: fixed;
-    top: var(--cv-spacing-md, 16px); /* Use CSS variable or fallback */
+    top: var(--cv-spacing-md, 16px);
     right: var(--cv-spacing-md, 16px);
-    z-index: 1050; /* Ensure it's above most other content */
+    z-index: 1050;
     display: flex;
     flex-direction: column;
     gap: var(--cv-spacing-sm, 8px);
-    max-width: 350px; /* Or whatever width is desired */
+    max-width: 350px;
 }
 
 .global-feedback-toast {
@@ -267,8 +242,8 @@ html[data-theme="dark"] .cv-button--borderless:hover {
     opacity: 0;
     transform: translateX(100%);
     transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-    min-width: 280px; /* Minimum width */
-    border-left: 5px solid transparent; /* For type indication */
+    min-width: 280px;
+    border-left: 5px solid transparent;
 }
 
 .global-feedback-toast--visible {
@@ -278,7 +253,7 @@ html[data-theme="dark"] .cv-button--borderless:hover {
 
 .global-feedback-toast--hiding {
     opacity: 0;
-    transform: translateX(110%); /* Move a bit further out when hiding */
+    transform: translateX(110%);
 }
 
 .global-feedback-toast__close-btn {
@@ -297,40 +272,28 @@ html[data-theme="dark"] .cv-button--borderless:hover {
     color: var(--current-text-primary, #333);
 }
 
-/* Type-specific styles */
-/* Using existing semantic color variables where appropriate */
 .global-feedback-toast--success {
     border-left-color: var(--current-semantic-success, green);
-    /* background-color: var(--current-color-success-bg, #e6fffa); */ /* Optional: subtle background */
 }
-.global-feedback-toast--success .global-feedback-toast__close-btn {
-    /* color: var(--current-semantic-success, green); */ /* Optional: themed close button */
-}
-
 .global-feedback-toast--error {
     border-left-color: var(--current-semantic-error, red);
-    /* background-color: var(--current-color-error-bg, #ffe6e6); */
 }
-
 .global-feedback-toast--warning {
     border-left-color: var(--current-semantic-warning, orange);
-    /* background-color: var(--current-color-warning-bg, #fff0e6); */
 }
-
 .global-feedback-toast--info {
     border-left-color: var(--current-semantic-info, blue);
-    /* background-color: var(--current-color-info-bg, #e6f7ff); */
 }
 /* === End Global Feedback Toast Styles === */
 
 /* === Alert Component Styles === */
 .cv-alert {
-    padding: var(--cv-spacing-md); /* 16px */
-    margin-bottom: var(--cv-spacing-md); /* 16px */
+    padding: var(--cv-spacing-md);
+    margin-bottom: var(--cv-spacing-md);
     border: var(--cv-border-width) solid transparent;
-    border-radius: var(--cv-border-radius-md); /* 8px */
+    border-radius: var(--cv-border-radius-md);
     font-size: 0.9rem;
-    text-align: left; /* Default to left, can be overridden */
+    text-align: left;
 }
 
 .cv-alert--error {
@@ -357,7 +320,6 @@ html[data-theme="dark"] .cv-button--borderless:hover {
     border-color: var(--current-semantic-info);
 }
 
-/* Utility class to hide alerts when needed */
 .cv-alert--hidden {
     display: none;
 }
@@ -368,24 +330,10 @@ html[data-theme="dark"] .cv-button--borderless:hover {
     to {top: 0; opacity: 1}
 }
 
-.cv-modal__close {
-    color: var(--current-text-placeholder); /* Was --cv-gray-500 */
-    /* Consider using an SVG icon or a styled '×' */
-}
-.cv-modal__close:hover,
-.cv-modal__close:focus {
-    color: var(--current-text-primary);
-}
-.cv-modal__title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--current-text-primary);
-    margin-bottom: var(--cv-spacing-md);
-}
+/* .cv-modal__close e .cv-modal__title foram movidos para styles.css e integrados em .cv-modal-header */
 
 .cv-header {
-    /* Apple-inspired styling */
-    background-color: rgba(242, 242, 247, 0.8); /* Light mode translucent background (System Gray 6 with alpha) */
+    background-color: rgba(242, 242, 247, 0.8);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     backdrop-filter: blur(20px) saturate(180%);
     color: var(--current-text-primary);
@@ -394,10 +342,10 @@ html[data-theme="dark"] .cv-button--borderless:hover {
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* Subtle border for light mode */
-    position: sticky; /* Make header sticky */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    position: sticky;
     top: 0;
-    z-index: 1020; /* Ensure it's above other content but below modals */
+    z-index: 1020;
 }
 .cv-header__container {
     display: flex;
@@ -407,61 +355,60 @@ html[data-theme="dark"] .cv-button--borderless:hover {
 }
 
 html[data-theme="dark"] .cv-header {
-    background-color: rgba(44, 44, 46, 0.75); /* Dark mode translucent background (System Gray 2 Dark with alpha) */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Subtle border for dark mode */
+    background-color: rgba(44, 44, 46, 0.75);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 @media (min-width: 768px) {
     .cv-header {
-        padding: var(--cv-spacing-md) var(--cv-spacing-lg); /* Desktop padding */
+        padding: var(--cv-spacing-md) var(--cv-spacing-lg);
         flex-wrap: nowrap;
     }
 }
 .cv-header__title {
     margin: 0;
-    font-size: 1.25rem; /* Adjusted for a more Apple-like feel */
-    font-weight: 600; /* Open Sans Semibold */
+    font-size: 1.25rem;
+    font-weight: 600;
 }
 @media (min-width: 768px) {
     .cv-header__title {
-        font-size: 1.5rem; /* Desktop title size */
+        font-size: 1.5rem;
     }
 }
 
 .cv-nav {
-    display: flex;
+    display: none; /* Escondido por padrão (mobile-first), exibido em desktop */
     flex-direction: column;
     align-items: flex-start;
     width: 100%;
     gap: var(--cv-spacing-xs);
-    /* Apple-inspired styling for nav - similar to header but can be slightly different */
-    background-color: rgba(248, 248, 250, 0.85); /* Slightly different from header, or could be same */
+    background-color: rgba(248, 248, 250, 0.85);
     -webkit-backdrop-filter: blur(18px) saturate(170%);
     backdrop-filter: blur(18px) saturate(170%);
     padding: var(--cv-spacing-sm) var(--cv-spacing-md);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08); /* Subtle border for light mode */
-    /* position: sticky; /* If nav should also stick below header */
-    /* top: YOUR_HEADER_HEIGHT; /* Calculate or set fixed header height */
-    /* z-index: 1010; */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 .cv-nav__list {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
+    flex-direction: inherit;
+    align-items: inherit;
+    width: 100%;
     gap: var(--cv-spacing-sm);
 }
 
 html[data-theme="dark"] .cv-nav {
-    background-color: rgba(50, 50, 52, 0.8); /* Dark mode nav bg */
+    background-color: rgba(50, 50, 52, 0.8);
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .cv-nav__link {
-    color: var(--current-text-primary); /* Changed from text-link for a more subdued default state */
+    color: var(--current-text-primary);
     text-decoration: none;
     font-weight: normal;
-    display: flex; /* Support icon and label */
+    display: flex;
     align-items: center;
     width: 100%;
     text-align: left;
@@ -469,81 +416,66 @@ html[data-theme="dark"] .cv-nav {
     border-radius: var(--cv-border-radius-md);
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.1s ease-in-out;
     font-weight: 500;
-    gap: var(--cv-spacing-sm); /* Aumentado de xs para sm (4px para 8px) */
+    gap: var(--cv-spacing-sm);
 }
-.cv-nav__icon {
+.cv-nav__icon { /* Estilo para o ícone dentro do link de navegação */
     width: 20px;
     height: 20px;
     display: inline-block;
     vertical-align: middle;
+    flex-shrink: 0;
 }
-.cv-nav__label {
+.cv-nav__label { /* Estilo para o texto (label) do link de navegação */
     line-height: 1;
-    margin-left: var(--cv-spacing-xs); /* Ensures clear space between icon and text */
+    margin-left: var(--cv-spacing-xs);
+    flex-grow: 1;
 }
+
 @media (min-width: 768px) {
     .cv-nav {
+        display: flex; /* Exibido como flex em desktop */
         flex-direction: row;
         align-items: center;
-        width: auto; /* Revert to auto width for desktop */
-        gap: var(--cv-spacing-sm); /* Restore original gap */
-        /* padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Ensure this is suitable or adjust */
-        /* Consider removing bottom border for desktop if header has one and they are visually connected */
-        /* border-bottom: none; */
+        width: auto;
     }
-    html[data-theme="dark"] .cv-nav {
-        /* border-bottom: none; */ /* Example for dark theme desktop */
+    .cv-nav__list {
+        flex-direction: row;
+        width: auto;
+        align-items: center;
     }
     .cv-nav__link {
-        display: inline-block; /* Revert for desktop */
+        display: inline-flex;
         width: auto;
-        text-align: center; /* Or left, depending on design */
-        padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Adjusted padding for desktop */
+        text-align: center;
+        padding: var(--cv-spacing-sm) var(--cv-spacing-md);
+    }
+    html[data-theme="dark"] .cv-nav {
+        /* border-bottom: none; */
     }
 }
 .cv-nav__link:hover {
-    background-color: rgba(0, 0, 0, 0.05); /* Subtle hover for light mode */
+    background-color: rgba(0, 0, 0, 0.05);
     color: var(--current-primary-blue);
-    /* transform: translateY(-1px); /* Optional: subtle lift */
 }
 html[data-theme="dark"] .cv-nav__link:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Subtle hover for dark mode */
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .cv-nav__link--active {
-    /* background-color: var(--current-primary-blue); */ /* Remove background color */
-    /* color: var(--current-text-on-primary) !important; */ /* Remove text color change to on-primary */
-    color: var(--current-primary-blue) !important; /* Ensure active link text is primary blue */
-    font-weight: 600; /* Semibold for active link - iOS often uses bold or a different weight for selected tab */
-    /* box-shadow: 0 1px 3px rgba(0, 122, 255, 0.2); */ /* Remove box shadow */
-
-    /* iOS style active tab indicator: often just a color change for the text/icon, or a subtle underline/pill */
-    /* Option 1: Just color change (already done by setting color to --current-primary-blue) */
-
-    /* Option 2: Subtle bottom border (more common in web, but can be iOS-like if minimal) */
-    /* border-bottom: 2px solid var(--current-primary-blue); */
-    /* padding-bottom: calc(var(--cv-spacing-sm) - 2px); */ /* Adjust padding to account for border */
-
-    /* Option 3: Pill shape background (less common for nav links, more for segmented controls) */
-    /* background-color: var(--cv-primary-blue-alpha-15); */ /* Light tinted background */
-    /* border-radius: 16px; */ /* Pill shape */
-    /* padding: var(--cv-spacing-xs) var(--cv-spacing-md); */ /* Adjust padding for pill */
-
-    /* Let's go with a simple text color change and font weight, which is very iOS like for tabs */
-    background-color: transparent; /* Explicitly ensure no background color from default state */
+    color: var(--current-primary-blue) !important;
+    font-weight: 600;
+    background-color: transparent;
 }
 .cv-nav__link--active:hover {
-    /* background-color: var(--current-primary-blue); */ /* Remove background color on hover */
-    /* filter: brightness(90%); */ /* No filter needed if bg is transparent */
-    color: var(--current-primary-blue) !important; /* Keep text color as primary blue on hover */
-    background-color: rgba(0, 0, 0, 0.03); /* Very subtle hover for light mode active link */
+    color: var(--current-primary-blue) !important;
+    background-color: rgba(0, 0, 0, 0.03);
 }
 html[data-theme="dark"] .cv-nav__link--active {
-    color: var(--cv-dark-primary-blue) !important; /* Ensure active link text is dark primary blue */
+    color: var(--cv-dark-primary-blue) !important;
 }
 html[data-theme="dark"] .cv-nav__link--active:hover {
-    color: var(--cv-dark-primary-blue) !important; /* Keep text color */
-    background-color: rgba(255, 255, 255, 0.05); /* Very subtle hover for dark mode active link */
+    color: var(--cv-dark-primary-blue) !important;
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 /* --- Mobile Nav Drawer --- */
@@ -551,10 +483,17 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
     background: none;
     border: none;
     padding: var(--cv-spacing-sm);
-    display: flex;
+    display: flex; /* Visível por padrão, JS ou media query pode esconder em desktop */
     align-items: center;
     justify-content: center;
+    color: var(--current-text-primary); /* Garante que o ícone SVG herde a cor correta */
+    z-index: 1021; /* Acima do header, mas abaixo do drawer/modal */
 }
+.cv-nav-hamburger svg {
+    width: 24px;
+    height: 24px;
+}
+
 @media (min-width: 768px) {
     .cv-nav-hamburger {
         display: none;
@@ -563,46 +502,119 @@ html[data-theme="dark"] .cv-nav__link--active:hover {
 
 .cv-nav--drawer {
     position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.4);
-    display: none;
-    z-index: 1040;
+    inset: 0; /* top, right, bottom, left = 0 */
+    background-color: rgba(0, 0, 0, 0.4); /* Overlay escuro */
+    display: none; /* Controlado por JS para abrir/fechar */
+    z-index: 1040; /* Alto z-index para ficar sobre o conteúdo */
 }
 .cv-nav--drawer.open {
-    display: block;
+    display: block; /* Mostra o drawer */
 }
 .cv-nav--drawer__panel {
     background-color: var(--current-bg-white);
-    width: 250px;
-    max-width: 80%;
+    width: 280px; /* Largura do painel */
+    max-width: 85%; /* Máximo de 85% da largura da tela */
     height: 100%;
     transform: translateX(-100%);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease-in-out;
+    overflow-y: auto; /* Para rolagem se os links excederem a altura */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
 }
 .cv-nav--drawer.open .cv-nav--drawer__panel {
     transform: translateX(0);
 }
 html[data-theme="dark"] .cv-nav--drawer__panel {
-    background-color: var(--cv-dark-gray-200);
+    background-color: var(--cv-dark-gray-200); /* Fundo do painel no tema escuro */
 }
 
+.cv-nav--drawer__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--cv-spacing-md);
+    border-bottom: 1px solid var(--current-border-subtle);
+}
+.cv-nav--drawer__header h2 {
+    margin: 0;
+    font-size: var(--cv-font-size-lg);
+    color: var(--current-text-primary);
+}
+/* O botão de fechar no drawer usa .cv-modal-close, que já está estilizado */
+.cv-nav--drawer__header .cv-modal-close {
+    position: static; /* Reset para o contexto do flex header */
+    transform: none;
+    font-size: 1.5rem; /* Pode ajustar se necessário */
+}
+
+
+.cv-nav--drawer__list {
+    list-style: none;
+    margin: 0;
+    padding: var(--cv-spacing-sm) 0; /* Espaçamento vertical */
+    display: flex;
+    flex-direction: column;
+}
+.cv-nav--drawer__item {
+    /* Se precisar de estilização para o <li> em si */
+}
+.cv-nav--drawer__link {
+    display: flex;
+    align-items: center;
+    padding: var(--cv-spacing-md); /* Bom padding para toque */
+    text-decoration: none;
+    color: var(--current-text-primary);
+    font-size: var(--cv-font-size-md);
+    transition: background-color 0.2s ease;
+}
+.cv-nav--drawer__link:hover,
+.cv-nav--drawer__link.active { /* Estado ativo/hover */
+    background-color: var(--cv-primary-blue-alpha-15);
+    color: var(--current-primary-blue);
+}
+.cv-nav--drawer__link.active {
+    font-weight: 600; /* Destacar link ativo */
+}
+.cv-nav--drawer__icon {
+    margin-right: var(--cv-spacing-md);
+    width: 22px; /* Tamanho do ícone no drawer */
+    height: 22px;
+    flex-shrink: 0;
+    color: var(--current-text-secondary); /* Cor padrão para ícones */
+}
+.cv-nav--drawer__link:hover .cv-nav--drawer__icon,
+.cv-nav--drawer__link.active .cv-nav--drawer__icon {
+    color: var(--current-primary-blue); /* Ícone acompanha cor do texto no hover/active */
+}
+.cv-nav--drawer__label {
+    flex-grow: 1;
+}
+
+
 /* === Bottom Navigation Bar === */
+body.has-bottom-nav {
+    /* Ajuste este valor conforme a altura final da sua bottom-nav */
+    padding-bottom: 70px;
+}
+
 .cv-bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 1000;
-    display: none;
-    background-color: rgba(248, 248, 250, 0.85);
+    display: none; /* JS e media query controlam a exibição */
+    background-color: var(--current-nav-bg); /* Usar variável de tema para fundo da nav */
     -webkit-backdrop-filter: blur(18px) saturate(170%);
     backdrop-filter: blur(18px) saturate(170%);
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    padding: var(--cv-spacing-xs) 0;
+    border-top: 1px solid var(--current-border-color); /* Usar variável de tema para borda */
+    /* padding: var(--cv-spacing-xs) 0; */ /* Padding vertical já está no link */
+    height: 60px; /* Altura fixa para a bottom nav */
 }
 html[data-theme="dark"] .cv-bottom-nav {
-    background-color: rgba(50, 50, 52, 0.8);
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    background-color: var(--cv-dark-bg-element); /* Ajustado para consistência com drawer */
+    border-top: 1px solid var(--cv-dark-gray-400);
 }
 
 .cv-bottom-nav__list {
@@ -611,33 +623,59 @@ html[data-theme="dark"] .cv-bottom-nav {
     padding: 0;
     display: flex;
     justify-content: space-around;
+    height: 100%;
+}
+.cv-bottom-nav__item {
+    display: flex; /* Para o link preencher o item */
+    flex-grow: 1;
 }
 
 .cv-bottom-nav__link {
     display: flex;
     flex-direction: column;
     align-items: center;
-    color: var(--current-text-primary);
+    justify-content: center; /* Centraliza conteúdo verticalmente */
+    flex-grow: 1; /* Link preenche o item */
+    color: var(--current-text-secondary); /* Cor mais sutil para itens não ativos */
     text-decoration: none;
-    font-size: 0.75rem;
-    padding: var(--cv-spacing-xs);
+    padding: var(--cv-spacing-xs) var(--cv-spacing-xs); /* Padding interno do link */
+    transition: color 0.2s ease;
+    gap: 2px; /* Pequeno espaço entre ícone e label */
+}
+.cv-bottom-nav__icon {
+    width: 24px; /* Tamanho do ícone */
+    height: 24px;
+    margin-bottom: 2px; /* Espaço entre ícone e label */
+}
+.cv-bottom-nav__label {
+    font-size: 0.7rem; /* Tamanho da label bem pequeno */
+    line-height: 1;
+    text-align: center;
+    display: block; /* Garante que o span não cause problemas de alinhamento */
 }
 
+.cv-bottom-nav__link:hover {
+    color: var(--current-text-primary); /* Cor ao passar o mouse */
+}
 .cv-bottom-nav__link--active {
     color: var(--current-primary-blue);
-    font-weight: 600;
+    font-weight: 500; /* Pode ser mais sutil que o 600 do nav principal */
+}
+.cv-bottom-nav__link--active .cv-bottom-nav__icon {
+    /* Se quiser que o ícone também mude de cor no estado ativo */
+    /* color: var(--current-primary-blue); */
 }
 
+
+/* Ajuste para quando a bottom nav está visível (controlado por JS via classe no body) */
 @media (max-width: 767px) {
     .cv-bottom-nav {
-        display: block;
+        /* display: block;  O JS cuida disso baseado na config e largura */
+        /* A lógica de exibição está em nav.js, esta media query é mais para garantir
+           que não apareça em desktop se o JS falhar ou a config mudar. */
     }
 }
-@media (min-width: 768px) {
-    .cv-bottom-nav {
-        display: none;
-    }
-}
+/* A regra @media (min-width: 768px) { .cv-bottom-nav { display: none; } } já existe e está correta. */
 
 
 /* Responsive Table Wrapper */
@@ -646,33 +684,29 @@ html[data-theme="dark"] .cv-bottom-nav {
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     width: 100%;
-    margin-bottom: var(--cv-spacing-md); /* Space below scrollable table */
+    margin-bottom: var(--cv-spacing-md);
     display: block;
 }
 
-/* Apply to actual <table> elements, ensure it can be overridden for specific table needs */
 .cv-table {
-    width: 100%; /* Default to full width within its container */
-    border-collapse: collapse; /* Common practice */
-    /* min-width: 600px; */ /* Example: if table content is wide, forces scrollbar.
-                              This should be set based on table content, or on specific table instances.
-                              Avoid setting a global min-width here unless all tables are complex. */
+    width: 100%;
+    border-collapse: collapse;
 }
 
 /* Utility Classes for Responsiveness */
 .hide-on-mobile {
-    display: none !important; /* Use !important to ensure override if needed, use sparingly */
+    display: none !important;
 }
-@media (min-width: 768px) { /* Tablet and up */
+@media (min-width: 768px) {
     .hide-on-mobile {
-        display: block !important; /* Or flex, inline, etc., as appropriate to restore */
+        display: block !important;
     }
 }
 
 .hide-on-desktop {
-    display: block !important; /* Or flex, etc. */
+    display: block !important;
 }
-@media (min-width: 768px) { /* Tablet and up */
+@media (min-width: 768px) {
     .hide-on-desktop {
         display: none !important;
     }
@@ -690,13 +724,13 @@ html[data-theme="dark"] .cv-bottom-nav {
     font-weight: 600;
     text-transform: uppercase;
     overflow: hidden;
-    border: 1.5px solid var(--current-primary-blue); /* Subtle border, themed */
+    border: 1.5px solid var(--current-primary-blue);
     cursor: pointer;
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 .user-avatar:hover {
     transform: scale(1.1);
-    box-shadow: 0 0 8px rgba(0, 122, 255, 0.5); /* Subtle glow effect */
+    box-shadow: 0 0 8px rgba(0, 122, 255, 0.5);
 }
 .user-avatar img {
     width: 100%;
@@ -704,60 +738,42 @@ html[data-theme="dark"] .cv-bottom-nav {
     object-fit: cover;
     border-radius: 50%;
 }
-/* User menu modal overrides */
-/* Assuming userMenuModal has the ID 'userMenuModal' or a specific class like '.user-menu-modal-instance' */
-/* Let's use a more specific selector if possible, e.g., #userMenuModal .cv-modal-content */
-/* For now, using .user-menu-modal class on the .cv-modal element */
 
-.user-menu-modal .cv-modal-content { /* Styles for the content box of the user menu */
-    padding: var(--cv-spacing-xs); /* Ensure inner elements have breathing room */
+.user-menu-modal .cv-modal-content {
+    padding: var(--cv-spacing-xs);
     display: flex;
     flex-direction: column;
-    max-width: 280px; /* Smaller max-width for user menu modal, more like a popover */
-    border-radius: var(--cv-border-radius-md); /* Slightly smaller radius for popover feel */
-    box-shadow: var(--current-shadow-lg); /* Popovers often have a more distinct shadow */
-    /* Override general modal animation if a different one is desired, e.g., fade-in or slide-from-top */
-    /* animation: user-menu-pop-in 0.2s ease-out; */
-    /* margin-top: 60px; */ /* Control positioning with top/right */
-    /* margin-right: var(--cv-spacing-md); */ /* Control positioning with top/right */
-    margin-left: auto; /* Allows it to be pushed to the right by the parent .cv-modal flex centering */
-    position: absolute; /* Take it out of the normal flow of .cv-modal content centering */
-    top: calc(var(--cv-header-height, 60px) + var(--cv-spacing-sm)); /* Position below header; needs --cv-header-height var */
+    max-width: 280px;
+    border-radius: var(--cv-border-radius-md);
+    box-shadow: var(--current-shadow-lg);
+    margin-left: auto;
+    position: absolute;
+    top: calc(var(--cv-header-height, 60px) + var(--cv-spacing-sm));
     right: var(--cv-spacing-md);
-    width: auto; /* Let content dictate width up to max-width */
-    height: auto; /* Let content dictate height */
-    /* The parent .cv-modal provides the full screen overlay and initial centering.
-       These absolute positioning rules then place the .cv-modal-content specifically for the user menu. */
+    width: auto;
+    height: auto;
 }
-
-/* Define --cv-header-height in :root or where .cv-header is styled */
-/* Example, if header height is dynamic, JS might need to set this variable.
-   For a fixed example:
-   :root { --cv-header-height: 56px; }
-   @media (min-width: 768px) { :root { --cv-header-height: 68px; } }
-*/
-
 
 .user-menu-modal .cv-modal-header {
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md); /* Increased padding */
-    min-height: auto; /* No strict min-height */
-    display: flex; /* Use flexbox for layout */
-    justify-content: space-between; /* Pushes title to left and close button to right */
-    align-items: center; /* Vertically aligns items */
-    position: relative; /* Needed for absolute positioning of close button if not using flex order */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
+    min-height: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
 }
-.user-menu-modal .cv-modal-header h2.user-menu-username { /* Adjusted selector for specificity */
+.user-menu-modal .cv-modal-header h2.user-menu-username {
     font-size: var(--cv-font-size-md);
     text-align: left;
-    margin: 0; /* Remove default margins */
-    flex-grow: 1; /* Allows title to take available space */
+    margin: 0;
+    flex-grow: 1;
 }
 
 .user-menu-modal .cv-modal-body {
-    padding: var(--cv-spacing-sm) 0; /* No horizontal padding if list items span full width */
+    padding: var(--cv-spacing-sm) 0;
 }
 .user-menu-modal .cv-modal-footer {
-    display: none; /* User menus typically don't have a footer with OK/Cancel */
+    display: none;
 }
 
 .user-menu-modal .cv-modal-close {
@@ -783,76 +799,66 @@ html[data-theme="dark"] .cv-bottom-nav {
 }
 
 /* Skeleton Screen Components */
-.feed-skeleton-container {
-    /* This container is managed by JS (display: block/none) */
-}
+.feed-skeleton-container { }
 
 .feed-skeleton-item {
-    background-color: var(--current-bg-white); /* Match card background */
-    border: var(--cv-border-width) solid var(--current-border-color); /* Match card border */
-    border-radius: var(--cv-border-radius-lg); /* Match card radius */
+    background-color: var(--current-bg-white);
+    border: var(--cv-border-width) solid var(--current-border-color);
+    border-radius: var(--cv-border-radius-lg);
     padding: var(--cv-spacing-md);
     margin-bottom: var(--cv-spacing-md);
-    box-shadow: var(--current-shadow-md); /* Match card shadow */
+    box-shadow: var(--current-shadow-md);
     position: relative;
-    overflow: hidden; /* Important for shimmer effect */
+    overflow: hidden;
 }
 
-/* Base for skeleton placeholder elements */
 .skeleton-block {
     background-color: var(--current-skeleton-bg, var(--cv-gray-200));
-    border-radius: var(--cv-border-radius-sm); /* Consistent 4px radius */
-    margin-bottom: var(--cv-spacing-sm); /* 8px */
+    border-radius: var(--cv-border-radius-sm);
+    margin-bottom: var(--cv-spacing-sm);
 }
 .skeleton-block:last-child {
     margin-bottom: 0;
 }
 
-/* Specifics for title placeholder */
 .skeleton-title {
     width: 60%;
-    height: 1.25rem; /* Approx 20px, aligns with --cv-font-size-xl */
-    margin-bottom: var(--cv-spacing-md); /* 16px, more space after a title */
+    height: 1.25rem;
+    margin-bottom: var(--cv-spacing-md);
 }
 
-/* Specifics for text line placeholders */
 .skeleton-line {
     width: 100%;
-    height: 0.875rem; /* Approx 14px, aligns with --cv-font-size-base or md */
+    height: 0.875rem;
 }
-.skeleton-line--short { /* More descriptive class name */
+.skeleton-line--short {
     width: 75%;
 }
 .skeleton-line--medium {
     width: 90%;
 }
-.skeleton-line--long { /* Explicitly full width if needed, otherwise default is 100% */
+.skeleton-line--long {
     width: 100%;
 }
 
-
-/* For simulating an image placeholder */
 .skeleton-image {
     width: 100%;
-    aspect-ratio: 16 / 9; /* Or common image aspect ratio */
+    aspect-ratio: 16 / 9;
     margin-bottom: var(--cv-spacing-sm);
 }
 
-/* For simulating an avatar placeholder */
 .skeleton-avatar {
-    width: 40px; /* Example size */
+    width: 40px;
     height: 40px;
-    border-radius: 50%; /* Circular */
+    border-radius: 50%;
     margin-right: var(--cv-spacing-sm);
-    float: left; /* Example layout */
+    float: left;
 }
 .skeleton-block-group {
     display: flex;
     flex-direction: column;
 }
 
-
-/* Shimmer Animation - remains the same */
 .feed-skeleton-item::after {
     content: '';
     position: absolute;
@@ -875,17 +881,6 @@ html[data-theme="dark"] .cv-bottom-nav {
     50% { transform: translateX(100%); }
     100% { transform: translateX(100%); }
 }
-
-/* Theme variables for skeleton (ensure these are in :root and html[data-theme="dark"]) */
-/* :root {
-    --current-skeleton-bg: var(--cv-gray-200);
-    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.5);
-}
-html[data-theme="dark"] {
-    --current-skeleton-bg: var(--cv-dark-gray-300); // Adjusted for dark theme
-    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.1);
-} */
-
 
 /* === Status Badge Utility Classes === */
 .status-badge {
@@ -920,25 +915,24 @@ html[data-theme="dark"] {
 /* === Progress Bar Component === */
 .cv-progress {
     width: 100%;
-    height: 12px; /* Aumentar a altura para melhor visibilidade */
-    background-color: var(--current-border-subtle); /* Usar uma cor de fundo mais sutil */
-    border-radius: var(--cv-border-radius-lg); /* Raio de borda maior, mais Apple-like */
+    height: 12px;
+    background-color: var(--current-border-subtle);
+    border-radius: var(--cv-border-radius-lg);
     overflow: hidden;
-    display: none; /* Controlado por JS */
-    margin-top: var(--cv-spacing-md); /* Aumentar margem superior para espaçamento */
+    display: none;
+    margin-top: var(--cv-spacing-md);
     margin-bottom: var(--cv-spacing-sm);
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.075); /* Sombra interna sutil */
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.075);
 }
 
 .cv-progress__bar {
     height: 100%;
     width: 0%;
     background-color: var(--current-primary-blue);
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transição mais suave */
-    border-radius: var(--cv-border-radius-lg); /* Garante que a barra interna também tenha cantos arredondados */
-    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1); /* Efeito de profundidade sutil */
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--cv-border-radius-lg);
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
 }
-
 /* === End Progress Bar Component === */
 
 /* === Inline Spinner Utility === */
@@ -971,34 +965,33 @@ html[data-theme="dark"] {
     justify-content: center;
     text-align: center;
     padding: var(--cv-spacing-xl, 32px) var(--cv-spacing-md, 16px);
-    margin: var(--cv-spacing-lg, 24px) auto; /* Centraliza e adiciona margem */
-    border: 1px dashed var(--current-border-color, var(--cv-color-gray-light)); /* Borda sutil */
+    margin: var(--cv-spacing-lg, 24px) auto;
+    border: 1px dashed var(--current-border-color, var(--cv-color-gray-light));
     border-radius: var(--cv-border-radius-md, 8px);
-    background-color: var(--current-background-alt, var(--cv-color-background-alt)); /* Um fundo levemente diferente */
-    max-width: 600px; /* Limita a largura para melhor leitura */
-    width: calc(100% - 2 * var(--cv-spacing-md, 16px)); /* Ajusta para caber em containers menores */
+    background-color: var(--current-background-alt, var(--cv-color-background-alt));
+    max-width: 600px;
+    width: calc(100% - 2 * var(--cv-spacing-md, 16px));
     box-sizing: border-box;
 }
 
 .cv-empty-state__icon,
 .cv-error-state__icon {
-    font-size: 3rem; /* Tamanho do ícone */
+    font-size: 3rem;
     margin-bottom: var(--cv-spacing-md, 16px);
-    color: var(--current-primary-blue, var(--cv-color-primary)); /* Cor primária para ícone de empty state */
+    color: var(--current-primary-blue, var(--cv-color-primary));
 }
 
 .cv-error-state__icon {
-    color: var(--current-danger-color, var(--cv-color-danger)); /* Cor de perigo para ícone de erro */
+    color: var(--current-danger-color, var(--cv-color-danger));
 }
 
-/* Específico para SVG ou Font Icon, pode precisar de ajuste */
 .cv-empty-state__icon svg,
 .cv-error-state__icon svg,
-.cv-empty-state__icon img, /* Suporte para <img> também */
+.cv-empty-state__icon img,
 .cv-error-state__icon img {
-    width: 3em; /* ou 4em */
-    height: 3em; /* ou 4em */
-    max-width: 80px; /* Limite máximo */
+    width: 3em;
+    height: 3em;
+    max-width: 80px;
     max-height: 80px;
 }
 
@@ -1019,19 +1012,17 @@ html[data-theme="dark"] {
     margin-top: 0;
     margin-bottom: var(--cv-spacing-lg, 24px);
     line-height: 1.6;
-    max-width: 90%; /* Evita que o texto fique muito largo dentro do container */
+    max-width: 90%;
 }
 
 .cv-empty-state__action,
 .cv-error-state__retry-button {
-    /* Estilos do cv-button já devem ser aplicados se a classe for usada. */
-    /* Adicionar margens ou ajustes específicos, se necessário. */
-    min-width: 150px; /* Para dar um tamanho mínimo ao botão */
+    min-width: 150px;
 }
 
 /* === Switch Component === */
 .cv-switch-label {
-    font-size: var(--cv-font-size-sm, 0.875rem); /* Tamanho da label */
+    font-size: var(--cv-font-size-sm, 0.875rem);
     color: var(--current-text-secondary);
     cursor: pointer;
     user-select: none;
@@ -1040,8 +1031,8 @@ html[data-theme="dark"] {
 .cv-switch {
     position: relative;
     display: inline-block;
-    width: 48px;  /* Largura do switch */
-    height: 28px; /* Altura do switch */
+    width: 48px;
+    height: 28px;
 }
 
 .cv-switch input {
@@ -1057,15 +1048,15 @@ html[data-theme="dark"] {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: var(--cv-gray-300); /* Cor do fundo do switch desligado */
+    background-color: var(--cv-gray-300);
     transition: .4s;
-    border-radius: 28px; /* Para torná-lo arredondado */
+    border-radius: 28px;
 }
 
 .cv-switch-slider:before {
     position: absolute;
     content: "";
-    height: 20px; /* Tamanho do círculo deslizante */
+    height: 20px;
     width: 20px;
     left: 4px;
     bottom: 4px;
@@ -1075,14 +1066,231 @@ html[data-theme="dark"] {
 }
 
 input:checked + .cv-switch-slider {
-    background-color: var(--current-primary-blue); /* Cor do fundo do switch ligado */
+    background-color: var(--current-primary-blue);
 }
 
 input:focus + .cv-switch-slider {
-    box-shadow: 0 0 1px var(--current-primary-blue); /* Efeito de foco */
+    box-shadow: 0 0 1px var(--current-primary-blue);
 }
 
 input:checked + .cv-switch-slider:before {
-    transform: translateX(20px); /* Distância que o círculo desliza */
+    transform: translateX(20px);
 }
 /* === End Switch Component === */
+
+/* --- Mobile Nav Drawer (Adicionado) --- */
+.cv-nav-hamburger {
+    background: none;
+    border: none;
+    padding: var(--cv-spacing-sm);
+    /* display: flex; é definido em JS se necessário, mas CSS pode garantir */
+    display: none; /* Escondido por padrão, JS/media query mostra em mobile */
+    align-items: center;
+    justify-content: center;
+    color: var(--current-text-primary);
+    z-index: 1021;
+}
+.cv-nav-hamburger svg {
+    width: 24px;
+    height: 24px;
+}
+
+@media (max-width: 767px) { /* Mostra em mobile */
+    .cv-nav-hamburger {
+        display: flex;
+    }
+}
+
+.cv-nav--drawer {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: none;
+    z-index: 1040;
+}
+.cv-nav--drawer.open {
+    display: block;
+}
+.cv-nav--drawer__panel {
+    background-color: var(--current-bg-element); /* Usa variável de tema */
+    width: 280px;
+    max-width: 85%;
+    height: 100%;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+.cv-nav--drawer.open .cv-nav--drawer__panel {
+    transform: translateX(0);
+}
+html[data-theme="dark"] .cv-nav--drawer__panel {
+    background-color: var(--cv-dark-bg-element);
+}
+
+.cv-nav--drawer__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--cv-spacing-md);
+    border-bottom: 1px solid var(--current-border-subtle);
+}
+.cv-nav--drawer__header h2 {
+    margin: 0;
+    font-size: var(--cv-font-size-lg);
+    color: var(--current-text-primary);
+}
+.cv-nav--drawer__header .cv-modal-close { /* Reutiliza estilo do botão de fechar modal */
+    position: static;
+    transform: none;
+    font-size: 1.5rem;
+    color: var(--current-text-secondary);
+}
+.cv-nav--drawer__header .cv-modal-close:hover {
+    color: var(--current-text-primary);
+    background-color: var(--cv-gray-200);
+}
+html[data-theme="dark"] .cv-nav--drawer__header .cv-modal-close {
+    color: var(--cv-dark-text-secondary);
+}
+html[data-theme="dark"] .cv-nav--drawer__header .cv-modal-close:hover {
+    color: var(--cv-dark-text-primary);
+    background-color: var(--cv-dark-gray-400);
+}
+
+
+.cv-nav--drawer__list {
+    list-style: none;
+    margin: 0;
+    padding: var(--cv-spacing-sm) 0;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Para ocupar espaço restante */
+}
+.cv-nav--drawer__item {
+    /* Estilos para o <li> se necessário */
+}
+.cv-nav--drawer__link {
+    display: flex;
+    align-items: center;
+    padding: var(--cv-spacing-md);
+    text-decoration: none;
+    color: var(--current-text-primary);
+    font-size: var(--cv-font-size-md);
+    transition: background-color 0.2s ease, color 0.2s ease;
+    border-bottom: 1px solid var(--current-border-subtle);
+}
+.cv-nav--drawer__list .cv-nav--drawer__item:last-child .cv-nav--drawer__link {
+    border-bottom: none;
+}
+
+.cv-nav--drawer__link:hover,
+.cv-nav--drawer__link.active {
+    background-color: var(--cv-primary-blue-alpha-15);
+    color: var(--current-primary-blue);
+}
+.cv-nav--drawer__link.active {
+    font-weight: 600;
+}
+.cv-nav--drawer__icon { /* Estilo para o ícone SVG dentro do link do drawer */
+    margin-right: var(--cv-spacing-md);
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    color: var(--current-text-secondary);
+}
+.cv-nav--drawer__link:hover .cv-nav--drawer__icon svg,
+.cv-nav--drawer__link.active .cv-nav--drawer__icon svg {
+    stroke: var(--current-primary-blue); /* Altera a cor do traço do SVG */
+}
+.cv-nav--drawer__label {
+    flex-grow: 1;
+}
+
+
+/* === Bottom Navigation Bar (Adicionado) === */
+body.has-bottom-nav {
+    padding-bottom: 60px; /* Altura da bottom-nav, ajuste se mudar */
+}
+
+.cv-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: none; /* JS e media query controlam a exibição */
+    background-color: var(--current-bg-element); /* Fundo da navegação, consistente com drawer */
+    -webkit-backdrop-filter: blur(18px) saturate(170%); /* Efeito iOS */
+    backdrop-filter: blur(18px) saturate(170%);
+    border-top: 1px solid var(--current-border-color);
+    height: 60px; /* Altura fixa */
+    box-shadow: 0 -1px 3px rgba(0,0,0,0.05); /* Sombra sutil no topo */
+}
+html[data-theme="dark"] .cv-bottom-nav {
+    background-color: var(--cv-dark-bg-element);
+    border-top: 1px solid var(--cv-dark-gray-400);
+}
+
+.cv-bottom-nav__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: space-around; /* Distribui os itens igualmente */
+    align-items: stretch; /* Faz os itens preencherem a altura */
+    height: 100%;
+}
+.cv-bottom-nav__item {
+    display: flex;
+    flex-grow: 1; /* Cada item ocupa espaço igual */
+}
+
+.cv-bottom-nav__link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    color: var(--current-text-secondary);
+    text-decoration: none;
+    padding: var(--cv-spacing-xs) var(--cv-spacing-xs);
+    transition: color 0.2s ease;
+    gap: 2px;
+    font-size: 0.7rem; /* Labels pequenas */
+}
+.cv-bottom-nav__icon svg { /* Ajusta o tamanho do SVG diretamente */
+    width: 22px;
+    height: 22px;
+    margin-bottom: 0px; /* Reduzido ou removido, gap no pai controla */
+}
+.cv-bottom-nav__label {
+    line-height: 1.1; /* Ajuste para melhor encaixe */
+    text-align: center;
+    display: block;
+    font-size: inherit; /* Herda do link */
+}
+
+.cv-bottom-nav__link:hover {
+    color: var(--current-text-primary);
+}
+.cv-bottom-nav__link--active {
+    color: var(--current-primary-blue);
+    /* font-weight: 500; não precisa de bold aqui */
+}
+.cv-bottom-nav__link--active .cv-bottom-nav__icon svg {
+   stroke: var(--current-primary-blue); /* Cor do ícone ativo */
+}
+
+/* Controla a exibição da bottom-nav via JS e config */
+/* A media query abaixo é um fallback, mas o JS é primário */
+@media (min-width: 768px) {
+    .cv-bottom-nav {
+        display: none !important; /* Garante que não apareça em desktop */
+    }
+    body.has-bottom-nav {
+        padding-bottom: 0; /* Remove padding em desktop */
+    }
+}
