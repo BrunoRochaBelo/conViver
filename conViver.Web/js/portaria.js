@@ -320,10 +320,8 @@ async function loadInitialPortariaItems() {
 
     feed.querySelectorAll(`.cv-card:not(.prio-0):not(.feed-skeleton-item)`).forEach(el => el.remove());
     fetchedPortariaItems = [];
-    const errStateEl = contentEl.querySelector('.cv-error-state');
-    if (errStateEl) errStateEl.style.display = 'none';
-    const emptyStateEl = contentEl.querySelector('.cv-empty-state');
-    if (emptyStateEl) emptyStateEl.style.display = 'none';
+    // Remove qualquer estado vazio ou de erro existente dentro da aba ativa
+    contentEl.querySelectorAll('.cv-empty-state, .cv-error-state').forEach(el => el.remove());
 
     let sentinel = document.getElementById(portariaScrollSentinelId);
     if (!sentinel) {
@@ -361,11 +359,8 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
         return;
     }
 
-    // Limpar estado de erro anterior ANTES de mostrar o skeleton ou fazer qualquer outra coisa
-    const existingErrorState = contentEl.querySelector(".cv-error-state");
-    if (existingErrorState) {
-        existingErrorState.remove();
-    }
+    // Limpar qualquer estado (vazio ou erro) existente antes da nova busca
+    contentEl.querySelectorAll('.cv-error-state, .cv-empty-state').forEach(el => el.remove());
 
     if (!append) showSkeleton(contentEl);
     else {
