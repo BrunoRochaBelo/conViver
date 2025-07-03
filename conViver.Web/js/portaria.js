@@ -527,10 +527,10 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
         const items = response.data || response || [];
 
         hideSkeleton(currentTabContentEl);
-        const errorState = currentTabContentEl.querySelector(".cv-error-state");
-        if (errorState) errorState.style.display = "none";
-        const emptyState = currentTabContentEl.querySelector(".cv-empty-state");
-        if (emptyState) emptyState.style.display = "none";
+        const existingError = currentTabContentEl.querySelector('.cv-error-state');
+        if (existingError) existingError.remove();
+        const existingEmpty = currentTabContentEl.querySelector('.cv-empty-state');
+        if (existingEmpty) existingEmpty.remove();
 
         const spinner = feedContainer.querySelector('.loading-spinner-portaria');
         if (spinner) spinner.style.display = 'none';
@@ -554,20 +554,31 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
                 }
             });
         } else {
-            if (page === 1 && !append) {
-                if (fetchedPortariaItems.length === 0) {
-                    if (emptyState) {
-                        const emptyMsg = emptyState.querySelector('.cv-empty-state__message');
-                        if (emptyMsg) {
-                            const hasActiveFilters = Object.values(currentPortariaFilters).some(f => f && f !== '');
-                            emptyMsg.textContent = hasActiveFilters ? "Nenhum item encontrado para os filtros atuais." : `Nenhum ${activePortariaTab === 'visitantes' ? (tipoVisualizacaoVisitantes === 'atuais' ? 'visitante atual' : 'registro no histórico') : 'item'} encontrado.`;
-                        }
-                        emptyState.style.display = "flex";
-                    }
+            if (page === 1 && !append && fetchedPortariaItems.length === 0) {
+                const hasActiveFilters = Object.values(currentPortariaFilters).some(f => f && f !== '');
+                let description = hasActiveFilters ?
+                    'Nenhum item encontrado para os filtros atuais.' :
+                    `Nenhum ${activePortariaTab === 'visitantes' ? (tipoVisualizacaoVisitantes === 'atuais' ? 'visitante atual' : 'registro no histórico') : 'encomenda'} encontrado.`;
+                const roles = getRoles();
+                const isSindico = roles.includes('Porteiro') || roles.includes('Sindico') || roles.includes('Administrador');
+                if (!hasActiveFilters && isSindico) {
+                    description += activePortariaTab === 'visitantes'
+                        ? ' Use o botão (+) para registrar um novo visitante.'
+                        : ' Use o botão (+) para registrar uma nova encomenda.';
+                }
+                const emptyStateEl = createEmptyStateElement({
+                    iconHTML: `<img src="/img/illustrations/empty-box.svg" alt="Sem resultados">`,
+                    title: 'Nenhum Item Encontrado',
+                    description
+                });
+                if (sentinelElement) {
+                    currentTabContentEl.insertBefore(emptyStateEl, sentinelElement);
+                } else {
+                    currentTabContentEl.appendChild(emptyStateEl);
                 }
             }
             noMorePortariaItems = true;
-            if (sentinelElement) sentinelElement.style.display = "none";
+            if (sentinelElement) sentinelElement.style.display = 'none';
         }
     } catch (error) {
         console.error(`Erro ao buscar ${activePortariaTab}:`, error);
@@ -576,11 +587,23 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
         if (spinner) spinner.style.display = 'none';
 
         if (!append || (append && fetchedPortariaItems.length === 0) ) {
-            const errorState = currentTabContentEl.querySelector(".cv-error-state");
-            if (errorState) {
-                 errorState.style.display = "flex";
-                 const errorMessageP = errorState.querySelector(".cv-empty-state__message");
-                 if(errorMessageP) errorMessageP.textContent = error.message || `Falha ao carregar ${activePortariaTab}. Verifique sua conexão ou tente novamente.`;
+            const errorState = createErrorStateElement({
+                iconHTML: `<img src="/img/illustrations/undraw_warning_cyit.svg" alt="Erro">`,
+                title: 'Falha ao Carregar',
+                message: error.message || `Falha ao carregar ${activePortariaTab}. Verifique sua conexão ou tente novamente.`,
+                retryButton: {
+                    text: 'Tentar Novamente',
+                    onClick: () => {
+                        const current = currentTabContentEl.querySelector('.cv-error-state');
+                        if (current) current.remove();
+                        loadInitialPortariaItems();
+                    }
+                }
+            });
+            if (sentinelElement) {
+                currentTabContentEl.insertBefore(errorState, sentinelElement);
+            } else {
+                currentTabContentEl.appendChild(errorState);
             }
         } else if (append) {
             if (!error.handledByApiClient && error.message) {
