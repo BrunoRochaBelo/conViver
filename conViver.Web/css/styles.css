@@ -256,6 +256,11 @@ body {
     font-size: var(--cv-font-size-md); /* Default body text size */
 }
 
+img {
+    max-width: 100%;
+    height: auto;
+}
+
 html {
     font-size: var(--cv-font-size-base); /* Set base for rem units */
 }
