@@ -215,43 +215,52 @@
     #mainNav {
         transition: top 0.3s ease-in-out, background-color 0.3s ease-in-out,
                     padding 0.3s ease-in-out, height 0.3s ease-in-out,
-                    left 0.3s ease-in-out, right 0.3s ease-in-out;
+                    left 0.3s ease-in-out, right 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
     }
 
-    #mainNav.mainNav--scrolled-desktop {
-        position: fixed;
-        top: 0;
-        left: var(--cv-header-padding-x);
-        /* Ajustar 'right' para deixar espaço para o userMenuButton.
-           Assumindo que o userMenuButton tem cerca de 40px + padding.
-           Ex: calc(var(--cv-header-padding-x) + 60px) ou uma variável específica.
-           Por agora, vamos usar um valor fixo e ajustar se necessário. */
-        right: calc(var(--cv-header-padding-x) + 56px); /* 40px avatar + 16px de espaço */
-        width: auto;
-        z-index: 1010;
-        background-color: var(--current-bg-white); /* Cor do header - Confirmado */
-        padding-top: 0;
-        padding-bottom: 0;
-        display: flex;
-        align-items: center;
-        height: var(--cv-header-height-scrolled-desktop);
-    }
+    /* Remover ou comentar .mainNav--scrolled-desktop e .cv-tabs--fixed-desktop originais */
+    /* #mainNav.mainNav--scrolled-desktop { ... } */
+    /* .cv-tabs.cv-tabs--fixed-desktop { ... } */
 
-    #mainNav.mainNav--scrolled-desktop .cv-container {
-        width: 100%;
-    }
-
+    /* .cv-tabs já tem uma transição genérica, pode ser suficiente ou ajustada depois */
     .cv-tabs {
         transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
                     padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out, background-color 0.3s ease-in-out;
     }
 
-    .cv-tabs.cv-tabs--fixed-desktop {
+    #pageMain {
+        transition: padding-top 0.3s ease-in-out;
+    }
+
+    /* Remover ou comentar .content--scrolled-desktop original */
+    /* #pageMain.content--scrolled-desktop { ... } */
+
+    /* Novas classes para o comportamento de scroll desktop */
+    #mainNav.mainNav--fixed-top-desktop {
         position: fixed;
-        top: var(--cv-header-height-scrolled-desktop);
+        top: 0;
         left: 0;
         right: 0;
-        z-index: 1000;
+        z-index: 1020; /* Alto para ficar no topo */
+        background-color: var(--current-bg-white); /* Ou var(--current-nav-bg) */
+        box-shadow: var(--current-shadow-sm);
+        /* Padding interno do mainNav já deve ser gerenciado por seu .cv-container */
+    }
+
+    /* Ajuste para o container dentro do mainNav fixo, se necessário */
+    #mainNav.mainNav--fixed-top-desktop .cv-container {
+        /* Exemplo: manter o padding horizontal consistente com a página */
+        /* padding-left: var(--cv-header-padding-x); */
+        /* padding-right: var(--cv-header-padding-x); */
+        /* Isso depende de como o .cv-container é estilizado globalmente e dentro do #mainNav */
+    }
+
+    .cv-tabs.cv-tabs--fixed-below-mainNav-desktop {
+        position: fixed;
+        /* O 'top' será definido via JS ou variável CSS populada por JS */
+        left: 0;
+        right: 0;
+        z-index: 1010; /* Abaixo do mainNav fixo, acima do header original */
         background-color: var(--current-bg-light);
         padding-left: var(--cv-header-padding-x);
         padding-right: var(--cv-header-padding-x);
@@ -260,26 +269,24 @@
         box-shadow: var(--current-shadow-sm);
     }
 
-    #pageMain {
-        transition: padding-top 0.3s ease-in-out;
-    }
+    /* Classe para o padding do pageMain - pode ser usada pelo JS se não for aplicar padding inline */
+    /* #pageMain.content--scrolled-desktop-v2 { */
+        /* padding-top: [valor calculado pelo JS]; */
+    /* } */
+    /* Fim das novas classes desktop */
 
-    #pageMain.content--scrolled-desktop {
-        padding-top: calc(var(--cv-header-height-scrolled-desktop) + 50px);
-    }
-
-    /* Garante que o userMenuButton fique visível */
+    /* Manter z-index do user-avatar caso o header fique abaixo de algo, mas não é mais para sobrepor mainNav */
     .cv-header .user-avatar {
-        position: relative; /* Ou absolute, dependendo da necessidade de layout */
-        z-index: 1011; /* Acima do mainNav scrollado */
+        position: relative;
+        z-index: 1006; /* Acima do header base, mas não necessariamente de outros elementos fixos */
     }
 }
 
 /* Mobile: cv-tabs sobe e fixa abaixo do header */
+/* As regras mobile permanecem em grande parte as mesmas, pois o comportamento desktop é que muda radicalmente */
 @media (max-width: 991.98px) {
     .cv-tabs {
-        transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
-                    padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out, background-color 0.3s ease-in-out;
+        /* A transição genérica acima pode ser suficiente */
     }
      .cv-tabs.cv-tabs--fixed-mobile {
         position: fixed;
@@ -296,7 +303,7 @@
     }
 
     #pageMain {
-        transition: padding-top 0.3s ease-in-out;
+        /* A transição genérica acima pode ser suficiente */
     }
     #pageMain.content--scrolled-mobile {
        padding-top: calc(var(--cv-header-height-scrolled-mobile) + 50px);
