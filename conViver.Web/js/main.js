@@ -433,175 +433,120 @@ function handleScrollEffectsV2(sentinelVisible = true) {
   const mainNav = document.getElementById('mainNav');
   const cvTabs = document.querySelector('.cv-tabs');
   const pageMain = document.getElementById('pageMain');
-  const root = document.documentElement;
 
   if (!header || !pageMain) return;
 
   const isDesktop = window.innerWidth >= 992;
-  // Determina se a página foi rolada com base na visibilidade do sentinel
-  // ou, se o sentinel não for confiável/removido, pode-se usar window.scrollY
-  const isScrolled = !sentinelVisible; // Mantendo a lógica original do sentinel
+  const isScrolled = !sentinelVisible;
 
-  // Adiciona/remove a classe --scrolled no header
+  header.classList.toggle('cv-header--sticky', isScrolled);
   header.classList.toggle('cv-header--scrolled', isScrolled);
-  if (mainNav) {
-    mainNav.classList.toggle('cv-nav--slide', isScrolled);
-  }
 
-  // Adiciona/remove a classe --scrolled nas tabs e ajusta a altura dinamicamente
-  if (cvTabs) {
-    cvTabs.classList.toggle('cv-tabs--scrolled', isScrolled);
-    cvTabs.classList.toggle('cv-tabs--compact', isScrolled); // Mantém --compact para estilos visuais
-    // Atualiza a variável CSS para a altura atual das tabs
-    root.style.setProperty(
-      '--cv-tabs-height-current',
-      isScrolled
-        ? getComputedStyle(root).getPropertyValue('--cv-tabs-height-scrolled')
-        : getComputedStyle(root).getPropertyValue('--cv-tabs-height')
-    );
-  }
+  updateHeaderVars();
+  const headerHeight = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue(
+      '--cv-header-height-current'
+    )
+  ) || header.offsetHeight;
 
-  // Atualiza a variável de altura atual do header (que agora pode ser a altura scrollada)
-  updateHeaderVars(); // Esta função já define --cv-header-height-current
+  // V2 naming
+  // Transitional support for older pages
 
-  // Calcula a altura combinada do header e das tabs para o padding do #pageMain
-  let totalOffsetTop = 0;
-  const currentHeaderHeight = parseFloat(getComputedStyle(root).getPropertyValue('--cv-header-height-current'));
-  totalOffsetTop += currentHeaderHeight;
-
-  if (cvTabs && getComputedStyle(cvTabs).position === 'sticky') {
-    // As tabs estão abaixo do header, então sua altura também deve ser considerada.
-    // O 'top' das tabs é a altura atual do header.
-    cvTabs.style.top = `${currentHeaderHeight}px`;
-
-    const currentTabsHeight = parseFloat(getComputedStyle(root).getPropertyValue('--cv-tabs-height-current'));
-    totalOffsetTop += currentTabsHeight;
-  }
-
-
-  // Ajusta o padding-top do #pageMain
-  if (pageMain) {
-    pageMain.style.paddingTop = isScrolled ? `${totalOffsetTop}px` : '';
-  }
-
-  // Lógica específica de desktop/mobile para mainNav (se ainda necessária com header sticky)
-  // A classe cv-nav--slide já deve cuidar da animação de "subida" da nav.
-  // As classes como cv-nav--fixed-desktop podem não ser mais necessárias se
-  // o mainNav estiver sempre contido dentro do .cv-header que é sticky.
   if (isDesktop) {
     if (mainNav) {
-      // Se houver estilos específicos para mainNav em desktop quando scrollado
-      // mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled); // Exemplo de classe antiga
+      // New class name
+      mainNav.classList.toggle('cv-nav--fixed-desktop', isScrolled);
+      // Maintain older class for compatibility
+      mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
+      mainNav.classList.toggle('cv-nav--slide', isScrolled);
+      mainNav.style.top = isScrolled ? `${headerHeight}px` : '';
     }
-  } else { // Mobile
+
+    if (cvTabs) {
+      cvTabs.classList.toggle('cv-tabs--sticky-desktop', isScrolled);
+      // Remove old and maintain compatibility
+      cvTabs.classList.toggle('cv-tabs--fixed-below-mainNav-desktop', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
+      cvTabs.classList.remove('cv-tabs--sticky-mobile');
+      cvTabs.classList.remove('cv-tabs--fixed-mobile');
+      if (isScrolled) {
+        const navH = mainNav ? mainNav.offsetHeight : 0;
+        cvTabs.style.top = `${headerHeight + navH}px`;
+      } else {
+        cvTabs.style.top = '';
+      }
+    }
+
+    if (isScrolled) {
+      const navH = mainNav ? mainNav.offsetHeight : 0;
+      const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
+      pageMain.style.paddingTop = `${headerHeight + navH + tabsH}px`;
+    } else {
+      pageMain.style.paddingTop = '';
+    }
+  } else {
     if (mainNav) {
-      // Se houver estilos específicos para mainNav em mobile quando scrollado
+      mainNav.classList.remove('cv-nav--fixed-desktop');
+      mainNav.classList.remove('mainNav--fixed-top-desktop');
+      mainNav.style.top = '';
+    }
+
+    if (cvTabs) {
+      cvTabs.classList.toggle('cv-tabs--sticky-mobile', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
+      cvTabs.classList.remove('cv-tabs--sticky-desktop');
+      cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
+      if (isScrolled) {
+        cvTabs.style.top = `${headerHeight}px`;
+      } else {
+        cvTabs.style.top = '';
+      }
+    }
+
+    if (isScrolled) {
+      const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
+      pageMain.style.paddingTop = `${headerHeight + tabsH}px`;
+    } else {
+      pageMain.style.paddingTop = '';
     }
   }
 }
 
-
 function initHeaderObserver() {
   const sentinel = document.getElementById('headerSentinel');
-  // Se o sentinel for removido, este observador precisa ser desabilitado ou adaptado.
-  if (!sentinel) {
-    // Fallback ou lógica alternativa se o sentinel não existir.
-    // Por exemplo, ouvir diretamente o evento de scroll da window.
-    // Mas isso pode ser menos performático para algumas coisas que o IntersectionObserver faz.
-    console.warn("headerSentinel não encontrado. Efeitos de scroll podem não funcionar como esperado.");
-    // Para um header e tabs totalmente sticky via CSS, o JS só precisa definir o padding do conteúdo.
-    // Poderíamos chamar handleScrollEffectsV2(window.scrollY > 0) no scroll.
-    return;
-  }
+  if (!sentinel) return;
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      const entry = entries[0];
-      handleScrollEffectsV2(entry.isIntersecting);
-    },
-    {
-      rootMargin: '0px', // Ajuste se o trigger point precisar ser diferente
-      threshold: 1.0, // Trigger quando 100% visível/invisível
-    }
-  );
+  const observer = new IntersectionObserver((entries) => {
+    const entry = entries[0];
+    handleScrollEffectsV2(entry.isIntersecting);
+  });
 
   observer.observe(sentinel);
 }
 
-// Atualiza as variáveis e o layout no resize
-window.addEventListener('resize', debounce(() => {
-  updateHeaderVars(); // Atualiza a altura do header
-  const root = document.documentElement;
-  // Atualiza a altura das tabs no resize, caso não estejam scrolladas
-  if (document.querySelector('.cv-tabs') && !document.querySelector('.cv-tabs.cv-tabs--scrolled')) {
-    root.style.setProperty('--cv-tabs-height-current', getComputedStyle(root).getPropertyValue('--cv-tabs-height'));
-  }
-
+window.addEventListener('resize', () => {
+  updateHeaderVars();
   const sentinel = document.getElementById('headerSentinel');
-  let isSentinelVisible = true;
-  if (sentinel) {
-    // Força uma reavaliação da visibilidade do sentinel
-    // A visibilidade do sentinel pode não ser o melhor indicador após resize se o scroll não mudou.
-    // O ideal é verificar a posição de scroll atual.
-    isSentinelVisible = window.scrollY < 10; // Exemplo: considera não scrollado se próximo ao topo
-  } else {
-    isSentinelVisible = window.scrollY < 10;
-  }
-  handleScrollEffectsV2(isSentinelVisible);
-}, 150));
+  const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+  handleScrollEffectsV2(visible);
+});
 
-
-// Atualiza no scroll
 window.addEventListener(
   'scroll',
   () => {
-    // A lógica do sentinel via IntersectionObserver já deve cobrir isso.
-    // Se o sentinel for removido, esta seria a principal forma de detectar scroll:
-    const isScrolled = window.scrollY > 0; // Simples verificação de scroll
-    // handleScrollEffectsV2(!isScrolled); // Passa true para sentinelVisible se scrollY for 0
-
-    // Se o IntersectionObserver estiver ativo, este listener pode ser redundante
-    // ou usado como fallback se o observer falhar ou for desabilitado.
-    // Por ora, com o observer, esta chamada direta pode ser desnecessária.
-    // Se mantida, certifique-se que não conflita com o observer.
-    // O observer é geralmente mais performático.
+    const sentinel = document.getElementById('headerSentinel');
+    const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+    handleScrollEffectsV2(visible);
   },
   { passive: true }
 );
 
-// Inicialização no carregamento da página
 document.addEventListener('DOMContentLoaded', () => {
-  updateHeaderVars(); // Define a altura inicial do header
-  const root = document.documentElement;
-  if (document.querySelector('.cv-tabs')) { // Define a altura inicial das tabs
-    root.style.setProperty('--cv-tabs-height-current', getComputedStyle(root).getPropertyValue('--cv-tabs-height'));
-  }
-
-  initHeaderObserver(); // Inicia o observer para o sentinel
-
-  // Chamada inicial para configurar o estado baseado na posição de scroll atual
+  updateHeaderVars();
+  initHeaderObserver();
   const sentinel = document.getElementById('headerSentinel');
-  let isSentinelVisible = true;
-  if (sentinel) {
-    // Verifica a posição real do sentinel no DOMContentLoaded
-    // getBoundingClientRect().top pode ser 0 se estiver no topo da viewport.
-    // Se o topo da página já estiver scrollado (ex: link com #hash), o sentinel pode não estar visível.
-    const sentinelRect = sentinel.getBoundingClientRect();
-    // Considera visível se o topo do sentinel estiver na viewport ou acima dela (indicando que não rolou além dele)
-    isSentinelVisible = sentinelRect.top >= 0 && sentinelRect.bottom <= window.innerHeight;
-
-  } else {
-    // Se não há sentinel, baseia-se no scrollY
-    isSentinelVisible = window.scrollY < 10; // Pequena tolerância
-  }
-  handleScrollEffectsV2(isSentinelVisible);
-
-  // Uma chamada adicional com timeout pode ajudar a pegar dimensões corretas após renderização completa
-  setTimeout(() => {
-    updateHeaderVars();
-    if (document.querySelector('.cv-tabs') && !document.querySelector('.cv-tabs.cv-tabs--scrolled')) {
-        root.style.setProperty('--cv-tabs-height-current', getComputedStyle(root).getPropertyValue('--cv-tabs-height'));
-    }
-    handleScrollEffectsV2(isSentinelVisible); // Reavalia com dimensões potencialmente atualizadas
-  }, 150);
+  const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+  handleScrollEffectsV2(visible);
+  setTimeout(() => handleScrollEffectsV2(visible), 100);
 });
