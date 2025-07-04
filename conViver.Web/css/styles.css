@@ -264,9 +264,6 @@
         transition: padding-top 0.3s ease-in-out;
     }
 
-    #pageMain.content--scrolled-desktop {
-        padding-top: calc(var(--cv-header-height-scrolled-desktop) + 50px);
-    }
 
     /* Garante que o userMenuButton fique visível */
     .cv-header .user-avatar {
@@ -297,9 +294,6 @@
 
     #pageMain {
         transition: padding-top 0.3s ease-in-out;
-    }
-    #pageMain.content--scrolled-mobile {
-       padding-top: calc(var(--cv-header-height-scrolled-mobile) + 50px);
     }
 }
 
