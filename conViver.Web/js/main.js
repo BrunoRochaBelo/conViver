@@ -235,6 +235,19 @@ export function closeModal(modal) {
   document.body.classList.remove('cv-modal-open');
 }
 
+/**
+ * Atualiza a variável CSS que representa a altura atual do header.
+ */
+export function updateHeaderVars() {
+  const header = document.querySelector('.cv-header');
+  if (header) {
+    document.documentElement.style.setProperty(
+      '--cv-header-height-current',
+      `${header.offsetHeight}px`
+    );
+  }
+}
+
 debugLog('main.js carregado.');
 
 /**
@@ -422,6 +435,13 @@ function handleScrollEffectsV2() {
   const pageMain = document.getElementById('pageMain');
   const scrollThreshold = 50;
 
+  updateHeaderVars();
+  const headerHeight = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue(
+      '--cv-header-height-current'
+    )
+  ) || (header ? header.offsetHeight : 0);
+
   if (!header || !pageMain) return;
 
   const isDesktop = window.innerWidth >= 992;
@@ -438,7 +458,7 @@ function handleScrollEffectsV2() {
       mainNav.classList.toggle('cv-nav--fixed-desktop', isScrolled);
       // Maintain older class for compatibility
       mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
-      mainNav.style.top = isScrolled ? `${header.offsetHeight}px` : '';
+      mainNav.style.top = isScrolled ? `${headerHeight}px` : '';
     }
 
     if (cvTabs) {
@@ -449,7 +469,7 @@ function handleScrollEffectsV2() {
       cvTabs.classList.remove('cv-tabs--fixed-mobile');
       if (isScrolled) {
         const navH = mainNav ? mainNav.offsetHeight : 0;
-        cvTabs.style.top = `${header.offsetHeight + navH}px`;
+        cvTabs.style.top = `${headerHeight + navH}px`;
       } else {
         cvTabs.style.top = '';
       }
@@ -458,7 +478,7 @@ function handleScrollEffectsV2() {
     if (isScrolled) {
       const navH = mainNav ? mainNav.offsetHeight : 0;
       const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
-      pageMain.style.paddingTop = `${header.offsetHeight + navH + tabsH}px`;
+      pageMain.style.paddingTop = `${headerHeight + navH + tabsH}px`;
     } else {
       pageMain.style.paddingTop = '';
     }
@@ -475,7 +495,7 @@ function handleScrollEffectsV2() {
       cvTabs.classList.remove('cv-tabs--sticky-desktop');
       cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
       if (isScrolled) {
-        cvTabs.style.top = `${header.offsetHeight}px`;
+        cvTabs.style.top = `${headerHeight}px`;
       } else {
         cvTabs.style.top = '';
       }
@@ -483,7 +503,7 @@ function handleScrollEffectsV2() {
 
     if (isScrolled) {
       const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
-      pageMain.style.paddingTop = `${header.offsetHeight + tabsH}px`;
+      pageMain.style.paddingTop = `${headerHeight + tabsH}px`;
     } else {
       pageMain.style.paddingTop = '';
     }
@@ -493,8 +513,12 @@ function handleScrollEffectsV2() {
 const debouncedScrollHandler = debounce(handleScrollEffectsV2, 10);
 
 window.addEventListener('scroll', debouncedScrollHandler);
-window.addEventListener('resize', debouncedScrollHandler);
+window.addEventListener('resize', () => {
+  updateHeaderVars();
+  debouncedScrollHandler();
+});
 document.addEventListener('DOMContentLoaded', () => {
+  updateHeaderVars();
   handleScrollEffectsV2();
   setTimeout(handleScrollEffectsV2, 100);
 });
