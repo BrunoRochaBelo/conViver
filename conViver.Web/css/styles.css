@@ -220,7 +220,6 @@
     }
 }
 
-
 /* Classe para as tabs fixas (simplificada) */
 .cv-tabs.cv-tabs--fixed-simple {
     position: fixed;
@@ -247,7 +246,6 @@
     transition: margin-top 0.3s ease-in-out;
 }
 
-
 /* Limpeza de regras de scroll antigas (V1, V2) que não são mais necessárias */
 /* Comentar ou remover: */
 /* .cv-header--scrolled { ... } (regra antiga se diferente de .cv-header--scrolled-simple) */
@@ -259,6 +257,7 @@
 /* #pageMain.content--scrolled-desktop-v2 { ... } */
 /* .cv-tabs.cv-tabs--fixed-mobile { ... } (será coberto por .cv-tabs--fixed-simple + JS) */
 /* #pageMain.content--scrolled-mobile { ... } (padding será inline via JS) */
+
 
 
 html[data-theme="dark"] {

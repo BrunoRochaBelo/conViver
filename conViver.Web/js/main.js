@@ -502,3 +502,56 @@ export function clearModalError(modalElement) {
         errorContainer.style.display = 'none';
     }
 }
+
+/**
+ * Lógica de scroll para o header e tabs.
+ */
+function handleScrollEffects() {
+    const header = document.querySelector('.cv-header');
+    const mainNav = document.getElementById('mainNav');
+    const cvTabs = document.querySelector('.cv-tabs');
+    const pageMain = document.getElementById('pageMain'); // Container do conteúdo principal
+    const scrollThreshold = 50; // Distância de scroll para ativar o efeito
+
+    if (!header) return;
+
+    const isDesktop = window.innerWidth >= 992;
+    const isScrolled = window.scrollY > scrollThreshold;
+
+    // altera classe no header
+    header.classList.toggle('cv-header--scrolled', isScrolled);
+
+    if (isDesktop) {
+        // Comportamento Desktop
+        if (mainNav) mainNav.classList.toggle('mainNav--scrolled-desktop', isScrolled);
+        if (cvTabs) {
+            cvTabs.classList.toggle('cv-tabs--fixed-desktop', isScrolled);
+            cvTabs.classList.remove('cv-tabs--fixed-mobile'); // garante que o estilo mobile seja removido
+        }
+        if (pageMain) {
+            pageMain.classList.toggle('content--scrolled-desktop', isScrolled);
+            pageMain.classList.remove('content--scrolled-mobile');
+        }
+    } else {
+        // Comportamento Mobile
+        if (mainNav) mainNav.classList.remove('mainNav--scrolled-desktop'); // remove classe desktop
+        if (cvTabs) {
+            cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
+            cvTabs.classList.remove('cv-tabs--fixed-desktop'); // garante que o estilo desktop seja removido
+        }
+        if (pageMain) {
+            pageMain.classList.toggle('content--scrolled-mobile', isScrolled);
+            pageMain.classList.remove('content--scrolled-desktop');
+        }
+    }
+}
+
+// Aplica o debounce para otimizar a performance do scroll handler
+const debouncedScrollHandler = debounce(handleScrollEffects, 50); // ajuste o delay conforme necessário
+
+window.addEventListener('scroll', debouncedScrollHandler);
+// Também chama ao redimensionar para ajustar caso mude entre mobile e desktop
+window.addEventListener('resize', debouncedScrollHandler);
+// Define estado inicial no carregamento, caso a página já esteja scrollada
+document.addEventListener('DOMContentLoaded', handleScrollEffects);
+
