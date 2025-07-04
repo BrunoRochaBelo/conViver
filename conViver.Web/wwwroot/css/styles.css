@@ -263,6 +263,11 @@
         transform: translateY(calc(-1 * var(--cv-header-slide-diff-desktop)));
     }
 
+    #mainNav.cv-nav--slide + #userMenuButton {
+        transform: translateY(calc(-1 * var(--cv-header-slide-diff-desktop)));
+        transition: transform 0.3s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
     #mainNav.cv-nav--fixed-desktop .cv-container,
     #mainNav.mainNav--fixed-top-desktop .cv-container {
         width: 100%;
@@ -306,6 +311,10 @@
     }
     #mainNav.cv-nav--slide {
         transform: translateY(calc(-1 * var(--cv-header-slide-diff-mobile)));
+    }
+    #mainNav.cv-nav--slide + #userMenuButton {
+        transform: translateY(calc(-1 * var(--cv-header-slide-diff-mobile)));
+        transition: transform 0.3s ease-in-out, box-shadow 0.2s ease-in-out;
     }
      .cv-tabs.cv-tabs--sticky-mobile,
      .cv-tabs.cv-tabs--fixed-mobile {
