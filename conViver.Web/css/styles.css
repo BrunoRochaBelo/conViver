@@ -176,11 +176,10 @@
     --cv-header-padding-y: clamp(0.5rem, 1.5vh, 0.75rem);
     --cv-header-padding-x: clamp(1rem, 4vw, 1.5rem);
     --cv-header-height: clamp(3.5rem, 5vh + 1rem, 4.3125rem); /* ~57px–69px */
-    --cv-header-height-scrolled-desktop: clamp(3rem, 4vh + 0.5rem, 3.5rem);
-    --cv-header-height-scrolled-mobile: clamp(2.5rem, 3vh + 0.5rem, 3rem);
+    --cv-header-height-scrolled-desktop: clamp(2.8rem, 3.5vh, 3.2rem); /* Altura menor para desktop ao rolar */
+    --cv-header-height-scrolled-mobile: clamp(2.2rem, 2.8vh, 2.5rem); /* Altura menor para mobile ao rolar */
     --cv-header-height-current: var(--cv-header-height);
-    --cv-header-slide-diff-desktop: calc(var(--cv-header-height) - var(--cv-header-height-scrolled-desktop));
-    --cv-header-slide-diff-mobile: calc(var(--cv-header-height) - var(--cv-header-height-scrolled-mobile));
+    /* Os valores de slide-diff precisam ser recalculados se as alturas do header e nav mudarem independentemente */
 
     /* Variáveis para altura das tabs */
     --cv-tabs-height: clamp(2.5rem, 4vh, 3rem); /* Altura normal das tabs ~40-48px */
@@ -190,93 +189,91 @@
 
 @media (min-width: 768px) {
     :root {
-        --cv-header-height: clamp(4rem, 5vh + 1rem, 4.5rem);
-        --cv-tabs-height: clamp(2.8rem, 4.5vh, 3.2rem); /* Tabs um pouco maiores em tablet+ */
+        --cv-header-height: clamp(4rem, 5vh + 1rem, 4.5rem); /* Altura original do header em desktop */
+        --cv-header-height-scrolled-desktop: clamp(3rem, 4vh, 3.5rem); /* Header scrollado em desktop */
+        --cv-tabs-height: clamp(2.8rem, 4.5vh, 3.2rem);
         --cv-tabs-height-scrolled: clamp(2.2rem, 3.5vh, 2.8rem);
     }
 }
 
 /* Estilos para header com scroll */
 .cv-header {
-    transition: min-height 0.3s ease-in-out, box-shadow 0.3s ease-in-out, background-color 0.3s ease-in-out;
-    position: sticky; /* Torna o header fixo no topo */
+    transition: height 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    position: sticky;
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1005; /* Acima das tabs, abaixo de modais */
-    background-color: var(--current-bg-white); /* Garante que o header tenha fundo ao ficar fixo */
+    z-index: 1005;
+    background-color: var(--current-nav-bg); /* Cor original restaurada */
+    height: var(--cv-header-height-current); /* Controlado pelo JS */
+    overflow: hidden; /* Essencial para o efeito de "subida" */
+}
+
+.cv-header__container {
+    display: flex;
+    align-items: center;
+    height: var(--cv-header-height); /* Altura base do conteúdo interno */
+    padding: var(--cv-header-padding-y) var(--cv-header-padding-x); /* Padding original */
+    box-sizing: border-box;
+    width: 100%;
+    transition: transform 0.3s ease-in-out; /* Transição para o efeito de subida */
+    /* O transform: translateY será aplicado pelo JS ao adicionar .cv-header--scrolled */
 }
 
 .cv-header__title {
-    transition: opacity 0.25s ease-in-out, visibility 0s linear 0.25s, font-size 0.3s ease-in-out;
+    transition: opacity 0.25s ease-out, transform 0.3s ease-in-out;
+    margin-right: auto; /* Empurra nav e avatar para a direita */
+    white-space: nowrap;
+    flex-shrink: 0; /* Evita que o título encolha demais */
+}
+
+#mainNav {
+    display: flex;
+    align-items: center;
+    /* flex-grow: 1; Removido para melhor controle com margin-right: auto no título */
+    /* A transição individual de mainNav pode não ser necessária se o container inteiro sobe */
+}
+
+.cv-header .user-avatar {
+    margin-left: var(--cv-spacing-md); /* Espaçamento entre nav (se houver itens) e avatar */
+    flex-shrink: 0; /* Evita que o avatar encolha */
+    /* A transição individual do avatar pode não ser necessária se o container inteiro sobe */
 }
 
 #headerSentinel {
-    /* Este elemento não é mais estritamente necessário para o header fixo,
-       mas pode ser mantido se outras lógicas de JS dependerem dele.
-       Se for removido, o JS precisará de uma nova forma de detectar o scroll.
-       Por ora, vamos mantê-lo para compatibilidade com o JS existente. */
     position: absolute;
-    top: calc(var(--cv-header-height-current) + 1px); /* Ajustado para ficar abaixo do header fixo */
+    top: var(--cv-header-height);
     width: 100%;
     height: 1px;
     pointer-events: none;
 }
 
-/* Nav fills available space inside header */
-#mainNav {
-    flex-grow: 1;
-    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out, height 0.3s ease-in-out;
-}
 
-/* Ensure avatar remains above nav */
-.cv-header .user-avatar {
-    position: relative;
-    z-index: 1011; /* Acima da mainNav se a mainNav tiver z-index menor */
-}
-
-.cv-header--scrolled { /* Renomeado de --sticky para --scrolled para clareza */
-    min-height: var(--cv-header-height-scrolled-mobile) !important; /* Usa a variável de altura mobile */
+.cv-header--scrolled {
+    /* A altura é definida por --cv-header-height-current que o JS muda para
+       --cv-header-height-scrolled-desktop ou --cv-header-height-scrolled-mobile */
     box-shadow: var(--current-shadow-md);
 }
 
+.cv-header--scrolled .cv-header__container {
+    /* O JS calculará este valor: translateY(altura_scrollada - altura_normal) */
+    /* Ex: transform: translateY(calc(var(--cv-header-height-scrolled-desktop) - var(--cv-header-height))); */
+    /* Este transform move o conteúdo para cima, "escondendo" a parte de cima e reduzindo a altura visível */
+}
+
 .cv-header--scrolled .cv-header__title {
-    opacity: 0; /* Título some ao rolar, como antes */
-    visibility: hidden;
-    font-size: calc(var(--cv-font-size-h1) * 0.8); /* Exemplo de redução de tamanho */
+    opacity: 0;
+    transform: translateY(-100%); /* Faz o título deslizar para cima e sumir */
+    pointer-events: none;
 }
 
-/* Ajustes para Desktop */
-@media (min-width: 992px) {
-    .cv-header--scrolled {
-        min-height: var(--cv-header-height-scrolled-desktop) !important; /* Usa a variável de altura desktop */
-    }
-
-    #mainNav.cv-nav--slide { /* Classe para animar a subida da nav */
-        transform: translateY(calc(-1 * var(--cv-header-slide-diff-desktop)));
-        opacity: 0.8; /* Exemplo de efeito visual */
-    }
-    .cv-header--scrolled #mainNav { /* Quando o header está scrollado, a nav pode ter altura reduzida */
-        height: var(--cv-header-height-scrolled-desktop);
-    }
-
-}
-
-/* Ajustes para Mobile */
-@media (max-width: 991.98px) {
-    #mainNav.cv-nav--slide { /* Classe para animar a subida da nav em mobile */
-        transform: translateY(calc(-1 * var(--cv-header-slide-diff-mobile)));
-        opacity: 0.8;
-    }
-     .cv-header--scrolled #mainNav { /* Redução da nav em mobile */
-        height: var(--cv-header-height-scrolled-mobile);
-    }
-}
+/* Os elementos #mainNav e .user-avatar vão subir junto com .cv-header__container,
+   então não precisam de transform individual, a menos que um efeito adicional seja desejado. */
 
 
 /* Estilos para cv-tabs */
 .cv-tabs {
-    position: sticky; /* Tabs também ficam fixas */
+    position: sticky;
     /* O 'top' será definido dinamicamente pelo JS ou ajustado aqui com base na altura do header */
     top: var(--cv-header-height-current); /* Fica abaixo do header normal */
     left: 0;
