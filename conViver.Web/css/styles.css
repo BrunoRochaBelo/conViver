@@ -188,19 +188,22 @@
     }
 }
 
-/* Estilos para header com scroll - Abordagem Simplificada */
+/* Estilos para header com scroll - Abordagem Reveal on Scroll Up */
 .cv-header {
-    transition: min-height 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    transition: min-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Adicionado transform */
+    position: sticky; /* Necessário para alguns comportamentos de "reveal", ou fixed via JS */
+    top: 0; /* Se sticky, define onde ele "gruda" */
+    z-index: 1010; /* Para ficar acima das tabs se ambas forem sticky/fixed */
 }
 
 .cv-header__title {
-    transition: opacity 0.25s ease-in-out, visibility 0s linear 0.25s;
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.25s;
 }
 
-/* Classe para o header scrollado (simplificada) */
-.cv-header--scrolled-simple {
+.cv-header--scrolled-simple { /* Mantém a redução de altura e sombra */
     box-shadow: var(--current-shadow-md);
-    /* A altura será ajustada com base no tamanho da tela usando variáveis */
 }
 
 .cv-header--scrolled-simple .cv-header__title {
@@ -208,19 +211,37 @@
     visibility: hidden;
 }
 
+/* Estado Escondido para o Header */
+.cv-header--hidden {
+    transform: translateY(-100%);
+    /* Adicionar um pequeno delay para o 'visibility' para a transição de saída ser vista */
+    /* visibility: hidden; */ /* Pode ser controlado por JS para evitar problemas com foco */
+    /* transition-delay: 0s, 0.3s; */ /* Delay para visibility */
+}
+
 /* Ajuste de altura para header scrollado em diferentes telas */
-@media (max-width: 991.98px) { /* Considerando 992px como início do desktop */
-    .cv-header--scrolled-simple {
+@media (max-width: 991.98px) {
+    .cv-header--scrolled-simple:not(.cv-header--hidden) {
         min-height: var(--cv-header-height-scrolled-mobile) !important;
     }
 }
 @media (min-width: 992px) {
-    .cv-header--scrolled-simple {
+    .cv-header--scrolled-simple:not(.cv-header--hidden) {
         min-height: var(--cv-header-height-scrolled-desktop) !important;
     }
 }
 
-/* Classe para as tabs fixas (simplificada) */
+
+/* Tabs com comportamento de fixação e "reveal" */
+.cv-tabs {
+    transition: margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Adicionado para o caso de ser sticky e precisar de transição de transform */
+    /* position: sticky; */ /* JS controlará position:fixed, mas se fosse sticky puro... */
+    /* top: [altura do header]; */ /* JS controlará o top para fixed */
+    /* z-index: 999; */ /* Abaixo do header */
+    /* transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); */ /* Para esconder/mostrar com sticky */
+}
+
 .cv-tabs.cv-tabs--fixed-simple {
     position: fixed;
     left: 0;
@@ -232,19 +253,29 @@
     margin-top: 0;
     border-bottom: 2px solid var(--current-border-subtle);
     box-shadow: var(--current-shadow-sm);
-    transition: top 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    /* A transição agora inclui transform e top */
+    transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Transições para pageMain e #mainNav */
+/* Estado Escondido para as Tabs */
+.cv-tabs.cv-tabs--hidden { /* Aplicar a classe .cv-tabs--hidden junto com .cv-tabs--fixed-simple */
+    transform: translateY(calc(-100% - 2px)); /* -100% da sua altura + borda para sumir completamente */
+    /* visibility: hidden; */ /* Pode ser controlado por JS */
+    /* transition-delay: 0s, 0s, 0.3s; */ /* Delay para visibility */
+}
+
+
 #pageMain {
-    transition: padding-top 0.3s ease-in-out;
+    transition: padding-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #mainNav {
-    /* mainNav não muda de posição nesta abordagem, mas pode precisar de transição de margem
-       se o header acima dele mudar de altura e o mainNav estiver no fluxo normal. */
-    transition: margin-top 0.3s ease-in-out;
+    /* Se o mainNav for afetado pela mudança de altura do header (se estiver no fluxo abaixo) */
+    transition: margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 
 /* Limpeza de regras de scroll antigas (V1, V2) que não são mais necessárias */
 /* Comentar ou remover: */
@@ -257,7 +288,6 @@
 /* #pageMain.content--scrolled-desktop-v2 { ... } */
 /* .cv-tabs.cv-tabs--fixed-mobile { ... } (será coberto por .cv-tabs--fixed-simple + JS) */
 /* #pageMain.content--scrolled-mobile { ... } (padding será inline via JS) */
-
 
 
 html[data-theme="dark"] {

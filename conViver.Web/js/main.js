@@ -108,76 +108,99 @@ function ensureFeedbackContainer() {
  */
 function handleScrollEffects() {
     const header = document.querySelector('.cv-header');
-    const cvTabs = document.querySelector('.cv-tabs'); // Pode não existir em todas as páginas
+    const cvTabs = document.querySelector('.cv-tabs');
     const pageMain = document.getElementById('pageMain');
-    const mainNav = document.getElementById('mainNav'); // Apenas para limpeza de classes antigas
-    const scrollThreshold = 50;
+    const mainNav = document.getElementById('mainNav'); // Para limpeza
 
-    if (!header || !pageMain) { // pageMain é essencial para o padding
-        // console.warn('Scroll effects: Header ou PageMain não encontrados.');
-        return;
-    }
+    const scrollThreshold = 10; // Quando o comportamento de encolher/fixar começa
+    const hideThresholdOffset = 150; // Distância adicional para baixo antes de esconder o header/tabs
+                                    // Ajuste este valor conforme a sensibilidade desejada.
 
-    const isScrolled = window.scrollY > scrollThreshold;
+    if (!header || !pageMain) return;
 
-    // 1. Comportamento do Header
-    header.classList.toggle('cv-header--scrolled-simple', isScrolled);
-    // Limpar classes antigas de scroll do header, se houver (ex: .cv-header--scrolled)
-    if (header.classList.contains('cv-header--scrolled')) {
-        header.classList.remove('cv-header--scrolled');
-    }
+    let currentScroll = window.scrollY;
 
+    // Estado inicial ou perto do topo: redefinir tudo
+    if (currentScroll <= scrollThreshold) {
+        header.classList.remove('cv-header--scrolled-simple', 'cv-header--hidden');
+        if (cvTabs) {
+            cvTabs.classList.remove('cv-tabs--fixed-simple', 'cv-tabs--hidden');
+            cvTabs.style.top = '';
+        }
+        pageMain.style.paddingTop = '';
+        // Limpeza de classes antigas
+        if (mainNav) mainNav.classList.remove('mainNav--fixed-top-desktop', 'mainNav--scrolled-desktop');
+        if (cvTabs) cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop', 'cv-tabs--fixed-desktop', 'cv-tabs--fixed-mobile');
+        if (pageMain) pageMain.classList.remove('content--scrolled-desktop-v2', 'content--scrolled-desktop', 'content--scrolled-mobile');
 
-    // 2. Comportamento das Tabs e PageMain
-    let headerHeight = header.offsetHeight; // Pega a altura atual do header (pode estar scrollado ou não)
+    } else {
+        // Aplicar estado scrollado base (header menor, tabs fixas abaixo do header)
+        header.classList.add('cv-header--scrolled-simple');
+        let headerHeight = header.offsetHeight; // Altura do header já encolhido
 
-    if (cvTabs) {
-        cvTabs.classList.toggle('cv-tabs--fixed-simple', isScrolled);
-
-        if (isScrolled) {
-            // A altura do header para o 'top' das tabs deve ser a altura do header *quando scrollado*
-            // Para isso, podemos pegar a altura do header com a classe .cv-header--scrolled-simple já aplicada.
-            // Se a classe ainda não foi totalmente processada pelo browser e a altura não atualizou,
-            // pode ser necessário usar um valor fixo ou uma variável CSS que defina a altura scrollada.
-            // Por simplicidade, vamos usar header.offsetHeight, assumindo que o CSS já fez o header encolher.
+        if (cvTabs) {
+            cvTabs.classList.add('cv-tabs--fixed-simple');
             cvTabs.style.top = `${headerHeight}px`;
-
-            const tabsHeight = cvTabs.offsetHeight;
+            let tabsHeight = cvTabs.offsetHeight;
             pageMain.style.paddingTop = `${headerHeight + tabsHeight}px`;
         } else {
-            cvTabs.style.top = '';
-            pageMain.style.paddingTop = '';
-        }
-    } else {
-        // Caso não haja cvTabs, mas o header scrolla, ajustar padding do pageMain
-        if (isScrolled) {
             pageMain.style.paddingTop = `${headerHeight}px`;
-        } else {
-            pageMain.style.paddingTop = '';
+        }
+
+        // Lógica de esconder/mostrar ao rolar para baixo/cima
+        if (currentScroll > lastScrollTop && currentScroll > (scrollThreshold + hideThresholdOffset)) {
+            // Rolando para Baixo e passou do threshold de esconder
+            header.classList.add('cv-header--hidden');
+            if (cvTabs) {
+                cvTabs.classList.add('cv-tabs--hidden');
+                // Ajustar padding do pageMain se os elementos escondidos não ocupam mais espaço reservado
+                // Se o transform os tira do fluxo e o padding não é mais necessário para eles:
+                // pageMain.style.paddingTop = '0'; // Ou altura de algo que ainda fique fixo e visível
+            }
+             // Quando escondido, o padding pode ser ajustado para apenas o que resta (se algo) ou 0.
+             // Se o header e tabs saem completamente, o padding pode ser 0.
+             // Se o header apenas se move para cima mas ainda tem uma pequena parte visível (ex: sticky com offset negativo),
+             // o padding precisaria refletir isso. Com translateY(-100%), eles saem.
+            pageMain.style.paddingTop = '0';
+
+
+        } else if (currentScroll < lastScrollTop) {
+            // Rolando para Cima
+            header.classList.remove('cv-header--hidden');
+            if (cvTabs) {
+                cvTabs.classList.remove('cv-tabs--hidden');
+                // Recalcular padding, pois os elementos estão visíveis novamente
+                // headerHeight já foi pego acima (do header scrollado)
+                // tabsHeight precisa ser pego do elemento não escondido
+                // cvTabs.offsetHeight pode dar 0 se display:none ou visibility:hidden for usado no CSS para .cv-tabs--hidden
+                // É melhor confiar na altura que ele teria quando visível.
+                // Se .cv-tabs--hidden usa apenas transform, offsetHeight deve ser ok.
+                let visibleTabsHeight = cvTabs.offsetHeight;
+                pageMain.style.paddingTop = `${headerHeight + visibleTabsHeight}px`;
+            } else {
+                 pageMain.style.paddingTop = `${headerHeight}px`;
+            }
         }
     }
 
-    // 3. Limpeza de classes de abordagens anteriores (para mainNav, cvTabs, pageMain)
-    // Garantir que classes de lógicas antigas sejam removidas.
-    if (mainNav) {
-        mainNav.classList.remove('mainNav--fixed-top-desktop', 'mainNav--scrolled-desktop');
-    }
-    if (cvTabs) { // Limpar classes antigas das tabs
-        cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop', 'cv-tabs--fixed-desktop', 'cv-tabs--fixed-mobile');
-    }
-    if (pageMain) { // Limpar classes antigas do pageMain
-        pageMain.classList.remove('content--scrolled-desktop-v2', 'content--scrolled-desktop', 'content--scrolled-mobile');
-    }
+    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
 }
 
+let lastScrollTop = 0; // Inicializa fora da função para persistir
 const debouncedScrollHandler = debounce(handleScrollEffects, 10);
 
 window.addEventListener('scroll', debouncedScrollHandler);
-window.addEventListener('resize', debouncedScrollHandler); // Recalcular em resize
+window.addEventListener('resize', () => { // Resetar lastScrollTop em resize para evitar saltos
+    lastScrollTop = 0;
+    debouncedScrollHandler();
+});
 document.addEventListener('DOMContentLoaded', () => {
-    handleScrollEffects(); // Aplicar estado inicial
-    // Um pequeno timeout para garantir que o DOM está estável, especialmente se houver outras manipulações de JS
-    setTimeout(handleScrollEffects, 150);
+    lastScrollTop = window.scrollY; // Captura scroll inicial caso a página carregue scrollada
+    handleScrollEffects();
+    setTimeout(() => { // Re-check após tudo carregar
+        lastScrollTop = window.scrollY;
+        handleScrollEffects();
+    }, 150);
 });
 
 /**
@@ -502,56 +525,3 @@ export function clearModalError(modalElement) {
         errorContainer.style.display = 'none';
     }
 }
-
-/**
- * Lógica de scroll para o header e tabs.
- */
-function handleScrollEffects() {
-    const header = document.querySelector('.cv-header');
-    const mainNav = document.getElementById('mainNav');
-    const cvTabs = document.querySelector('.cv-tabs');
-    const pageMain = document.getElementById('pageMain'); // Container do conteúdo principal
-    const scrollThreshold = 50; // Distância de scroll para ativar o efeito
-
-    if (!header) return;
-
-    const isDesktop = window.innerWidth >= 992;
-    const isScrolled = window.scrollY > scrollThreshold;
-
-    // altera classe no header
-    header.classList.toggle('cv-header--scrolled', isScrolled);
-
-    if (isDesktop) {
-        // Comportamento Desktop
-        if (mainNav) mainNav.classList.toggle('mainNav--scrolled-desktop', isScrolled);
-        if (cvTabs) {
-            cvTabs.classList.toggle('cv-tabs--fixed-desktop', isScrolled);
-            cvTabs.classList.remove('cv-tabs--fixed-mobile'); // garante que o estilo mobile seja removido
-        }
-        if (pageMain) {
-            pageMain.classList.toggle('content--scrolled-desktop', isScrolled);
-            pageMain.classList.remove('content--scrolled-mobile');
-        }
-    } else {
-        // Comportamento Mobile
-        if (mainNav) mainNav.classList.remove('mainNav--scrolled-desktop'); // remove classe desktop
-        if (cvTabs) {
-            cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
-            cvTabs.classList.remove('cv-tabs--fixed-desktop'); // garante que o estilo desktop seja removido
-        }
-        if (pageMain) {
-            pageMain.classList.toggle('content--scrolled-mobile', isScrolled);
-            pageMain.classList.remove('content--scrolled-desktop');
-        }
-    }
-}
-
-// Aplica o debounce para otimizar a performance do scroll handler
-const debouncedScrollHandler = debounce(handleScrollEffects, 50); // ajuste o delay conforme necessário
-
-window.addEventListener('scroll', debouncedScrollHandler);
-// Também chama ao redimensionar para ajustar caso mude entre mobile e desktop
-window.addEventListener('resize', debouncedScrollHandler);
-// Define estado inicial no carregamento, caso a página já esteja scrollada
-document.addEventListener('DOMContentLoaded', handleScrollEffects);
-
