@@ -178,6 +178,7 @@
     --cv-header-height: clamp(3.5rem, 5vh + 1rem, 4.3125rem); /* ~57px–69px */
     --cv-header-height-scrolled-desktop: clamp(3rem, 4vh + 0.5rem, 3.5rem); /* Altura menor para desktop ao rolar */
     --cv-header-height-scrolled-mobile: clamp(2.5rem, 3vh + 0.5rem, 3rem); /* Altura menor para mobile ao rolar */
+    --cv-header-height-current: var(--cv-header-height);
 }
 @media (min-width: 768px) {
     :root {
@@ -254,7 +255,7 @@
     .cv-tabs.cv-tabs--sticky-desktop,
     .cv-tabs.cv-tabs--fixed-below-mainNav-desktop {
         position: fixed;
-        top: var(--cv-header-height-scrolled-desktop); /* overridden dynamically */
+        top: var(--cv-header-height-current); /* overridden dynamically */
         left: 0;
         right: 0;
         z-index: 1000;
@@ -286,7 +287,7 @@
      .cv-tabs.cv-tabs--sticky-mobile,
      .cv-tabs.cv-tabs--fixed-mobile {
         position: fixed;
-        top: var(--cv-header-height-scrolled-mobile);
+        top: var(--cv-header-height-current);
         left: 0;
         right: 0;
         z-index: 1000;
