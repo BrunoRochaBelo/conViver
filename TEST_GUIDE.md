@@ -82,6 +82,17 @@ Se implementado (ex: em `conViver.Tests/E2E` ou projeto separado):
 # npx playwright test
 ```
 
+
+### 3.5. Testes Web UI (Playwright)
+Para testar a interface Web localizada em `conViver.Web`, existe um pequeno projeto JavaScript em `conViver.Tests/WebUi`.
+Execute:
+```bash
+cd conViver.Tests/WebUi
+npm install
+npx playwright install # baixa navegadores
+npx playwright test
+```
+
 ## 4. Ferramentas & Frameworks
 
 xUnit: runner principal para .NET.  
