@@ -429,14 +429,14 @@ export function clearModalError(modalElement) {
 /**
  * Lógica de scroll para o header e tabs.
  */
-function handleScrollEffects() {
+function handleScrollEffectsV2() {
     const header = document.querySelector('.cv-header');
     const mainNav = document.getElementById('mainNav');
     const cvTabs = document.querySelector('.cv-tabs');
-    const pageMain = document.getElementById('pageMain'); // Container do conteúdo principal
-    const scrollThreshold = 50; // Distância de scroll para ativar o efeito
+    const pageMain = document.getElementById('pageMain');
+    const scrollThreshold = 50;
 
-    if (!header) return;
+    if (!header || !pageMain) return;
 
     const isDesktop = window.innerWidth >= 992;
     const isScrolled = window.scrollY > scrollThreshold;
@@ -444,35 +444,59 @@ function handleScrollEffects() {
     header.classList.toggle('cv-header--scrolled', isScrolled);
 
     if (isDesktop) {
-        // Comportamento Desktop
-        if (mainNav) mainNav.classList.toggle('mainNav--scrolled-desktop', isScrolled);
-        if (cvTabs) {
-            cvTabs.classList.toggle('cv-tabs--fixed-desktop', isScrolled);
-            cvTabs.classList.remove('cv-tabs--fixed-mobile'); // Garante que o estilo mobile não se aplique
+        if (mainNav) {
+            mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
+            mainNav.style.top = isScrolled ? `${header.offsetHeight}px` : '';
         }
-        if (pageMain) {
-            pageMain.classList.toggle('content--scrolled-desktop', isScrolled);
-            pageMain.classList.remove('content--scrolled-mobile');
+
+        if (cvTabs) {
+            cvTabs.classList.toggle('cv-tabs--fixed-below-mainNav-desktop', isScrolled);
+            cvTabs.classList.remove('cv-tabs--fixed-mobile');
+            if (isScrolled) {
+                const navH = mainNav ? mainNav.offsetHeight : 0;
+                cvTabs.style.top = `${header.offsetHeight + navH}px`;
+            } else {
+                cvTabs.style.top = '';
+            }
+        }
+
+        if (isScrolled) {
+            const navH = mainNav ? mainNav.offsetHeight : 0;
+            const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
+            pageMain.style.paddingTop = `${header.offsetHeight + navH + tabsH}px`;
+        } else {
+            pageMain.style.paddingTop = '';
         }
     } else {
-        // Comportamento Mobile
-        if (mainNav) mainNav.classList.remove('mainNav--scrolled-desktop'); // Remove classe desktop
+        if (mainNav) {
+            mainNav.classList.remove('mainNav--fixed-top-desktop');
+            mainNav.style.top = '';
+        }
+
         if (cvTabs) {
             cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
-            cvTabs.classList.remove('cv-tabs--fixed-desktop'); // Garante que o estilo desktop não se aplique
+            cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
+            if (isScrolled) {
+                cvTabs.style.top = `${header.offsetHeight}px`;
+            } else {
+                cvTabs.style.top = '';
+            }
         }
-        if (pageMain) {
-            pageMain.classList.toggle('content--scrolled-mobile', isScrolled);
-            pageMain.classList.remove('content--scrolled-desktop');
+
+        if (isScrolled) {
+            const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
+            pageMain.style.paddingTop = `${header.offsetHeight + tabsH}px`;
+        } else {
+            pageMain.style.paddingTop = '';
         }
     }
 }
 
-// Aplica o debounce para otimizar a performance do scroll handler
-const debouncedScrollHandler = debounce(handleScrollEffects, 50); // Ajuste o delay conforme necessário
+const debouncedScrollHandler = debounce(handleScrollEffectsV2, 10);
 
 window.addEventListener('scroll', debouncedScrollHandler);
-// Também chama ao redimensionar para ajustar caso o layout mude de mobile para desktop ou vice-versa
 window.addEventListener('resize', debouncedScrollHandler);
-// Chama uma vez no carregamento para definir o estado inicial caso a página já esteja scrollada
-document.addEventListener('DOMContentLoaded', handleScrollEffects);
+document.addEventListener('DOMContentLoaded', () => {
+    handleScrollEffectsV2();
+    setTimeout(handleScrollEffectsV2, 100);
+});
