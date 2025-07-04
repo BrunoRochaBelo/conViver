@@ -176,30 +176,48 @@
     --cv-header-padding-y: clamp(0.5rem, 1.5vh, 0.75rem);
     --cv-header-padding-x: clamp(1rem, 4vw, 1.5rem);
     --cv-header-height: clamp(3.5rem, 5vh + 1rem, 4.3125rem); /* ~57px–69px */
-    --cv-header-height-scrolled-desktop: clamp(3rem, 4vh + 0.5rem, 3.5rem); /* Altura menor para desktop ao rolar */
-    --cv-header-height-scrolled-mobile: clamp(2.5rem, 3vh + 0.5rem, 3rem); /* Altura menor para mobile ao rolar */
+    --cv-header-height-scrolled-desktop: clamp(3rem, 4vh + 0.5rem, 3.5rem);
+    --cv-header-height-scrolled-mobile: clamp(2.5rem, 3vh + 0.5rem, 3rem);
     --cv-header-height-current: var(--cv-header-height);
     --cv-header-slide-diff-desktop: calc(var(--cv-header-height) - var(--cv-header-height-scrolled-desktop));
     --cv-header-slide-diff-mobile: calc(var(--cv-header-height) - var(--cv-header-height-scrolled-mobile));
+
+    /* Variáveis para altura das tabs */
+    --cv-tabs-height: clamp(2.5rem, 4vh, 3rem); /* Altura normal das tabs ~40-48px */
+    --cv-tabs-height-scrolled: clamp(2rem, 3vh, 2.5rem); /* Altura reduzida das tabs ~32-40px */
+    --cv-tabs-height-current: var(--cv-tabs-height);
 }
+
 @media (min-width: 768px) {
     :root {
         --cv-header-height: clamp(4rem, 5vh + 1rem, 4.5rem);
+        --cv-tabs-height: clamp(2.8rem, 4.5vh, 3.2rem); /* Tabs um pouco maiores em tablet+ */
+        --cv-tabs-height-scrolled: clamp(2.2rem, 3.5vh, 2.8rem);
     }
 }
 
 /* Estilos para header com scroll */
 .cv-header {
-    transition: min-height 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    transition: min-height 0.3s ease-in-out, box-shadow 0.3s ease-in-out, background-color 0.3s ease-in-out;
+    position: sticky; /* Torna o header fixo no topo */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1005; /* Acima das tabs, abaixo de modais */
+    background-color: var(--current-bg-white); /* Garante que o header tenha fundo ao ficar fixo */
 }
 
 .cv-header__title {
-    transition: opacity 0.25s ease-in-out, visibility 0s linear 0.25s;
+    transition: opacity 0.25s ease-in-out, visibility 0s linear 0.25s, font-size 0.3s ease-in-out;
 }
 
 #headerSentinel {
+    /* Este elemento não é mais estritamente necessário para o header fixo,
+       mas pode ser mantido se outras lógicas de JS dependerem dele.
+       Se for removido, o JS precisará de uma nova forma de detectar o scroll.
+       Por ora, vamos mantê-lo para compatibilidade com o JS existente. */
     position: absolute;
-    top: 100%;
+    top: calc(var(--cv-header-height-current) + 1px); /* Ajustado para ficar abaixo do header fixo */
     width: 100%;
     height: 1px;
     pointer-events: none;
@@ -208,109 +226,195 @@
 /* Nav fills available space inside header */
 #mainNav {
     flex-grow: 1;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out, height 0.3s ease-in-out;
 }
 
 /* Ensure avatar remains above nav */
 .cv-header .user-avatar {
     position: relative;
-    z-index: 1011;
+    z-index: 1011; /* Acima da mainNav se a mainNav tiver z-index menor */
 }
 
-.cv-header--sticky,
-.cv-header--scrolled {
-    min-height: var(--cv-header-height-scrolled-mobile) !important;
+.cv-header--scrolled { /* Renomeado de --sticky para --scrolled para clareza */
+    min-height: var(--cv-header-height-scrolled-mobile) !important; /* Usa a variável de altura mobile */
     box-shadow: var(--current-shadow-md);
 }
 
-.cv-header--sticky .cv-header__title,
 .cv-header--scrolled .cv-header__title {
-    opacity: 0;
+    opacity: 0; /* Título some ao rolar, como antes */
     visibility: hidden;
+    font-size: calc(var(--cv-font-size-h1) * 0.8); /* Exemplo de redução de tamanho */
 }
 
-/* Desktop: mainNav sobe e cv-tabs fixa abaixo do header */
+/* Ajustes para Desktop */
+@media (min-width: 992px) {
+    .cv-header--scrolled {
+        min-height: var(--cv-header-height-scrolled-desktop) !important; /* Usa a variável de altura desktop */
+    }
+
+    #mainNav.cv-nav--slide { /* Classe para animar a subida da nav */
+        transform: translateY(calc(-1 * var(--cv-header-slide-diff-desktop)));
+        opacity: 0.8; /* Exemplo de efeito visual */
+    }
+    .cv-header--scrolled #mainNav { /* Quando o header está scrollado, a nav pode ter altura reduzida */
+        height: var(--cv-header-height-scrolled-desktop);
+    }
+
+}
+
+/* Ajustes para Mobile */
+@media (max-width: 991.98px) {
+    #mainNav.cv-nav--slide { /* Classe para animar a subida da nav em mobile */
+        transform: translateY(calc(-1 * var(--cv-header-slide-diff-mobile)));
+        opacity: 0.8;
+    }
+     .cv-header--scrolled #mainNav { /* Redução da nav em mobile */
+        height: var(--cv-header-height-scrolled-mobile);
+    }
+}
+
+
+/* Estilos para cv-tabs */
+.cv-tabs {
+    position: sticky; /* Tabs também ficam fixas */
+    /* O 'top' será definido dinamicamente pelo JS ou ajustado aqui com base na altura do header */
+    top: var(--cv-header-height-current); /* Fica abaixo do header normal */
+    left: 0;
+    right: 0;
+    z-index: 1000; /* Abaixo do header */
+    background-color: var(--current-bg-light);
+    padding-left: var(--cv-header-padding-x);
+    padding-right: var(--cv-header-padding-x);
+    padding-top: var(--cv-spacing-xs);
+    padding-bottom: var(--cv-spacing-xs);
+    min-height: var(--cv-tabs-height-current); /* Usa a variável de altura das tabs */
+    border-bottom: 2px solid var(--current-border-subtle);
+    box-shadow: var(--current-shadow-sm);
+    transition: top 0.3s ease-in-out, min-height 0.3s ease-in-out, padding 0.3s ease-in-out,
+                background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.cv-header--scrolled + .cv-tabs, /* Seletor para quando o header está scrollado */
+.cv-tabs--scrolled { /* Classe adicional para tabs scrolladas, se necessário */
+    top: var(--cv-header-height-current); /* Mantém abaixo do header, que agora está menor */
+    min-height: var(--cv-tabs-height-scrolled); /* Altura reduzida das tabs */
+    padding-top: calc(var(--cv-spacing-xs) / 2);
+    padding-bottom: calc(var(--cv-spacing-xs) / 2);
+    box-shadow: var(--current-shadow-sm); /* Pode manter ou alterar a sombra */
+}
+
+/* Ajuste para o conteúdo principal não ser sobreposto */
+#pageMain {
+    transition: padding-top 0.3s ease-in-out;
+    /* O padding-top será ajustado via JS para acomodar header + tabs */
+}
+
+
+/* Remoção de classes antigas ou redundantes para cv-tabs se não forem mais necessárias */
+/* Ex: .cv-tabs--sticky-desktop, .cv-tabs--fixed-below-mainNav-desktop, etc.
+   A nova abordagem com `position: sticky` simplifica isso.
+   As classes .cv-tabs--compact e .cv-tabs--scrolled podem ser usadas para controlar o estado visual.
+*/
+.cv-tabs.cv-tabs--sticky-desktop,
+.cv-tabs.cv-tabs--fixed-below-mainNav-desktop,
+.cv-tabs.cv-tabs--sticky-mobile,
+.cv-tabs.cv-tabs--fixed-mobile {
+    /* Estas classes podem ser removidas se a lógica de sticky for totalmente CSS agora */
+    /* Se o JS ainda as usa, podem ser mantidas ou refatoradas */
+}
+
+/* Se .cv-tabs--compact for o estado scrollado: */
+.cv-tabs.cv-tabs--compact {
+    min-height: var(--cv-tabs-height-scrolled);
+    padding-top: calc(var(--cv-spacing-xs) / 2);
+    padding-bottom: calc(var(--cv-spacing-xs) / 2);
+}
+.cv-tabs.cv-tabs--compact .cv-tab-button {
+    padding: 4px 10px; /* Mantém botões menores no estado compacto */
+    font-size: 0.9rem;
+}
+
+
+/* Ajustes no #pageMain padding-top serão feitos via JS.
+   O JS precisará saber a altura combinada do header e das tabs quando ambos estão fixos/scrollados.
+*/
+
+/* Garante que o #mainNav não interfira com o layout das tabs quando o header é sticky */
+/* Esta seção pode precisar de ajustes dependendo da estrutura exata do HTML e
+   se #mainNav está dentro ou fora do fluxo normal do header quando sticky.
+   Com header.position = sticky, #mainNav deve se comportar bem.
+*/
+@media (min-width: 992px) {
+    /* Se #mainNav precisasse de posicionamento fixo independente, seria aqui.
+       Mas com header sticky, ele já está "fixo" como parte do header.
+       A classe cv-nav--slide é para a animação de "encolhimento".
+    */
+}
+
+@media (max-width: 991.98px) {
+    /* Idem para mobile. */
+}
+
+/* Transições para elementos dentro do header e tabs, se necessário */
+.cv-header--scrolled .cv-header__container > *,
+.cv-tabs--scrolled .cv-tabs-buttons > * {
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+
+/* Certifique-se que o conteúdo da página (#pageMain) comece abaixo do header e das tabs */
+body {
+    /* O padding-top no body pode ser uma alternativa a ajustar #pageMain,
+       mas #pageMain é mais específico se houver outros elementos no body. */
+}
+
+/* Ajustes para a altura do #headerSentinel se for mantido */
+/* Se o header é sticky, o sentinel deve estar posicionado após a altura inicial do header. */
+/* #headerSentinel { top: var(--cv-header-height); } */
+/* Se o JS for atualizado para não depender do sentinel, ele pode ser removido. */
+
+/* Ajuste fino para o padding do #pageMain para considerar a altura das tabs */
+/* Esta é uma estimativa inicial. O JS deve calcular isso dinamicamente. */
+/*
+#pageMain {
+    padding-top: calc(var(--cv-header-height) + var(--cv-tabs-height));
+}
+.cv-header--scrolled + #pageMain, .cv-header--scrolled ~ #pageMain {
+    padding-top: calc(var(--cv-header-height-scrolled-desktop) + var(--cv-tabs-height-scrolled));
+}
+@media (max-width: 991.98px) {
+    .cv-header--scrolled + #pageMain, .cv-header--scrolled ~ #pageMain {
+        padding-top: calc(var(--cv-header-height-scrolled-mobile) + var(--cv-tabs-height-scrolled));
+    }
+}
+*/
+/* O JS em main.js já lida com o padding-top de #pageMain,
+   então essas regras CSS diretas podem não ser necessárias ou podem causar conflitos.
+   O JS deve ser a fonte da verdade para o padding-top dinâmico.
+*/
+
+/* Simplificando: a lógica de sticky para .cv-header e .cv-tabs é primariamente CSS.
+   O JS ajusta classes (como --scrolled) e o padding de #pageMain. */
+
+.cv-header--sticky, /* Classe antiga, pode ser removida se --scrolled for usada exclusivamente */
+.cv-header--scrolled {
+    /* Assegura que a altura mínima seja aplicada corretamente */
+    min-height: var(--cv-header-height-scrolled-mobile) !important;
+}
+
 @media (min-width: 992px) {
     .cv-header--sticky,
     .cv-header--scrolled {
         min-height: var(--cv-header-height-scrolled-desktop) !important;
-        z-index: 1005;
-        position: relative;
     }
-
-    #mainNav {
-        transition: top 0.3s ease-in-out, background-color 0.3s ease-in-out,
-                    padding 0.3s ease-in-out, height 0.3s ease-in-out,
-                    left 0.3s ease-in-out, right 0.3s ease-in-out,
-                    transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-    }
-
-    #mainNav.cv-nav--fixed-desktop,
-    #mainNav.mainNav--fixed-top-desktop {
-        position: fixed;
-        top: 0; /* will be overridden dynamically via JS */
-        left: var(--cv-header-padding-x);
-        width: auto;
-        z-index: 1010;
-        background-color: var(--current-bg-white); /* Cor do header - Confirmado */
-        padding-top: 0;
-        padding-bottom: 0;
-        display: flex;
-        align-items: center;
-        height: var(--cv-header-height-scrolled-desktop);
-    }
-
-    #mainNav.cv-nav--slide {
-        transform: translateY(calc(-1 * var(--cv-header-slide-diff-desktop)));
-    }
-
-    #mainNav.cv-nav--fixed-desktop .cv-container,
-    #mainNav.mainNav--fixed-top-desktop .cv-container {
-        width: 100%;
-    }
-
-    .cv-tabs {
-        transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
-                    padding-top 0.3s ease-in-out, padding-bottom 0.3s ease-in-out,
-                    padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out,
-                    background-color 0.3s ease-in-out;
-    }
-
-    .cv-tabs.cv-tabs--sticky-desktop,
-    .cv-tabs.cv-tabs--fixed-below-mainNav-desktop {
-        position: fixed;
-        top: var(--cv-header-height-current); /* overridden dynamically */
-        left: 0;
-        right: 0;
-        z-index: 1000;
-        background-color: var(--current-bg-light);
-        padding-left: var(--cv-header-padding-x);
-        padding-right: var(--cv-header-padding-x);
-        margin-top: 0;
-        border-bottom: 2px solid var(--current-border-subtle);
-        box-shadow: var(--current-shadow-sm);
-    }
-
-    #pageMain {
-        transition: padding-top 0.3s ease-in-out;
-    }
-
 }
 
-/* Mobile: cv-tabs sobe e fixa abaixo do header */
-@media (max-width: 991.98px) {
-    .cv-tabs {
-        transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
-                    padding-top 0.3s ease-in-out, padding-bottom 0.3s ease-in-out,
-                    padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out,
-                    background-color 0.3s ease-in-out;
-    }
-    #mainNav.cv-nav--slide {
-        transform: translateY(calc(-1 * var(--cv-header-slide-diff-mobile)));
-    }
-     .cv-tabs.cv-tabs--sticky-mobile,
-     .cv-tabs.cv-tabs--fixed-mobile {
-        position: fixed;
-        top: var(--cv-header-height-current);
+.cv-tabs.cv-tabs--sticky-mobile, /* Classe antiga */
+.cv-tabs.cv-tabs--fixed-mobile, /* Classe antiga */
+.cv-tabs--scrolled { /* Nova classe unificada para estado scrollado */
+    /* A posição sticky já é definida acima. Esta classe pode ser usada para aplicar
+       a altura reduzida e outros estilos visuais de "scrollado". */
+    min-height: var(--cv-tabs-height-scrolled);
         left: 0;
         right: 0;
         z-index: 1000;
