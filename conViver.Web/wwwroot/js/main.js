@@ -246,6 +246,11 @@ export function closeModal(modal) {
 
 debugLog('main.js carregado.');
 
+// --- Scroll handling helpers ---
+const UNSTICK_THRESHOLD = 40;
+let lastScrollTop = window.scrollY || document.documentElement.scrollTop;
+let accumulatedUpScroll = 0;
+
 /**
  * Cria e retorna um elemento HTML para o "Empty State".
  * @param {object} config - Configuração para o empty state.
@@ -434,7 +439,31 @@ function handleScrollEffectsV2(sentinelVisible = true) {
     if (!header || !pageMain) return;
 
     const isDesktop = window.innerWidth >= 992;
-    const isScrolled = !sentinelVisible;
+
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const scrollingUp = scrollTop < lastScrollTop;
+    let isScrolled = !sentinelVisible;
+
+    if (sentinelVisible && header.classList.contains('cv-header--scrolled')) {
+        if (scrollingUp) {
+            accumulatedUpScroll += lastScrollTop - scrollTop;
+            if (accumulatedUpScroll >= UNSTICK_THRESHOLD) {
+                isScrolled = false;
+                accumulatedUpScroll = 0;
+            } else {
+                isScrolled = true;
+            }
+        } else {
+            accumulatedUpScroll = 0;
+            isScrolled = true;
+        }
+    } else if (!sentinelVisible) {
+        accumulatedUpScroll = 0;
+    } else {
+        accumulatedUpScroll = 0;
+    }
+
+    lastScrollTop = scrollTop;
 
     header.classList.toggle('cv-header--sticky', isScrolled);
     header.classList.toggle('cv-header--scrolled', isScrolled);
