@@ -466,6 +466,7 @@ function handleScrollEffectsV2(sentinelVisible = true) {
       cvTabs.classList.toggle('cv-tabs--sticky-desktop', isScrolled);
       // Remove old and maintain compatibility
       cvTabs.classList.toggle('cv-tabs--fixed-below-mainNav-desktop', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
       cvTabs.classList.remove('cv-tabs--sticky-mobile');
       cvTabs.classList.remove('cv-tabs--fixed-mobile');
       if (isScrolled) {
@@ -493,6 +494,7 @@ function handleScrollEffectsV2(sentinelVisible = true) {
     if (cvTabs) {
       cvTabs.classList.toggle('cv-tabs--sticky-mobile', isScrolled);
       cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
       cvTabs.classList.remove('cv-tabs--sticky-desktop');
       cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
       if (isScrolled) {
