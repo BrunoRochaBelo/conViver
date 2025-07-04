@@ -434,69 +434,91 @@ function handleScrollEffects() {
   const header = document.querySelector('.cv-header');
   const cvTabs = document.querySelector('.cv-tabs');
   const pageMain = document.getElementById('pageMain');
-  // const mainNav = document.getElementById('mainNav'); // Se precisar de lógica específica para mainNav
 
   if (!header || !pageMain) {
     debugLog("Header ou PageMain não encontrados para handleScrollEffects.");
     return;
   }
 
-  // Determina se a página foi rolada (ex: > 0 ou com base em um sentinela se ainda usado)
-  // Para um header sempre fixo, o "scroll" pode ser qualquer valor > 0 ou uma pequena distância.
-  const isScrolled = window.scrollY > 10; // Limiar de scroll para ativar o modo compacto
+  const scrollY = window.scrollY;
+  const SCROLL_THRESHOLD_COMPACT = 10; // Pixels to scroll down to trigger compact mode
+  const SCROLL_THRESHOLD_EXPAND = 50; // Pixels to scroll up to trigger expand mode (resistance)
 
-  // Aplica classes compactas
-  header.classList.toggle('cv-header--compact', isScrolled);
-  if (cvTabs) {
-    cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
+  let currentScrollY = scrollY;
+  let lastScrollY = parseFloat(document.body.dataset.lastScrollY || '0');
+  let isScrollingDown = currentScrollY > lastScrollY;
+  document.body.dataset.lastScrollY = currentScrollY.toString();
+
+  let isHeaderCompact = header.classList.contains('cv-header--compact');
+
+  if (isScrollingDown) {
+    if (currentScrollY > SCROLL_THRESHOLD_COMPACT && !isHeaderCompact) {
+      header.classList.add('cv-header--compact');
+      if (cvTabs) cvTabs.classList.add('cv-tabs--compact');
+      isHeaderCompact = true;
+      document.body.dataset.headerState = 'compact';
+    }
+  } else { // Scrolling Up
+    // Check if we've scrolled up enough to overcome "resistance"
+    // Or if we are very close to the top of the page
+    const scrollUpDelta = lastScrollY - currentScrollY;
+    if (isHeaderCompact && (scrollUpDelta > SCROLL_THRESHOLD_EXPAND || currentScrollY < SCROLL_THRESHOLD_COMPACT * 0.5)) {
+      header.classList.remove('cv-header--compact');
+      if (cvTabs) cvTabs.classList.remove('cv-tabs--compact');
+      isHeaderCompact = false;
+      document.body.dataset.headerState = 'expanded';
+    }
   }
 
-  // Atualiza a variável CSS para a altura ATUAL do header (normal ou compacta)
-  // Isso é importante se a altura do header realmente muda e afeta o layout.
-  // A altura do header é agora controlada pela classe .cv-header--compact e variáveis CSS.
-  // A função updateHeaderVars pode precisar ser ajustada ou chamada aqui se necessário.
-  // Por agora, vamos assumir que as alturas CSS são suficientes.
+  // Update actual heights after class changes have potentially taken effect
+  // We might need a slight delay or requestAnimationFrame to get updated heights if transitions are involved
+  // For now, assume direct measurement is okay or CSS handles height transitions smoothly.
 
-  let headerCurrentHeight = parseFloat(getComputedStyle(header).height);
-  document.documentElement.style.setProperty('--cv-header-height-current', `${headerCurrentHeight}px`);
+  requestAnimationFrame(() => {
+    let headerCurrentHeight = parseFloat(getComputedStyle(header).height);
+    document.documentElement.style.setProperty('--cv-header-height-current', `${headerCurrentHeight}px`);
 
+    let tabsCurrentHeight = 0;
+    if (cvTabs) {
+        // Ensure cvTabs is displayed before getting its height if it can be hidden
+        const wasHidden = cvTabs.style.display === 'none';
+        if (wasHidden) cvTabs.style.display = ''; // Temporarily show to measure
 
-  let tabsCurrentHeight = 0;
-  if (cvTabs) {
-    tabsCurrentHeight = parseFloat(getComputedStyle(cvTabs).height);
-    // Define a posição 'top' das tabs para ficarem logo abaixo do header
-    cvTabs.style.top = `${headerCurrentHeight}px`;
-  }
+        tabsCurrentHeight = parseFloat(getComputedStyle(cvTabs).height);
+        cvTabs.style.top = `${headerCurrentHeight}px`;
 
-  // Ajusta o padding-top do #pageMain para acomodar o header e as tabs fixas
-  const totalFixedHeaderHeight = headerCurrentHeight + (cvTabs ? tabsCurrentHeight : 0);
-  pageMain.style.paddingTop = `${totalFixedHeaderHeight}px`;
+        if (wasHidden) cvTabs.style.display = 'none'; // Hide again if it was
+    }
 
-  // debugLog(`ScrollY: ${window.scrollY}, Header Compact: ${isScrolled}, Header Height: ${headerCurrentHeight}, Tabs Top: ${cvTabs ? cvTabs.style.top : 'N/A'}, PageMain PaddingTop: ${pageMain.style.paddingTop}`);
+    const totalFixedHeaderHeight = headerCurrentHeight + (cvTabs && cvTabs.style.display !== 'none' ? tabsCurrentHeight : 0);
+    pageMain.style.paddingTop = `${totalFixedHeaderHeight}px`;
+
+    // debugLog(`ScrollY: ${scrollY}, State: ${isHeaderCompact ? 'Compact' : 'Expanded'}, HeaderH: ${headerCurrentHeight}, TabsH: ${tabsCurrentHeight}, PageMainPadding: ${pageMain.style.paddingTop}`);
+  });
 }
 
-
-// Não precisamos mais do IntersectionObserver para o header, pois ele é sempre fixo.
-// function initHeaderObserver() { ... }
-
 // Listener de scroll para aplicar efeitos
-window.addEventListener('scroll', debounce(handleScrollEffects, 10), { passive: true });
+// Debounce with a very short delay for responsiveness, but enough to batch rapid scroll events.
+window.addEventListener('scroll', debounce(handleScrollEffects, 5), { passive: true });
+
 
 // Listener de resize para recalcular alturas e posições
 window.addEventListener('resize', debounce(() => {
-  updateHeaderVars(); // Garante que --cv-header-height-current é atualizado se a base mudar
-  handleScrollEffects(); // Re-aplica lógica de scroll/compacto
+  // For now, handleScrollEffects should re-calculate necessary things.
+  // We need to ensure the base CSS variables for height are correct if they depend on viewport.
+  // If --cv-header-height & --cv-header-height-scrolled are static px values in CSS after clamp,
+  // then direct calls to updateHeaderVars for those might not be strictly needed on resize.
+  // However, --cv-header-height-current IS updated within handleScrollEffects.
+  handleScrollEffects(); // Re-apply logic of scroll/compact, which also updates padding.
 }, 50));
 
 // Chamada inicial no carregamento do DOM
 document.addEventListener('DOMContentLoaded', () => {
-  updateHeaderVars(); // Define a altura inicial do header
+  document.body.dataset.lastScrollY = '0'; // Initialize lastScrollY
+  document.body.dataset.headerState = 'expanded'; // Initial state
   handleScrollEffects(); // Define o estado inicial (compacto ou não) e padding
 
-  // Adicionado um pequeno delay para garantir que todos os estilos foram aplicados
-  // e as alturas são calculadas corretamente, especialmente após o JS modificar o DOM.
   setTimeout(() => {
-    updateHeaderVars();
-    handleScrollEffects();
-  }, 100);
+    handleScrollEffects(); // Recalculate after a very short delay
+  }, 100); // Increased delay slightly for initial render
 });
