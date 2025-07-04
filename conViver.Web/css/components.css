@@ -439,6 +439,8 @@ html[data-theme="dark"] .cv-header {
     flex-direction: column;
     align-items: flex-start;
     width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
     gap: var(--cv-spacing-xs);
     /* Apple-inspired styling for nav - similar to header but can be slightly different */
     background-color: rgba(248, 248, 250, 0.85); /* Slightly different from header, or could be same */
@@ -446,6 +448,7 @@ html[data-theme="dark"] .cv-header {
     backdrop-filter: blur(18px) saturate(170%);
     padding: var(--cv-spacing-sm) var(--cv-spacing-md);
     border-bottom: 1px solid rgba(0, 0, 0, 0.08); /* Subtle border for light mode */
+    border-radius: var(--cv-border-radius-lg);
     /* position: sticky; /* If nav should also stick below header */
     /* top: YOUR_HEADER_HEIGHT; /* Calculate or set fixed header height */
     /* z-index: 1010; */
