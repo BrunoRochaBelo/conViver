@@ -270,7 +270,9 @@
 
     .cv-tabs {
         transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
-                    padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out, background-color 0.3s ease-in-out;
+                    padding-top 0.3s ease-in-out, padding-bottom 0.3s ease-in-out,
+                    padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out,
+                    background-color 0.3s ease-in-out;
     }
 
     .cv-tabs.cv-tabs--sticky-desktop,
@@ -298,7 +300,9 @@
 @media (max-width: 991.98px) {
     .cv-tabs {
         transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
-                    padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out, background-color 0.3s ease-in-out;
+                    padding-top 0.3s ease-in-out, padding-bottom 0.3s ease-in-out,
+                    padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out,
+                    background-color 0.3s ease-in-out;
     }
     #mainNav.cv-nav--slide {
         transform: translateY(calc(-1 * var(--cv-header-slide-diff-mobile)));
@@ -999,6 +1003,25 @@ main {
     border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
 }
 
+/* Compact appearance when content is scrolled */
+.cv-tabs.cv-tabs--compact {
+    padding: calc(var(--cv-spacing-xs) / 2) 0;
+    margin-bottom: var(--cv-spacing-sm, 8px);
+    border-bottom-width: 1px;
+}
+.cv-tabs.cv-tabs--compact .cv-tab-button {
+    padding: 6px 12px;
+    cursor: pointer;
+    border: 1px solid var(--current-border-subtle);
+    border-radius: var(--cv-border-radius-lg);
+    background-color: transparent;
+    font-size: var(--cv-font-size-md, 16px);
+    font-family: var(--cv-font-family-sans-serif);
+    color: var(--current-text-secondary);
+    margin-right: 5px;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
 .cv-tabs-buttons {
     display: flex;
     flex: 1;
@@ -1056,16 +1079,16 @@ html[data-theme="dark"] .cv-tabs-buttons.has-scroll-indicator::after {
 }
 
 .cv-tab-button {
-    padding: 10px 20px;
+    padding: 6px 12px;
     cursor: pointer;
-    border: none;
+    border: 1px solid var(--current-border-subtle);
+    border-radius: var(--cv-border-radius-lg);
     background-color: transparent;
-    font-size: var(--cv-font-size-md, 16px); /* Use variable or fallback */
+    font-size: var(--cv-font-size-md, 16px);
     font-family: var(--cv-font-family-sans-serif);
     color: var(--current-text-secondary);
-    margin-right: 5px; /* Optional: spacing between tabs */
-    border-bottom: 2px solid transparent; /* For active indicator */
-    transition: border-color 0.3s ease, color 0.3s ease;
+    margin-right: 5px;
+    transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .cv-tab-button:hover {
@@ -1073,9 +1096,9 @@ html[data-theme="dark"] .cv-tabs-buttons.has-scroll-indicator::after {
 }
 
 .cv-tab-button.active {
-    border-bottom-color: var(--current-primary-blue, #007bff); /* Use variable or fallback */
-    font-weight: 600; /* Using OpenSansSemibold effectively */
-    color: var(--current-primary-blue, #007bff); /* Use variable or fallback */
+    border-color: var(--current-primary-blue, #007bff);
+    font-weight: 600;
+    color: var(--current-primary-blue, #007bff);
 }
 
 .cv-tab-content {

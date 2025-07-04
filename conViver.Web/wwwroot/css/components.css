@@ -453,6 +453,14 @@ html[data-theme="dark"] .cv-header {
     /* top: YOUR_HEADER_HEIGHT; /* Calculate or set fixed header height */
     /* z-index: 1010; */
 }
+
+/* Main navigation in the layout shouldn't show the bottom border */
+#mainNav.cv-nav {
+    border-bottom: none;
+}
+html[data-theme="dark"] #mainNav.cv-nav {
+    border-bottom: none;
+}
 .cv-nav__list {
     list-style: none;
     margin: 0;
