@@ -427,16 +427,25 @@ function handleScrollEffectsV2() {
   const isDesktop = window.innerWidth >= 992;
   const isScrolled = window.scrollY > scrollThreshold;
 
+  // V2 naming
+  header.classList.toggle('cv-header--sticky', isScrolled);
+  // Transitional support for older pages
   header.classList.toggle('cv-header--scrolled', isScrolled);
 
   if (isDesktop) {
     if (mainNav) {
+      // New class name
+      mainNav.classList.toggle('cv-nav--fixed-desktop', isScrolled);
+      // Maintain older class for compatibility
       mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
       mainNav.style.top = isScrolled ? `${header.offsetHeight}px` : '';
     }
 
     if (cvTabs) {
+      cvTabs.classList.toggle('cv-tabs--sticky-desktop', isScrolled);
+      // Remove old and maintain compatibility
       cvTabs.classList.toggle('cv-tabs--fixed-below-mainNav-desktop', isScrolled);
+      cvTabs.classList.remove('cv-tabs--sticky-mobile');
       cvTabs.classList.remove('cv-tabs--fixed-mobile');
       if (isScrolled) {
         const navH = mainNav ? mainNav.offsetHeight : 0;
@@ -455,12 +464,15 @@ function handleScrollEffectsV2() {
     }
   } else {
     if (mainNav) {
+      mainNav.classList.remove('cv-nav--fixed-desktop');
       mainNav.classList.remove('mainNav--fixed-top-desktop');
       mainNav.style.top = '';
     }
 
     if (cvTabs) {
+      cvTabs.classList.toggle('cv-tabs--sticky-mobile', isScrolled);
       cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
+      cvTabs.classList.remove('cv-tabs--sticky-desktop');
       cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
       if (isScrolled) {
         cvTabs.style.top = `${header.offsetHeight}px`;
