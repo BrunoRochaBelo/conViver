@@ -104,83 +104,6 @@ function ensureFeedbackContainer() {
 }
 
 /**
- * Lógica de scroll para o header e tabs - Abordagem Simplificada.
- */
-function handleScrollEffects() {
-    const header = document.querySelector('.cv-header');
-    const cvTabs = document.querySelector('.cv-tabs'); // Pode não existir em todas as páginas
-    const pageMain = document.getElementById('pageMain');
-    const mainNav = document.getElementById('mainNav'); // Apenas para limpeza de classes antigas
-    const scrollThreshold = 50;
-
-    if (!header || !pageMain) { // pageMain é essencial para o padding
-        // console.warn('Scroll effects: Header ou PageMain não encontrados.');
-        return;
-    }
-
-    const isScrolled = window.scrollY > scrollThreshold;
-
-    // 1. Comportamento do Header
-    header.classList.toggle('cv-header--scrolled-simple', isScrolled);
-    // Limpar classes antigas de scroll do header, se houver (ex: .cv-header--scrolled)
-    if (header.classList.contains('cv-header--scrolled')) {
-        header.classList.remove('cv-header--scrolled');
-    }
-
-
-    // 2. Comportamento das Tabs e PageMain
-    let headerHeight = header.offsetHeight; // Pega a altura atual do header (pode estar scrollado ou não)
-
-    if (cvTabs) {
-        cvTabs.classList.toggle('cv-tabs--fixed-simple', isScrolled);
-
-        if (isScrolled) {
-            // A altura do header para o 'top' das tabs deve ser a altura do header *quando scrollado*
-            // Para isso, podemos pegar a altura do header com a classe .cv-header--scrolled-simple já aplicada.
-            // Se a classe ainda não foi totalmente processada pelo browser e a altura não atualizou,
-            // pode ser necessário usar um valor fixo ou uma variável CSS que defina a altura scrollada.
-            // Por simplicidade, vamos usar header.offsetHeight, assumindo que o CSS já fez o header encolher.
-            cvTabs.style.top = `${headerHeight}px`;
-
-            const tabsHeight = cvTabs.offsetHeight;
-            pageMain.style.paddingTop = `${headerHeight + tabsHeight}px`;
-        } else {
-            cvTabs.style.top = '';
-            pageMain.style.paddingTop = '';
-        }
-    } else {
-        // Caso não haja cvTabs, mas o header scrolla, ajustar padding do pageMain
-        if (isScrolled) {
-            pageMain.style.paddingTop = `${headerHeight}px`;
-        } else {
-            pageMain.style.paddingTop = '';
-        }
-    }
-
-    // 3. Limpeza de classes de abordagens anteriores (para mainNav, cvTabs, pageMain)
-    // Garantir que classes de lógicas antigas sejam removidas.
-    if (mainNav) {
-        mainNav.classList.remove('mainNav--fixed-top-desktop', 'mainNav--scrolled-desktop');
-    }
-    if (cvTabs) { // Limpar classes antigas das tabs
-        cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop', 'cv-tabs--fixed-desktop', 'cv-tabs--fixed-mobile');
-    }
-    if (pageMain) { // Limpar classes antigas do pageMain
-        pageMain.classList.remove('content--scrolled-desktop-v2', 'content--scrolled-desktop', 'content--scrolled-mobile');
-    }
-}
-
-const debouncedScrollHandler = debounce(handleScrollEffects, 10);
-
-window.addEventListener('scroll', debouncedScrollHandler);
-window.addEventListener('resize', debouncedScrollHandler); // Recalcular em resize
-document.addEventListener('DOMContentLoaded', () => {
-    handleScrollEffects(); // Aplicar estado inicial
-    // Um pequeno timeout para garantir que o DOM está estável, especialmente se houver outras manipulações de JS
-    setTimeout(handleScrollEffects, 150);
-});
-
-/**
  * Displays a global feedback message.
  * @param {string} message The message to display.
  * @param {'success' | 'error' | 'info' | 'warning'} type The type of message.
@@ -518,7 +441,6 @@ function handleScrollEffects() {
     const isDesktop = window.innerWidth >= 992;
     const isScrolled = window.scrollY > scrollThreshold;
 
-    // altera classe no header
     header.classList.toggle('cv-header--scrolled', isScrolled);
 
     if (isDesktop) {
@@ -526,7 +448,7 @@ function handleScrollEffects() {
         if (mainNav) mainNav.classList.toggle('mainNav--scrolled-desktop', isScrolled);
         if (cvTabs) {
             cvTabs.classList.toggle('cv-tabs--fixed-desktop', isScrolled);
-            cvTabs.classList.remove('cv-tabs--fixed-mobile'); // garante que o estilo mobile seja removido
+            cvTabs.classList.remove('cv-tabs--fixed-mobile'); // Garante que o estilo mobile não se aplique
         }
         if (pageMain) {
             pageMain.classList.toggle('content--scrolled-desktop', isScrolled);
@@ -534,10 +456,10 @@ function handleScrollEffects() {
         }
     } else {
         // Comportamento Mobile
-        if (mainNav) mainNav.classList.remove('mainNav--scrolled-desktop'); // remove classe desktop
+        if (mainNav) mainNav.classList.remove('mainNav--scrolled-desktop'); // Remove classe desktop
         if (cvTabs) {
             cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
-            cvTabs.classList.remove('cv-tabs--fixed-desktop'); // garante que o estilo desktop seja removido
+            cvTabs.classList.remove('cv-tabs--fixed-desktop'); // Garante que o estilo desktop não se aplique
         }
         if (pageMain) {
             pageMain.classList.toggle('content--scrolled-mobile', isScrolled);
@@ -547,11 +469,10 @@ function handleScrollEffects() {
 }
 
 // Aplica o debounce para otimizar a performance do scroll handler
-const debouncedScrollHandler = debounce(handleScrollEffects, 50); // ajuste o delay conforme necessário
+const debouncedScrollHandler = debounce(handleScrollEffects, 50); // Ajuste o delay conforme necessário
 
 window.addEventListener('scroll', debouncedScrollHandler);
-// Também chama ao redimensionar para ajustar caso mude entre mobile e desktop
+// Também chama ao redimensionar para ajustar caso o layout mude de mobile para desktop ou vice-versa
 window.addEventListener('resize', debouncedScrollHandler);
-// Define estado inicial no carregamento, caso a página já esteja scrollada
+// Chama uma vez no carregamento para definir o estado inicial caso a página já esteja scrollada
 document.addEventListener('DOMContentLoaded', handleScrollEffects);
-
