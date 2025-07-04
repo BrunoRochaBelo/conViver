@@ -194,11 +194,13 @@
     transition: opacity 0.25s ease-in-out, visibility 0s linear 0.25s;
 }
 
+.cv-header--sticky,
 .cv-header--scrolled {
     min-height: var(--cv-header-height-scrolled-mobile) !important;
     box-shadow: var(--current-shadow-md);
 }
 
+.cv-header--sticky .cv-header__title,
 .cv-header--scrolled .cv-header__title {
     opacity: 0;
     visibility: hidden;
@@ -206,6 +208,7 @@
 
 /* Desktop: mainNav sobe e cv-tabs fixa abaixo do header */
 @media (min-width: 992px) {
+    .cv-header--sticky,
     .cv-header--scrolled {
         min-height: var(--cv-header-height-scrolled-desktop) !important;
         z-index: 1005;
@@ -218,6 +221,7 @@
                     left 0.3s ease-in-out, right 0.3s ease-in-out;
     }
 
+    #mainNav.cv-nav--fixed-desktop,
     #mainNav.mainNav--fixed-top-desktop {
         position: fixed;
         top: 0; /* will be overridden dynamically via JS */
@@ -237,6 +241,7 @@
         height: var(--cv-header-height-scrolled-desktop);
     }
 
+    #mainNav.cv-nav--fixed-desktop .cv-container,
     #mainNav.mainNav--fixed-top-desktop .cv-container {
         width: 100%;
     }
@@ -246,6 +251,7 @@
                     padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out, background-color 0.3s ease-in-out;
     }
 
+    .cv-tabs.cv-tabs--sticky-desktop,
     .cv-tabs.cv-tabs--fixed-below-mainNav-desktop {
         position: fixed;
         top: var(--cv-header-height-scrolled-desktop); /* overridden dynamically */
@@ -277,6 +283,7 @@
         transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
                     padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out, background-color 0.3s ease-in-out;
     }
+     .cv-tabs.cv-tabs--sticky-mobile,
      .cv-tabs.cv-tabs--fixed-mobile {
         position: fixed;
         top: var(--cv-header-height-scrolled-mobile);
