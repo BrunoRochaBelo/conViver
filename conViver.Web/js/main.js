@@ -427,76 +427,126 @@ export function clearModalError(modalElement) {
 
 /**
  * Lógica de scroll para o header e tabs.
- * Agora o header e as tabs são sempre fixos. A função gerencia o estado "compacto"
- * e ajusta o padding do #pageMain.
  */
-function handleScrollEffects() {
+function handleScrollEffectsV2(sentinelVisible = true) {
   const header = document.querySelector('.cv-header');
+  const mainNav = document.getElementById('mainNav');
   const cvTabs = document.querySelector('.cv-tabs');
   const pageMain = document.getElementById('pageMain');
-  // const mainNav = document.getElementById('mainNav'); // Se precisar de lógica específica para mainNav
 
-  if (!header || !pageMain) {
-    debugLog("Header ou PageMain não encontrados para handleScrollEffects.");
-    return;
+  if (!header || !pageMain) return;
+
+  const isDesktop = window.innerWidth >= 992;
+  const isScrolled = !sentinelVisible;
+
+  header.classList.toggle('cv-header--sticky', isScrolled);
+  header.classList.toggle('cv-header--scrolled', isScrolled);
+
+  updateHeaderVars();
+  const headerHeight = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue(
+      '--cv-header-height-current'
+    )
+  ) || header.offsetHeight;
+
+  // V2 naming
+  // Transitional support for older pages
+
+  if (isDesktop) {
+    if (mainNav) {
+      // New class name
+      mainNav.classList.toggle('cv-nav--fixed-desktop', isScrolled);
+      // Maintain older class for compatibility
+      mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
+      mainNav.classList.toggle('cv-nav--slide', isScrolled);
+      mainNav.style.top = isScrolled ? `${headerHeight}px` : '';
+    }
+
+    if (cvTabs) {
+      cvTabs.classList.toggle('cv-tabs--sticky-desktop', isScrolled);
+      // Remove old and maintain compatibility
+      cvTabs.classList.toggle('cv-tabs--fixed-below-mainNav-desktop', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
+      cvTabs.classList.remove('cv-tabs--sticky-mobile');
+      cvTabs.classList.remove('cv-tabs--fixed-mobile');
+      if (isScrolled) {
+        const navH = mainNav ? mainNav.offsetHeight : 0;
+        cvTabs.style.top = `${headerHeight + navH}px`;
+      } else {
+        cvTabs.style.top = '';
+      }
+    }
+
+    if (isScrolled) {
+      const navH = mainNav ? mainNav.offsetHeight : 0;
+      const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
+      pageMain.style.paddingTop = `${headerHeight + navH + tabsH}px`;
+    } else {
+      pageMain.style.paddingTop = '';
+    }
+  } else {
+    if (mainNav) {
+      mainNav.classList.remove('cv-nav--fixed-desktop');
+      mainNav.classList.remove('mainNav--fixed-top-desktop');
+      mainNav.style.top = '';
+    }
+
+    if (cvTabs) {
+      cvTabs.classList.toggle('cv-tabs--sticky-mobile', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
+      cvTabs.classList.remove('cv-tabs--sticky-desktop');
+      cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
+      if (isScrolled) {
+        cvTabs.style.top = `${headerHeight}px`;
+      } else {
+        cvTabs.style.top = '';
+      }
+    }
+
+    if (isScrolled) {
+      const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
+      pageMain.style.paddingTop = `${headerHeight + tabsH}px`;
+    } else {
+      pageMain.style.paddingTop = '';
+    }
   }
-
-  // Determina se a página foi rolada (ex: > 0 ou com base em um sentinela se ainda usado)
-  // Para um header sempre fixo, o "scroll" pode ser qualquer valor > 0 ou uma pequena distância.
-  const isScrolled = window.scrollY > 10; // Limiar de scroll para ativar o modo compacto
-
-  // Aplica classes compactas
-  header.classList.toggle('cv-header--compact', isScrolled);
-  if (cvTabs) {
-    cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
-  }
-
-  // Atualiza a variável CSS para a altura ATUAL do header (normal ou compacta)
-  // Isso é importante se a altura do header realmente muda e afeta o layout.
-  // A altura do header é agora controlada pela classe .cv-header--compact e variáveis CSS.
-  // A função updateHeaderVars pode precisar ser ajustada ou chamada aqui se necessário.
-  // Por agora, vamos assumir que as alturas CSS são suficientes.
-
-  let headerCurrentHeight = parseFloat(getComputedStyle(header).height);
-  document.documentElement.style.setProperty('--cv-header-height-current', `${headerCurrentHeight}px`);
-
-
-  let tabsCurrentHeight = 0;
-  if (cvTabs) {
-    tabsCurrentHeight = parseFloat(getComputedStyle(cvTabs).height);
-    // Define a posição 'top' das tabs para ficarem logo abaixo do header
-    cvTabs.style.top = `${headerCurrentHeight}px`;
-  }
-
-  // Ajusta o padding-top do #pageMain para acomodar o header e as tabs fixas
-  const totalFixedHeaderHeight = headerCurrentHeight + (cvTabs ? tabsCurrentHeight : 0);
-  pageMain.style.paddingTop = `${totalFixedHeaderHeight}px`;
-
-  // debugLog(`ScrollY: ${window.scrollY}, Header Compact: ${isScrolled}, Header Height: ${headerCurrentHeight}, Tabs Top: ${cvTabs ? cvTabs.style.top : 'N/A'}, PageMain PaddingTop: ${pageMain.style.paddingTop}`);
 }
 
+function initHeaderObserver() {
+  const sentinel = document.getElementById('headerSentinel');
+  if (!sentinel) return;
 
-// Não precisamos mais do IntersectionObserver para o header, pois ele é sempre fixo.
-// function initHeaderObserver() { ... }
+  const observer = new IntersectionObserver((entries) => {
+    const entry = entries[0];
+    handleScrollEffectsV2(entry.isIntersecting);
+  });
 
-// Listener de scroll para aplicar efeitos
-window.addEventListener('scroll', debounce(handleScrollEffects, 10), { passive: true });
+  observer.observe(sentinel);
+}
 
-// Listener de resize para recalcular alturas e posições
-window.addEventListener('resize', debounce(() => {
-  updateHeaderVars(); // Garante que --cv-header-height-current é atualizado se a base mudar
-  handleScrollEffects(); // Re-aplica lógica de scroll/compacto
-}, 50));
+window.addEventListener('resize', () => {
+  updateHeaderVars();
+  const sentinel = document.getElementById('headerSentinel');
+  const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+  handleScrollEffectsV2(visible);
+});
 
-// Chamada inicial no carregamento do DOM
+window.addEventListener(
+  'scroll',
+  () => {
+    const sentinel = document.getElementById('headerSentinel');
+    const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+    handleScrollEffectsV2(visible);
+  },
+  { passive: true }
+);
+
 document.addEventListener('DOMContentLoaded', () => {
-  updateHeaderVars(); // Define a altura inicial do header
-  handleScrollEffects(); // Define o estado inicial (compacto ou não) e padding
-
-  // Adicionado um pequeno delay para garantir que todos os estilos foram aplicados
-  // e as alturas são calculadas corretamente, especialmente após o JS modificar o DOM.
-  setTimeout(() => {
-    updateHeaderVars();
-    handleScrollEffects();
-  }, 100);
+  updateHeaderVars();
+  initHeaderObserver();
+  const sentinel = document.getElementById('headerSentinel');
+  const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+  handleScrollEffectsV2(visible);
+  setTimeout(() => handleScrollEffectsV2(visible), 100);
 });
