@@ -79,16 +79,6 @@ export function showGlobalError(message) {
   showGlobalFeedback(message, 'error');
 }
 
-// /**
-//  * Exibe uma mensagem de sucesso global para o usuário.
-//  * @param {string} message A mensagem de sucesso.
-//  */
-// export function showGlobalSuccess(message) {
-//     // Poderia ser um modal ou um toast no futuro.
-//     console.log(`SUCESSO GLOBAL: ${message}`);
-//     alert(message);
-// }
-
 /**
  * Container for global feedback messages.
  * Ensures messages are stacked and easily managed.
@@ -102,106 +92,6 @@ function ensureFeedbackContainer() {
         document.body.appendChild(feedbackContainer);
     }
 }
-
-/**
- * Lógica de scroll para o header e tabs - Abordagem Simplificada.
- */
-function handleScrollEffects() {
-    const header = document.querySelector('.cv-header');
-    const cvTabs = document.querySelector('.cv-tabs');
-    const pageMain = document.getElementById('pageMain');
-    const mainNav = document.getElementById('mainNav'); // Para limpeza
-
-    const scrollThreshold = 10; // Quando o comportamento de encolher/fixar começa
-    const hideThresholdOffset = 150; // Distância adicional para baixo antes de esconder o header/tabs
-                                    // Ajuste este valor conforme a sensibilidade desejada.
-
-    if (!header || !pageMain) return;
-
-    let currentScroll = window.scrollY;
-
-    // Estado inicial ou perto do topo: redefinir tudo
-    if (currentScroll <= scrollThreshold) {
-        header.classList.remove('cv-header--scrolled-simple', 'cv-header--hidden');
-        if (cvTabs) {
-            cvTabs.classList.remove('cv-tabs--fixed-simple', 'cv-tabs--hidden');
-            cvTabs.style.top = '';
-        }
-        pageMain.style.paddingTop = '';
-        // Limpeza de classes antigas
-        if (mainNav) mainNav.classList.remove('mainNav--fixed-top-desktop', 'mainNav--scrolled-desktop');
-        if (cvTabs) cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop', 'cv-tabs--fixed-desktop', 'cv-tabs--fixed-mobile');
-        if (pageMain) pageMain.classList.remove('content--scrolled-desktop-v2', 'content--scrolled-desktop', 'content--scrolled-mobile');
-
-    } else {
-        // Aplicar estado scrollado base (header menor, tabs fixas abaixo do header)
-        header.classList.add('cv-header--scrolled-simple');
-        let headerHeight = header.offsetHeight; // Altura do header já encolhido
-
-        if (cvTabs) {
-            cvTabs.classList.add('cv-tabs--fixed-simple');
-            cvTabs.style.top = `${headerHeight}px`;
-            let tabsHeight = cvTabs.offsetHeight;
-            pageMain.style.paddingTop = `${headerHeight + tabsHeight}px`;
-        } else {
-            pageMain.style.paddingTop = `${headerHeight}px`;
-        }
-
-        // Lógica de esconder/mostrar ao rolar para baixo/cima
-        if (currentScroll > lastScrollTop && currentScroll > (scrollThreshold + hideThresholdOffset)) {
-            // Rolando para Baixo e passou do threshold de esconder
-            header.classList.add('cv-header--hidden');
-            if (cvTabs) {
-                cvTabs.classList.add('cv-tabs--hidden');
-                // Ajustar padding do pageMain se os elementos escondidos não ocupam mais espaço reservado
-                // Se o transform os tira do fluxo e o padding não é mais necessário para eles:
-                // pageMain.style.paddingTop = '0'; // Ou altura de algo que ainda fique fixo e visível
-            }
-             // Quando escondido, o padding pode ser ajustado para apenas o que resta (se algo) ou 0.
-             // Se o header e tabs saem completamente, o padding pode ser 0.
-             // Se o header apenas se move para cima mas ainda tem uma pequena parte visível (ex: sticky com offset negativo),
-             // o padding precisaria refletir isso. Com translateY(-100%), eles saem.
-            pageMain.style.paddingTop = '0';
-
-
-        } else if (currentScroll < lastScrollTop) {
-            // Rolando para Cima
-            header.classList.remove('cv-header--hidden');
-            if (cvTabs) {
-                cvTabs.classList.remove('cv-tabs--hidden');
-                // Recalcular padding, pois os elementos estão visíveis novamente
-                // headerHeight já foi pego acima (do header scrollado)
-                // tabsHeight precisa ser pego do elemento não escondido
-                // cvTabs.offsetHeight pode dar 0 se display:none ou visibility:hidden for usado no CSS para .cv-tabs--hidden
-                // É melhor confiar na altura que ele teria quando visível.
-                // Se .cv-tabs--hidden usa apenas transform, offsetHeight deve ser ok.
-                let visibleTabsHeight = cvTabs.offsetHeight;
-                pageMain.style.paddingTop = `${headerHeight + visibleTabsHeight}px`;
-            } else {
-                 pageMain.style.paddingTop = `${headerHeight}px`;
-            }
-        }
-    }
-
-    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
-}
-
-let lastScrollTop = 0; // Inicializa fora da função para persistir
-const debouncedScrollHandler = debounce(handleScrollEffects, 10);
-
-window.addEventListener('scroll', debouncedScrollHandler);
-window.addEventListener('resize', () => { // Resetar lastScrollTop em resize para evitar saltos
-    lastScrollTop = 0;
-    debouncedScrollHandler();
-});
-document.addEventListener('DOMContentLoaded', () => {
-    lastScrollTop = window.scrollY; // Captura scroll inicial caso a página carregue scrollada
-    handleScrollEffects();
-    setTimeout(() => { // Re-check após tudo carregar
-        lastScrollTop = window.scrollY;
-        handleScrollEffects();
-    }, 150);
-});
 
 /**
  * Displays a global feedback message.
@@ -226,17 +116,15 @@ export function showGlobalFeedback(message, type = 'info', duration) {
     closeButton.setAttribute('aria-label', 'Fechar');
     closeButton.onclick = () => {
         feedbackElement.classList.add('global-feedback-toast--hiding');
-        // Remove after animation
         setTimeout(() => feedbackElement.remove(), 300);
     };
     feedbackElement.appendChild(closeButton);
 
     feedbackContainer.appendChild(feedbackElement);
 
-    // Trigger animation
     setTimeout(() => {
         feedbackElement.classList.add('global-feedback-toast--visible');
-    }, 10); // Small delay to allow CSS transition to take effect
+    }, 10);
 
     const defaultDurations = { success: 4000, info: 3000, warning: 5000, error: 8000 };
     const hideAfter = typeof duration === 'number' ? duration : defaultDurations[type] || 5000;
@@ -251,20 +139,10 @@ export function showGlobalFeedback(message, type = 'info', duration) {
     }
 }
 
-/**
- * Exibe contêineres de skeleton para um seletor ou elemento.
- * Se o seletor apontar para o próprio contêiner, ele é exibido; caso
- * contrário, procura por um filho com `.feed-skeleton-container`.
- * @param {string|Element|NodeList} target CSS selector ou elemento(s)
- */
 export function showSkeleton(target) {
     const elements = typeof target === 'string'
         ? document.querySelectorAll(target)
-        : target instanceof Element
-            ? [target]
-            : target instanceof NodeList || Array.isArray(target)
-                ? target
-                : [];
+        : target instanceof Element ? [target] : (target instanceof NodeList || Array.isArray(target) ? target : []);
     elements.forEach(el => {
         if (!el) return;
         if (el.classList && el.classList.contains('feed-skeleton-container')) {
@@ -276,18 +154,10 @@ export function showSkeleton(target) {
     });
 }
 
-/**
- * Oculta contêineres de skeleton exibidos com `showSkeleton`.
- * @param {string|Element|NodeList} target CSS selector ou elemento(s)
- */
 export function hideSkeleton(target) {
     const elements = typeof target === 'string'
         ? document.querySelectorAll(target)
-        : target instanceof Element
-            ? [target]
-            : target instanceof NodeList || Array.isArray(target)
-                ? target
-                : [];
+        : target instanceof Element ? [target] : (target instanceof NodeList || Array.isArray(target) ? target : []);
     elements.forEach(el => {
         if (!el) return;
         if (el.classList && el.classList.contains('feed-skeleton-container')) {
@@ -299,221 +169,100 @@ export function hideSkeleton(target) {
     });
 }
 
-/**
- * Mostra um pequeno spinner dentro do elemento fornecido e retorna
- * uma função que remove o spinner.
- * @param {HTMLElement} element Elemento onde o spinner será exibido.
- * @returns {Function} Função para remover o spinner criado.
- */
 export function showInlineSpinner(element) {
     if (!element) return () => {};
-
     const spinner = document.createElement('span');
     spinner.className = 'inline-spinner';
     spinner.setAttribute('aria-hidden', 'true');
     element.appendChild(spinner);
-
     return () => {
         if (spinner.parentElement) spinner.remove();
     };
 }
 
-/**
- * Abre um modal ajustando o display e bloqueando scroll no body.
- * @param {HTMLElement} modal Elemento do modal a ser aberto.
- */
 export function openModal(modal) {
     if (!modal) return;
     modal.style.display = 'flex';
     document.body.classList.add('cv-modal-open');
 }
 
-/**
- * Fecha um modal e libera o scroll do body.
- * @param {HTMLElement} modal Elemento do modal a ser fechado.
- */
 export function closeModal(modal) {
     if (modal) modal.style.display = 'none';
     document.body.classList.remove('cv-modal-open');
 }
 
-
-// Exemplo de como poderia ser usado para inicializações (se necessário no futuro):
-// document.addEventListener('DOMContentLoaded', () => {
-//   console.log('DOM completamente carregado e analisado. main.js pronto.');
-//   // Inicializações globais aqui
-// });
-
 debugLog('main.js carregado.');
 
-/**
- * Cria e retorna um elemento HTML para o "Empty State".
- * @param {object} config - Configuração para o empty state.
- * @param {string} [config.iconHTML] - HTML para o ícone (ex: SVG string, <img> tag).
- * @param {string} config.title - O título do empty state.
- * @param {string} [config.description] - A descrição ou mensagem.
- * @param {object} [config.actionButton] - Configuração para um botão de ação opcional.
- * @param {string} config.actionButton.text - Texto do botão.
- * @param {function} config.actionButton.onClick - Função a ser chamada no clique do botão.
- * @param {string[]} [config.actionButton.classes] - Classes CSS adicionais para o botão.
- * @returns {HTMLElement} O elemento do empty state.
- */
-export function createEmptyStateElement({ iconHTML, title, description, actionButton }) {
+export function createEmptyStateElement({ iconHTML, title, description, actionButton, secondaryActionButton }) {
     const emptyState = document.createElement('div');
     emptyState.className = 'cv-empty-state';
-
-    let iconMarkup = '';
-    if (iconHTML) {
-        iconMarkup = `<div class="cv-empty-state__icon">${iconHTML}</div>`;
-    }
-
-    let descriptionMarkup = '';
-    if (description) {
-        descriptionMarkup = `<p class="cv-empty-state__description">${description}</p>`;
-    }
-
+    let iconMarkup = iconHTML ? `<div class="cv-empty-state__icon">${iconHTML}</div>` : '';
+    let descriptionMarkup = description ? `<p class="cv-empty-state__description">${description}</p>` : '';
     let buttonsMarkup = '<div class="cv-empty-state__actions">';
     if (actionButton && actionButton.text && typeof actionButton.onClick === 'function') {
         const buttonClasses = ['cv-button', 'cv-empty-state__action', 'cv-empty-state__action--primary', ...(actionButton.classes || [])].join(' ');
         buttonsMarkup += `<button class="${buttonClasses}">${actionButton.text}</button>`;
     }
-
-    // Adicionar botão de ação secundário, se existir na configuração
-    // A configuração agora pode ter `secondaryActionButton`
-    if (config.secondaryActionButton && config.secondaryActionButton.text && typeof config.secondaryActionButton.onClick === 'function') {
-        const secondaryButtonClasses = ['cv-button', 'cv-empty-state__action', 'cv-empty-state__action--secondary', ...(config.secondaryActionButton.classes || [])].join(' ');
-        buttonsMarkup += `<button class="${secondaryButtonClasses}">${config.secondaryActionButton.text}</button>`;
+    if (secondaryActionButton && secondaryActionButton.text && typeof secondaryActionButton.onClick === 'function') {
+        const secondaryButtonClasses = ['cv-button', 'cv-empty-state__action', 'cv-empty-state__action--secondary', ...(secondaryActionButton.classes || [])].join(' ');
+        buttonsMarkup += `<button class="${secondaryButtonClasses}">${secondaryActionButton.text}</button>`;
     }
     buttonsMarkup += '</div>';
-
-
-    emptyState.innerHTML = `
-        ${iconMarkup}
-        <h3 class="cv-empty-state__title">${title}</h3>
-        ${descriptionMarkup}
-        ${buttonsMarkup}
-    `;
-
+    emptyState.innerHTML = `${iconMarkup}<h3 class="cv-empty-state__title">${title}</h3>${descriptionMarkup}${buttonsMarkup}`;
     if (actionButton && actionButton.text && typeof actionButton.onClick === 'function') {
-        const buttonElement = emptyState.querySelector('.cv-empty-state__action--primary');
-        if (buttonElement) {
-            buttonElement.addEventListener('click', actionButton.onClick);
-        }
+        emptyState.querySelector('.cv-empty-state__action--primary')?.addEventListener('click', actionButton.onClick);
     }
-
-    if (config.secondaryActionButton && config.secondaryActionButton.text && typeof config.secondaryActionButton.onClick === 'function') {
-        const secondaryButtonElement = emptyState.querySelector('.cv-empty-state__action--secondary');
-        if (secondaryButtonElement) {
-            secondaryButtonElement.addEventListener('click', config.secondaryActionButton.onClick);
-        }
+    if (secondaryActionButton && secondaryActionButton.text && typeof secondaryActionButton.onClick === 'function') {
+        emptyState.querySelector('.cv-empty-state__action--secondary')?.addEventListener('click', secondaryActionButton.onClick);
     }
-
     return emptyState;
 }
 
-/**
- * Cria e retorna um elemento HTML para o "Error State".
- * @param {object} config - Configuração para o error state.
- * @param {string} [config.iconHTML] - HTML para o ícone de erro (ex: SVG string, <img> tag).
- * @param {string} [config.title="Oops! Algo deu errado"] - O título do erro.
- * @param {string} config.message - A mensagem de erro específica.
- * @param {object} config.retryButton - Configuração para o botão "Tentar Novamente".
- * @param {string} [config.retryButton.text="Tentar Novamente"] - Texto do botão.
- * @param {function} config.retryButton.onClick - Função a ser chamada no clique do botão.
- * @param {string[]} [config.retryButton.classes] - Classes CSS adicionais para o botão.
- * @returns {HTMLElement} O elemento do error state.
- */
 export function createErrorStateElement({ iconHTML, title = "Oops! Algo deu errado", message, retryButton }) {
     const errorState = document.createElement('div');
     errorState.className = 'cv-error-state';
-
-    const defaultErrorIcon = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1s1 .45 1 1v4c0 .55-.45 1-1 1zm1-8h-2V7h2v2z"/>
-        </svg>
-    `;
-    // Prioriza iconHTML fornecido, senão usa o SVG padrão de erro
+    const defaultErrorIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1s1 .45 1 1v4c0 .55-.45 1-1 1zm1-8h-2V7h2v2z"/></svg>`;
     const actualIconHTML = iconHTML || defaultErrorIcon;
-
-
     let iconMarkup = `<div class="cv-error-state__icon">${actualIconHTML}</div>`;
-
     let buttonMarkup = '';
     if (retryButton && typeof retryButton.onClick === 'function') {
         const buttonText = retryButton.text || "Tentar Novamente";
         const buttonClasses = ['cv-button', 'cv-error-state__retry-button', ...(retryButton.classes || [])].join(' ');
         buttonMarkup = `<button class="${buttonClasses}">${buttonText}</button>`;
     }
-
-    errorState.innerHTML = `
-        ${iconMarkup}
-        <h3 class="cv-error-state__title">${title}</h3>
-        <p class="cv-error-state__message">${message}</p>
-        ${buttonMarkup}
-    `;
-
+    errorState.innerHTML = `${iconMarkup}<h3 class="cv-error-state__title">${title}</h3><p class="cv-error-state__message">${message}</p>${buttonMarkup}`;
     if (retryButton && typeof retryButton.onClick === 'function') {
-        const buttonElement = errorState.querySelector('.cv-error-state__retry-button');
-        if (buttonElement) {
-            buttonElement.addEventListener('click', retryButton.onClick);
-        }
+        errorState.querySelector('.cv-error-state__retry-button')?.addEventListener('click', retryButton.onClick);
     }
-
     return errorState;
 }
 
-// Adicionado log opcional de carregamento do script
 debugLog('main.js com helpers de state e modal error carregado.');
 
-// --- Funções Auxiliares para Erro em Modal (Movidas de comunicacao.js) ---
-/**
- * Exibe uma mensagem de erro dentro de um elemento modal.
- * @param {HTMLElement} modalElement O elemento do modal.
- * @param {string} message A mensagem de erro a ser exibida.
- */
 export function showModalError(modalElement, message) {
     if (!modalElement) {
         console.warn("showModalError: modalElement não fornecido.");
-        showGlobalFeedback(message, 'error'); // Fallback para global se o modal não for encontrado
+        showGlobalFeedback(message, 'error');
         return;
     }
     let errorContainer = modalElement.querySelector('.cv-modal-error-message');
     if (!errorContainer) {
         errorContainer = document.createElement('div');
         errorContainer.className = 'cv-modal-error-message';
-        // Estilos aplicados diretamente para garantir visibilidade e feedback de erro
-        errorContainer.style.color = 'var(--current-semantic-error, #e53935)';
-        errorContainer.style.backgroundColor = 'var(--current-color-error-bg, #ffebee)';
-        errorContainer.style.padding = 'var(--cv-spacing-sm, 8px) var(--cv-spacing-md, 16px)';
-        errorContainer.style.marginTop = 'var(--cv-spacing-md, 16px)';
-        errorContainer.style.marginBottom = 'var(--cv-spacing-sm, 8px)';
-        errorContainer.style.borderRadius = 'var(--cv-border-radius-md, 8px)';
-        errorContainer.style.fontSize = '0.9em';
-        errorContainer.style.textAlign = 'center';
-        errorContainer.style.border = `1px solid var(--current-semantic-error-darker, #c62828)`;
-
+        errorContainer.style.cssText = `color: var(--current-semantic-error, #e53935); background-color: var(--current-color-error-bg, #ffebee); padding: var(--cv-spacing-sm, 8px) var(--cv-spacing-md, 16px); margin-top: var(--cv-spacing-md, 16px); margin-bottom: var(--cv-spacing-sm, 8px); border-radius: var(--cv-border-radius-md, 8px); font-size: 0.9em; text-align: center; border: 1px solid var(--current-semantic-error-darker, #c62828);`;
         const modalContent = modalElement.querySelector('.cv-modal-content');
         const modalFooter = modalElement.querySelector('.cv-modal-footer');
-
         if (modalContent) {
-            if (modalFooter) {
-                modalContent.insertBefore(errorContainer, modalFooter);
-            } else {
-                modalContent.appendChild(errorContainer);
-            }
+            modalFooter ? modalContent.insertBefore(errorContainer, modalFooter) : modalContent.appendChild(errorContainer);
         } else {
             modalElement.appendChild(errorContainer);
-            console.warn("showModalError: '.cv-modal-content' não encontrado. Mensagem de erro adicionada ao root do modal.", modalElement);
+            console.warn("showModalError: '.cv-modal-content' não encontrado.");
         }
     }
     errorContainer.textContent = message;
     errorContainer.style.display = 'block';
 }
 
-/**
- * Limpa qualquer mensagem de erro exibida dentro de um elemento modal.
- * @param {HTMLElement} modalElement O elemento do modal.
- */
 export function clearModalError(modalElement) {
     if (!modalElement) {
         console.warn("clearModalError: modalElement não fornecido.");
@@ -525,3 +274,93 @@ export function clearModalError(modalElement) {
         errorContainer.style.display = 'none';
     }
 }
+
+// --- Início da Lógica de Scroll Reatividade V2 (mainNav no topo, tabs abaixo) ---
+function handleScrollEffectsV2() {
+    const header = document.querySelector('.cv-header');
+    const mainNav = document.getElementById('mainNav');
+    const cvTabs = document.querySelector('.cv-tabs');
+    const pageMain = document.getElementById('pageMain');
+    const scrollThreshold = 50;
+
+    if (!header || !pageMain) return; // pageMain é crucial para padding
+
+    const isScrolled = window.scrollY > scrollThreshold;
+    const isDesktop = window.innerWidth >= 992; // Breakpoint para comportamento desktop
+
+    // Comportamento do Header (encolher, sumir título)
+    header.classList.toggle('cv-header--scrolled', isScrolled);
+
+    if (isDesktop) {
+        let mainNavHeight = 0;
+        if (mainNav) {
+            mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
+            if (isScrolled) {
+                mainNavHeight = mainNav.offsetHeight;
+            }
+        }
+
+        let cvTabsHeight = 0;
+        if (cvTabs) {
+            cvTabs.classList.toggle('cv-tabs--fixed-below-mainNav-desktop', isScrolled);
+            if (isScrolled) {
+                cvTabs.style.top = `${mainNavHeight}px`;
+                cvTabsHeight = cvTabs.offsetHeight;
+            } else {
+                cvTabs.style.top = ''; // Limpa o top quando não está scrollado/fixo
+            }
+        }
+
+        // Ajusta padding do pageMain
+        if (isScrolled) {
+            pageMain.style.paddingTop = `${mainNavHeight + cvTabsHeight}px`;
+        } else {
+            pageMain.style.paddingTop = '';
+        }
+
+        // Limpeza de classes mobile se estiver em desktop
+        if (cvTabs) cvTabs.classList.remove('cv-tabs--fixed-mobile');
+        pageMain.classList.remove('content--scrolled-mobile');
+
+    } else { // Comportamento Mobile/Tablet (tabs fixam abaixo do header reduzido)
+        let headerHeightScrolled = 0;
+        if (isScrolled) {
+            // Forçar o cálculo da altura do header já com a classe de scroll aplicada
+            // Adicionando e removendo rapidamente pode não ser ideal, mas garante a altura correta.
+            // Uma alternativa seria ter a altura scrollada em uma var CSS e ler via getComputedStyle.
+            // Por ora, vamos confiar que o offsetHeight após toggle é o correto.
+            headerHeightScrolled = header.offsetHeight;
+        }
+
+        if (cvTabs) {
+            cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
+            if (isScrolled) {
+                cvTabs.style.top = `${headerHeightScrolled}px`;
+                pageMain.style.paddingTop = `${headerHeightScrolled + cvTabs.offsetHeight}px`;
+            } else {
+                cvTabs.style.top = '';
+                pageMain.style.paddingTop = '';
+            }
+        } else if (isScrolled) { // Sem tabs, mas header scrollado
+            pageMain.style.paddingTop = `${headerHeightScrolled}px`;
+        } else {
+            pageMain.style.paddingTop = '';
+        }
+
+        // Limpeza de classes desktop se estiver em mobile/tablet
+        if (mainNav) mainNav.classList.remove('mainNav--fixed-top-desktop');
+        if (cvTabs) cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
+        // pageMain.classList.remove('content--scrolled-desktop-v2'); // Se essa classe for usada
+    }
+}
+
+const debouncedScrollHandlerV2 = debounce(handleScrollEffectsV2, 10);
+
+window.addEventListener('scroll', debouncedScrollHandlerV2);
+window.addEventListener('resize', debouncedScrollHandlerV2);
+document.addEventListener('DOMContentLoaded', () => {
+    handleScrollEffectsV2(); // Estado inicial
+    // Garante que as alturas sejam calculadas corretamente após o nav.js montar o mainNav
+    setTimeout(handleScrollEffectsV2, 200);
+});
+// --- Fim da Lógica de Scroll Reatividade V2 ---

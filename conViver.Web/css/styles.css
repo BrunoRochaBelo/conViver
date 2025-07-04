@@ -54,8 +54,7 @@
     --cv-font-size-md: 1rem; /* Should be 14px on mobile, 16px on desktop */
     --cv-font-size-lg: 1.125rem; /* ~16px on mobile, ~18px on desktop */
     --cv-font-size-xl: 1.25rem; /* ~18px on mobile, ~20px on desktop */
-    /* Add more heading/specific font sizes as needed, e.g. */
-    --cv-font-size-h1: 2rem; /* Adjusted based on new base */
+    --cv-font-size-h1: 2rem;
     --cv-font-size-h2: 1.75rem;
     --cv-font-size-h3: 1.5rem;
     --cv-font-size-h4: 1.25rem;
@@ -85,34 +84,28 @@
     --cv-dark-primary-green: #30D158;
     --cv-dark-primary-orange: #FFD60A;
     --cv-dark-primary-red: #FF453A;
-
-    --cv-dark-gray-100: #1C1C1E; /* Page background */
-    --cv-dark-gray-200: #2C2C2E; /* Element background */
+    --cv-dark-gray-100: #1C1C1E;
+    --cv-dark-gray-200: #2C2C2E;
     --cv-dark-gray-300: #3A3A3C;
-    --cv-dark-gray-400: #48484A; /* Borders */
+    --cv-dark-gray-400: #48484A;
     --cv-dark-gray-500: #636366;
-    --cv-dark-gray-600: #8E8E93; /* Subtle text */
-    --cv-dark-gray-900: #F2F2F7; /* Primary text */
-
+    --cv-dark-gray-600: #8E8E93;
+    --cv-dark-gray-900: #F2F2F7;
     --cv-dark-text-primary: var(--cv-dark-gray-900);
     --cv-dark-text-secondary: var(--cv-dark-gray-600);
     --cv-dark-text-placeholder: var(--cv-dark-gray-500);
     --cv-dark-text-on-primary-bg: #FFFFFF;
     --cv-dark-text-link: var(--cv-dark-primary-blue);
-
     --cv-dark-bg-page: var(--cv-dark-gray-100);
     --cv-dark-bg-element: var(--cv-dark-gray-200);
-
     --cv-dark-semantic-success: var(--cv-dark-primary-green);
     --cv-dark-semantic-warning: var(--cv-dark-primary-orange);
     --cv-dark-semantic-error: var(--cv-dark-primary-red);
     --cv-dark-semantic-info: var(--cv-dark-primary-blue);
-
     --cv-dark-color-error-bg: rgba(255, 69, 58, 0.2);
     --cv-dark-color-success-bg: rgba(48, 209, 88, 0.2);
     --cv-dark-color-warning-bg: rgba(255, 214, 10, 0.2);
-    --cv-dark-color-info-bg: rgba(10, 132, 255, 0.2); /* Lighter blue for dark info backgrounds */
-
+    --cv-dark-color-info-bg: rgba(10, 132, 255, 0.2);
     --cv-dark-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
     --cv-dark-shadow-md: 0px 2px 4px rgba(0, 0, 0, 0.3), 0px 4px 12px rgba(0, 0, 0, 0.4);
     --cv-dark-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
@@ -122,45 +115,33 @@
     --current-primary-green: var(--cv-primary-green);
     --current-primary-orange: var(--cv-primary-orange);
     --current-primary-red: var(--cv-primary-red);
-
     --current-text-primary: var(--cv-text-primary);
     --current-text-secondary: var(--cv-text-secondary);
     --current-text-placeholder: var(--cv-text-placeholder);
-    --current-text-on-primary: var(--cv-text-on-primary); /* Renamed for clarity from --cv-text-on-primary-bg */
+    --current-text-on-primary: var(--cv-text-on-primary);
     --current-text-link: var(--cv-text-link);
-
-    --current-bg-light: var(--cv-bg-light); /* Page background */
-    --current-bg-white: var(--cv-bg-white); /* Element background */
-
+    --current-bg-light: var(--cv-bg-light);
+    --current-bg-white: var(--cv-bg-white);
     --current-border-color: var(--cv-border-color);
-
     --current-semantic-success: var(--cv-color-success);
     --current-semantic-warning: var(--cv-color-warning);
     --current-semantic-error: var(--cv-color-error);
     --current-semantic-info: var(--cv-color-info);
-
     --current-color-error-bg: var(--cv-color-error-bg);
     --current-color-success-bg: var(--cv-color-success-bg);
     --current-color-warning-bg: var(--cv-color-warning-bg);
     --current-color-info-bg: var(--cv-color-info-bg);
-
     --current-shadow-sm: var(--cv-shadow-sm);
     --current-shadow-md: var(--cv-shadow-md);
     --current-shadow-lg: var(--cv-shadow-lg);
-
     --current-input-focus-shadow: rgba(0, 122, 255, 0.25);
     --current-bg-element: var(--cv-bg-white);
     --current-border-subtle: var(--cv-gray-200);
-
-    /* Alpha colors for buttons and UI elements */
     --cv-primary-blue-alpha-15: rgba(0, 122, 255, 0.15);
     --cv-gray-100-alpha-50: rgba(242, 242, 247, 0.5);
     --cv-gray-200-alpha-70: rgba(229, 229, 234, 0.7);
-    --cv-gray-500-alpha-30: rgba(174, 174, 178, 0.3); /* System Gray 2 with alpha for modal close bg */
-    --cv-gray-600-alpha-50: rgba(142, 142, 147, 0.5); /* System Gray with alpha for modal close bg hover */
-
-
-    /* Button specific current vars */
+    --cv-gray-500-alpha-30: rgba(174, 174, 178, 0.3);
+    --cv-gray-600-alpha-50: rgba(142, 142, 147, 0.5);
     --current-button-default-bg: var(--cv-gray-200);
     --current-button-default-hover-bg: var(--cv-gray-300);
     --current-button-secondary-bg: var(--cv-gray-600);
@@ -168,174 +149,110 @@
     --current-button-disabled-bg: var(--cv-gray-200);
     --current-button-disabled-text: var(--cv-gray-500);
     --current-button-disabled-border: var(--cv-gray-300);
-
-    /* Nav specific current vars */
     --current-nav-bg: var(--cv-gray-100);
+    --current-skeleton-bg: var(--cv-gray-200);
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.3);
 
     /* Header dimension variables */
     --cv-header-padding-y: clamp(0.5rem, 1.5vh, 0.75rem);
-    --cv-header-padding-x: clamp(1rem, 4vw, 1.5rem);
-    --cv-header-height: clamp(3.5rem, 5vh + 1rem, 4.3125rem); /* ~57px–69px */
-    /* Adicionar variáveis para altura do header scrollado se não existirem */
-    --cv-header-height-scrolled-desktop: clamp(3rem, 4vh + 0.5rem, 3.5rem);
-    --cv-header-height-scrolled-mobile: clamp(2.5rem, 3vh + 0.5rem, 3rem);
+    --cv-header-padding-x: clamp(1rem, 4vw, 1.5rem); /* Padding lateral do header */
+    --cv-header-height: clamp(3.5rem, 5vh + 1rem, 4.3125rem); /* Altura normal ~57px-69px */
+    --cv-header-height-scrolled-desktop: clamp(3rem, 4vh + 0.5rem, 3.5rem); /* Altura scroll desktop ~48px-56px */
+    --cv-header-height-scrolled-mobile: clamp(2.5rem, 3vh + 0.5rem, 3rem); /* Altura scroll mobile ~40px-48px */
 }
-@media (min-width: 768px) {
+
+@media (min-width: 768px) { /* Tablet e acima */
     :root {
-        --cv-header-height: clamp(4rem, 5vh + 1rem, 4.5rem);
-        /* Se quiser uma altura scrollada diferente para tablet vs desktop maior, defina aqui */
-        /* --cv-header-height-scrolled-desktop: clamp(3.5rem, ...); */
+        --cv-header-height: clamp(4rem, 5vh + 1rem, 4.5rem); /* Altura normal tablet+ ~64px-72px */
+         /* Se precisar de altura scrollada diferente para tablet vs desktop maior, ajuste aqui */
     }
 }
 
-/* Estilos para header com scroll - Abordagem Reveal on Scroll Up */
-.cv-header {
-    transition: min-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Adicionado transform */
-    position: sticky; /* Necessário para alguns comportamentos de "reveal", ou fixed via JS */
-    top: 0; /* Se sticky, define onde ele "gruda" */
-    z-index: 1010; /* Para ficar acima das tabs se ambas forem sticky/fixed */
-}
+/* Ajustes para Abordagem V2 com alinhamento e largura consistentes */
+@media (min-width: 992px) { /* Desktop e acima */
+    /* mainNav fixo no topo em desktop */
+    #mainNav.mainNav--fixed-top-desktop {
+        position: fixed;
+        top: 0;
+        left: var(--cv-header-padding-x); /* Alinha com o padding lateral da página */
+        right: var(--cv-header-padding-x); /* Alinha com o padding lateral da página */
+        width: auto; /* A largura será definida por left e right */
+        z-index: 1020;
+        background-color: var(--current-bg-white);
+        box-shadow: var(--current-shadow-sm);
+        /* A altura do #mainNav pode variar. O JS usa offsetHeight. */
+        transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* Garante que o .cv-container dentro do #mainNav fixo ocupe toda a largura disponível. */
+    #mainNav.mainNav--fixed-top-desktop .cv-container {
+        width: 100%;
+        max-width: none; /* Remove qualquer max-width do .cv-container global */
+        margin-left: 0; /* Remove margens laterais do .cv-container global */
+        margin-right: 0;
+        padding-left: 0; /* Padding já é cuidado pelo left/right do #mainNav */
+        padding-right: 0;
+    }
 
-.cv-header__title {
-    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.25s;
-}
-
-.cv-header--scrolled-simple { /* Mantém a redução de altura e sombra */
-    box-shadow: var(--current-shadow-md);
-}
-
-.cv-header--scrolled-simple .cv-header__title {
-    opacity: 0;
-    visibility: hidden;
-}
-
-/* Estado Escondido para o Header */
-.cv-header--hidden {
-    transform: translateY(-100%);
-    /* Adicionar um pequeno delay para o 'visibility' para a transição de saída ser vista */
-    /* visibility: hidden; */ /* Pode ser controlado por JS para evitar problemas com foco */
-    /* transition-delay: 0s, 0.3s; */ /* Delay para visibility */
-}
-
-/* Ajuste de altura para header scrollado em diferentes telas */
-@media (max-width: 991.98px) {
-    .cv-header--scrolled-simple:not(.cv-header--hidden) {
-        min-height: var(--cv-header-height-scrolled-mobile) !important;
+    /* cv-tabs fixas abaixo do mainNav em desktop */
+    .cv-tabs.cv-tabs--fixed-below-mainNav-desktop {
+        position: fixed;
+        /* 'top' é definido pelo JS */
+        left: var(--cv-header-padding-x); /* Alinha com o padding lateral da página */
+        right: var(--cv-header-padding-x); /* Alinha com o padding lateral da página */
+        width: auto; /* A largura será definida por left e right */
+        z-index: 1010;
+        background-color: var(--current-bg-light);
+        /* padding-left e right não são mais necessários se left/right globais cuidam disso.
+           No entanto, .cv-tabs pode ter seu próprio padding interno para os botões das abas.
+           Se .cv-tabs *é* o container dos botões, então os paddings abaixo são para os botões,
+           e left/right no elemento .cv-tabs definem sua caixa externa.
+           Se .cv-tabs tiver um .cv-tabs-buttons interno, este último gerenciaria o padding dos botões.
+           Por simplicidade, vamos assumir que .cv-tabs gerencia o padding dos seus conteúdos.
+        */
+        padding-left: var(--cv-spacing-sm); /* Padding interno para os botões de aba */
+        padding-right: var(--cv-spacing-sm);
+        margin-top: 0;
+        border-bottom: 2px solid var(--current-border-subtle);
+        box-shadow: var(--current-shadow-sm);
+        transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 }
-@media (min-width: 992px) {
-    .cv-header--scrolled-simple:not(.cv-header--hidden) {
-        min-height: var(--cv-header-height-scrolled-desktop) !important;
-    }
-}
-
-
-/* Tabs com comportamento de fixação e "reveal" */
-.cv-tabs {
-    transition: margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    /* Adicionado para o caso de ser sticky e precisar de transição de transform */
-    /* position: sticky; */ /* JS controlará position:fixed, mas se fosse sticky puro... */
-    /* top: [altura do header]; */ /* JS controlará o top para fixed */
-    /* z-index: 999; */ /* Abaixo do header */
-    /* transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); */ /* Para esconder/mostrar com sticky */
-}
-
-.cv-tabs.cv-tabs--fixed-simple {
-    position: fixed;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background-color: var(--current-bg-light);
-    padding-left: var(--cv-header-padding-x);
-    padding-right: var(--cv-header-padding-x);
-    margin-top: 0;
-    border-bottom: 2px solid var(--current-border-subtle);
-    box-shadow: var(--current-shadow-sm);
-    /* A transição agora inclui transform e top */
-    transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Estado Escondido para as Tabs */
-.cv-tabs.cv-tabs--hidden { /* Aplicar a classe .cv-tabs--hidden junto com .cv-tabs--fixed-simple */
-    transform: translateY(calc(-100% - 2px)); /* -100% da sua altura + borda para sumir completamente */
-    /* visibility: hidden; */ /* Pode ser controlado por JS */
-    /* transition-delay: 0s, 0s, 0.3s; */ /* Delay para visibility */
-}
-
-
-#pageMain {
-    transition: padding-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-#mainNav {
-    /* Se o mainNav for afetado pela mudança de altura do header (se estiver no fluxo abaixo) */
-    transition: margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-
-/* Limpeza de regras de scroll antigas (V1, V2) que não são mais necessárias */
-/* Comentar ou remover: */
-/* .cv-header--scrolled { ... } (regra antiga se diferente de .cv-header--scrolled-simple) */
-/* #mainNav.mainNav--scrolled-desktop { ... } */
-/* #mainNav.mainNav--fixed-top-desktop { ... } */
-/* .cv-tabs.cv-tabs--fixed-desktop { ... } */
-/* .cv-tabs.cv-tabs--fixed-below-mainNav-desktop { ... } */
-/* #pageMain.content--scrolled-desktop { ... } */
-/* #pageMain.content--scrolled-desktop-v2 { ... } */
-/* .cv-tabs.cv-tabs--fixed-mobile { ... } (será coberto por .cv-tabs--fixed-simple + JS) */
-/* #pageMain.content--scrolled-mobile { ... } (padding será inline via JS) */
-
 
 html[data-theme="dark"] {
-    --current-skeleton-bg: var(--cv-dark-gray-300);
-    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.08); /* Adjusted shimmer for dark */
     --current-primary-blue: var(--cv-dark-primary-blue);
     --current-primary-green: var(--cv-dark-primary-green);
     --current-primary-orange: var(--cv-dark-primary-orange);
     --current-primary-red: var(--cv-dark-primary-red);
-
     --current-text-primary: var(--cv-dark-text-primary);
     --current-text-secondary: var(--cv-dark-text-secondary);
     --current-text-placeholder: var(--cv-dark-text-placeholder);
     --current-text-on-primary: var(--cv-dark-text-on-primary-bg);
     --current-text-link: var(--cv-dark-text-link);
-
     --current-bg-light: var(--cv-dark-bg-page);
     --current-bg-white: var(--cv-dark-bg-element);
-
     --current-border-color: var(--cv-dark-gray-400);
-
     --current-semantic-success: var(--cv-dark-semantic-success);
     --current-semantic-warning: var(--cv-dark-semantic-warning);
     --current-semantic-error: var(--cv-dark-semantic-error);
     --current-semantic-info: var(--cv-dark-semantic-info);
-
     --current-color-error-bg: var(--cv-dark-color-error-bg);
     --current-color-success-bg: var(--cv-dark-color-success-bg);
     --current-color-warning-bg: var(--cv-dark-color-warning-bg);
     --current-color-info-bg: var(--cv-dark-color-info-bg);
-
     --current-shadow-sm: var(--cv-dark-shadow-sm);
     --current-shadow-md: var(--cv-dark-shadow-md);
     --current-shadow-lg: var(--cv-dark-shadow-lg);
-
     --current-input-focus-shadow: rgba(10, 132, 255, 0.35);
     --current-bg-element: var(--cv-dark-bg-element);
     --current-border-subtle: var(--cv-dark-gray-300);
-
-    /* Alpha colors for buttons and UI elements - Dark */
     --cv-dark-primary-blue-alpha-20: rgba(10, 132, 255, 0.2);
     --cv-dark-gray-100-alpha-50: rgba(28, 28, 30, 0.5);
     --cv-dark-gray-200-alpha-70: rgba(44, 44, 46, 0.7);
-    --cv-dark-gray-500-alpha-40: rgba(99, 99, 102, 0.4);  /* System Gray (Dark) 2 with alpha for modal close bg */
-    --cv-dark-gray-600-alpha-60: rgba(142, 142, 147, 0.6); /* System Gray (Dark) with alpha for modal close bg hover */
-
-
-    /* Button specific current vars - Dark */
+    --cv-dark-gray-500-alpha-40: rgba(99, 99, 102, 0.4);
+    --cv-dark-gray-600-alpha-60: rgba(142, 142, 147, 0.6);
     --current-button-default-bg: var(--cv-dark-gray-300);
     --current-button-default-hover-bg: var(--cv-dark-gray-400);
     --current-button-secondary-bg: var(--cv-dark-gray-500);
@@ -343,84 +260,159 @@ html[data-theme="dark"] {
     --current-button-disabled-bg: var(--cv-dark-gray-300);
     --current-button-disabled-text: var(--cv-dark-gray-500);
     --current-button-disabled-border: var(--cv-dark-gray-400);
-
-    /* Nav specific current vars - Dark */
-    --current-nav-bg: var(--cv-dark-bg-element); /* Match element bg for dark nav */
+    --current-nav-bg: var(--cv-dark-bg-element);
+    --current-skeleton-bg: var(--cv-dark-gray-300);
+    --current-skeleton-shimmer-color: rgba(255, 255, 255, 0.08);
 }
 
 html[data-theme="dark"] .feed-item.prio-0 {
-    background-color: var(--cv-dark-gray-300); /* Um pouco mais claro que o fundo do card normal no escuro */
-    border-left-color: var(--cv-dark-primary-orange); /* Usar a versão escura da cor laranja */
+    background-color: var(--cv-dark-gray-300);
+    border-left-color: var(--cv-dark-primary-orange);
 }
-/* O ::before do feed-item.prio-0 (emoji) geralmente se adapta bem, mas se precisar de ajuste: */
-/* html[data-theme="dark"] .feed-item.prio-0::before { color: var(--some-dark-theme-emoji-color); } */
-
 
 body {
     font-family: var(--cv-font-family-sans-serif);
     margin: 0;
     background-color: var(--current-bg-light);
     color: var(--current-text-primary);
-    line-height: 1.5; /* Improved readability */
-    -webkit-font-smoothing: antialiased; /* Smoother fonts on WebKit */
-    -moz-osx-font-smoothing: grayscale; /* Smoother fonts on Firefox */
-    font-size: var(--cv-font-size-md); /* Default body text size */
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: var(--cv-font-size-md);
 }
 
-img {
-    max-width: 100%;
-    height: auto;
-}
+img { max-width: 100%; height: auto; }
+html { font-size: var(--cv-font-size-base); }
 
-html {
-    font-size: var(--cv-font-size-base); /* Set base for rem units */
-}
-
-/* Responsive header tweaks */
+/* Header styles */
 .cv-header {
     padding: var(--cv-header-padding-y) var(--cv-header-padding-x);
     min-height: var(--cv-header-height);
+    background-color: var(--current-bg-white); /* Fundo explícito para o header */
+    z-index: 1005; /* Para garantir que fique acima do conteúdo mas abaixo de elementos fixos superiores */
+    position: relative; /* Para z-index funcionar corretamente */
+    transition: min-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-@media (max-width: 767px) {
+.cv-header__title {
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.25s;
+}
+
+/* Estado scrollado do Header (Abordagem V2) */
+.cv-header.cv-header--scrolled { /* Usando a classe antiga para compatibilidade com JS V2 */
+    box-shadow: var(--current-shadow-md);
+}
+.cv-header.cv-header--scrolled .cv-header__title {
+    opacity: 0;
+    visibility: hidden;
+}
+@media (max-width: 991.98px) {
+    .cv-header.cv-header--scrolled {
+        min-height: var(--cv-header-height-scrolled-mobile) !important;
+    }
+}
+@media (min-width: 992px) { /* Desktop e acima */
+    .cv-header.cv-header--scrolled {
+        min-height: var(--cv-header-height-scrolled-desktop) !important;
+    }
+
+    /* mainNav fixo no topo em desktop (Abordagem V2) */
+    #mainNav.mainNav--fixed-top-desktop {
+        position: fixed;
+        top: 0;
+        left: var(--cv-header-padding-x); /* Alinha com o padding lateral da página */
+        right: var(--cv-header-padding-x); /* Alinha com o padding lateral da página */
+        width: auto; /* A largura será definida por left e right */
+        z-index: 1020; /* Acima do header normal, mas abaixo de modais de usuário */
+        background-color: var(--current-bg-white);
+        box-shadow: var(--current-shadow-sm);
+        /* O padding interno do mainNav (se houver .cv-container) deve ser gerenciado por ele */
+        /* Garantir que a altura do mainNav fixo seja consistente */
+        /* A altura do #mainNav pode variar. O JS usa offsetHeight. Se precisar de altura fixa: */
+        /* height: var(--cv-header-height-scrolled-desktop); */ /* Ou uma nova variável */
+        /* display: flex; align-items: center; */ /* Se o conteúdo interno precisar ser centralizado */
+        transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* Se o #mainNav tiver um .cv-container, este deve ter width: 100% para preencher o #mainNav */
+    #mainNav.mainNav--fixed-top-desktop .cv-container {
+        width: 100%;
+        /* max-width: none; */ /* Para anular max-width global se houver */
+        /* margin: 0; */ /* Para anular margin global se houver */
+    }
+
+
+    /* cv-tabs fixas abaixo do mainNav em desktop (Abordagem V2) */
+    .cv-tabs.cv-tabs--fixed-below-mainNav-desktop {
+        position: fixed;
+        /* 'top' é definido pelo JS */
+        left: var(--cv-header-padding-x); /* Alinha com o padding lateral da página */
+        right: var(--cv-header-padding-x); /* Alinha com o padding lateral da página */
+        width: auto; /* A largura será definida por left e right */
+        z-index: 1010; /* Abaixo do mainNav fixo */
+        background-color: var(--current-bg-light);
+        /* padding-left e right não são mais necessários aqui se left/right globais cuidam */
+        margin-top: 0;
+        border-bottom: 2px solid var(--current-border-subtle);
+        box-shadow: var(--current-shadow-sm);
+        transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+}
+
+
+/* Comportamento mobile das tabs (fixam abaixo do header scrollado) */
+/* Esta classe é ativada pelo JS V2 para mobile */
+.cv-tabs.cv-tabs--fixed-mobile {
+    position: fixed;
+    /* 'top' é definido pelo JS */
+    left: var(--cv-header-padding-x);
+    right: var(--cv-header-padding-x);
+    width: auto;
+    z-index: 1000;
+    background-color: var(--current-bg-light);
+    margin-top: 0;
+    border-bottom: 2px solid var(--current-border-subtle);
+    box-shadow: var(--current-shadow-sm);
+    transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+@media (max-width: 767px) { /* Mobile específico */
     .cv-header {
-        padding: var(--cv-spacing-xs) var(--cv-spacing-sm); /* Approx 4px 8px */
-        min-height: 3rem; /* Approx 48px, reduced from default clamp */
+        padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
+        min-height: 3rem;
     }
-    .cv-header__title {
-        font-size: 1.125rem; /* Keep title size or adjust if necessary */
-    }
-    /* Adjust header container height if it's explicitly set or influencing layout */
-    .cv-header__container {
-        min-height: inherit; /* Ensure container doesn't force a larger height */
-    }
+    .cv-header__title { font-size: 1.125rem; }
+    .cv-header__container { min-height: inherit; }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 768px) { /* Tablet e acima */
     :root {
-        --cv-font-size-base: 16px; /* Larger base for tablet up */
+        --cv-font-size-base: 16px;
     }
 }
 
-/* Example for a main content wrapper */
-/* If you have a common wrapper class like .cv-container, apply these to it.
-   Otherwise, this 'main' selector is a general example. */
 main {
   width: 100%;
-  padding: 0 var(--cv-spacing-md); /* Mobile padding */
+  padding: 0 var(--cv-spacing-md);
   box-sizing: border-box;
-  margin-left: auto; /* Center content */
-  margin-right: auto; /* Center content */
-  flex-grow: 1; /* Example if main is part of a flex column layout for sticky footer */
+  margin-left: auto;
+  margin-right: auto;
+  flex-grow: 1;
+  transition: padding-top 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transição para padding-top */
 }
 
 @media (min-width: 1200px) {
   main {
     max-width: 1200px;
-    padding: 0 var(--cv-spacing-lg); /* Desktop padding */
+    padding: 0 var(--cv-spacing-lg);
   }
 }
 
-
+/* ... (restante do CSS permanece o mesmo) ... */
 /* === Login Page Specific Styles === */
 .login-page {
     background-color: var(--current-bg-light);
@@ -960,9 +952,14 @@ main {
     align-items: center;
     margin-top: var(--cv-spacing-lg, 20px);
     margin-bottom: 20px;
-    padding: var(--cv-spacing-xs) 0;
-    border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
+    padding-top: var(--cv-spacing-xs); /* Ajustado para padding-top */
+    padding-bottom: var(--cv-spacing-xs); /* Ajustado para padding-bottom */
+    border-bottom: 2px solid var(--current-border-subtle, #eee);
+    /* A transição base para cv-tabs quando não está fixo */
+    transition: margin-top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 
 .cv-tabs-buttons {
     display: flex;
@@ -1044,93 +1041,66 @@ html[data-theme="dark"] .cv-tabs-buttons.has-scroll-indicator::after {
 }
 
 .cv-tab-content {
-    padding: var(--cv-spacing-md, 15px); /* Use variable or fallback */
-    /* border: 1px solid var(--current-border-color, #ddd); */ /* Optional */
-    /* border-top: none; */ /* Optional */
+    padding: var(--cv-spacing-md, 15px);
     width: 100%;
-    max-width: 1200px; /* Max width similar to main content */
+    max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
     box-sizing: border-box;
 }
 
-/* Specific adjustment for mural content if it's inside another container */
 #content-mural .communication__mural {
-    /* If communication__mural is the direct grid container */
-    /* display: grid; already applied by .card-grid */
-    /* grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); */
-    /* gap: var(--cv-spacing-md); */
-    /* The above is handled by .card-grid. Ensure .communication__mural has .card-grid class or inherits it. */
-    /* If #content-mural itself should be centered, the rule for .cv-tab-content already does that. */
-    /* If .communication__mural is an intermediate container that needs centering or width control: */
-    width: 100%; /* Take full width of parent .cv-tab-content */
-    /* No specific margin needed here if .cv-tab-content handles centering */
+    width: 100%;
 }
 
-/* --- Nested Tabs (Sub-Abas) --- */
-.cv-subtab-content {
-    display: none;
-}
+.cv-subtab-content { display: none; }
+.cv-subtab-content.active { display: block; }
 
-.cv-subtab-content.active {
-    display: block;
-}
-
-
-/* Styles for new elements in Mural Digital */
 .sticky-notices-container {
     margin-bottom: var(--cv-spacing-lg, 20px);
-    /* Consider adding a subtle background or border if it needs to be visually distinct */
 }
-
 .sticky-notices-container .communication__post {
-    background-color: var(--cv-color-warning-bg, #fff3cd); /* Light yellow, using variable */
-    border-left: 5px solid var(--cv-primary-orange, #ffeeba); /* Orange accent, using variable */
-    /* Add a specific class if sticky posts need more differentiation from regular posts */
+    background-color: var(--cv-color-warning-bg, #fff3cd);
+    border-left: 5px solid var(--cv-primary-orange, #ffeeba);
 }
 .sticky-notices-container .communication__post .communication__post-title::before {
-    content: "📌 "; /* Add a pin emoji before the title of sticky notes */
+    content: "📌 ";
 }
-
 
 .filters-container {
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    gap: var(--cv-spacing-md, 15px); /* Spacing between filter elements */
+    flex-wrap: wrap;
+    gap: var(--cv-spacing-md, 15px);
     align-items: center;
     margin-bottom: var(--cv-spacing-lg, 20px);
     padding: var(--cv-spacing-md, 15px);
-    background-color: var(--current-bg-white, #f8f9fa); /* Use theme variable or fallback */
-    border-radius: var(--cv-border-radius-md, 8px); /* Use theme variable */
+    background-color: var(--current-bg-white, #f8f9fa);
+    border-radius: var(--cv-border-radius-md, 8px);
     box-shadow: var(--current-shadow-sm);
 }
-
 .filters-container label {
     margin-right: var(--cv-spacing-xs, 5px);
-    font-weight: 500; /* Slightly bolder labels */
+    font-weight: 500;
     color: var(--current-text-secondary);
 }
-
 .filters-container .cv-input,
 .filters-container .cv-button {
-    flex-grow: 1; /* Allow inputs/button to grow */
-    min-width: 150px; /* Minimum width for inputs/button */
+    flex-grow: 1;
+    min-width: 150px;
 }
-
 @media (min-width: 768px) {
     .filters-container .cv-input,
     .filters-container .cv-button {
-        flex-grow: 0; /* Prevent growing too much on larger screens */
+        flex-grow: 0;
     }
 }
 
-
 .fab {
     position: fixed;
-    bottom: var(--cv-spacing-lg, 24px); /* Consistent spacing */
-    right: var(--cv-spacing-lg, 24px); /* Consistent spacing */
-    width: 72px; /* Slightly larger for better tap target */
-    height: 72px; /* Slightly larger for better tap target */
+    bottom: var(--cv-spacing-lg, 24px);
+    right: var(--cv-spacing-lg, 24px);
+    width: 72px;
+    height: 72px;
     background-color: var(--current-primary-blue, #007bff);
     color: var(--cv-text-on-primary, white);
     border: none;
@@ -1144,56 +1114,34 @@ html[data-theme="dark"] .cv-tabs-buttons.has-scroll-indicator::after {
     z-index: 1050;
     display: none;
     transition: background-color 0.2s ease, transform 0.15s ease-out, box-shadow 0.2s ease-out;
-    overflow: hidden; /* Hide parts of lines during transform if needed */
+    overflow: hidden;
 }
-
-/* Rotate the '+' icon into an 'X' when active */
-.fab.fab--rotated {
-    transform: rotate(45deg);
-}
-
-/* Keep rotation when hovering or pressing the button */
-.fab.fab--rotated:hover {
-    transform: scale(1.05) rotate(45deg);
-}
-
-.fab.fab--rotated:active {
-    transform: scale(0.95) rotate(45deg);
-}
-
-
+.fab.fab--rotated { transform: rotate(45deg); }
+.fab.fab--rotated:hover { transform: scale(1.05) rotate(45deg); }
+.fab.fab--rotated:active { transform: scale(0.95) rotate(45deg); }
 .fab:hover {
-    /* iOS FAB hover usually involves a subtle scale and shadow change, not typically color change */
-    filter: brightness(95%); /* Slightly darken the primary blue */
-    transform: scale(1.05); /* Slight scale up on hover */
-    box-shadow: var(--current-shadow-lg); /* More pronounced shadow on hover */
+    filter: brightness(95%);
+    transform: scale(1.05);
+    box-shadow: var(--current-shadow-lg);
 }
-
 .fab:active {
-    transform: scale(0.95); /* Press down effect */
-    filter: brightness(85%); /* Darker for active state */
-    box-shadow: var(--current-shadow-sm); /* Less shadow when pressed */
+    transform: scale(0.95);
+    filter: brightness(85%);
+    box-shadow: var(--current-shadow-sm);
 }
 
-/* Container e menu de opções do FAB */
-.fab-menu { /* This is the overall container for the FAB and its potential menu options */
+.fab-menu {
     position: fixed;
-    bottom: var(--cv-spacing-lg, 20px); /* Keep consistent with FAB position */
+    bottom: var(--cv-spacing-lg, 20px);
     right: var(--cv-spacing-lg, 20px);
-    z-index: 1049; /* Slightly below the FAB itself if FAB is part of this, or same if FAB is separate */
+    z-index: 1049;
     display: flex;
-    flex-direction: column-reverse; /* Options appear above the FAB */
-    align-items: flex-end; /* Align options to the right, matching FAB */
+    flex-direction: column-reverse;
+    align-items: flex-end;
 }
-
 body.has-bottom-nav .fab-menu {
     bottom: calc(70px + var(--cv-spacing-lg, 20px) + env(safe-area-inset-bottom, 0));
 }
-
-/* This is the actual button that triggers the menu, style it like the .fab above */
-/* If .fab-menu-button is the same as .fab, ensure only one is used in HTML or styles are merged */
-/* For this example, assuming .fab is the button and .fab-menu is just a wrapper for positioning options */
-
 .fab-menu-options {
     position: absolute;
     bottom: 96px;
@@ -1212,124 +1160,90 @@ html[data-theme="dark"] .fab-menu-options {
     background-color: var(--cv-dark-gray-200);
     box-shadow: 0 12px 24px rgba(0,0,0,0.3), 0 20px 40px rgba(0,0,0,0.3);
 }
-.fab-menu--open .fab-menu-options {
-    display: flex;
-}
+.fab-menu--open .fab-menu-options { display: flex; }
 .fab-menu-options .cv-button {
     width: 100%;
-    justify-content: center; /* Changed from flex-start to center */
+    justify-content: center;
 }
-
-/* If the FAB itself is part of .fab-menu and not a separate element outside it: */
-.fab-menu > .fab {
-     z-index: 1050;
-}
+.fab-menu > .fab { z-index: 1050; }
 
 @media (max-width: 767px) {
     .fab {
-        width: 60px; /* Smaller FAB */
+        width: 60px;
         height: 60px;
-        font-size: var(--cv-font-size-md, 18px); /* Adjusted icon size if needed */
+        font-size: var(--cv-font-size-md, 18px);
     }
-
     .fab-menu {
-        /* Ensure it's above bottom nav by default on mobile if bottom nav is a possibility */
-        /* This might be slightly different from body.has-bottom-nav .fab-menu if specific conditions apply */
         bottom: calc(var(--cv-spacing-md, 16px) + env(safe-area-inset-bottom, 0));
         right: var(--cv-spacing-md, 16px);
     }
-
     body.has-bottom-nav .fab {
-        /* Explicitly adjust FAB itself if its direct parent isn't .fab-menu or if more specific positioning is needed */
          bottom: calc(70px + var(--cv-spacing-md, 16px) + env(safe-area-inset-bottom, 0));
     }
-
     body.has-bottom-nav .fab-menu {
-        /* This rule was already present but ensure it's evaluated correctly with mobile adjustments */
-        /* Higher positioning for FAB menu when bottom nav is visible */
         bottom: calc(70px + var(--cv-spacing-md, 16px) + env(safe-area-inset-bottom, 0));
     }
-
     .fab-menu-options {
-        /* Adjust position of options menu relative to the now smaller/repositioned FAB */
-        bottom: 76px; /* Approx 60px (new FAB height) + 16px spacing */
-        right: var(--cv-spacing-sm, 8px); /* Closer to edge if FAB is also closer */
+        bottom: 76px;
+        right: var(--cv-spacing-sm, 8px);
     }
 }
 
-
-/* Helper class for loading messages if not already present */
 .cv-loading-message, .cv-error-message, .cv-no-more-message {
     padding: var(--cv-spacing-md);
     text-align: center;
     color: var(--current-text-secondary);
     font-style: italic;
 }
-.cv-error-message {
-    color: var(--current-semantic-error);
-}
+.cv-error-message { color: var(--current-semantic-error); }
 
-/* Modal Styles - Apple Inspired */
 .cv-modal {
-    display: none; /* Hidden by default; JS will set to flex when opened */
+    display: none;
     position: fixed;
-    z-index: 1050; /* Ensure it's above sticky header/nav but below highest system elements if any */
+    z-index: 1050;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto; /* Enable scroll if content is too long */
-    background-color: rgba(0,0,0,0.4); /* Standard overlay, slightly less dim than before */
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
     align-items: center;
     justify-content: center;
-    padding: var(--cv-spacing-md); /* Add some padding for smaller screens so modal doesn't touch edges */
+    padding: var(--cv-spacing-md);
     box-sizing: border-box;
 }
-
 .cv-modal-content {
     background-color: var(--current-bg-white);
-    padding: 0; /* Remove padding here, will be handled by header/body/footer sections */
+    padding: 0;
     border: none;
     width: 100%;
-    max-width: 500px; /* Slightly smaller max-width, common for iOS alerts/modals */
-    border-radius: var(--cv-border-radius-lg, 14px); /* iOS often uses larger radii like 13-14px for modals */
+    max-width: 500px;
+    border-radius: var(--cv-border-radius-lg, 14px);
     position: relative;
-    box-shadow: 0 12px 24px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.1); /* Adjusted shadow */
-
-    display: flex; /* Use flex to structure header, body, footer */
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.1);
+    display: flex;
     flex-direction: column;
-    max-height: calc(100dvh - var(--cv-spacing-xl) * 2.5); /* Adjusted max-height */
-    max-height: calc(100vh - var(--cv-spacing-xl) * 2.5); /* Fallback for older browsers */
+    max-height: calc(100dvh - var(--cv-spacing-xl) * 2.5);
+    max-height: calc(100vh - var(--cv-spacing-xl) * 2.5);
     overflow-y: auto;
-
-    animation: cv-modal-scale-up 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Faster, more iOS-like spring */
+    animation: cv-modal-scale-up 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
-
 html[data-theme="dark"] .cv-modal-content {
      background-color: var(--cv-dark-gray-200);
      box-shadow: 0 12px 24px rgba(0,0,0,0.3), 0 20px 40px rgba(0,0,0,0.3);
 }
-
-/* Utility padding for modals that don't use header/body sections */
-.cv-modal-content--padded {
-    padding: var(--cv-spacing-lg);
-}
-
+.cv-modal-content--padded { padding: var(--cv-spacing-lg); }
 .cv-modal-header {
     padding: var(--cv-spacing-md) var(--cv-spacing-lg);
     border-bottom: 1px solid var(--current-border-subtle);
     display: flex;
-    /* justify-content: space-between; */ /* Replaced by specific title/close button handling */
     align-items: center;
-    min-height: 56px; /* Standard iOS header height */
+    min-height: 56px;
     box-sizing: border-box;
-    position: relative; /* For absolute positioning of close button if needed */
+    position: relative;
 }
-html[data-theme="dark"] .cv-modal-header {
-    border-bottom-color: var(--cv-dark-gray-400);
-}
-
-.cv-modal-header h2 { /* Modal Title */
+html[data-theme="dark"] .cv-modal-header { border-bottom-color: var(--cv-dark-gray-400); }
+.cv-modal-header h2 {
     margin: 0;
     font-size: var(--cv-font-size-lg);
     color: var(--current-text-primary);
@@ -1337,42 +1251,27 @@ html[data-theme="dark"] .cv-modal-header {
     line-height: 1.3;
     text-align: center;
     flex-grow: 1;
-    padding-left: 40px; /* Make space for close button if it's on the left */
-    padding-right: 40px; /* Make space for close button if it's on the right */
-    /* This padding assumes the close button is roughly 30px + 10px spacing */
+    padding-left: 40px;
+    padding-right: 40px;
 }
-/* The .cv-modal-close button is expected to be absolutely positioned or handled by flex order */
-/* If close button is always on right: */
 .cv-modal-header .cv-modal-close {
-    position: absolute; /* Simpler to manage for true centering of title */
+    position: absolute;
     right: var(--cv-spacing-md);
     top: 50%;
     transform: translateY(-50%);
 }
-/* If title should be truly centered regardless of close button, and close is part of flex: */
-/* .cv-modal-header { justify-content: center; } */
-/* .cv-modal-header h2 { flex-grow: 0; } */
-/* .cv-modal-header .cv-modal-close { position: absolute; right: var(--cv-spacing-md); ... } */
-/* For this iteration, absolute positioning of close button is robust for title centering. */
-
-
 .cv-modal-body {
     padding: var(--cv-spacing-lg);
     overflow-y: auto;
     flex-grow: 1;
     -webkit-overflow-scrolling: touch;
-    font-size: var(--cv-font-size-md); /* Standard body text size */
+    font-size: var(--cv-font-size-md);
     line-height: 1.5;
 }
-.cv-modal-body p:first-child {
-    margin-top: 0;
-}
-.cv-modal-body p:last-child {
-    margin-bottom: 0;
-}
-
+.cv-modal-body p:first-child { margin-top: 0; }
+.cv-modal-body p:last-child { margin-bottom: 0; }
 .cv-modal-footer {
-    padding: var(--cv-spacing-sm) var(--cv-spacing-lg); /* Reduced padding for a tighter footer */
+    padding: var(--cv-spacing-sm) var(--cv-spacing-lg);
     border-top: 1px solid var(--current-border-subtle);
     display: flex;
     justify-content: flex-end;
@@ -1380,36 +1279,23 @@ html[data-theme="dark"] .cv-modal-header {
     background-color: var(--current-bg-white);
     border-bottom-left-radius: var(--cv-border-radius-lg, 14px);
     border-bottom-right-radius: var(--cv-border-radius-lg, 14px);
-    min-height: 50px; /* Min height for footer */
-    align-items: center; /* Vertically align buttons if they have different heights */
+    min-height: 50px;
+    align-items: center;
     box-sizing: border-box;
 }
 html[data-theme="dark"] .cv-modal-footer {
     background-color: var(--cv-dark-gray-200);
     border-top-color: var(--cv-dark-gray-400);
 }
-
-/* Default modal buttons in footer (non-alert style) */
-.cv-modal-footer .cv-button {
-    /* Use the new button styles by default */
-    /* Example: make primary button more prominent if needed */
-}
-.cv-modal-footer .cv-button.cv-button--primary {
-    /* font-weight: 600; */ /* Already handled by button style itself */
-}
-
-
-/* iOS-style Alert/Dialog buttons in footer */
 .cv-modal-footer.cv-modal-footer--ios-alert {
     justify-content: center;
     padding: 0;
     gap: 0;
-    border-top-color: var(--current-border-color); /* Thicker/more visible separator for alert buttons */
+    border-top-color: var(--current-border-color);
 }
 html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert {
-    border-top-color: var(--cv-dark-gray-500); /* Even more distinct separator for dark mode alerts */
+    border-top-color: var(--cv-dark-gray-500);
 }
-
 .cv-modal-footer.cv-modal-footer--ios-alert .cv-button {
     flex-grow: 1;
     border-radius: 0;
@@ -1417,14 +1303,13 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert {
     padding-top: var(--cv-spacing-md);
     padding-bottom: var(--cv-spacing-md);
     font-size: var(--cv-font-size-md);
-    min-height: 48px; /* Slightly taller alert buttons */
-    border: none; /* Remove individual button borders */
-    /* border-top: 1px solid var(--current-border-subtle); */ /* Top border is now on the footer itself */
-    background-color: transparent; /* Alert buttons are typically transparent */
-    color: var(--current-primary-blue); /* Default action color */
+    min-height: 48px;
+    border: none;
+    background-color: transparent;
+    color: var(--current-primary-blue);
 }
 .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:not(:first-child) {
-    border-left: 1px solid var(--current-border-color); /* Vertical separators */
+    border-left: 1px solid var(--current-border-color);
 }
 html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button {
     color: var(--cv-dark-primary-blue);
@@ -1432,9 +1317,8 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button {
 html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:not(:first-child) {
     border-left-color: var(--cv-dark-gray-500);
 }
-
-.cv-modal-footer.cv-modal-footer--ios-alert .cv-button.cv-button--primary, /* Preferred action */
-.cv-modal-footer.cv-modal-footer--ios-alert .cv-button:last-child:not(.cv-button--destructive) { /* Or last button if not destructive */
+.cv-modal-footer.cv-modal-footer--ios-alert .cv-button.cv-button--primary,
+.cv-modal-footer.cv-modal-footer--ios-alert .cv-button:last-child:not(.cv-button--destructive) {
     font-weight: 600;
 }
 .cv-modal-footer.cv-modal-footer--ios-alert .cv-button.cv-button--destructive {
@@ -1447,7 +1331,6 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button.c
 .cv-modal-footer.cv-modal-footer--ios-alert .cv-button.cv-button--destructive.cv-button--primary {
     font-weight: 600;
 }
-/* Hover/Active for iOS alert buttons */
 .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:hover {
     background-color: var(--cv-gray-100-alpha-50);
 }
@@ -1461,879 +1344,234 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:a
     background-color: var(--cv-dark-gray-200-alpha-70);
 }
 
-
 @keyframes cv-modal-scale-up {
-    from {
-        opacity: 0;
-        transform: scale(0.95) translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+    from { opacity: 0; transform: scale(0.95) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* Remove old global .cv-modal-content h2 and .cv-modal-close as they are now part of .cv-modal-header */
-/*
-.cv-modal-content h2 {
-    margin-top: 0;
-    font-size: var(--cv-font-size-h3);
-    color: var(--current-text-primary);
-    border-bottom: 1px solid var(--current-border-subtle);
-    padding-bottom: var(--cv-spacing-md);
-    margin-bottom: var(--cv-spacing-lg);
-    font-weight: 600;
-}
-*/
-.cv-modal-close { /* This is the actual close button, typically an 'X' icon */
-    background-color: var(--cv-gray-500-alpha-30); /* Light gray circle, iOS style */
-    color: var(--cv-gray-900); /* Darker 'X' for light mode */
+.cv-modal-close {
+    background-color: var(--cv-gray-500-alpha-30);
+    color: var(--cv-gray-900);
     border-radius: 50%;
-    width: 28px; /* Slightly smaller */
+    width: 28px;
     height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: absolute;
-    top: var(--cv-spacing-sm); /* Closer to edge, 8px */
-    right: var(--cv-spacing-sm); /* Closer to edge, 8px */
-    font-size: 14px; /* Smaller '×' */
-    font-weight: 400; /* Thinner 'X' */
+    top: var(--cv-spacing-sm);
+    right: var(--cv-spacing-sm);
+    font-size: 14px;
+    font-weight: 400;
     line-height: 1;
     text-decoration: none;
-    border: none; /* No border for iOS style */
+    border: none;
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.15s ease-out, opacity 0.2s ease;
 }
-
 .cv-modal-close:hover,
 .cv-modal-close:focus {
-    background-color: var(--cv-gray-600-alpha-50); /* Slightly darker on hover */
-    color: var(--cv-gray-900); /* Keep 'X' color */
+    background-color: var(--cv-gray-600-alpha-50);
+    color: var(--cv-gray-900);
     outline: none;
     text-decoration: none;
-    transform: scale(1.05); /* Subtle scale */
+    transform: scale(1.05);
 }
-
 .cv-modal-close:active {
-    transform: scale(0.95); /* Press down effect */
-    background-color: var(--cv-gray-300); /* More opaque / darker when pressed */
+    transform: scale(0.95);
+    background-color: var(--cv-gray-300);
     opacity: 0.8;
 }
-
 html[data-theme="dark"] .cv-modal-close {
-    background-color: var(--cv-dark-gray-500-alpha-40); /* Dark gray circle for dark mode */
-    color: var(--cv-dark-gray-900); /* Lighter 'X' for dark mode */
+    background-color: var(--cv-dark-gray-500-alpha-40);
+    color: var(--cv-dark-gray-900);
 }
-
 html[data-theme="dark"] .cv-modal-close:hover,
 html[data-theme="dark"] .cv-modal-close:focus {
     background-color: var(--cv-dark-gray-600-alpha-60);
-    color: var(--cv-dark-gray-900); /* Keep 'X' color */
+    color: var(--cv-dark-gray-900);
     transform: scale(1.05);
 }
-
 html[data-theme="dark"] .cv-modal-close:active {
     transform: scale(0.95);
     background-color: var(--cv-dark-gray-400);
     opacity: 0.8;
 }
 
+.cv-form { display: flex; flex-direction: column; gap: var(--cv-spacing-md); }
+.cv-form-group { display: flex; flex-direction: column; margin-bottom: var(--cv-spacing-md); }
 
-/* Basic form layout */
-.cv-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--cv-spacing-md);
-}
+#form-criar-aviso .cv-form-group { margin-bottom: var(--cv-spacing-md, 15px); }
+#form-criar-aviso label { display: block; margin-bottom: var(--cv-spacing-xs, 5px); font-weight: 500; color: var(--current-text-secondary); }
+#form-criar-aviso .cv-input { width: 100%; box-sizing: border-box; }
+#form-criar-aviso textarea.cv-input { resize: vertical; min-height: 80px; }
+#form-criar-aviso select[multiple].cv-input { min-height: 100px; }
+#form-criar-aviso .cv-form-group small { display: block; font-size: 0.85em; color: var(--current-text-placeholder); margin-top: var(--cv-spacing-xs); }
 
-.cv-form-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: var(--cv-spacing-md);
-}
-
-/* Styling for form elements within modal, assuming .cv-form, .cv-form-group, .cv-input, .cv-button are globally styled */
-#form-criar-aviso .cv-form-group {
-    margin-bottom: var(--cv-spacing-md, 15px);
-}
-
-#form-criar-aviso label {
-    display: block;
-    margin-bottom: var(--cv-spacing-xs, 5px);
-    font-weight: 500; /* Or OpenSansSemibold */
-    color: var(--current-text-secondary);
-}
-#form-criar-aviso .cv-input {
-    width: 100%; /* Make inputs take full width of their container */
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
-}
-#form-criar-aviso textarea.cv-input {
-    resize: vertical; /* Allow vertical resize, disable horizontal */
-    min-height: 80px;
-}
-#form-criar-aviso select[multiple].cv-input {
-    min-height: 100px; /* Make multiple select more usable */
-}
-#form-criar-aviso .cv-form-group small {
-    display: block;
-    font-size: 0.85em;
-    color: var(--current-text-placeholder);
-    margin-top: var(--cv-spacing-xs);
-}
-
-
-.cv-form-actions {
-    margin-top: var(--cv-spacing-lg, 20px);
-    display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
-    gap: var(--cv-spacing-sm, 10px); /* Space between buttons */
-}
-/* .cv-form-actions .cv-button {} */ /* General button styling is applied */
-
+.cv-form-actions { margin-top: var(--cv-spacing-lg, 20px); display: flex; justify-content: flex-end; gap: var(--cv-spacing-sm, 10px); }
 @media (max-width: 576px) {
-    .cv-form-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .cv-form-actions .cv-button {
-        width: 100%;
-    }
+    .cv-form-actions { flex-direction: column; align-items: stretch; }
+    .cv-form-actions .cv-button { width: 100%; }
 }
 
-/* Notice Card Action Buttons */
-.communication__post-actions {
-    margin-top: var(--cv-spacing-md, 15px); /* Use theme variable */
-    padding-top: var(--cv-spacing-sm, 10px); /* Use theme variable */
-    border-top: 1px solid var(--current-border-subtle, #eee); /* Use theme variable */
-    text-align: right;
-    display: flex; /* Added for better alignment if needed */
-    justify-content: flex-end; /* Align buttons to the right */
-    gap: var(--cv-spacing-sm, 8px); /* Space between buttons */
-}
+.communication__post-actions { margin-top: var(--cv-spacing-md, 15px); padding-top: var(--cv-spacing-sm, 10px); border-top: 1px solid var(--current-border-subtle, #eee); text-align: right; display: flex; justify-content: flex-end; gap: var(--cv-spacing-sm, 8px); }
+.cv-button-link { background: none; border: none; color: var(--current-text-link, #007bff); cursor: pointer; padding: var(--cv-spacing-xs, 4px) var(--cv-spacing-sm, 8px); margin-left: var(--cv-spacing-sm, 8px); font-size: 0.9em; font-family: var(--cv-font-family-sans-serif); text-decoration: none; border-radius: var(--cv-border-radius-sm); transition: background-color 0.2s ease, color 0.2s ease; }
+.cv-button-link:hover { text-decoration: underline; background-color: var(--cv-gray-100); }
+.cv-button-link.danger { color: var(--current-semantic-error, #FF3B30); }
+.cv-button-link.danger:hover { color: var(--current-semantic-error, #FF3B30); background-color: var(--cv-color-error-bg); }
+.communication__post-meta { font-size: 0.85em; color: var(--current-text-secondary); margin-top: var(--cv-spacing-md); padding-top: var(--cv-spacing-sm); border-top: 1px dashed var(--current-border-subtle); }
 
-.cv-button-link {
-    background: none;
-    border: none;
-    color: var(--current-text-link, #007bff); /* Use theme variable */
-    cursor: pointer;
-    padding: var(--cv-spacing-xs, 4px) var(--cv-spacing-sm, 8px); /* Use theme variable */
-    margin-left: var(--cv-spacing-sm, 8px); /* Use theme variable */
-    font-size: 0.9em; /* Slightly smaller than main buttons */
-    font-family: var(--cv-font-family-sans-serif); /* Ensure font consistency */
-    text-decoration: none; /* Remove default underline for links */
-    border-radius: var(--cv-border-radius-sm); /* Consistent border radius */
-    transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition */
-}
+#content-enquetes .cv-section { margin-bottom: var(--cv-spacing-xl, 30px); padding-bottom: var(--cv-spacing-lg, 20px); border-bottom: 1px solid var(--current-border-subtle, #eee); }
+#content-enquetes .cv-section:last-of-type { border-bottom: none; }
+#content-enquetes .cv-section h3 { font-size: var(--cv-font-size-h4); color: var(--current-text-primary); margin-bottom: var(--cv-spacing-md); }
 
-.cv-button-link:hover {
-    text-decoration: underline;
-    background-color: var(--cv-gray-100); /* Subtle background on hover */
-}
+.enquetes-list .cv-card { margin-bottom: var(--cv-spacing-md, 15px); padding: var(--cv-spacing-md, 15px); background-color: var(--current-bg-white); border-radius: var(--cv-border-radius-md); box-shadow: var(--current-shadow-sm); }
+.enquetes-list .cv-card h4 { font-size: var(--cv-font-size-lg); color: var(--current-text-primary); margin-top: 0; margin-bottom: var(--cv-spacing-sm, 10px); }
+.enquetes-list .cv-card p { font-size: 0.9em; color: var(--current-text-secondary); margin-bottom: var(--cv-spacing-xs, 5px); }
+.enquetes-list .cv-card p:last-of-type { margin-bottom: var(--cv-spacing-sm); }
+.enquetes-list .cv-card .poll-options { margin-top: var(--cv-spacing-sm); margin-bottom: var(--cv-spacing-md); }
+.enquetes-list .cv-card .poll-options .cv-button { margin-right: var(--cv-spacing-xs, 5px); margin-bottom: var(--cv-spacing-xs, 5px); }
+.enquetes-list .cv-card .poll-options label { display: block; margin-bottom: var(--cv-spacing-xs); }
+.enquetes-list .cv-card .poll-status { font-size: 0.9em; margin-top: var(--cv-spacing-sm); }
+.enquetes-list .cv-card .poll-status.voted { color: var(--current-semantic-success, green); font-weight: 600; }
+.enquetes-list .cv-card .poll-status.not-voted { color: var(--current-semantic-warning, orange); }
+.enquetes-list .cv-card .poll-status.closed { color: var(--current-text-placeholder, #888); }
 
-.cv-button-link.danger {
-    color: var(--current-semantic-error, #FF3B30); /* Use theme variable for error/danger color */
-}
-.cv-button-link.danger:hover {
-    color: var(--current-semantic-error, #FF3B30); /* Keep color on hover for danger */
-    background-color: var(--cv-color-error-bg); /* Light red background for danger hover */
-}
+.enquete-resultados-details { padding: var(--cv-spacing-md, 15px); background-color: var(--cv-gray-100, #f9f9f9); border-radius: var(--cv-border-radius-md); min-height: 100px; margin-bottom: var(--cv-spacing-md); }
+.enquete-resultados-details h4 { font-size: var(--cv-font-size-lg); margin-bottom: var(--cv-spacing-sm); }
+.js-back-to-active-enquetes { margin-top: var(--cv-spacing-sm, 10px); }
 
-/* Meta information in notice card */
-.communication__post-meta {
-    font-size: 0.85em;
-    color: var(--current-text-secondary);
-    margin-top: var(--cv-spacing-md);
-    padding-top: var(--cv-spacing-sm);
-    border-top: 1px dashed var(--current-border-subtle);
-}
+#form-criar-enquete .cv-form-group { margin-bottom: var(--cv-spacing-md, 15px); }
+#form-criar-enquete label { display: block; margin-bottom: var(--cv-spacing-xs, 5px); font-weight: 500; color: var(--current-text-secondary); }
+#form-criar-enquete .cv-input { width: 100%; box-sizing: border-box; }
+#form-criar-enquete textarea.cv-input { resize: vertical; min-height: 80px; }
 
-/* Enquetes Tab Specific Styles */
-#content-enquetes .cv-section {
-    margin-bottom: var(--cv-spacing-xl, 30px); /* Use theme variable */
-    padding-bottom: var(--cv-spacing-lg, 20px); /* Use theme variable */
-    border-bottom: 1px solid var(--current-border-subtle, #eee); /* Use theme variable */
-}
-#content-enquetes .cv-section:last-of-type { /* Use last-of-type for better specificity */
-    border-bottom: none;
-}
-#content-enquetes .cv-section h3 { /* Sub-section titles */
-    font-size: var(--cv-font-size-h4); /* Use theme variable */
-    color: var(--current-text-primary);
-    margin-bottom: var(--cv-spacing-md);
-}
+.communication__poll-card { margin-bottom: var(--cv-spacing-lg, 20px); }
+.communication__poll-card h4 { font-size: var(--cv-font-size-lg); color: var(--current-text-primary); margin-bottom: var(--cv-spacing-sm, 10px); }
+.communication__poll-card p { font-size: 0.9em; color: var(--current-text-secondary); margin-bottom: var(--cv-spacing-xs, 4px); }
+.communication__poll-card p.poll-status { margin-top: var(--cv-spacing-sm, 8px); margin-bottom: var(--cv-spacing-md, 15px); }
+.poll-options { margin-top: var(--cv-spacing-md, 15px); margin-bottom: var(--cv-spacing-md, 15px); }
+.poll-options .cv-button.vote-option { margin-right: var(--cv-spacing-sm, 8px); margin-bottom: var(--cv-spacing-sm, 8px); }
+.poll-options p strong { color: var(--current-text-primary); }
+.view-results { font-size: 0.9em; }
 
+.poll-result-item { margin-bottom: var(--cv-spacing-sm, 10px); }
+.poll-result-option-text { display: block; font-size: 0.95em; color: var(--current-text-secondary); margin-bottom: var(--cv-spacing-xs, 4px); }
+.poll-result-bar-container { width: 100%; background-color: var(--cv-gray-200, #e9ecef); border-radius: var(--cv-border-radius-sm, 4px); overflow: hidden; }
+.poll-result-bar { height: 22px; line-height: 22px; color: var(--cv-text-on-primary, white); text-align: center; font-size: 0.85em; font-weight: 600; border-radius: var(--cv-border-radius-sm, 4px); transition: width 0.5s ease-in-out; white-space: nowrap; overflow: hidden; padding: 0 var(--cv-spacing-xs); box-sizing: border-box; }
+.communication__poll-card .admin-actions { margin-top: var(--cv-spacing-md, 15px); padding-top: var(--cv-spacing-sm, 10px); border-top: 1px solid var(--current-border-subtle, #eee); text-align: right; display: flex; justify-content: flex-end; gap: var(--cv-spacing-sm, 8px); }
+.communication__poll-card .admin-actions .cv-button-link { font-size: 0.85em; margin-left: 0; }
 
-.enquetes-list .cv-card { /* Assuming polls are displayed in cards */
-    margin-bottom: var(--cv-spacing-md, 15px); /* Use theme variable */
-    padding: var(--cv-spacing-md, 15px); /* Use theme variable */
-    background-color: var(--current-bg-white); /* Use theme variable */
-    border-radius: var(--cv-border-radius-md); /* Use theme variable */
-    box-shadow: var(--current-shadow-sm); /* Use theme variable */
-}
-
-.enquetes-list .cv-card h4 { /* Poll question */
-    font-size: var(--cv-font-size-lg); /* Use theme variable */
-    color: var(--current-text-primary);
-    margin-top: 0; /* Remove default margin if any */
-    margin-bottom: var(--cv-spacing-sm, 10px); /* Use theme variable */
-}
-
-.enquetes-list .cv-card p { /* Poll metadata like deadline, author */
-    font-size: 0.9em;
-    color: var(--current-text-secondary);
-    margin-bottom: var(--cv-spacing-xs, 5px); /* Use theme variable */
-}
-.enquetes-list .cv-card p:last-of-type {
-    margin-bottom: var(--cv-spacing-sm); /* More space after last metadata before options/actions */
-}
-
-
-.enquetes-list .cv-card .poll-options {
-    margin-top: var(--cv-spacing-sm);
-    margin-bottom: var(--cv-spacing-md);
-}
-.enquetes-list .cv-card .poll-options .cv-button { /* If options are buttons */
-    margin-right: var(--cv-spacing-xs, 5px); /* Use theme variable */
-    margin-bottom: var(--cv-spacing-xs, 5px); /* Use theme variable */
-}
-/* Example styling for radio/checkbox options if not buttons */
-.enquetes-list .cv-card .poll-options label {
-    display: block;
-    margin-bottom: var(--cv-spacing-xs);
-}
-
-
-.enquetes-list .cv-card .poll-status {
-    font-size: 0.9em;
-    margin-top: var(--cv-spacing-sm);
-}
-.enquetes-list .cv-card .poll-status.voted {
-    color: var(--current-semantic-success, green); /* Use theme variable */
-    font-weight: 600; /* OpenSansSemibold */
-}
-.enquetes-list .cv-card .poll-status.not-voted {
-    color: var(--current-semantic-warning, orange); /* Use theme variable */
-}
-.enquetes-list .cv-card .poll-status.closed {
-    color: var(--current-text-placeholder, #888);
-}
-
-
-.enquete-resultados-details {
-    padding: var(--cv-spacing-md, 15px); /* Use theme variable */
-    background-color: var(--cv-gray-100, #f9f9f9); /* Use theme variable for light bg */
-    border-radius: var(--cv-border-radius-md); /* Use theme variable */
-    min-height: 100px;
-    margin-bottom: var(--cv-spacing-md);
-}
-.enquete-resultados-details h4 { /* Title for results, e.g., "Resultados para: [Poll Question]" */
-    font-size: var(--cv-font-size-lg);
-    margin-bottom: var(--cv-spacing-sm);
-}
-/* Styles for charts or result bars would go here */
-
-
-.js-back-to-active-enquetes {
-    margin-top: var(--cv-spacing-sm, 10px); /* Use theme variable */
-}
-
-/* FAB for enquetes - .fab class should cover it unless specific icon/color is needed */
-/* .js-fab-enquetes {} */
-
-/* Modal for Enquetes - .cv-modal and .cv-modal-content should cover it */
-/* #modal-criar-enquete .cv-modal-content {} */
-/* Specific form styling for Enquete modal, if different from Aviso modal */
-#form-criar-enquete .cv-form-group {
-    margin-bottom: var(--cv-spacing-md, 15px);
-}
-#form-criar-enquete label {
-    display: block;
-    margin-bottom: var(--cv-spacing-xs, 5px);
-    font-weight: 500;
-    color: var(--current-text-secondary);
-}
-#form-criar-enquete .cv-input {
-    width: 100%;
-    box-sizing: border-box;
-}
-#form-criar-enquete textarea.cv-input {
-    resize: vertical;
-    min-height: 80px; /* Same as aviso form */
-}
-#form-criar-enquete input[type="datetime-local"].cv-input {
-    /* Specific styling for datetime-local if needed */
-}
-
-/* Enhancements for Poll Cards and Results Display */
-.communication__poll-card { /* This is the new class for individual poll cards */
-    margin-bottom: var(--cv-spacing-lg, 20px); /* More spacing between poll cards */
-    /* .cv-card base styling is inherited. Add specific overrides if needed */
-}
-
-.communication__poll-card h4 { /* Poll Question */
-    font-size: var(--cv-font-size-lg); /* Already in .enquetes-list .cv-card h4, ensure it applies if class is different */
-    color: var(--current-text-primary);
-    margin-bottom: var(--cv-spacing-sm, 10px);
-}
-
-.communication__poll-card p { /* Metadata like deadline, status */
-    font-size: 0.9em;
-    color: var(--current-text-secondary);
-    margin-bottom: var(--cv-spacing-xs, 4px);
-}
-.communication__poll-card p.poll-status {
-    margin-top: var(--cv-spacing-sm, 8px);
-    margin-bottom: var(--cv-spacing-md, 15px); /* More space after status before options/results link */
-}
-
-
-.poll-options { /* Container for vote buttons or chosen option text */
-    margin-top: var(--cv-spacing-md, 15px);
-    margin-bottom: var(--cv-spacing-md, 15px);
-}
-
-.poll-options .cv-button.vote-option { /* Specific class for vote buttons */
-    margin-right: var(--cv-spacing-sm, 8px);
-    margin-bottom: var(--cv-spacing-sm, 8px);
-}
-.poll-options p strong { /* Styling for the "Sua escolha: XYZ" text */
-    color: var(--current-text-primary);
-}
-
-
-.view-results { /* Class for "Ver Resultados Parciais" button */
-    font-size: 0.9em; /* Match other link buttons */
-}
-
-/* Poll Result Bar Styling */
-.poll-result-item { /* Container for one option's result */
-    margin-bottom: var(--cv-spacing-sm, 10px);
-}
-.poll-result-option-text {
-    display: block;
-    font-size: 0.95em;
-    color: var(--current-text-secondary);
-    margin-bottom: var(--cv-spacing-xs, 4px);
-}
-.poll-result-bar-container {
-    width: 100%;
-    background-color: var(--cv-gray-200, #e9ecef); /* Light gray background for the track */
-    border-radius: var(--cv-border-radius-sm, 4px);
-    overflow: hidden; /* Ensure inner bar respects border radius */
-}
-.poll-result-bar {
-    height: 22px;
-    line-height: 22px; /* Vertically center text */
-    color: var(--cv-text-on-primary, white);
-    text-align: center;
-    font-size: 0.85em;
-    font-weight: 600; /* Semibold */
-    border-radius: var(--cv-border-radius-sm, 4px); /* Match container, or slightly less if padding desired */
-    transition: width 0.5s ease-in-out; /* Animate bar width changes */
-    white-space: nowrap; /* Prevent text wrapping */
-    overflow: hidden; /* Hide text if bar is too small, though % should be visible */
-    padding: 0 var(--cv-spacing-xs); /* Small padding for text inside bar */
-    box-sizing: border-box;
-}
-
-/* Admin Actions for Poll Cards */
-.communication__poll-card .admin-actions {
-    margin-top: var(--cv-spacing-md, 15px);
-    padding-top: var(--cv-spacing-sm, 10px);
-    border-top: 1px solid var(--current-border-subtle, #eee);
-    text-align: right; /* Align buttons to the right */
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--cv-spacing-sm, 8px);
-}
-
-.communication__poll-card .admin-actions .cv-button-link {
-    /* Uses existing .cv-button-link styling */
-    /* Add specific overrides if needed, e.g., font size or padding */
-    font-size: 0.85em; /* Slightly smaller for admin actions */
-    margin-left: 0; /* Reset margin if .cv-button-link has default left margin */
-}
-
-/* Chamados Tab Specific Styles */
-#content-chamados .cv-section {
-    margin-bottom: var(--cv-spacing-xl, 30px);
-    padding-bottom: var(--cv-spacing-lg, 20px);
-    border-bottom: 1px solid var(--current-border-subtle, #eee);
-}
-#content-chamados .cv-section:last-of-type {
-    border-bottom: none;
-}
-#content-chamados .cv-section h3 {
-    font-size: var(--cv-font-size-h4);
-    color: var(--current-text-primary);
-    margin-bottom: var(--cv-spacing-md);
-}
-
-/* Styling for the list of chamados */
-.chamados-list .cv-card { /* Assuming chamados are displayed in cards */
-    margin-bottom: var(--cv-spacing-md, 15px);
-    padding: var(--cv-spacing-md, 15px);
-    background-color: var(--current-bg-white);
-    border-radius: var(--cv-border-radius-md);
-    box-shadow: var(--current-shadow-sm);
-    cursor: pointer; /* Indicate items are clickable to see details */
-    transition: box-shadow 0.2s ease-in-out;
-}
-.chamados-list .cv-card:hover {
-    box-shadow: var(--current-shadow-md);
-}
-.chamados-list .cv-card h4 { /* Chamado Title */
-    font-size: var(--cv-font-size-lg);
-    color: var(--current-text-primary);
-    margin: 0 0 var(--cv-spacing-xs, 4px) 0;
-}
-.chamados-list .cv-card p { /* metadata like status, date, category */
-    font-size: 0.9em;
-    color: var(--current-text-secondary);
-    margin-bottom: var(--cv-spacing-xs, 4px);
-}
+#content-chamados .cv-section { margin-bottom: var(--cv-spacing-xl, 30px); padding-bottom: var(--cv-spacing-lg, 20px); border-bottom: 1px solid var(--current-border-subtle, #eee); }
+#content-chamados .cv-section:last-of-type { border-bottom: none; }
+#content-chamados .cv-section h3 { font-size: var(--cv-font-size-h4); color: var(--current-text-primary); margin-bottom: var(--cv-spacing-md); }
+.chamados-list .cv-card { margin-bottom: var(--cv-spacing-md, 15px); padding: var(--cv-spacing-md, 15px); background-color: var(--current-bg-white); border-radius: var(--cv-border-radius-md); box-shadow: var(--current-shadow-sm); cursor: pointer; transition: box-shadow 0.2s ease-in-out; }
+.chamados-list .cv-card:hover { box-shadow: var(--current-shadow-md); }
+.chamados-list .cv-card h4 { font-size: var(--cv-font-size-lg); color: var(--current-text-primary); margin: 0 0 var(--cv-spacing-xs, 4px) 0; }
+.chamados-list .cv-card p { font-size: 0.9em; color: var(--current-text-secondary); margin-bottom: var(--cv-spacing-xs, 4px); }
 .chamados-list .cv-card .chamado-status-aberto { color: var(--current-semantic-warning); font-weight: 600; }
 .chamados-list .cv-card .chamado-status-em_andamento { color: var(--current-semantic-info); font-weight: 600; }
 .chamados-list .cv-card .chamado-status-concluido { color: var(--current-semantic-success); font-weight: 600; }
 
+.chamado-detail-content { padding: var(--cv-spacing-md, 15px); background-color: var(--current-bg-element, #f9f9f9); border-radius: var(--cv-border-radius-md); margin-bottom: var(--cv-spacing-lg, 20px); }
+.chamado-detail-content p { margin-bottom: var(--cv-spacing-sm, 8px); line-height: 1.6; }
+.chamado-detail-content strong { font-weight: 600; color: var(--current-text-primary); }
+.chamado-interactions { margin-top: var(--cv-spacing-lg, 20px); }
+.chamado-interactions h4 { font-size: var(--cv-font-size-lg); margin-bottom: var(--cv-spacing-sm); }
+.interaction-item { padding: var(--cv-spacing-sm, 10px); border: 1px solid var(--current-border-subtle, #eee); border-radius: var(--cv-border-radius-sm, 5px); margin-bottom: var(--cv-spacing-sm, 10px); background-color: var(--current-bg-white); }
+.interaction-item p { margin: 0 0 var(--cv-spacing-xs, 5px) 0; white-space: pre-wrap; }
+.interaction-item .meta { font-size: 0.8em; color: var(--current-text-placeholder, #777); }
+.interaction-item .meta .author { font-weight: 600; }
 
-/* Styling for Chamado Detail View */
-.chamado-detail-content {
-    padding: var(--cv-spacing-md, 15px);
-    background-color: var(--current-bg-element, #f9f9f9); /* Slightly different bg */
-    border-radius: var(--cv-border-radius-md);
-    margin-bottom: var(--cv-spacing-lg, 20px);
-}
-.chamado-detail-content p {
-    margin-bottom: var(--cv-spacing-sm, 8px);
-    line-height: 1.6;
-}
-.chamado-detail-content strong { /* For labels like "Status:", "Categoria:" */
-    font-weight: 600; /* OpenSansSemibold */
-    color: var(--current-text-primary);
-}
+#form-criar-chamado .admin-only-field { border-top: 1px dashed var(--current-border-subtle); margin-top: var(--cv-spacing-md); padding-top: var(--cv-spacing-md); }
+#form-criar-chamado .cv-form-group { margin-bottom: var(--cv-spacing-md, 15px); }
+#form-criar-chamado label { display: block; margin-bottom: var(--cv-spacing-xs, 5px); font-weight: 500; color: var(--current-text-secondary); }
+#form-criar-chamado .cv-input { width: 100%; box-sizing: border-box; }
+#form-criar-chamado textarea.cv-input { resize: vertical; min-height: 100px; }
 
-.chamado-interactions {
-    margin-top: var(--cv-spacing-lg, 20px);
-}
-.chamado-interactions h4 {
-    font-size: var(--cv-font-size-lg);
-    margin-bottom: var(--cv-spacing-sm);
-}
-.interaction-item {
-    padding: var(--cv-spacing-sm, 10px);
-    border: 1px solid var(--current-border-subtle, #eee);
-    border-radius: var(--cv-border-radius-sm, 5px);
-    margin-bottom: var(--cv-spacing-sm, 10px);
-    background-color: var(--current-bg-white);
-}
-.interaction-item p {
-    margin: 0 0 var(--cv-spacing-xs, 5px) 0;
-    white-space: pre-wrap; /* Preserve line breaks in comments */
-}
-.interaction-item .meta {
-    font-size: 0.8em;
-    color: var(--current-text-placeholder, #777);
-}
-.interaction-item .meta .author {
-    font-weight: 600; /* OpenSansSemibold */
-}
+.login-form__links { text-align: center; margin-top: 15px; }
+.login-form__link { color: var(--current-text-link); text-decoration: none; font-size: 0.9em; }
+.login-form__link:hover { text-decoration: underline; }
+.login-form__link-separator { margin: 0 5px; color: var(--cv-gray-400); }
 
-/* Admin-only fields in modal - already have .admin-only-field class for JS control */
-#form-criar-chamado .admin-only-field {
-    border-top: 1px dashed var(--current-border-subtle);
-    margin-top: var(--cv-spacing-md);
-    padding-top: var(--cv-spacing-md);
-}
+.feed-item.prio-0 { border-left: 5px solid var(--cv-primary-orange); background-color: var(--cv-gray-100); position: relative; }
+.feed-item.prio-0::before { content: "\1F4CC"; position: absolute; left: 5px; top: 5px; font-size: 1.2em; }
 
-/* Specific form styling for Chamado modal, if different */
-#form-criar-chamado .cv-form-group {
-    margin-bottom: var(--cv-spacing-md, 15px);
-}
-#form-criar-chamado label {
-    display: block;
-    margin-bottom: var(--cv-spacing-xs, 5px);
-    font-weight: 500;
-    color: var(--current-text-secondary);
-}
-#form-criar-chamado .cv-input {
-    width: 100%;
-    box-sizing: border-box;
-}
-#form-criar-chamado textarea.cv-input {
-    resize: vertical;
-    min-height: 100px;
-}
-
-/* Links for Login, Forgot Password, Register pages */
-.login-form__links {
-    text-align: center;
-    margin-top: 15px;
-}
-.login-form__link {
-    color: var(--current-text-link); /* Use theme's link color */
-    text-decoration: none;
-    font-size: 0.9em;
-}
-.login-form__link:hover {
-    text-decoration: underline;
-}
-.login-form__link-separator {
-    margin: 0 5px;
-    color: var(--cv-gray-400); /* Or a suitable separator color from theme */
-}
-
-/* Destaque visual para itens prioritários do feed (ex: comunicados urgentes,
-   enquetes ativas, lembretes de boleto) */
-.feed-item.prio-0 {
-    border-left: 5px solid var(--cv-primary-orange);
-    background-color: var(--cv-gray-100);
-    position: relative;
-}
-
-.feed-item.prio-0::before {
-    content: "\1F4CC"; /* emoji de alfinete */
-    position: absolute;
-    left: 5px;
-    top: 5px;
-    font-size: 1.2em; /* Ajustar tamanho do emoji se necessário */
-}
-
-/* Progressive Image Loading Styles for Feed */
-.feed-item__image-container {
-    width: 100%;
-    /* Definir uma aspect-ratio ajuda a evitar layout shift. Ex: 16/9.
-       Ajuste conforme o aspect ratio mais comum das suas imagens. */
-    aspect-ratio: 16 / 9;
-    background-color: var(--current-border-subtle); /* Cor de fundo enquanto a imagem não carrega */
-    margin-bottom: var(--cv-spacing-sm);
-    overflow: hidden; /* Garante que a imagem não ultrapasse o container */
-    border-radius: var(--cv-border-radius-md); /* Consistente com cards */
-}
-
-.feed-item__image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Cobre o container, pode cortar um pouco da imagem */
-    display: block;
-    /* Initial blur for LQIP effect - will be overridden by JS once high-res loads */
-    filter: blur(10px);
-    transform: scale(1.1); /* Slightly zoom to avoid blurred edges showing container bg */
-    transition: filter 0.5s ease-out, transform 0.5s ease-out; /* Suaviza a transição */
-}
-
-.feed-item__image.loaded {
-    filter: blur(0);
-    transform: scale(1);
-}
-
-
-.feed-item__pin {
-    font-size: 0.85em;
-    color: var(--cv-primary-orange);
-    margin-right: 4px;
-}
-
-/* Feed Item Chip/Tag Styles */
-.feed-item__tags {
-    margin-top: var(--cv-spacing-sm);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--cv-spacing-xs);
-}
-
-.feed-item__tag {
-    background-color: var(--cv-gray-200);
-    color: var(--cv-gray-700);
-    padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
-    border-radius: var(--cv-border-radius-sm);
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: uppercase; /* Opcional */
-}
-
-html[data-theme="dark"] .feed-item__tag {
-    background-color: var(--cv-dark-gray-400);
-    color: var(--cv-dark-gray-900);
-}
-
-/* Example of type-specific tag colors (optional) */
+.feed-item__image-container { width: 100%; aspect-ratio: 16 / 9; background-color: var(--current-border-subtle); margin-bottom: var(--cv-spacing-sm); overflow: hidden; border-radius: var(--cv-border-radius-md); }
+.feed-item__image { width: 100%; height: 100%; object-fit: cover; display: block; filter: blur(10px); transform: scale(1.1); transition: filter 0.5s ease-out, transform 0.5s ease-out; }
+.feed-item__image.loaded { filter: blur(0); transform: scale(1); }
+.feed-item__pin { font-size: 0.85em; color: var(--cv-primary-orange); margin-right: 4px; }
+.feed-item__tags { margin-top: var(--cv-spacing-sm); display: flex; flex-wrap: wrap; gap: var(--cv-spacing-xs); }
+.feed-item__tag { background-color: var(--cv-gray-200); color: var(--cv-gray-700); padding: var(--cv-spacing-xs) var(--cv-spacing-sm); border-radius: var(--cv-border-radius-sm); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; }
+html[data-theme="dark"] .feed-item__tag { background-color: var(--cv-dark-gray-400); color: var(--cv-dark-gray-900); }
 .feed-item__tag--aviso { background-color: var(--cv-primary-blue); color: white; }
 .feed-item__tag--enquete { background-color: var(--cv-primary-green); color: white; }
 .feed-item__tag--chamado { background-color: var(--cv-primary-orange); color: white; }
 .feed-item__tag--documento { background-color: var(--cv-gray-500); color: white; }
-
 html[data-theme="dark"] .feed-item__tag--aviso { background-color: var(--cv-dark-primary-blue); }
 html[data-theme="dark"] .feed-item__tag--enquete { background-color: var(--cv-dark-primary-green); }
 html[data-theme="dark"] .feed-item__tag--chamado { background-color: var(--cv-dark-primary-orange); }
-/* Note: Dark theme for 'documento' tag might need a different dark gray if cv-gray-500 is too light on dark bg */
 html[data-theme="dark"] .feed-item__tag--documento { background-color: var(--cv-dark-gray-500); }
 
-
-/* Biblioteca de Documentos Styles */
-.cv-page-title { /* Estilo para o título principal da página, como "Biblioteca de Documentos" */
-    font-size: var(--cv-font-size-h2, 1.75rem);
-    margin-bottom: var(--cv-spacing-lg, 20px);
-    color: var(--current-text-primary);
-    font-weight: 600;
-    padding-bottom: var(--cv-spacing-sm);
-    border-bottom: 1px solid var(--current-border-subtle);
-}
-
-.cv-section--actions { /* Para a seção de filtros e botão de upload */
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--cv-spacing-md);
-    align-items: center;
-    margin-bottom: var(--cv-spacing-lg);
-    padding: var(--cv-spacing-md);
-    background-color: var(--current-bg-white);
-    border-radius: var(--cv-border-radius-md);
-    box-shadow: var(--current-shadow-sm);
-}
+.cv-page-title { font-size: var(--cv-font-size-h2, 1.75rem); margin-bottom: var(--cv-spacing-lg, 20px); color: var(--current-text-primary); font-weight: 600; padding-bottom: var(--cv-spacing-sm); border-bottom: 1px solid var(--current-border-subtle); }
+.cv-section--actions { display: flex; flex-wrap: wrap; gap: var(--cv-spacing-md); align-items: center; margin-bottom: var(--cv-spacing-lg); padding: var(--cv-spacing-md); background-color: var(--current-bg-white); border-radius: var(--cv-border-radius-md); box-shadow: var(--current-shadow-sm); }
 .cv-section--actions .cv-input,
-.cv-section--actions .cv-button {
-    flex-grow: 1; /* Inputs e botões podem crescer */
-}
+.cv-section--actions .cv-button { flex-grow: 1; }
 @media (min-width: 768px) {
     .cv-section--actions .cv-input,
-    .cv-section--actions .cv-button {
-        flex-grow: 0; /* Não crescer demais em telas maiores */
-        min-width: 200px; /* Largura mínima */
-    }
+    .cv-section--actions .cv-button { flex-grow: 0; min-width: 200px; }
 }
 
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--cv-spacing-md); }
+.feed-grid { display: grid; grid-template-columns: 1fr; gap: var(--cv-spacing-lg); max-width: 700px; margin-left: auto; margin-right: auto; }
 
-.card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: var(--cv-spacing-md);
-}
-
-.feed-grid { /* Novo estilo para o feed de uma coluna */
-    display: grid;
-    grid-template-columns: 1fr; /* Apenas uma coluna */
-    gap: var(--cv-spacing-lg); /* Espaçamento maior entre itens do feed */
-    max-width: 700px; /* Largura máxima para o feed, centralizado pelo .cv-tab-content */
-    margin-left: auto;
-    margin-right: auto;
-}
-.feed-grid .cv-card { /* Ajustes nos cards dentro do feed, se necessário */
-    /* Por exemplo, se os cards no feed precisarem de margens ou paddings diferentes */
-}
-
-
-/* Styles for .cv-empty-state and .cv-error-state */
 .cv-empty-state,
-.cv-error-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: var(--cv-spacing-xl) var(--cv-spacing-md);
-    text-align: center;
-    min-height: 300px; /* Ensure it takes some space */
-    width: 100%;
-    box-sizing: border-box;
-    border: 1px dashed var(--current-border-subtle); /* Adiciona uma borda sutil */
-    border-radius: var(--cv-border-radius-lg); /* Borda arredondada */
-    background-color: var(--current-bg-element); /* Um fundo levemente diferente da página */
-}
-
-.cv-empty-state__image { /* Novo estilo para a imagem */
-    max-width: 150px; /* Tamanho máximo da ilustração */
-    height: auto;
-    margin-bottom: var(--cv-spacing-lg);
-    opacity: 0.7; /* Levemente transparente para suavizar */
-}
-
-.cv-empty-state__icon, /* Mantido para compatibilidade ou uso futuro */
-.cv-error-state__icon {
-    margin-bottom: var(--cv-spacing-lg);
-}
+.cv-error-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--cv-spacing-xl) var(--cv-spacing-md); text-align: center; min-height: 300px; width: 100%; box-sizing: border-box; border: 1px dashed var(--current-border-subtle); border-radius: var(--cv-border-radius-lg); background-color: var(--current-bg-element); }
+.cv-empty-state__image { max-width: 150px; height: auto; margin-bottom: var(--cv-spacing-lg); opacity: 0.7; }
+.cv-empty-state__icon,
+.cv-error-state__icon { margin-bottom: var(--cv-spacing-lg); }
 .cv-empty-state__icon svg,
-.cv-error-state__icon svg {
-    width: 64px;
-    height: 64px;
-    color: var(--current-text-placeholder);
-}
-.cv-error-state__icon svg {
-    color: var(--current-semantic-error);
-}
-
-.cv-empty-state__title, /* Títulos mais discretos se a imagem for o foco */
-.cv-error-state__title {
-    font-size: var(--cv-font-size-h4); /* Um pouco menor que h3 */
-    color: var(--current-text-primary);
-    margin-top: 0;
-    margin-bottom: var(--cv-spacing-xs); /* Menor margem se a descrição for mais importante */
-    font-weight: 600;
-}
-
-.cv-empty-state__message, /* Novo nome para consistência, usado no HTML */
+.cv-error-state__icon svg { width: 64px; height: 64px; color: var(--current-text-placeholder); }
+.cv-error-state__icon svg { color: var(--current-semantic-error); }
+.cv-empty-state__title,
+.cv-error-state__title { font-size: var(--cv-font-size-h4); color: var(--current-text-primary); margin-top: 0; margin-bottom: var(--cv-spacing-xs); font-weight: 600; }
+.cv-empty-state__message,
 .cv-empty-state__description,
-.cv-error-state__message {
-    font-size: var(--cv-font-size-md);
-    color: var(--current-text-secondary);
-    margin-bottom: var(--cv-spacing-md); /* Espaçamento antes das ações */
-    max-width: 450px;
-    line-height: 1.6;
+.cv-error-state__message { font-size: var(--cv-font-size-md); color: var(--current-text-secondary); margin-bottom: var(--cv-spacing-md); max-width: 450px; line-height: 1.6; }
+.cv-empty-state__message:last-of-type { margin-bottom: var(--cv-spacing-lg); }
+.cv-empty-state__actions { display: flex; flex-direction: column; gap: var(--cv-spacing-sm); align-items: center; }
+@media (min-width: 576px) {
+    .cv-empty-state__actions { flex-direction: row; }
 }
-.cv-empty-state__message:last-of-type { /* Remove margem inferior do último parágrafo de mensagem */
-    margin-bottom: var(--cv-spacing-lg);
-}
-
-
-.cv-empty-state__actions {
-    display: flex;
-    flex-direction: column; /* Stack buttons vertically on small screens */
-    gap: var(--cv-spacing-sm);
-    align-items: center;
-}
-
-@media (min-width: 576px) { /* Or your preferred breakpoint for horizontal buttons */
-    .cv-empty-state__actions {
-        flex-direction: row; /* Buttons side-by-side on larger screens */
-    }
-}
-
 .cv-empty-state__action,
-.cv-error-state__retry-button {
-    /* .cv-button styles are inherited. Add specific overrides if needed. */
-    /* Example: make buttons slightly larger for empty/error states */
-    padding: var(--cv-spacing-sm) var(--cv-spacing-lg);
-    font-size: var(--cv-font-size-md);
-}
-/* End of .cv-empty-state and .cv-error-state styles */
+.cv-error-state__retry-button { padding: var(--cv-spacing-sm) var(--cv-spacing-lg); font-size: var(--cv-font-size-md); }
 
+.document-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--cv-spacing-md); }
+.document-item { display: flex; flex-direction: column; justify-content: space-between; }
+.document-item__info { margin-bottom: var(--cv-spacing-sm); }
+.document-item__title { font-size: var(--cv-font-size-lg); font-weight: 600; color: var(--current-text-primary); margin-bottom: var(--cv-spacing-xs); }
+.document-item__meta { font-size: 0.85rem; color: var(--current-text-secondary); line-height: 1.4; }
+.document-item__meta span { display: block; margin-bottom: 2px; }
+.document-item__actions { margin-top: auto; padding-top: var(--cv-spacing-sm); border-top: 1px solid var(--current-border-subtle); display: flex; justify-content: flex-end; gap: var(--cv-spacing-sm); }
+.document-item__actions .cv-button { font-size: 0.9rem; padding: var(--cv-spacing-xs) var(--cv-spacing-sm); }
 
-.document-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: var(--cv-spacing-md);
-}
+#formUploadDocumento .cv-form-group { margin-bottom: var(--cv-spacing-md); }
+#formUploadDocumento label { display: block; margin-bottom: var(--cv-spacing-xs); font-weight: 500; color: var(--current-text-secondary); }
+#formUploadDocumento .cv-input { width: 100%; box-sizing: border-box; }
 
-.document-item { /* Estilo para cada card de documento - usa .cv-card como base */
-    /* .cv-card já fornece background, border, padding, shadow */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* Para alinhar ações na parte inferior */
-}
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--cv-spacing-md); }
+.espaco-card { display: flex; flex-direction: column; }
+.espaco-card h4 { margin-top: 0; margin-bottom: var(--cv-spacing-sm); }
+.espaco-card p { margin: 0 0 var(--cv-spacing-xs); }
+.espaco-card .espaco-card-actions { margin-top: auto; display: flex; gap: var(--cv-spacing-sm); justify-content: flex-end; padding-top: var(--cv-spacing-sm); border-top: 1px solid var(--current-border-subtle); }
 
-.document-item__info {
-    margin-bottom: var(--cv-spacing-sm);
-}
-
-.document-item__title {
-    font-size: var(--cv-font-size-lg); /* 1.125rem */
-    font-weight: 600;
-    color: var(--current-text-primary);
-    margin-bottom: var(--cv-spacing-xs);
-}
-
-.document-item__meta {
-    font-size: 0.85rem;
-    color: var(--current-text-secondary);
-    line-height: 1.4;
-}
-.document-item__meta span {
-    display: block; /* Cada meta info em uma nova linha, ou usar flex/grid para layout em linha */
-    margin-bottom: 2px;
-}
-
-.document-item__actions {
-    margin-top: auto; /* Empurra as ações para o final do card se o card tiver altura variável */
-    padding-top: var(--cv-spacing-sm);
-    border-top: 1px solid var(--current-border-subtle);
-    display: flex;
-    justify-content: flex-end; /* Alinha botões à direita */
-    gap: var(--cv-spacing-sm);
-}
-.document-item__actions .cv-button {
-    font-size: 0.9rem; /* Botões de ação um pouco menores */
-    padding: var(--cv-spacing-xs) var(--cv-spacing-sm);
-}
-
-
-/* Estilos para o modal de upload de documentos, se necessário além do .cv-modal */
-#formUploadDocumento .cv-form-group {
-    margin-bottom: var(--cv-spacing-md);
-}
-#formUploadDocumento label {
-    display: block;
-    margin-bottom: var(--cv-spacing-xs);
-    font-weight: 500;
-    color: var(--current-text-secondary);
-}
-#formUploadDocumento .cv-input { /* Garante que inputs dentro do form do modal usem o estilo global */
-    width: 100%;
-    box-sizing: border-box;
-}
-/* Reservas - Espaços Comuns */
-/* Portaria Cards */
-
-.card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: var(--cv-spacing-md);
-}
-
-/* Espaços Comuns */
-.espaco-card {
-    display: flex;
-    flex-direction: column;
-}
-
-.espaco-card h4 {
-    margin-top: 0;
-    margin-bottom: var(--cv-spacing-sm);
-}
-
-.espaco-card p {
-    margin: 0 0 var(--cv-spacing-xs);
-}
-
-.espaco-card .espaco-card-actions {
-    margin-top: auto;
-    display: flex;
-    gap: var(--cv-spacing-sm);
-    justify-content: flex-end;
-    padding-top: var(--cv-spacing-sm);
-    border-top: 1px solid var(--current-border-subtle);
-}
-
-/* Visitantes & Encomendas */
 .visitante-card,
-.encomenda-card {
-    background-color: var(--current-bg-white);
-    border: var(--cv-border-width) solid var(--current-border-color);
-    border-radius: var(--cv-border-radius-lg);
-    padding: var(--cv-spacing-md);
-    box-shadow: var(--current-shadow-md);
-}
-
+.encomenda-card { background-color: var(--current-bg-white); border: var(--cv-border-width) solid var(--current-border-color); border-radius: var(--cv-border-radius-lg); padding: var(--cv-spacing-md); box-shadow: var(--current-shadow-md); }
 .visitante-card h4,
-.encomenda-card h4 {
-    margin-top: 0;
-    margin-bottom: var(--cv-spacing-xs);
-    font-size: var(--cv-font-size-lg);
-    color: var(--current-text-primary);
-}
-
+.encomenda-card h4 { margin-top: 0; margin-bottom: var(--cv-spacing-xs); font-size: var(--cv-font-size-lg); color: var(--current-text-primary); }
 .visitante-card p,
-.encomenda-card p {
-    margin: 2px 0;
-    font-size: 0.9rem;
-    color: var(--current-text-secondary);
-}
-
+.encomenda-card p { margin: 2px 0; font-size: 0.9rem; color: var(--current-text-secondary); }
 .visitante-card__acoes,
-.encomenda-card__acoes {
-    margin-top: var(--cv-spacing-sm);
-    display: flex;
-    gap: var(--cv-spacing-xs);
-}
-
+.encomenda-card__acoes { margin-top: var(--cv-spacing-sm); display: flex; gap: var(--cv-spacing-xs); }
 
 body.cv-modal-open { overflow: hidden; }
