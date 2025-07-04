@@ -441,84 +441,38 @@ function handleScrollEffects() {
     const isDesktop = window.innerWidth >= 992;
     const isScrolled = window.scrollY > scrollThreshold;
 
-    // Comportamento do Header (redução e sumiço do título) é global para scroll
     header.classList.toggle('cv-header--scrolled', isScrolled);
 
     if (isDesktop) {
-        // Novo Comportamento Desktop V2
-        let mainNavHeight = 0;
-        if (mainNav) {
-            mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
-            if (isScrolled) {
-                mainNavHeight = mainNav.offsetHeight;
-            }
-            // Limpar classes mobile/antigas se existirem
-            mainNav.classList.remove('mainNav--scrolled-desktop');
-        }
-
-        let cvTabsHeight = 0;
+        // Comportamento Desktop
+        if (mainNav) mainNav.classList.toggle('mainNav--scrolled-desktop', isScrolled);
         if (cvTabs) {
-            cvTabs.classList.toggle('cv-tabs--fixed-below-mainNav-desktop', isScrolled);
-            if (isScrolled) {
-                cvTabs.style.top = `${mainNavHeight}px`;
-                cvTabsHeight = cvTabs.offsetHeight;
-            } else {
-                cvTabs.style.top = ''; // Limpa o top quando não está scrollado/fixo
-            }
-            // Limpar classes mobile/antigas
-            cvTabs.classList.remove('cv-tabs--fixed-mobile');
-            cvTabs.classList.remove('cv-tabs--fixed-desktop');
+            cvTabs.classList.toggle('cv-tabs--fixed-desktop', isScrolled);
+            cvTabs.classList.remove('cv-tabs--fixed-mobile'); // Garante que o estilo mobile não se aplique
         }
-
         if (pageMain) {
-            if (isScrolled) {
-                pageMain.style.paddingTop = `${mainNavHeight + cvTabsHeight}px`;
-                pageMain.classList.add('content--scrolled-desktop-v2'); // Classe marcadora
-            } else {
-                pageMain.style.paddingTop = '';
-                pageMain.classList.remove('content--scrolled-desktop-v2');
-            }
-            // Limpar classes mobile/antigas
+            pageMain.classList.toggle('content--scrolled-desktop', isScrolled);
             pageMain.classList.remove('content--scrolled-mobile');
-            pageMain.classList.remove('content--scrolled-desktop');
         }
-
     } else {
-        // Comportamento Mobile (Mantido)
-        if (mainNav) {
-            // Limpar classes desktop
-            mainNav.classList.remove('mainNav--fixed-top-desktop');
-            mainNav.classList.remove('mainNav--scrolled-desktop');
-        }
+        // Comportamento Mobile
+        if (mainNav) mainNav.classList.remove('mainNav--scrolled-desktop'); // Remove classe desktop
         if (cvTabs) {
             cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
-            cvTabs.style.top = ''; // Limpar top, pois o CSS mobile controla isso
-            // Limpar classes desktop
-            cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
-            cvTabs.classList.remove('cv-tabs--fixed-desktop');
+            cvTabs.classList.remove('cv-tabs--fixed-desktop'); // Garante que o estilo desktop não se aplique
         }
         if (pageMain) {
             pageMain.classList.toggle('content--scrolled-mobile', isScrolled);
-            pageMain.style.paddingTop = ''; // Limpar padding desktop
-            // Limpar classes desktop
-            pageMain.classList.remove('content--scrolled-desktop-v2');
             pageMain.classList.remove('content--scrolled-desktop');
         }
     }
 }
 
 // Aplica o debounce para otimizar a performance do scroll handler
-const debouncedScrollHandler = debounce(handleScrollEffects, 10); // Reduzido para maior responsividade na percepção
+const debouncedScrollHandler = debounce(handleScrollEffects, 50); // Ajuste o delay conforme necessário
 
 window.addEventListener('scroll', debouncedScrollHandler);
+// Também chama ao redimensionar para ajustar caso o layout mude de mobile para desktop ou vice-versa
 window.addEventListener('resize', debouncedScrollHandler);
-document.addEventListener('DOMContentLoaded', () => {
-    handleScrollEffects(); // Estado inicial
-    // Forçar recalculo em resize DEPOIS que o DOM estiver estável e nav.js tiver rodado
-    // Isso é importante porque buildNavigation() em nav.js pode alterar a altura do mainNav
-    setTimeout(() => {
-        if (window.innerWidth >= 992 && window.scrollY > 50) { // scrollThreshold
-             handleScrollEffects(); // Re-aplica para pegar alturas corretas
-        }
-    }, 300); // Um pequeno delay para garantir que o nav.js já configurou o mainNav
-});
+// Chama uma vez no carregamento para definir o estado inicial caso a página já esteja scrollada
+document.addEventListener('DOMContentLoaded', handleScrollEffects);
