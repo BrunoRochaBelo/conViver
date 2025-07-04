@@ -176,19 +176,16 @@
     --cv-header-padding-y: clamp(0.5rem, 1.5vh, 0.75rem);
     --cv-header-padding-x: clamp(1rem, 4vw, 1.5rem);
     --cv-header-height: clamp(3.5rem, 5vh + 1rem, 4.3125rem); /* ~57px–69px */
-    /* Adicionar variáveis para altura do header scrollado se não existirem */
-    --cv-header-height-scrolled-desktop: clamp(3rem, 4vh + 0.5rem, 3.5rem);
-    --cv-header-height-scrolled-mobile: clamp(2.5rem, 3vh + 0.5rem, 3rem);
+    --cv-header-height-scrolled-desktop: clamp(3rem, 4vh + 0.5rem, 3.5rem); /* Altura menor para desktop ao rolar */
+    --cv-header-height-scrolled-mobile: clamp(2.5rem, 3vh + 0.5rem, 3rem); /* Altura menor para mobile ao rolar */
 }
 @media (min-width: 768px) {
     :root {
         --cv-header-height: clamp(4rem, 5vh + 1rem, 4.5rem);
-        /* Se quiser uma altura scrollada diferente para tablet vs desktop maior, defina aqui */
-        /* --cv-header-height-scrolled-desktop: clamp(3.5rem, ...); */
     }
 }
 
-/* Estilos para header com scroll - Abordagem Simplificada */
+/* Estilos para header com scroll */
 .cv-header {
     transition: min-height 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
@@ -197,67 +194,114 @@
     transition: opacity 0.25s ease-in-out, visibility 0s linear 0.25s;
 }
 
-/* Classe para o header scrollado (simplificada) */
-.cv-header--scrolled-simple {
+.cv-header--scrolled {
+    min-height: var(--cv-header-height-scrolled-mobile) !important;
     box-shadow: var(--current-shadow-md);
-    /* A altura será ajustada com base no tamanho da tela usando variáveis */
 }
 
-.cv-header--scrolled-simple .cv-header__title {
+.cv-header--scrolled .cv-header__title {
     opacity: 0;
     visibility: hidden;
 }
 
-/* Ajuste de altura para header scrollado em diferentes telas */
-@media (max-width: 991.98px) { /* Considerando 992px como início do desktop */
-    .cv-header--scrolled-simple {
-        min-height: var(--cv-header-height-scrolled-mobile) !important;
-    }
-}
+/* Desktop: mainNav sobe e cv-tabs fixa abaixo do header */
 @media (min-width: 992px) {
-    .cv-header--scrolled-simple {
+    .cv-header--scrolled {
         min-height: var(--cv-header-height-scrolled-desktop) !important;
+        z-index: 1005;
+        position: relative;
+    }
+
+    #mainNav {
+        transition: top 0.3s ease-in-out, background-color 0.3s ease-in-out,
+                    padding 0.3s ease-in-out, height 0.3s ease-in-out,
+                    left 0.3s ease-in-out, right 0.3s ease-in-out;
+    }
+
+    #mainNav.mainNav--scrolled-desktop {
+        position: fixed;
+        top: 0;
+        left: var(--cv-header-padding-x);
+        /* Ajustar 'right' para deixar espaço para o userMenuButton.
+           Assumindo que o userMenuButton tem cerca de 40px + padding.
+           Ex: calc(var(--cv-header-padding-x) + 60px) ou uma variável específica.
+           Por agora, vamos usar um valor fixo e ajustar se necessário. */
+        right: calc(var(--cv-header-padding-x) + 56px); /* 40px avatar + 16px de espaço */
+        width: auto;
+        z-index: 1010;
+        background-color: var(--current-bg-white); /* Cor do header - Confirmado */
+        padding-top: 0;
+        padding-bottom: 0;
+        display: flex;
+        align-items: center;
+        height: var(--cv-header-height-scrolled-desktop);
+    }
+
+    #mainNav.mainNav--scrolled-desktop .cv-container {
+        width: 100%;
+    }
+
+    .cv-tabs {
+        transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
+                    padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out, background-color 0.3s ease-in-out;
+    }
+
+    .cv-tabs.cv-tabs--fixed-desktop {
+        position: fixed;
+        top: var(--cv-header-height-scrolled-desktop);
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background-color: var(--current-bg-light);
+        padding-left: var(--cv-header-padding-x);
+        padding-right: var(--cv-header-padding-x);
+        margin-top: 0;
+        border-bottom: 2px solid var(--current-border-subtle);
+        box-shadow: var(--current-shadow-sm);
+    }
+
+    #pageMain {
+        transition: padding-top 0.3s ease-in-out;
+    }
+
+    #pageMain.content--scrolled-desktop {
+        padding-top: calc(var(--cv-header-height-scrolled-desktop) + 50px);
+    }
+
+    /* Garante que o userMenuButton fique visível */
+    .cv-header .user-avatar {
+        position: relative; /* Ou absolute, dependendo da necessidade de layout */
+        z-index: 1011; /* Acima do mainNav scrollado */
     }
 }
 
-/* Classe para as tabs fixas (simplificada) */
-.cv-tabs.cv-tabs--fixed-simple {
-    position: fixed;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background-color: var(--current-bg-light);
-    padding-left: var(--cv-header-padding-x);
-    padding-right: var(--cv-header-padding-x);
-    margin-top: 0;
-    border-bottom: 2px solid var(--current-border-subtle);
-    box-shadow: var(--current-shadow-sm);
-    transition: top 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+/* Mobile: cv-tabs sobe e fixa abaixo do header */
+@media (max-width: 991.98px) {
+    .cv-tabs {
+        transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
+                    padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out, background-color 0.3s ease-in-out;
+    }
+     .cv-tabs.cv-tabs--fixed-mobile {
+        position: fixed;
+        top: var(--cv-header-height-scrolled-mobile);
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background-color: var(--current-bg-light);
+        padding-left: var(--cv-header-padding-x);
+        padding-right: var(--cv-header-padding-x);
+        margin-top: 0;
+        border-bottom: 2px solid var(--current-border-subtle);
+        box-shadow: var(--current-shadow-sm);
+    }
+
+    #pageMain {
+        transition: padding-top 0.3s ease-in-out;
+    }
+    #pageMain.content--scrolled-mobile {
+       padding-top: calc(var(--cv-header-height-scrolled-mobile) + 50px);
+    }
 }
-
-/* Transições para pageMain e #mainNav */
-#pageMain {
-    transition: padding-top 0.3s ease-in-out;
-}
-
-#mainNav {
-    /* mainNav não muda de posição nesta abordagem, mas pode precisar de transição de margem
-       se o header acima dele mudar de altura e o mainNav estiver no fluxo normal. */
-    transition: margin-top 0.3s ease-in-out;
-}
-
-/* Limpeza de regras de scroll antigas (V1, V2) que não são mais necessárias */
-/* Comentar ou remover: */
-/* .cv-header--scrolled { ... } (regra antiga se diferente de .cv-header--scrolled-simple) */
-/* #mainNav.mainNav--scrolled-desktop { ... } */
-/* #mainNav.mainNav--fixed-top-desktop { ... } */
-/* .cv-tabs.cv-tabs--fixed-desktop { ... } */
-/* .cv-tabs.cv-tabs--fixed-below-mainNav-desktop { ... } */
-/* #pageMain.content--scrolled-desktop { ... } */
-/* #pageMain.content--scrolled-desktop-v2 { ... } */
-/* .cv-tabs.cv-tabs--fixed-mobile { ... } (será coberto por .cv-tabs--fixed-simple + JS) */
-/* #pageMain.content--scrolled-mobile { ... } (padding será inline via JS) */
-
 
 
 html[data-theme="dark"] {
