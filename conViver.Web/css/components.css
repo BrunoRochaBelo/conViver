@@ -408,7 +408,7 @@ html[data-theme="dark"] .cv-button--borderless:hover {
 .cv-header__container {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: var(--cv-spacing-md);
     width: 100%;
 }
 

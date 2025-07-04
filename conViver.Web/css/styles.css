@@ -205,6 +205,17 @@
     pointer-events: none;
 }
 
+/* Nav fills available space inside header */
+#mainNav {
+    flex-grow: 1;
+}
+
+/* Ensure avatar remains above nav */
+.cv-header .user-avatar {
+    position: relative;
+    z-index: 1011;
+}
+
 .cv-header--sticky,
 .cv-header--scrolled {
     min-height: var(--cv-header-height-scrolled-mobile) !important;
@@ -238,11 +249,6 @@
         position: fixed;
         top: 0; /* will be overridden dynamically via JS */
         left: var(--cv-header-padding-x);
-        /* Ajustar 'right' para deixar espaço para o userMenuButton.
-           Assumindo que o userMenuButton tem cerca de 40px + padding.
-           Ex: calc(var(--cv-header-padding-x) + 60px) ou uma variável específica.
-           Por agora, vamos usar um valor fixo e ajustar se necessário. */
-        right: calc(var(--cv-header-padding-x) + 56px); /* 40px avatar + 16px de espaço */
         width: auto;
         z-index: 1010;
         background-color: var(--current-bg-white); /* Cor do header - Confirmado */
@@ -286,11 +292,6 @@
         transition: padding-top 0.3s ease-in-out;
     }
 
-    /* Garante que o userMenuButton fique visível */
-    .cv-header .user-avatar {
-        position: relative; /* Ou absolute, dependendo da necessidade de layout */
-        z-index: 1011; /* Acima do mainNav scrollado */
-    }
 }
 
 /* Mobile: cv-tabs sobe e fixa abaixo do header */
