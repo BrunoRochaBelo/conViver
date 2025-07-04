@@ -104,6 +104,83 @@ function ensureFeedbackContainer() {
 }
 
 /**
+ * Lógica de scroll para o header e tabs - Abordagem Simplificada.
+ */
+function handleScrollEffects() {
+    const header = document.querySelector('.cv-header');
+    const cvTabs = document.querySelector('.cv-tabs'); // Pode não existir em todas as páginas
+    const pageMain = document.getElementById('pageMain');
+    const mainNav = document.getElementById('mainNav'); // Apenas para limpeza de classes antigas
+    const scrollThreshold = 50;
+
+    if (!header || !pageMain) { // pageMain é essencial para o padding
+        // console.warn('Scroll effects: Header ou PageMain não encontrados.');
+        return;
+    }
+
+    const isScrolled = window.scrollY > scrollThreshold;
+
+    // 1. Comportamento do Header
+    header.classList.toggle('cv-header--scrolled-simple', isScrolled);
+    // Limpar classes antigas de scroll do header, se houver (ex: .cv-header--scrolled)
+    if (header.classList.contains('cv-header--scrolled')) {
+        header.classList.remove('cv-header--scrolled');
+    }
+
+
+    // 2. Comportamento das Tabs e PageMain
+    let headerHeight = header.offsetHeight; // Pega a altura atual do header (pode estar scrollado ou não)
+
+    if (cvTabs) {
+        cvTabs.classList.toggle('cv-tabs--fixed-simple', isScrolled);
+
+        if (isScrolled) {
+            // A altura do header para o 'top' das tabs deve ser a altura do header *quando scrollado*
+            // Para isso, podemos pegar a altura do header com a classe .cv-header--scrolled-simple já aplicada.
+            // Se a classe ainda não foi totalmente processada pelo browser e a altura não atualizou,
+            // pode ser necessário usar um valor fixo ou uma variável CSS que defina a altura scrollada.
+            // Por simplicidade, vamos usar header.offsetHeight, assumindo que o CSS já fez o header encolher.
+            cvTabs.style.top = `${headerHeight}px`;
+
+            const tabsHeight = cvTabs.offsetHeight;
+            pageMain.style.paddingTop = `${headerHeight + tabsHeight}px`;
+        } else {
+            cvTabs.style.top = '';
+            pageMain.style.paddingTop = '';
+        }
+    } else {
+        // Caso não haja cvTabs, mas o header scrolla, ajustar padding do pageMain
+        if (isScrolled) {
+            pageMain.style.paddingTop = `${headerHeight}px`;
+        } else {
+            pageMain.style.paddingTop = '';
+        }
+    }
+
+    // 3. Limpeza de classes de abordagens anteriores (para mainNav, cvTabs, pageMain)
+    // Garantir que classes de lógicas antigas sejam removidas.
+    if (mainNav) {
+        mainNav.classList.remove('mainNav--fixed-top-desktop', 'mainNav--scrolled-desktop');
+    }
+    if (cvTabs) { // Limpar classes antigas das tabs
+        cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop', 'cv-tabs--fixed-desktop', 'cv-tabs--fixed-mobile');
+    }
+    if (pageMain) { // Limpar classes antigas do pageMain
+        pageMain.classList.remove('content--scrolled-desktop-v2', 'content--scrolled-desktop', 'content--scrolled-mobile');
+    }
+}
+
+const debouncedScrollHandler = debounce(handleScrollEffects, 10);
+
+window.addEventListener('scroll', debouncedScrollHandler);
+window.addEventListener('resize', debouncedScrollHandler); // Recalcular em resize
+document.addEventListener('DOMContentLoaded', () => {
+    handleScrollEffects(); // Aplicar estado inicial
+    // Um pequeno timeout para garantir que o DOM está estável, especialmente se houver outras manipulações de JS
+    setTimeout(handleScrollEffects, 150);
+});
+
+/**
  * Displays a global feedback message.
  * @param {string} message The message to display.
  * @param {'success' | 'error' | 'info' | 'warning'} type The type of message.
@@ -425,100 +502,3 @@ export function clearModalError(modalElement) {
         errorContainer.style.display = 'none';
     }
 }
-
-/**
- * Lógica de scroll para o header e tabs.
- */
-function handleScrollEffects() {
-    const header = document.querySelector('.cv-header');
-    const mainNav = document.getElementById('mainNav');
-    const cvTabs = document.querySelector('.cv-tabs');
-    const pageMain = document.getElementById('pageMain'); // Container do conteúdo principal
-    const scrollThreshold = 50; // Distância de scroll para ativar o efeito
-
-    if (!header) return;
-
-    const isDesktop = window.innerWidth >= 992;
-    const isScrolled = window.scrollY > scrollThreshold;
-
-    // Comportamento do Header (redução e sumiço do título) é global para scroll
-    header.classList.toggle('cv-header--scrolled', isScrolled);
-
-    if (isDesktop) {
-        // Novo Comportamento Desktop V2
-        let mainNavHeight = 0;
-        if (mainNav) {
-            mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
-            if (isScrolled) {
-                mainNavHeight = mainNav.offsetHeight;
-            }
-            // Limpar classes mobile/antigas se existirem
-            mainNav.classList.remove('mainNav--scrolled-desktop');
-        }
-
-        let cvTabsHeight = 0;
-        if (cvTabs) {
-            cvTabs.classList.toggle('cv-tabs--fixed-below-mainNav-desktop', isScrolled);
-            if (isScrolled) {
-                cvTabs.style.top = `${mainNavHeight}px`;
-                cvTabsHeight = cvTabs.offsetHeight;
-            } else {
-                cvTabs.style.top = ''; // Limpa o top quando não está scrollado/fixo
-            }
-            // Limpar classes mobile/antigas
-            cvTabs.classList.remove('cv-tabs--fixed-mobile');
-            cvTabs.classList.remove('cv-tabs--fixed-desktop');
-        }
-
-        if (pageMain) {
-            if (isScrolled) {
-                pageMain.style.paddingTop = `${mainNavHeight + cvTabsHeight}px`;
-                pageMain.classList.add('content--scrolled-desktop-v2'); // Classe marcadora
-            } else {
-                pageMain.style.paddingTop = '';
-                pageMain.classList.remove('content--scrolled-desktop-v2');
-            }
-            // Limpar classes mobile/antigas
-            pageMain.classList.remove('content--scrolled-mobile');
-            pageMain.classList.remove('content--scrolled-desktop');
-        }
-
-    } else {
-        // Comportamento Mobile (Mantido)
-        if (mainNav) {
-            // Limpar classes desktop
-            mainNav.classList.remove('mainNav--fixed-top-desktop');
-            mainNav.classList.remove('mainNav--scrolled-desktop');
-        }
-        if (cvTabs) {
-            cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
-            cvTabs.style.top = ''; // Limpar top, pois o CSS mobile controla isso
-            // Limpar classes desktop
-            cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
-            cvTabs.classList.remove('cv-tabs--fixed-desktop');
-        }
-        if (pageMain) {
-            pageMain.classList.toggle('content--scrolled-mobile', isScrolled);
-            pageMain.style.paddingTop = ''; // Limpar padding desktop
-            // Limpar classes desktop
-            pageMain.classList.remove('content--scrolled-desktop-v2');
-            pageMain.classList.remove('content--scrolled-desktop');
-        }
-    }
-}
-
-// Aplica o debounce para otimizar a performance do scroll handler
-const debouncedScrollHandler = debounce(handleScrollEffects, 10); // Reduzido para maior responsividade na percepção
-
-window.addEventListener('scroll', debouncedScrollHandler);
-window.addEventListener('resize', debouncedScrollHandler);
-document.addEventListener('DOMContentLoaded', () => {
-    handleScrollEffects(); // Estado inicial
-    // Forçar recalculo em resize DEPOIS que o DOM estiver estável e nav.js tiver rodado
-    // Isso é importante porque buildNavigation() em nav.js pode alterar a altura do mainNav
-    setTimeout(() => {
-        if (window.innerWidth >= 992 && window.scrollY > 50) { // scrollThreshold
-             handleScrollEffects(); // Re-aplica para pegar alturas corretas
-        }
-    }, 300); // Um pequeno delay para garantir que o nav.js já configurou o mainNav
-});

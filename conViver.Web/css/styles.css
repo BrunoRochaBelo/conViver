@@ -176,16 +176,19 @@
     --cv-header-padding-y: clamp(0.5rem, 1.5vh, 0.75rem);
     --cv-header-padding-x: clamp(1rem, 4vw, 1.5rem);
     --cv-header-height: clamp(3.5rem, 5vh + 1rem, 4.3125rem); /* ~57px–69px */
-    --cv-header-height-scrolled-desktop: clamp(3rem, 4vh + 0.5rem, 3.5rem); /* Altura menor para desktop ao rolar */
-    --cv-header-height-scrolled-mobile: clamp(2.5rem, 3vh + 0.5rem, 3rem); /* Altura menor para mobile ao rolar */
+    /* Adicionar variáveis para altura do header scrollado se não existirem */
+    --cv-header-height-scrolled-desktop: clamp(3rem, 4vh + 0.5rem, 3.5rem);
+    --cv-header-height-scrolled-mobile: clamp(2.5rem, 3vh + 0.5rem, 3rem);
 }
 @media (min-width: 768px) {
     :root {
         --cv-header-height: clamp(4rem, 5vh + 1rem, 4.5rem);
+        /* Se quiser uma altura scrollada diferente para tablet vs desktop maior, defina aqui */
+        /* --cv-header-height-scrolled-desktop: clamp(3.5rem, ...); */
     }
 }
 
-/* Estilos para header com scroll */
+/* Estilos para header com scroll - Abordagem Simplificada */
 .cv-header {
     transition: min-height 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
@@ -194,121 +197,68 @@
     transition: opacity 0.25s ease-in-out, visibility 0s linear 0.25s;
 }
 
-.cv-header--scrolled {
-    min-height: var(--cv-header-height-scrolled-mobile) !important;
+/* Classe para o header scrollado (simplificada) */
+.cv-header--scrolled-simple {
     box-shadow: var(--current-shadow-md);
+    /* A altura será ajustada com base no tamanho da tela usando variáveis */
 }
 
-.cv-header--scrolled .cv-header__title {
+.cv-header--scrolled-simple .cv-header__title {
     opacity: 0;
     visibility: hidden;
 }
 
-/* Desktop: mainNav sobe e cv-tabs fixa abaixo do header */
+/* Ajuste de altura para header scrollado em diferentes telas */
+@media (max-width: 991.98px) { /* Considerando 992px como início do desktop */
+    .cv-header--scrolled-simple {
+        min-height: var(--cv-header-height-scrolled-mobile) !important;
+    }
+}
 @media (min-width: 992px) {
-    .cv-header--scrolled {
+    .cv-header--scrolled-simple {
         min-height: var(--cv-header-height-scrolled-desktop) !important;
-        z-index: 1005;
-        position: relative;
-    }
-
-    #mainNav {
-        transition: top 0.3s ease-in-out, background-color 0.3s ease-in-out,
-                    padding 0.3s ease-in-out, height 0.3s ease-in-out,
-                    left 0.3s ease-in-out, right 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-    }
-
-    /* Remover ou comentar .mainNav--scrolled-desktop e .cv-tabs--fixed-desktop originais */
-    /* #mainNav.mainNav--scrolled-desktop { ... } */
-    /* .cv-tabs.cv-tabs--fixed-desktop { ... } */
-
-    /* .cv-tabs já tem uma transição genérica, pode ser suficiente ou ajustada depois */
-    .cv-tabs {
-        transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
-                    padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out, background-color 0.3s ease-in-out;
-    }
-
-    #pageMain {
-        transition: padding-top 0.3s ease-in-out;
-    }
-
-    /* Remover ou comentar .content--scrolled-desktop original */
-    /* #pageMain.content--scrolled-desktop { ... } */
-
-    /* Novas classes para o comportamento de scroll desktop */
-    #mainNav.mainNav--fixed-top-desktop {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 1020; /* Alto para ficar no topo */
-        background-color: var(--current-bg-white); /* Ou var(--current-nav-bg) */
-        box-shadow: var(--current-shadow-sm);
-        /* Padding interno do mainNav já deve ser gerenciado por seu .cv-container */
-    }
-
-    /* Ajuste para o container dentro do mainNav fixo, se necessário */
-    #mainNav.mainNav--fixed-top-desktop .cv-container {
-        /* Exemplo: manter o padding horizontal consistente com a página */
-        /* padding-left: var(--cv-header-padding-x); */
-        /* padding-right: var(--cv-header-padding-x); */
-        /* Isso depende de como o .cv-container é estilizado globalmente e dentro do #mainNav */
-    }
-
-    .cv-tabs.cv-tabs--fixed-below-mainNav-desktop {
-        position: fixed;
-        /* O 'top' será definido via JS ou variável CSS populada por JS */
-        left: 0;
-        right: 0;
-        z-index: 1010; /* Abaixo do mainNav fixo, acima do header original */
-        background-color: var(--current-bg-light);
-        padding-left: var(--cv-header-padding-x);
-        padding-right: var(--cv-header-padding-x);
-        margin-top: 0;
-        border-bottom: 2px solid var(--current-border-subtle);
-        box-shadow: var(--current-shadow-sm);
-    }
-
-    /* Classe para o padding do pageMain - pode ser usada pelo JS se não for aplicar padding inline */
-    /* #pageMain.content--scrolled-desktop-v2 { */
-        /* padding-top: [valor calculado pelo JS]; */
-    /* } */
-    /* Fim das novas classes desktop */
-
-    /* Manter z-index do user-avatar caso o header fique abaixo de algo, mas não é mais para sobrepor mainNav */
-    .cv-header .user-avatar {
-        position: relative;
-        z-index: 1006; /* Acima do header base, mas não necessariamente de outros elementos fixos */
     }
 }
 
-/* Mobile: cv-tabs sobe e fixa abaixo do header */
-/* As regras mobile permanecem em grande parte as mesmas, pois o comportamento desktop é que muda radicalmente */
-@media (max-width: 991.98px) {
-    .cv-tabs {
-        /* A transição genérica acima pode ser suficiente */
-    }
-     .cv-tabs.cv-tabs--fixed-mobile {
-        position: fixed;
-        top: var(--cv-header-height-scrolled-mobile);
-        left: 0;
-        right: 0;
-        z-index: 1000;
-        background-color: var(--current-bg-light);
-        padding-left: var(--cv-header-padding-x);
-        padding-right: var(--cv-header-padding-x);
-        margin-top: 0;
-        border-bottom: 2px solid var(--current-border-subtle);
-        box-shadow: var(--current-shadow-sm);
-    }
 
-    #pageMain {
-        /* A transição genérica acima pode ser suficiente */
-    }
-    #pageMain.content--scrolled-mobile {
-       padding-top: calc(var(--cv-header-height-scrolled-mobile) + 50px);
-    }
+/* Classe para as tabs fixas (simplificada) */
+.cv-tabs.cv-tabs--fixed-simple {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: var(--current-bg-light);
+    padding-left: var(--cv-header-padding-x);
+    padding-right: var(--cv-header-padding-x);
+    margin-top: 0;
+    border-bottom: 2px solid var(--current-border-subtle);
+    box-shadow: var(--current-shadow-sm);
+    transition: top 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
+
+/* Transições para pageMain e #mainNav */
+#pageMain {
+    transition: padding-top 0.3s ease-in-out;
+}
+
+#mainNav {
+    /* mainNav não muda de posição nesta abordagem, mas pode precisar de transição de margem
+       se o header acima dele mudar de altura e o mainNav estiver no fluxo normal. */
+    transition: margin-top 0.3s ease-in-out;
+}
+
+
+/* Limpeza de regras de scroll antigas (V1, V2) que não são mais necessárias */
+/* Comentar ou remover: */
+/* .cv-header--scrolled { ... } (regra antiga se diferente de .cv-header--scrolled-simple) */
+/* #mainNav.mainNav--scrolled-desktop { ... } */
+/* #mainNav.mainNav--fixed-top-desktop { ... } */
+/* .cv-tabs.cv-tabs--fixed-desktop { ... } */
+/* .cv-tabs.cv-tabs--fixed-below-mainNav-desktop { ... } */
+/* #pageMain.content--scrolled-desktop { ... } */
+/* #pageMain.content--scrolled-desktop-v2 { ... } */
+/* .cv-tabs.cv-tabs--fixed-mobile { ... } (será coberto por .cv-tabs--fixed-simple + JS) */
+/* #pageMain.content--scrolled-mobile { ... } (padding será inline via JS) */
 
 
 html[data-theme="dark"] {
