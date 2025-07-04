@@ -179,6 +179,8 @@
     --cv-header-height-scrolled-desktop: clamp(3rem, 4vh + 0.5rem, 3.5rem); /* Altura menor para desktop ao rolar */
     --cv-header-height-scrolled-mobile: clamp(2.5rem, 3vh + 0.5rem, 3rem); /* Altura menor para mobile ao rolar */
     --cv-header-height-current: var(--cv-header-height);
+    --cv-header-slide-diff-desktop: calc(var(--cv-header-height) - var(--cv-header-height-scrolled-desktop));
+    --cv-header-slide-diff-mobile: calc(var(--cv-header-height) - var(--cv-header-height-scrolled-mobile));
 }
 @media (min-width: 768px) {
     :root {
@@ -193,6 +195,14 @@
 
 .cv-header__title {
     transition: opacity 0.25s ease-in-out, visibility 0s linear 0.25s;
+}
+
+#headerSentinel {
+    position: absolute;
+    top: 100%;
+    width: 100%;
+    height: 1px;
+    pointer-events: none;
 }
 
 .cv-header--sticky,
@@ -219,7 +229,8 @@
     #mainNav {
         transition: top 0.3s ease-in-out, background-color 0.3s ease-in-out,
                     padding 0.3s ease-in-out, height 0.3s ease-in-out,
-                    left 0.3s ease-in-out, right 0.3s ease-in-out;
+                    left 0.3s ease-in-out, right 0.3s ease-in-out,
+                    transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
     }
 
     #mainNav.cv-nav--fixed-desktop,
@@ -240,6 +251,10 @@
         display: flex;
         align-items: center;
         height: var(--cv-header-height-scrolled-desktop);
+    }
+
+    #mainNav.cv-nav--slide {
+        transform: translateY(calc(-1 * var(--cv-header-slide-diff-desktop)));
     }
 
     #mainNav.cv-nav--fixed-desktop .cv-container,
@@ -283,6 +298,9 @@
     .cv-tabs {
         transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
                     padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out, background-color 0.3s ease-in-out;
+    }
+    #mainNav.cv-nav--slide {
+        transform: translateY(calc(-1 * var(--cv-header-slide-diff-mobile)));
     }
      .cv-tabs.cv-tabs--sticky-mobile,
      .cv-tabs.cv-tabs--fixed-mobile {

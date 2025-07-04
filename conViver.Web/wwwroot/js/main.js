@@ -426,27 +426,25 @@ export function clearModalError(modalElement) {
     }
 }
 
-function handleScrollEffectsV2() {
+function handleScrollEffectsV2(sentinelVisible = true) {
     const header = document.querySelector('.cv-header');
     const mainNav = document.getElementById('mainNav');
     const cvTabs = document.querySelector('.cv-tabs');
     const pageMain = document.getElementById('pageMain');
-    const scrollThreshold = 50;
-
     if (!header || !pageMain) return;
 
     const isDesktop = window.innerWidth >= 992;
-    const isScrolled = window.scrollY > scrollThreshold;
+    const isScrolled = !sentinelVisible;
 
-    // V2 naming
     header.classList.toggle('cv-header--sticky', isScrolled);
-    // Transitional support for older pages
     header.classList.toggle('cv-header--scrolled', isScrolled);
+    document.documentElement.style.setProperty('--cv-header-height-current', `${header.offsetHeight}px`);
 
     if (isDesktop) {
         if (mainNav) {
             mainNav.classList.toggle('cv-nav--fixed-desktop', isScrolled);
             mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
+            mainNav.classList.toggle('cv-nav--slide', isScrolled);
             mainNav.style.top = isScrolled ? `${header.offsetHeight}px` : '';
         }
 
@@ -498,11 +496,28 @@ function handleScrollEffectsV2() {
     }
 }
 
-const debouncedScrollHandler = debounce(handleScrollEffectsV2, 10);
+function initHeaderObserver() {
+    const sentinel = document.getElementById('headerSentinel');
+    if (!sentinel) return;
 
-window.addEventListener('scroll', debouncedScrollHandler);
-window.addEventListener('resize', debouncedScrollHandler);
+    const observer = new IntersectionObserver(entries => {
+        const entry = entries[0];
+        handleScrollEffectsV2(entry.isIntersecting);
+    });
+
+    observer.observe(sentinel);
+}
+
+window.addEventListener('resize', () => {
+    const sentinel = document.getElementById('headerSentinel');
+    const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+    handleScrollEffectsV2(visible);
+});
+
 document.addEventListener('DOMContentLoaded', () => {
-    handleScrollEffectsV2();
-    setTimeout(handleScrollEffectsV2, 100);
+    initHeaderObserver();
+    const sentinel = document.getElementById('headerSentinel');
+    const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+    handleScrollEffectsV2(visible);
+    setTimeout(() => handleScrollEffectsV2(visible), 100);
 });

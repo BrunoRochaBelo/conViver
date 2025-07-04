@@ -428,29 +428,29 @@ export function clearModalError(modalElement) {
 /**
  * Lógica de scroll para o header e tabs.
  */
-function handleScrollEffectsV2() {
+function handleScrollEffectsV2(sentinelVisible = true) {
   const header = document.querySelector('.cv-header');
   const mainNav = document.getElementById('mainNav');
   const cvTabs = document.querySelector('.cv-tabs');
   const pageMain = document.getElementById('pageMain');
-  const scrollThreshold = 50;
+
+  if (!header || !pageMain) return;
+
+  const isDesktop = window.innerWidth >= 992;
+  const isScrolled = !sentinelVisible;
+
+  header.classList.toggle('cv-header--sticky', isScrolled);
+  header.classList.toggle('cv-header--scrolled', isScrolled);
 
   updateHeaderVars();
   const headerHeight = parseFloat(
     getComputedStyle(document.documentElement).getPropertyValue(
       '--cv-header-height-current'
     )
-  ) || (header ? header.offsetHeight : 0);
-
-  if (!header || !pageMain) return;
-
-  const isDesktop = window.innerWidth >= 992;
-  const isScrolled = window.scrollY > scrollThreshold;
+  ) || header.offsetHeight;
 
   // V2 naming
-  header.classList.toggle('cv-header--sticky', isScrolled);
   // Transitional support for older pages
-  header.classList.toggle('cv-header--scrolled', isScrolled);
 
   if (isDesktop) {
     if (mainNav) {
@@ -458,6 +458,7 @@ function handleScrollEffectsV2() {
       mainNav.classList.toggle('cv-nav--fixed-desktop', isScrolled);
       // Maintain older class for compatibility
       mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
+      mainNav.classList.toggle('cv-nav--slide', isScrolled);
       mainNav.style.top = isScrolled ? `${headerHeight}px` : '';
     }
 
@@ -510,15 +511,30 @@ function handleScrollEffectsV2() {
   }
 }
 
-const debouncedScrollHandler = debounce(handleScrollEffectsV2, 10);
+function initHeaderObserver() {
+  const sentinel = document.getElementById('headerSentinel');
+  if (!sentinel) return;
 
-window.addEventListener('scroll', debouncedScrollHandler);
+  const observer = new IntersectionObserver((entries) => {
+    const entry = entries[0];
+    handleScrollEffectsV2(entry.isIntersecting);
+  });
+
+  observer.observe(sentinel);
+}
+
 window.addEventListener('resize', () => {
   updateHeaderVars();
-  debouncedScrollHandler();
+  const sentinel = document.getElementById('headerSentinel');
+  const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+  handleScrollEffectsV2(visible);
 });
+
 document.addEventListener('DOMContentLoaded', () => {
   updateHeaderVars();
-  handleScrollEffectsV2();
-  setTimeout(handleScrollEffectsV2, 100);
+  initHeaderObserver();
+  const sentinel = document.getElementById('headerSentinel');
+  const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+  handleScrollEffectsV2(visible);
+  setTimeout(() => handleScrollEffectsV2(visible), 100);
 });
