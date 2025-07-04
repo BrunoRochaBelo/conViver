@@ -532,6 +532,16 @@ window.addEventListener('resize', () => {
   handleScrollEffectsV2(visible);
 });
 
+window.addEventListener(
+  'scroll',
+  () => {
+    const sentinel = document.getElementById('headerSentinel');
+    const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+    handleScrollEffectsV2(visible);
+  },
+  { passive: true }
+);
+
 document.addEventListener('DOMContentLoaded', () => {
   updateHeaderVars();
   initHeaderObserver();
