@@ -128,6 +128,33 @@ Diversos ajustes foram realizados para melhorar a experiência em dispositivos m
 * **Aprimoramentos de header e modais:** o cabeçalho ganhou estilo translúcido e comportamento `sticky`. A abertura e fechamento de modais agora adiciona ou remove a classe `cv-modal-open` no `<body>` para impedir rolagem do conteúdo de fundo.
 * **Imagens responsivas:** elementos `<img>` agora possuem `max-width:100%` para evitar estouro do layout em telas menores.
 
+## 9. Header/MainNav/Tab Scroll Reactivity
+
+A interação entre o cabeçalho (`.cv-header`), o menu principal (`#mainNav`) e as abas (`.cv-tabs`) passa a responder ao scroll.
+A função `handleScrollEffectsV2()` em `conViver.Web/js/main.js` aplica classes dinâmicas conforme a rolagem e o tamanho da tela.
+
+### Classes envolvidas
+- `.cv-header--scrolled` para o cabeçalho compacto.
+- `#mainNav.mainNav--fixed-top-desktop` fixa a navegação no topo em telas largas.
+- `.cv-tabs.cv-tabs--fixed-below-mainNav-desktop` fixa as abas abaixo do `mainNav` em desktop.
+- `.cv-tabs.cv-tabs--fixed-mobile` fixa as abas logo abaixo do header em mobile.
+- `body.has-bottom-nav` adiciona espaçamento extra quando a navegação inferior está ativa.
+
+### Variáveis CSS principais
+- `--cv-header-height`
+- `--cv-header-height-scrolled-desktop`
+- `--cv-header-height-scrolled-mobile`
+- `--cv-header-padding-x`
+Essas variáveis definem as dimensões usadas no cálculo de espaçamentos dinâmicos.
+
+### Comportamento
+Em desktops (largura ≥992px) ao ultrapassar 50 px de rolagem (`scrollThreshold`), o cabeçalho recebe `.cv-header--scrolled`, o `mainNav` ganha `.mainNav--fixed-top-desktop` e as abas ficam fixas com `.cv-tabs--fixed-below-mainNav-desktop`. O `padding-top` de `#pageMain` é atualizado somando as alturas dos elementos.
+
+Em mobile, `#mainNav` não fixa e `.cv-tabs--fixed-mobile` é usado. O espaço superior do conteúdo considera apenas o cabeçalho e as abas.
+
+### Estendendo ou modificando
+Ajuste `scrollThreshold` ou altere as variáveis acima em `conViver.Web/css/styles.css` para modificar o comportamento. Novos elementos podem aderir a essa lógica adicionando classes equivalentes e atualizando o cálculo dentro de `handleScrollEffectsV2()`.
+
 ## Conclusão
 
 Essas melhorias visam tornar a aplicação conViver mais responsiva, performática e agradável de usar, fornecendo feedback claro ao usuário em todas as etapas de interação e carregamento de dados.
