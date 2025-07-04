@@ -131,7 +131,7 @@ Diversos ajustes foram realizados para melhorar a experiência em dispositivos m
 ## 9. Header/MainNav/Tab Scroll Reactivity
 
 A interação entre o cabeçalho (`.cv-header`), o menu principal (`#mainNav`) e as abas (`.cv-tabs`) passou a utilizar um `IntersectionObserver`.
-A função `handleScrollEffectsV2()` em `conViver.Web/js/main.js` é disparada quando o elemento `#headerSentinel`, posicionado logo abaixo do header, entra ou sai da viewport, adicionando ou removendo classes conforme o tamanho da tela.
+Esse observador aciona `handleScrollEffectsV2()` em `conViver.Web/js/main.js` sempre que o elemento `#headerSentinel`, posicionado logo abaixo do header, entra ou sai da viewport, adicionando ou removendo classes conforme o tamanho da tela.
 
 ### Classes envolvidas
 - `.cv-header--scrolled` para o cabeçalho compacto.
@@ -144,6 +144,7 @@ A função `handleScrollEffectsV2()` em `conViver.Web/js/main.js` é disparada q
 - `--cv-header-height`
 - `--cv-header-height-scrolled-desktop`
 - `--cv-header-height-scrolled-mobile`
+- `--cv-header-height-current`
 - `--cv-header-slide-diff-desktop`
 - `--cv-header-slide-diff-mobile`
 - `--cv-header-padding-x`
@@ -155,7 +156,30 @@ Quando o `#headerSentinel` deixa a viewport, o cabeçalho recebe `.cv-header--sc
 Quando o sentinel volta a aparecer, todas essas classes são removidas. Em telas móveis o menu principal não fica fixo, mas as abas utilizam `.cv-tabs--fixed-mobile`.
 
 ### Estendendo ou modificando
-Altere as variáveis acima em `conViver.Web/css/styles.css` para personalizar as alturas e a distância de animação. Novos elementos podem aderir a essa lógica adicionando classes equivalentes e atualizando o cálculo dentro de `handleScrollEffectsV2()`.
+Altere as variáveis acima em `conViver.Web/css/styles.css` para personalizar as alturas e a distância de animação. O limiar de ativação do scroll pode ser ajustado editando as opções do `IntersectionObserver` em `initHeaderObserver()` (por exemplo, `threshold` ou `rootMargin`). Novos elementos podem aderir a essa lógica adicionando classes equivalentes e atualizando o cálculo dentro de `handleScrollEffectsV2()`.
+
+```javascript
+// main.js (trecho)
+export function updateHeaderVars() {
+  const header = document.querySelector('.cv-header');
+  if (header) {
+    document.documentElement.style.setProperty(
+      '--cv-header-height-current',
+      `${header.offsetHeight}px`
+    );
+  }
+}
+
+function initHeaderObserver() {
+  const sentinel = document.getElementById('headerSentinel');
+  if (!sentinel) return;
+  const observer = new IntersectionObserver((entries) => {
+    const entry = entries[0];
+    handleScrollEffectsV2(entry.isIntersecting);
+  }, { threshold: 0 });
+  observer.observe(sentinel);
+}
+```
 
 ## Conclusão
 
