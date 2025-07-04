@@ -199,8 +199,8 @@
 .cv-header {
     transition: height 0.3s ease-in-out, box-shadow 0.3s ease-in-out, padding-top 0.3s ease-in-out, padding-bottom 0.3s ease-in-out;
     height: var(--cv-header-height-current); /* Usa a variável de altura atual */
-    padding-top: var(--cv-header-padding-y);
-    padding-bottom: var(--cv-header-padding-y);
+    /* padding-top: var(--cv-header-padding-y); */ /* Padding será gerenciado internamente pelo container */
+    /* padding-bottom: var(--cv-header-padding-y); */
     position: fixed; /* Header sempre fixo */
     top: 0;
     left: 0;
@@ -211,6 +211,16 @@
 
 .cv-header__title {
     transition: opacity 0.25s ease-in-out, visibility 0s linear 0.25s;
+}
+
+.cv-header__container {
+    display: flex;
+    align-items: center;
+    width: 100%; /* Ensures the container uses the full width of .cv-header */
+    height: 100%; /* Makes the container fill the height of .cv-header */
+    padding: var(--cv-header-padding-y) var(--cv-header-padding-x); /* Original padding */
+    box-sizing: border-box; /* Important so padding doesn't add to total dimensions */
+    transition: padding-top 0.3s ease-in-out, padding-bottom 0.3s ease-in-out;
 }
 
 #headerSentinel { /* Não mais necessário para o header, mas pode ser usado para outros efeitos de scroll */
@@ -240,15 +250,36 @@
 .cv-header.cv-header--compact { /* Classe para header reduzido */
     height: var(--cv-header-height-scrolled);
     box-shadow: var(--current-shadow-md);
-    /* padding-top: calc(var(--cv-header-padding-y) * 0.8);
-    padding-bottom: calc(var(--cv-header-padding-y) * 0.8); */
+}
+
+.cv-header.cv-header--compact .cv-header__container {
+    padding-top: calc(var(--cv-header-padding-y) * 0.5); /* Reduz padding vertical do container */
+    padding-bottom: calc(var(--cv-header-padding-y) * 0.5);
 }
 
 .cv-header.cv-header--compact .cv-header__title {
     opacity: 0;
     visibility: hidden;
+    transition: opacity 0.15s ease-out, visibility 0s linear 0.15s; /* Faster fade out */
 }
 
+/* Ajustes para mainNav e userMenuButton dentro do header compacto */
+.cv-header.cv-header--compact #mainNav {
+    /* Os itens dentro de mainNav (links) podem precisar de padding reduzido se contribuirem para altura */
+    /* Exemplo:
+    .nav-link {
+        padding-top: var(--cv-spacing-xs);
+        padding-bottom: var(--cv-spacing-xs);
+        font-size: 0.9rem;
+    }
+    */
+}
+
+.cv-header.cv-header--compact .user-avatar {
+    /* Se o avatar for uma imagem ou ícone grande, pode ser escalado um pouco */
+    /* transform: scale(0.9); */
+    /* Ajustar alinhamento se necessário para se manter centrado com mainNav */
+}
 
 /* Ajustes para cv-tabs */
 .cv-tabs {
@@ -258,32 +289,35 @@
     right: 0;
     z-index: 1010; /* Abaixo do header, acima do conteúdo */
     background-color: var(--current-bg-light);
-    padding-left: var(--cv-header-padding-x); /* Usa o mesmo padding lateral do header */
+    padding-left: var(--cv-header-padding-x); /* Mantém padding lateral para alinhar conteúdo com header */
     padding-right: var(--cv-header-padding-x);
-    padding-top: var(--cv-tabs-padding-y);
+    padding-top: var(--cv-tabs-padding-y); /* Controla altura e padding vertical */
     padding-bottom: var(--cv-tabs-padding-y);
-    height: var(--cv-tabs-height);
+    height: var(--cv-tabs-height); /* Altura controlada por variável */
     border-bottom: 2px solid var(--current-border-subtle);
     box-shadow: var(--current-shadow-sm);
     transition: height 0.3s ease-in-out, padding-top 0.3s ease-in-out, padding-bottom 0.3s ease-in-out,
                 top 0.3s ease-in-out, box-shadow 0.3s ease-in-out, background-color 0.3s ease-in-out;
-    display: flex; /* Para alinhar itens internos */
-    align-items: center; /* Alinha verticalmente os botões das tabs */
+    display: flex;
+    align-items: center;
+    width: 100%; /* Garante que ocupe a largura total */
+    box-sizing: border-box; /* Para que padding não aumente a largura total */
 }
 
 .cv-tabs.cv-tabs--compact { /* Classe para tabs reduzidas */
-    height: var(--cv-tabs-height-scrolled);
-    padding-top: var(--cv-tabs-padding-y-scrolled);
+    height: var(--cv-tabs-height-scrolled); /* Altura reduzida */
+    padding-top: var(--cv-tabs-padding-y-scrolled); /* Padding vertical reduzido */
     padding-bottom: var(--cv-tabs-padding-y-scrolled);
-    box-shadow: var(--current-shadow-sm); /* Pode manter ou ajustar a sombra */
+    /* padding-left e padding-right não mudam para manter alinhamento do conteúdo interno */
+    box-shadow: var(--current-shadow-sm);
 }
 
 .cv-tabs.cv-tabs--compact .cv-tab-button {
-    padding-top: calc(var(--cv-spacing-xs) / 2); /* Reduz padding dos botões */
-    padding-bottom: calc(var(--cv-spacing-xs) / 2);
-    font-size: 0.9rem; /* Reduz fonte dos botões */
+    padding-top: calc(var(--cv-spacing-xs) / 2.5); /* Ajuste fino no padding do botão */
+    padding-bottom: calc(var(--cv-spacing-xs) / 2.5);
+    font-size: 0.85rem; /* Fonte ligeiramente menor para botões compactos */
+    /* Outros estilos de botão como margens podem ser ajustados aqui se necessário */
 }
-
 
 #pageMain {
     transition: padding-top 0.3s ease-in-out;
