@@ -643,7 +643,7 @@ body.has-bottom-nav {
 }
 
 body.has-bottom-nav .fab-menu {
-    bottom: calc(70px + var(--cv-spacing-lg, 20px) + env(safe-area-inset-bottom, 0));
+    bottom: calc(var(--cv-bottom-nav-height, 70px) + var(--cv-spacing-lg, 20px) + env(safe-area-inset-bottom, 0));
 }
 
 

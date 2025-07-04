@@ -126,8 +126,10 @@ export function buildNavigation() {
         bottomNav.appendChild(bottomUl);
         document.body.appendChild(bottomNav);
         document.body.classList.add('has-bottom-nav');
+        document.documentElement.style.setProperty('--cv-bottom-nav-height', `${bottomNav.offsetHeight}px`);
     } else {
         document.body.classList.remove('has-bottom-nav');
+        document.documentElement.style.setProperty('--cv-bottom-nav-height', '0px');
     }
 }
 
