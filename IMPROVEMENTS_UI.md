@@ -130,7 +130,7 @@ Diversos ajustes foram realizados para melhorar a experiência em dispositivos m
 
 ## 9. Header/MainNav/Tab Scroll Reactivity
 
-O comportamento dinâmico de compactar o cabeçalho ou fixar as abas durante a rolagem foi removido. O conteúdo rola normalmente sem que `cv-header` ou `cv-tabs` sofram alterações via JavaScript.
+O comportamento dinâmico de compactar o cabeçalho ou fixar as abas durante a rolagem foi removido. O conteúdo rola normalmente sem que `cv-header` ou `cv-tabs` sofram alterações via JavaScript. Os estilos e scripts responsáveis por essa lógica também foram eliminados do projeto.
 
 ## Conclusão
 
