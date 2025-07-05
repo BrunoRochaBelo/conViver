@@ -130,8 +130,8 @@ Diversos ajustes foram realizados para melhorar a experiência em dispositivos m
 
 ## 9. Header/MainNav/Tab Scroll Reactivity
 
-A interação entre o cabeçalho (`.cv-header`), o menu principal (`#mainNav`) e as abas (`.cv-tabs`) passou a utilizar um `IntersectionObserver`.
-Esse observador aciona `handleScrollEffectsV2()` em `conViver.Web/js/main.js` sempre que o elemento `#headerSentinel`, posicionado logo abaixo do header, entra ou sai da viewport, adicionando ou removendo classes conforme o tamanho da tela.
+A interação entre o cabeçalho (`.cv-header`), o menu principal (`#mainNav`) e as abas (`.cv-tabs`) é controlada por eventos de `scroll` e `resize`.
+`handleScrollEffectsV2()` em `conViver.Web/js/main.js` aplica ou remove classes conforme a posição do topo da página.
 
 ### Classes envolvidas
 - `.cv-header--scrolled` para o cabeçalho compacto.
@@ -151,12 +151,12 @@ Esse observador aciona `handleScrollEffectsV2()` em `conViver.Web/js/main.js` se
 Essas variáveis definem as dimensões e o deslocamento usados no cálculo de espaçamentos e animações.
 
 ### Comportamento
-Quando o `#headerSentinel` deixa a viewport, o cabeçalho recebe `.cv-header--scrolled`, o `mainNav` fixa no topo com `.mainNav--fixed-top-desktop` e desliza para cima com `.cv-nav--slide`. As abas ficam fixas logo abaixo com `.cv-tabs--fixed-below-mainNav-desktop` e o `padding-top` de `#pageMain` é ajustado pela soma das alturas.
+Quando o usuário rola a página para baixo, o cabeçalho recebe `.cv-header--scrolled`. Em desktops o `mainNav` fixa no topo com `.mainNav--fixed-top-desktop` e desliza para cima com `.cv-nav--slide`. As abas ficam fixas logo abaixo com `.cv-tabs--fixed-below-mainNav-desktop` e o `padding-top` de `#pageMain` é ajustado pela soma das alturas.
 
-Quando o sentinel volta a aparecer, todas essas classes são removidas. Em telas móveis o menu principal não fica fixo, mas as abas utilizam `.cv-tabs--fixed-mobile`.
+Ao retornar ao topo, essas classes são removidas. Em telas móveis o menu principal não fica fixo, mas as abas utilizam `.cv-tabs--fixed-mobile`.
 
 ### Estendendo ou modificando
-Altere as variáveis acima em `conViver.Web/css/styles.css` para personalizar as alturas e a distância de animação. O limiar de ativação do scroll pode ser ajustado editando as opções do `IntersectionObserver` em `initHeaderObserver()` (por exemplo, `threshold` ou `rootMargin`). Novos elementos podem aderir a essa lógica adicionando classes equivalentes e atualizando o cálculo dentro de `handleScrollEffectsV2()`.
+Altere as variáveis acima em `conViver.Web/css/styles.css` para personalizar as alturas e a distância de animação. Novos elementos podem aderir a essa lógica adicionando classes equivalentes e atualizando o cálculo dentro de `handleScrollEffectsV2()`.
 
 ```javascript
 // main.js (trecho)
@@ -170,15 +170,6 @@ export function updateHeaderVars() {
   }
 }
 
-function initHeaderObserver() {
-  const sentinel = document.getElementById('headerSentinel');
-  if (!sentinel) return;
-  const observer = new IntersectionObserver((entries) => {
-    const entry = entries[0];
-    handleScrollEffectsV2(entry.isIntersecting);
-  }, { threshold: 0 });
-  observer.observe(sentinel);
-}
 ```
 
 ## Conclusão
