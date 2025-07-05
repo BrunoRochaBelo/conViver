@@ -130,49 +130,7 @@ Diversos ajustes foram realizados para melhorar a experiência em dispositivos m
 
 ## 9. Header/MainNav/Tab Scroll Reactivity
 
-A interação entre o cabeçalho (`.cv-header`), o menu principal (`#mainNav`) e as abas (`.cv-tabs`) é controlada por eventos de `scroll` e `resize`.
-`updateHeaderOnScroll()` em `conViver.Web/js/main.js` aplica ou remove classes de acordo com a rolagem atual e um limiar configurável (`--cv-header-scroll-threshold`, padrão `20px`).
-
-### Classes envolvidas
-- `.cv-header--scrolled` para o cabeçalho compacto.
-- `#mainNav.mainNav--fixed-top-desktop` fixa a navegação no topo em telas largas.
-- `.cv-tabs.cv-tabs--fixed-below-mainNav-desktop` fixa as abas abaixo do `mainNav` em desktop.
-- `.cv-tabs.cv-tabs--fixed-mobile` fixa as abas logo abaixo do header em mobile.
-- `body.has-bottom-nav` adiciona espaçamento extra quando a navegação inferior está ativa.
-
-### Variáveis CSS principais
-- `--cv-header-height`
-- `--cv-header-height-scrolled-desktop`
-- `--cv-header-height-scrolled-mobile`
-- `--cv-header-height-current`
-- `--cv-header-slide-diff-desktop`
-- `--cv-header-slide-diff-mobile`
-- `--cv-header-padding-x`
-- `--cv-header-scroll-threshold`
-Essas variáveis definem as dimensões e o deslocamento usados no cálculo de espaçamentos e animações.
-O valor padrão do limiar pode ser ajustado modificando `--cv-header-scroll-threshold` em seu CSS.
-
-### Comportamento
-Quando o usuário rola a página para baixo, o cabeçalho recebe `.cv-header--scrolled`. Em desktops o `mainNav` fixa no topo com `.mainNav--fixed-top-desktop` e desliza para cima com `.cv-nav--slide`. As abas ficam fixas logo abaixo com `.cv-tabs--fixed-below-mainNav-desktop` e o `padding-top` de `#pageMain` é ajustado pela soma das alturas.
-
-Ao retornar ao topo, essas classes são removidas. Em telas móveis o menu principal não fica fixo, mas as abas utilizam `.cv-tabs--fixed-mobile`.
-
-### Estendendo ou modificando
-Altere as variáveis acima em `conViver.Web/css/styles.css` para personalizar as alturas e a distância de animação. Novos elementos podem aderir a essa lógica adicionando classes equivalentes e atualizando o cálculo dentro de `updateHeaderOnScroll()`.
-
-```javascript
-// main.js (trecho)
-export function updateHeaderVars() {
-  const header = document.querySelector('.cv-header');
-  if (header) {
-    document.documentElement.style.setProperty(
-      '--cv-header-height-current',
-      `${header.offsetHeight}px`
-    );
-  }
-}
-
-```
+O comportamento dinâmico de compactar o cabeçalho ou fixar as abas durante a rolagem foi removido. O conteúdo rola normalmente sem que `cv-header` ou `cv-tabs` sofram alterações via JavaScript.
 
 ## Conclusão
 

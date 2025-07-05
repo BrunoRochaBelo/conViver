@@ -181,7 +181,6 @@
     --cv-header-height-current: var(--cv-header-height);
     --cv-header-slide-diff-desktop: calc(var(--cv-header-height) - var(--cv-header-height-scrolled-desktop));
     --cv-header-slide-diff-mobile: calc(var(--cv-header-height) - var(--cv-header-height-scrolled-mobile));
-    --cv-header-scroll-threshold: 20px;
 }
 @media (min-width: 768px) {
     :root {
