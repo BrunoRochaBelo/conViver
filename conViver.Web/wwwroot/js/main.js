@@ -240,12 +240,26 @@ export function closeModal(modal) {
  */
 export function updateHeaderVars() {
   const header = document.querySelector('.cv-header');
-  if (header) {
-    document.documentElement.style.setProperty(
-      '--cv-header-height-current',
-      `${header.offsetHeight}px`
-    );
-  }
+  if (!header) return;
+
+  const isDesktop = window.innerWidth >= 992;
+  const isCompact = header.classList.contains('cv-header--scrolled') ||
+    header.classList.contains('cv-header--sticky');
+
+  const rootStyles = getComputedStyle(document.documentElement);
+  const varName = isCompact
+    ? isDesktop
+      ? '--cv-header-height-scrolled-desktop'
+      : '--cv-header-height-scrolled-mobile'
+    : '--cv-header-height';
+
+  const height =
+    parseFloat(rootStyles.getPropertyValue(varName)) || header.offsetHeight;
+
+  document.documentElement.style.setProperty(
+    '--cv-header-height-current',
+    `${height}px`
+  );
 }
 
 debugLog('main.js carregado.');
