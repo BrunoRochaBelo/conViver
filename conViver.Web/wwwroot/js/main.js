@@ -236,33 +236,6 @@ export function closeModal(modal) {
   document.body.classList.remove('cv-modal-open');
 }
 
-/**
- * Atualiza a variável CSS que representa a altura atual do header.
- */
-export function updateHeaderVars() {
-  const header = document.querySelector('.cv-header');
-  if (!header) return;
-
-  const isDesktop = window.innerWidth >= 992;
-  const isCompact = header.classList.contains('cv-header--scrolled') ||
-                    header.classList.contains('cv-header--sticky');
-
-  const rootStyles = getComputedStyle(document.documentElement);
-  const varName = isCompact
-    ? isDesktop
-      ? '--cv-header-height-scrolled-desktop'
-      : '--cv-header-height-scrolled-mobile'
-    : '--cv-header-height';
-
-  const height =
-    parseFloat(rootStyles.getPropertyValue(varName)) || header.offsetHeight;
-
-  document.documentElement.style.setProperty(
-    '--cv-header-height-current',
-    `${height}px`
-  );
-}
-
 debugLog('main.js carregado.');
 
 /**
@@ -449,74 +422,5 @@ export function clearModalError(modalElement) {
   }
 }
 
-/**
- * Lógica de scroll para o header e tabs.
- */
-function handleScrollEffectsV2() {
-  const header = document.querySelector('.cv-header');
-  const mainNav = document.getElementById('mainNav');
-  const cvTabs = document.querySelector('.cv-tabs');
-  const pageMain = document.getElementById('pageMain');
-  const scrollThreshold = 50;
 
-  if (!header || !pageMain) return;
 
-  const isDesktop = window.innerWidth >= 992;
-  const isScrolled = window.scrollY > scrollThreshold;
-
-  header.classList.toggle('cv-header--scrolled', isScrolled);
-
-  if (isDesktop) {
-    if (mainNav) {
-      mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
-      mainNav.style.top = isScrolled ? `${header.offsetHeight}px` : '';
-    }
-    if (cvTabs) {
-      cvTabs.classList.toggle('cv-tabs--fixed-below-mainNav-desktop', isScrolled);
-      cvTabs.classList.remove('cv-tabs--fixed-mobile');
-      if (isScrolled) {
-        const navH = mainNav ? mainNav.offsetHeight : 0;
-        cvTabs.style.top = `${header.offsetHeight + navH}px`;
-      } else {
-        cvTabs.style.top = '';
-      }
-    }
-    if (isScrolled) {
-      const navH = mainNav ? mainNav.offsetHeight : 0;
-      const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
-      pageMain.style.paddingTop = `${header.offsetHeight + navH + tabsH}px`;
-    } else {
-      pageMain.style.paddingTop = '';
-    }
-  } else {
-    if (mainNav) {
-      mainNav.classList.remove('mainNav--fixed-top-desktop');
-      mainNav.style.top = '';
-    }
-    if (cvTabs) {
-      cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
-      cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
-      if (isScrolled) {
-        cvTabs.style.top = `${header.offsetHeight}px`;
-      } else {
-        cvTabs.style.top = '';
-      }
-    }
-    if (isScrolled) {
-      const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
-      pageMain.style.paddingTop = `${header.offsetHeight + tabsH}px`;
-    } else {
-      pageMain.style.paddingTop = '';
-    }
-  }
-}
-
-// Debounce para otimizar performance no scroll
-const debouncedScrollHandler = debounce(handleScrollEffectsV2, 10);
-
-window.addEventListener('scroll', debouncedScrollHandler);
-window.addEventListener('resize', debouncedScrollHandler);
-document.addEventListener('DOMContentLoaded', () => {
-  handleScrollEffectsV2();
-  setTimeout(handleScrollEffectsV2, 100);
-});

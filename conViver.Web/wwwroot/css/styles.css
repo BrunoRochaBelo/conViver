@@ -176,11 +176,7 @@
     --cv-header-padding-y: clamp(0.5rem, 1.5vh, 0.75rem);
     --cv-header-padding-x: clamp(1rem, 4vw, 1.5rem);
     --cv-header-height: clamp(3.5rem, 5vh + 1rem, 4.3125rem); /* ~57px–69px */
-    --cv-header-height-scrolled-desktop: clamp(3rem, 4vh + 0.5rem, 3.5rem); /* Altura menor para desktop ao rolar */
-    --cv-header-height-scrolled-mobile: clamp(2.5rem, 3vh + 0.5rem, 3rem); /* Altura menor para mobile ao rolar */
-    --cv-header-height-current: var(--cv-header-height);
-    --cv-header-slide-diff-desktop: calc(var(--cv-header-height) - var(--cv-header-height-scrolled-desktop));
-    --cv-header-slide-diff-mobile: calc(var(--cv-header-height) - var(--cv-header-height-scrolled-mobile));
+
 }
 @media (min-width: 768px) {
     :root {
@@ -209,126 +205,7 @@
     z-index: 1011;
 }
 
-.cv-header--sticky,
-.cv-header--scrolled {
-    min-height: var(--cv-header-height-scrolled-mobile) !important;
-    box-shadow: var(--current-shadow-md);
-}
 
-.cv-header--sticky .cv-header__title,
-.cv-header--scrolled .cv-header__title {
-    opacity: 0;
-    visibility: hidden;
-}
-
-/* Desktop: mainNav sobe e cv-tabs fixa abaixo do header */
-@media (min-width: 992px) {
-    .cv-header--sticky,
-    .cv-header--scrolled {
-        min-height: var(--cv-header-height-scrolled-desktop) !important;
-        z-index: 1005;
-        position: relative;
-    }
-
-    #mainNav {
-        transition: top 0.3s ease-in-out, background-color 0.3s ease-in-out,
-                    padding 0.3s ease-in-out, height 0.3s ease-in-out,
-                    left 0.3s ease-in-out, right 0.3s ease-in-out,
-                    transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-    }
-
-    #mainNav.cv-nav--fixed-desktop,
-    #mainNav.mainNav--fixed-top-desktop {
-        position: fixed;
-        top: 0; /* will be overridden dynamically via JS */
-        left: var(--cv-header-padding-x);
-        width: auto;
-        z-index: 1010;
-        background-color: var(--current-bg-white); /* Cor do header - Confirmado */
-        padding-top: 0;
-        padding-bottom: 0;
-        display: flex;
-        align-items: center;
-        height: var(--cv-header-height-scrolled-desktop);
-    }
-
-    #mainNav.cv-nav--slide {
-        transform: translateY(calc(-1 * var(--cv-header-slide-diff-desktop)));
-    }
-
-    #mainNav.cv-nav--slide + #userMenuButton {
-        transform: translateY(calc(-1 * var(--cv-header-slide-diff-desktop)));
-        transition: transform 0.3s ease-in-out, box-shadow 0.2s ease-in-out;
-    }
-
-    #mainNav.cv-nav--fixed-desktop .cv-container,
-    #mainNav.mainNav--fixed-top-desktop .cv-container {
-        width: 100%;
-    }
-
-    .cv-tabs {
-        transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
-                    padding-top 0.3s ease-in-out, padding-bottom 0.3s ease-in-out,
-                    padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out,
-                    background-color 0.3s ease-in-out;
-    }
-
-    .cv-tabs.cv-tabs--sticky-desktop,
-    .cv-tabs.cv-tabs--fixed-below-mainNav-desktop {
-        position: fixed;
-        top: var(--cv-header-height-current); /* overridden dynamically */
-        left: 0;
-        right: 0;
-        z-index: 1000;
-        background-color: var(--current-bg-light);
-        padding-left: var(--cv-header-padding-x);
-        padding-right: var(--cv-header-padding-x);
-        margin-top: 0;
-        border-bottom: 2px solid var(--current-border-subtle);
-        box-shadow: var(--current-shadow-sm);
-    }
-
-    #pageMain {
-        transition: padding-top 0.3s ease-in-out;
-    }
-
-}
-
-/* Mobile: cv-tabs sobe e fixa abaixo do header */
-@media (max-width: 991.98px) {
-    .cv-tabs {
-        transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
-                    padding-top 0.3s ease-in-out, padding-bottom 0.3s ease-in-out,
-                    padding-left 0.3s ease-in-out, padding-right 0.3s ease-in-out,
-                    background-color 0.3s ease-in-out;
-    }
-    #mainNav.cv-nav--slide {
-        transform: translateY(calc(-1 * var(--cv-header-slide-diff-mobile)));
-    }
-    #mainNav.cv-nav--slide + #userMenuButton {
-        transform: translateY(calc(-1 * var(--cv-header-slide-diff-mobile)));
-        transition: transform 0.3s ease-in-out, box-shadow 0.2s ease-in-out;
-    }
-     .cv-tabs.cv-tabs--sticky-mobile,
-     .cv-tabs.cv-tabs--fixed-mobile {
-        position: fixed;
-        top: var(--cv-header-height-current);
-        left: 0;
-        right: 0;
-        z-index: 1000;
-        background-color: var(--current-bg-light);
-        padding-left: var(--cv-header-padding-x);
-        padding-right: var(--cv-header-padding-x);
-        margin-top: 0;
-        border-bottom: 2px solid var(--current-border-subtle);
-        box-shadow: var(--current-shadow-sm);
-    }
-
-    #pageMain {
-        transition: padding-top 0.3s ease-in-out;
-    }
-    /* padding-top will be set dynamically via JS when tabs become fixed */
-}
 
 
 html[data-theme="dark"] {
@@ -1005,16 +882,7 @@ main {
     border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
 }
 
-/* Compact appearance when content is scrolled */
-.cv-tabs.cv-tabs--compact {
-    padding: calc(var(--cv-spacing-xs) / 2) 0;
-    margin-bottom: var(--cv-spacing-sm, 8px);
-    border-bottom-width: 1px;
-}
-.cv-tabs.cv-tabs--compact .cv-tab-button {
-    padding: 4px 10px;
-    font-size: 0.9rem;
-}
+
 
 .cv-tabs-buttons {
     display: flex;
