@@ -542,30 +542,16 @@ function handleScrollEffectsV2(sentinelVisible = true) {
   }
 }
 
-function initHeaderObserver() {
-  const sentinel = document.getElementById('headerSentinel');
-  if (!sentinel) return;
-
-  const observer = new IntersectionObserver((entries) => {
-    const entry = entries[0];
-    handleScrollEffectsV2(entry.isIntersecting);
-  });
-
-  observer.observe(sentinel);
-}
-
 window.addEventListener('resize', () => {
   updateHeaderVars();
-  const sentinel = document.getElementById('headerSentinel');
-  const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+  const visible = window.scrollY <= 0;
   handleScrollEffectsV2(visible);
 });
 
 window.addEventListener(
   'scroll',
   () => {
-    const sentinel = document.getElementById('headerSentinel');
-    const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+    const visible = window.scrollY <= 0;
     handleScrollEffectsV2(visible);
   },
   { passive: true }
@@ -573,9 +559,7 @@ window.addEventListener(
 
 document.addEventListener('DOMContentLoaded', () => {
   updateHeaderVars();
-  initHeaderObserver();
-  const sentinel = document.getElementById('headerSentinel');
-  const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+  const visible = window.scrollY <= 0;
   handleScrollEffectsV2(visible);
   setTimeout(() => handleScrollEffectsV2(visible), 100);
 });

@@ -96,11 +96,11 @@ export function showGlobalError(message) {
 let feedbackContainer = null;
 
 function ensureFeedbackContainer() {
-    if (!feedbackContainer) {
-        feedbackContainer = document.createElement('div');
-        feedbackContainer.className = 'global-feedback-container';
-        document.body.appendChild(feedbackContainer);
-    }
+  if (!feedbackContainer) {
+    feedbackContainer = document.createElement('div');
+    feedbackContainer.className = 'global-feedback-container';
+    document.body.appendChild(feedbackContainer);
+  }
 }
 
 /**
@@ -110,45 +110,43 @@ function ensureFeedbackContainer() {
  * @param {number} [duration] Optional duration in ms. If not provided, message stays until manually closed.
  */
 export function showGlobalFeedback(message, type = 'info', duration) {
-    ensureFeedbackContainer();
+  ensureFeedbackContainer();
 
-    const feedbackElement = document.createElement('div');
-    feedbackElement.className = `global-feedback-toast global-feedback-toast--${type}`;
-    feedbackElement.setAttribute('role', 'alert');
+  const feedbackElement = document.createElement('div');
+  feedbackElement.className = `global-feedback-toast global-feedback-toast--${type}`;
+  feedbackElement.setAttribute('role', 'alert');
 
-    const messageSpan = document.createElement('span');
-    messageSpan.textContent = message;
-    feedbackElement.appendChild(messageSpan);
+  const messageSpan = document.createElement('span');
+  messageSpan.textContent = message;
+  feedbackElement.appendChild(messageSpan);
 
-    const closeButton = document.createElement('button');
-    closeButton.innerHTML = '&times;'; // Using HTML entity for '×'
-    closeButton.className = 'global-feedback-toast__close-btn';
-    closeButton.setAttribute('aria-label', 'Fechar');
-    closeButton.onclick = () => {
-        feedbackElement.classList.add('global-feedback-toast--hiding');
-        // Remove after animation
-        setTimeout(() => feedbackElement.remove(), 300);
-    };
-    feedbackElement.appendChild(closeButton);
+  const closeButton = document.createElement('button');
+  closeButton.innerHTML = '&times;'; // Using HTML entity for '×'
+  closeButton.className = 'global-feedback-toast__close-btn';
+  closeButton.setAttribute('aria-label', 'Fechar');
+  closeButton.onclick = () => {
+    feedbackElement.classList.add('global-feedback-toast--hiding');
+    setTimeout(() => feedbackElement.remove(), 300);
+  };
+  feedbackElement.appendChild(closeButton);
 
-    feedbackContainer.appendChild(feedbackElement);
+  feedbackContainer.appendChild(feedbackElement);
 
-    // Trigger animation
+  setTimeout(() => {
+    feedbackElement.classList.add('global-feedback-toast--visible');
+  }, 10);
+
+  const defaultDurations = { success: 4000, info: 3000, warning: 5000, error: 8000 };
+  const hideAfter = typeof duration === 'number' ? duration : defaultDurations[type] || 5000;
+
+  if (hideAfter && hideAfter > 0) {
     setTimeout(() => {
-        feedbackElement.classList.add('global-feedback-toast--visible');
-    }, 10); // Small delay to allow CSS transition to take effect
-
-    const defaultDurations = { success: 4000, info: 3000, warning: 5000, error: 8000 };
-    const hideAfter = typeof duration === 'number' ? duration : defaultDurations[type] || 5000;
-
-    if (hideAfter && hideAfter > 0) {
-        setTimeout(() => {
-            if (feedbackElement.parentElement) {
-                feedbackElement.classList.add('global-feedback-toast--hiding');
-                setTimeout(() => feedbackElement.remove(), 300);
-            }
-        }, hideAfter);
-    }
+      if (feedbackElement.parentElement) {
+        feedbackElement.classList.add('global-feedback-toast--hiding');
+        setTimeout(() => feedbackElement.remove(), 300);
+      }
+    }, hideAfter);
+  }
 }
 
 /**
@@ -158,22 +156,22 @@ export function showGlobalFeedback(message, type = 'info', duration) {
  * @param {string|Element|NodeList} target CSS selector ou elemento(s)
  */
 export function showSkeleton(target) {
-    const elements = typeof target === 'string'
-        ? document.querySelectorAll(target)
-        : target instanceof Element
-            ? [target]
-            : target instanceof NodeList || Array.isArray(target)
-                ? target
-                : [];
-    elements.forEach(el => {
-        if (!el) return;
-        if (el.classList && el.classList.contains('feed-skeleton-container')) {
-            el.style.display = 'block';
-        } else {
-            const container = el.querySelector('.feed-skeleton-container');
-            if (container) container.style.display = 'block';
-        }
-    });
+  const elements = typeof target === 'string'
+    ? document.querySelectorAll(target)
+    : target instanceof Element
+      ? [target]
+      : target instanceof NodeList || Array.isArray(target)
+        ? target
+        : [];
+  elements.forEach(el => {
+    if (!el) return;
+    if (el.classList && el.classList.contains('feed-skeleton-container')) {
+      el.style.display = 'block';
+    } else {
+      const container = el.querySelector('.feed-skeleton-container');
+      if (container) container.style.display = 'block';
+    }
+  });
 }
 
 /**
@@ -181,22 +179,22 @@ export function showSkeleton(target) {
  * @param {string|Element|NodeList} target CSS selector ou elemento(s)
  */
 export function hideSkeleton(target) {
-    const elements = typeof target === 'string'
-        ? document.querySelectorAll(target)
-        : target instanceof Element
-            ? [target]
-            : target instanceof NodeList || Array.isArray(target)
-                ? target
-                : [];
-    elements.forEach(el => {
-        if (!el) return;
-        if (el.classList && el.classList.contains('feed-skeleton-container')) {
-            el.style.display = 'none';
-        } else {
-            const container = el.querySelector('.feed-skeleton-container');
-            if (container) container.style.display = 'none';
-        }
-    });
+  const elements = typeof target === 'string'
+    ? document.querySelectorAll(target)
+    : target instanceof Element
+      ? [target]
+      : target instanceof NodeList || Array.isArray(target)
+        ? target
+        : [];
+  elements.forEach(el => {
+    if (!el) return;
+    if (el.classList && el.classList.contains('feed-skeleton-container')) {
+      el.style.display = 'none';
+    } else {
+      const container = el.querySelector('.feed-skeleton-container');
+      if (container) container.style.display = 'none';
+    }
+  });
 }
 
 /**
@@ -206,16 +204,16 @@ export function hideSkeleton(target) {
  * @returns {Function} Função para remover o spinner criado.
  */
 export function showInlineSpinner(element) {
-    if (!element) return () => {};
+  if (!element) return () => {};
 
-    const spinner = document.createElement('span');
-    spinner.className = 'inline-spinner';
-    spinner.setAttribute('aria-hidden', 'true');
-    element.appendChild(spinner);
+  const spinner = document.createElement('span');
+  spinner.className = 'inline-spinner';
+  spinner.setAttribute('aria-hidden', 'true');
+  element.appendChild(spinner);
 
-    return () => {
-        if (spinner.parentElement) spinner.remove();
-    };
+  return () => {
+    if (spinner.parentElement) spinner.remove();
+  };
 }
 
 /**
@@ -223,9 +221,9 @@ export function showInlineSpinner(element) {
  * @param {HTMLElement} modal Elemento do modal a ser aberto.
  */
 export function openModal(modal) {
-    if (!modal) return;
-    modal.style.display = 'flex';
-    document.body.classList.add('cv-modal-open');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  document.body.classList.add('cv-modal-open');
 }
 
 /**
@@ -233,21 +231,27 @@ export function openModal(modal) {
  * @param {HTMLElement} modal Elemento do modal a ser fechado.
  */
 export function closeModal(modal) {
-    if (modal) modal.style.display = 'none';
-    document.body.classList.remove('cv-modal-open');
+  if (modal) modal.style.display = 'none';
+  document.body.classList.remove('cv-modal-open');
 }
 
-
-// Exemplo de como poderia ser usado para inicializações (se necessário no futuro):
-// document.addEventListener('DOMContentLoaded', () => {
-//   console.log('DOM completamente carregado e analisado. main.js pronto.');
-//   // Inicializações globais aqui
-// });
+/**
+ * Atualiza a variável CSS que representa a altura atual do header.
+ */
+export function updateHeaderVars() {
+  const header = document.querySelector('.cv-header');
+  if (header) {
+    document.documentElement.style.setProperty(
+      '--cv-header-height-current',
+      `${header.offsetHeight}px`
+    );
+  }
+}
 
 debugLog('main.js carregado.');
 
 // --- Scroll handling helpers ---
-const UNSTICK_THRESHOLD = 40;
+const UNSTICK_THRESHOLD = 40; // px the user must scroll up before header unsticks
 let lastScrollTop = window.scrollY || document.documentElement.scrollTop;
 let accumulatedUpScroll = 0;
 
@@ -264,56 +268,54 @@ let accumulatedUpScroll = 0;
  * @returns {HTMLElement} O elemento do empty state.
  */
 export function createEmptyStateElement({ iconHTML, title, description, actionButton }) {
-    const emptyState = document.createElement('div');
-    emptyState.className = 'cv-empty-state';
+  const emptyState = document.createElement('div');
+  emptyState.className = 'cv-empty-state';
 
-    let iconMarkup = '';
-    if (iconHTML) {
-        iconMarkup = `<div class="cv-empty-state__icon">${iconHTML}</div>`;
+  let iconMarkup = '';
+  if (iconHTML) {
+    iconMarkup = `<div class="cv-empty-state__icon">${iconHTML}</div>`;
+  }
+
+  let descriptionMarkup = '';
+  if (description) {
+    descriptionMarkup = `<p class="cv-empty-state__description">${description}</p>`;
+  }
+
+  let buttonsMarkup = '<div class="cv-empty-state__actions">';
+  if (actionButton && actionButton.text && typeof actionButton.onClick === 'function') {
+    const buttonClasses = ['cv-button', 'cv-empty-state__action', 'cv-empty-state__action--primary', ...(actionButton.classes || [])].join(' ');
+    buttonsMarkup += `<button class="${buttonClasses}">${actionButton.text}</button>`;
+  }
+
+  // Adicionar botão de ação secundário, se existir na configuração
+  if (config.secondaryActionButton && config.secondaryActionButton.text && typeof config.secondaryActionButton.onClick === 'function') {
+    const secondaryButtonClasses = ['cv-button', 'cv-empty-state__action', 'cv-empty-state__action--secondary', ...(config.secondaryActionButton.classes || [])].join(' ');
+    buttonsMarkup += `<button class="${secondaryButtonClasses}">${config.secondaryActionButton.text}</button>`;
+  }
+  buttonsMarkup += '</div>';
+
+  emptyState.innerHTML = `
+    ${iconMarkup}
+    <h3 class="cv-empty-state__title">${title}</h3>
+    ${descriptionMarkup}
+    ${buttonsMarkup}
+  `;
+
+  if (actionButton && actionButton.text && typeof actionButton.onClick === 'function') {
+    const buttonElement = emptyState.querySelector('.cv-empty-state__action--primary');
+    if (buttonElement) {
+      buttonElement.addEventListener('click', actionButton.onClick);
     }
+  }
 
-    let descriptionMarkup = '';
-    if (description) {
-        descriptionMarkup = `<p class="cv-empty-state__description">${description}</p>`;
+  if (config.secondaryActionButton && config.secondaryActionButton.text && typeof config.secondaryActionButton.onClick === 'function') {
+    const secondaryButtonElement = emptyState.querySelector('.cv-empty-state__action--secondary');
+    if (secondaryButtonElement) {
+      secondaryButtonElement.addEventListener('click', config.secondaryActionButton.onClick);
     }
+  }
 
-    let buttonsMarkup = '<div class="cv-empty-state__actions">';
-    if (actionButton && actionButton.text && typeof actionButton.onClick === 'function') {
-        const buttonClasses = ['cv-button', 'cv-empty-state__action', 'cv-empty-state__action--primary', ...(actionButton.classes || [])].join(' ');
-        buttonsMarkup += `<button class="${buttonClasses}">${actionButton.text}</button>`;
-    }
-
-    // Adicionar botão de ação secundário, se existir na configuração
-    // A configuração agora pode ter `secondaryActionButton`
-    if (config.secondaryActionButton && config.secondaryActionButton.text && typeof config.secondaryActionButton.onClick === 'function') {
-        const secondaryButtonClasses = ['cv-button', 'cv-empty-state__action', 'cv-empty-state__action--secondary', ...(config.secondaryActionButton.classes || [])].join(' ');
-        buttonsMarkup += `<button class="${secondaryButtonClasses}">${config.secondaryActionButton.text}</button>`;
-    }
-    buttonsMarkup += '</div>';
-
-
-    emptyState.innerHTML = `
-        ${iconMarkup}
-        <h3 class="cv-empty-state__title">${title}</h3>
-        ${descriptionMarkup}
-        ${buttonsMarkup}
-    `;
-
-    if (actionButton && actionButton.text && typeof actionButton.onClick === 'function') {
-        const buttonElement = emptyState.querySelector('.cv-empty-state__action--primary');
-        if (buttonElement) {
-            buttonElement.addEventListener('click', actionButton.onClick);
-        }
-    }
-
-    if (config.secondaryActionButton && config.secondaryActionButton.text && typeof config.secondaryActionButton.onClick === 'function') {
-        const secondaryButtonElement = emptyState.querySelector('.cv-empty-state__action--secondary');
-        if (secondaryButtonElement) {
-            secondaryButtonElement.addEventListener('click', config.secondaryActionButton.onClick);
-        }
-    }
-
-    return emptyState;
+  return emptyState;
 }
 
 /**
@@ -329,42 +331,40 @@ export function createEmptyStateElement({ iconHTML, title, description, actionBu
  * @returns {HTMLElement} O elemento do error state.
  */
 export function createErrorStateElement({ iconHTML, title = "Oops! Algo deu errado", message, retryButton }) {
-    const errorState = document.createElement('div');
-    errorState.className = 'cv-error-state';
+  const errorState = document.createElement('div');
+  errorState.className = 'cv-error-state';
 
-    const defaultErrorIcon = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1s1 .45 1 1v4c0 .55-.45 1-1 1zm1-8h-2V7h2v2z"/>
-        </svg>
-    `;
-    // Prioriza iconHTML fornecido, senão usa o SVG padrão de erro
-    const actualIconHTML = iconHTML || defaultErrorIcon;
+  const defaultErrorIcon = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1s1 .45 1 1v4c0 .55-.45 1-1 1zm1-8h-2V7h2v2z"/>
+    </svg>
+  `;
+  const actualIconHTML = iconHTML || defaultErrorIcon;
 
+  let iconMarkup = `<div class="cv-error-state__icon">${actualIconHTML}</div>`;
 
-    let iconMarkup = `<div class="cv-error-state__icon">${actualIconHTML}</div>`;
+  let buttonMarkup = '';
+  if (retryButton && typeof retryButton.onClick === 'function') {
+    const buttonText = retryButton.text || "Tentar Novamente";
+    const buttonClasses = ['cv-button', 'cv-error-state__retry-button', ...(retryButton.classes || [])].join(' ');
+    buttonMarkup = `<button class="${buttonClasses}">${buttonText}</button>`;
+  }
 
-    let buttonMarkup = '';
-    if (retryButton && typeof retryButton.onClick === 'function') {
-        const buttonText = retryButton.text || "Tentar Novamente";
-        const buttonClasses = ['cv-button', 'cv-error-state__retry-button', ...(retryButton.classes || [])].join(' ');
-        buttonMarkup = `<button class="${buttonClasses}">${buttonText}</button>`;
+  errorState.innerHTML = `
+    ${iconMarkup}
+    <h3 class="cv-error-state__title">${title}</h3>
+    <p class="cv-error-state__message">${message}</p>
+    ${buttonMarkup}
+  `;
+
+  if (retryButton && typeof retryButton.onClick === 'function') {
+    const buttonElement = errorState.querySelector('.cv-error-state__retry-button');
+    if (buttonElement) {
+      buttonElement.addEventListener('click', retryButton.onClick);
     }
+  }
 
-    errorState.innerHTML = `
-        ${iconMarkup}
-        <h3 class="cv-error-state__title">${title}</h3>
-        <p class="cv-error-state__message">${message}</p>
-        ${buttonMarkup}
-    `;
-
-    if (retryButton && typeof retryButton.onClick === 'function') {
-        const buttonElement = errorState.querySelector('.cv-error-state__retry-button');
-        if (buttonElement) {
-            buttonElement.addEventListener('click', retryButton.onClick);
-        }
-    }
-
-    return errorState;
+  return errorState;
 }
 
 // Adicionado log opcional de carregamento do script
@@ -377,42 +377,41 @@ debugLog('main.js com helpers de state e modal error carregado.');
  * @param {string} message A mensagem de erro a ser exibida.
  */
 export function showModalError(modalElement, message) {
-    if (!modalElement) {
-        console.warn("showModalError: modalElement não fornecido.");
-        showGlobalFeedback(message, 'error'); // Fallback para global se o modal não for encontrado
-        return;
-    }
-    let errorContainer = modalElement.querySelector('.cv-modal-error-message');
-    if (!errorContainer) {
-        errorContainer = document.createElement('div');
-        errorContainer.className = 'cv-modal-error-message';
-        // Estilos aplicados diretamente para garantir visibilidade e feedback de erro
-        errorContainer.style.color = 'var(--current-semantic-error, #e53935)';
-        errorContainer.style.backgroundColor = 'var(--current-color-error-bg, #ffebee)';
-        errorContainer.style.padding = 'var(--cv-spacing-sm, 8px) var(--cv-spacing-md, 16px)';
-        errorContainer.style.marginTop = 'var(--cv-spacing-md, 16px)';
-        errorContainer.style.marginBottom = 'var(--cv-spacing-sm, 8px)';
-        errorContainer.style.borderRadius = 'var(--cv-border-radius-md, 8px)';
-        errorContainer.style.fontSize = '0.9em';
-        errorContainer.style.textAlign = 'center';
-        errorContainer.style.border = `1px solid var(--current-semantic-error-darker, #c62828)`;
+  if (!modalElement) {
+    console.warn("showModalError: modalElement não fornecido.");
+    showGlobalFeedback(message, 'error'); // Fallback para global se o modal não for encontrado
+    return;
+  }
+  let errorContainer = modalElement.querySelector('.cv-modal-error-message');
+  if (!errorContainer) {
+    errorContainer = document.createElement('div');
+    errorContainer.className = 'cv-modal-error-message';
+    errorContainer.style.color = 'var(--current-semantic-error, #e53935)';
+    errorContainer.style.backgroundColor = 'var(--current-color-error-bg, #ffebee)';
+    errorContainer.style.padding = 'var(--cv-spacing-sm, 8px) var(--cv-spacing-md, 16px)';
+    errorContainer.style.marginTop = 'var(--cv-spacing-md, 16px)';
+    errorContainer.style.marginBottom = 'var(--cv-spacing-sm, 8px)';
+    errorContainer.style.borderRadius = 'var(--cv-border-radius-md, 8px)';
+    errorContainer.style.fontSize = '0.9em';
+    errorContainer.style.textAlign = 'center';
+    errorContainer.style.border = `1px solid var(--current-semantic-error-darker, #c62828)`;
 
-        const modalContent = modalElement.querySelector('.cv-modal-content');
-        const modalFooter = modalElement.querySelector('.cv-modal-footer');
+    const modalContent = modalElement.querySelector('.cv-modal-content');
+    const modalFooter = modalElement.querySelector('.cv-modal-footer');
 
-        if (modalContent) {
-            if (modalFooter) {
-                modalContent.insertBefore(errorContainer, modalFooter);
-            } else {
-                modalContent.appendChild(errorContainer);
-            }
-        } else {
-            modalElement.appendChild(errorContainer);
-            console.warn("showModalError: '.cv-modal-content' não encontrado. Mensagem de erro adicionada ao root do modal.", modalElement);
-        }
+    if (modalContent) {
+      if (modalFooter) {
+        modalContent.insertBefore(errorContainer, modalFooter);
+      } else {
+        modalContent.appendChild(errorContainer);
+      }
+    } else {
+      modalElement.appendChild(errorContainer);
+      console.warn("showModalError: '.cv-modal-content' não encontrado. Mensagem de erro adicionada ao root do modal.", modalElement);
     }
-    errorContainer.textContent = message;
-    errorContainer.style.display = 'block';
+  }
+  errorContainer.textContent = message;
+  errorContainer.style.display = 'block';
 }
 
 /**
@@ -420,141 +419,147 @@ export function showModalError(modalElement, message) {
  * @param {HTMLElement} modalElement O elemento do modal.
  */
 export function clearModalError(modalElement) {
-    if (!modalElement) {
-        console.warn("clearModalError: modalElement não fornecido.");
-        return;
-    }
-    const errorContainer = modalElement.querySelector('.cv-modal-error-message');
-    if (errorContainer) {
-        errorContainer.textContent = '';
-        errorContainer.style.display = 'none';
-    }
+  if (!modalElement) {
+    console.warn("clearModalError: modalElement não fornecido.");
+    return;
+  }
+  const errorContainer = modalElement.querySelector('.cv-modal-error-message');
+  if (errorContainer) {
+    errorContainer.textContent = '';
+    errorContainer.style.display = 'none';
+  }
 }
 
+/**
+ * Lógica de scroll para o header e tabs.
+ */
 function handleScrollEffectsV2(sentinelVisible = true) {
-    const header = document.querySelector('.cv-header');
-    const mainNav = document.getElementById('mainNav');
-    const cvTabs = document.querySelector('.cv-tabs');
-    const pageMain = document.getElementById('pageMain');
-    if (!header || !pageMain) return;
+  const header = document.querySelector('.cv-header');
+  const mainNav = document.getElementById('mainNav');
+  const cvTabs = document.querySelector('.cv-tabs');
+  const pageMain = document.getElementById('pageMain');
 
-    const isDesktop = window.innerWidth >= 992;
+  if (!header || !pageMain) return;
 
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const scrollingUp = scrollTop < lastScrollTop;
-    let isScrolled = !sentinelVisible;
+  const isDesktop = window.innerWidth >= 992;
 
-    if (sentinelVisible && header.classList.contains('cv-header--scrolled')) {
-        if (scrollingUp) {
-            accumulatedUpScroll += lastScrollTop - scrollTop;
-            if (accumulatedUpScroll >= UNSTICK_THRESHOLD) {
-                isScrolled = false;
-                accumulatedUpScroll = 0;
-            } else {
-                isScrolled = true;
-            }
-        } else {
-            accumulatedUpScroll = 0;
-            isScrolled = true;
-        }
-    } else if (!sentinelVisible) {
+  const scrollTop = window.scrollY || document.documentElement.scrollTop;
+  const scrollingUp = scrollTop < lastScrollTop;
+  let isScrolled = !sentinelVisible;
+
+  if (sentinelVisible && header.classList.contains('cv-header--scrolled')) {
+    if (scrollingUp) {
+      accumulatedUpScroll += lastScrollTop - scrollTop;
+      if (accumulatedUpScroll >= UNSTICK_THRESHOLD) {
+        isScrolled = false;
         accumulatedUpScroll = 0;
+      } else {
+        isScrolled = true;
+      }
     } else {
-        accumulatedUpScroll = 0;
+      accumulatedUpScroll = 0;
+      isScrolled = true;
+    }
+  } else if (!sentinelVisible) {
+    accumulatedUpScroll = 0;
+  } else {
+    accumulatedUpScroll = 0;
+  }
+
+  lastScrollTop = scrollTop;
+
+  header.classList.toggle('cv-header--sticky', isScrolled);
+  header.classList.toggle('cv-header--scrolled', isScrolled);
+
+  updateHeaderVars();
+  const headerHeight = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue(
+      '--cv-header-height-current'
+    )
+  ) || header.offsetHeight;
+
+  // V2 naming
+  // Transitional support for older pages
+
+  if (isDesktop) {
+    if (mainNav) {
+      // New class name
+      mainNav.classList.toggle('cv-nav--fixed-desktop', isScrolled);
+      // Maintain older class for compatibility
+      mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
+      mainNav.classList.toggle('cv-nav--slide', isScrolled);
+      mainNav.style.top = isScrolled ? `${headerHeight}px` : '';
     }
 
-    lastScrollTop = scrollTop;
-
-    header.classList.toggle('cv-header--sticky', isScrolled);
-    header.classList.toggle('cv-header--scrolled', isScrolled);
-    document.documentElement.style.setProperty('--cv-header-height-current', `${header.offsetHeight}px`);
-
-    if (isDesktop) {
-        if (mainNav) {
-            mainNav.classList.toggle('cv-nav--fixed-desktop', isScrolled);
-            mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
-            mainNav.classList.toggle('cv-nav--slide', isScrolled);
-            mainNav.style.top = isScrolled ? `${header.offsetHeight}px` : '';
-        }
-
-        if (cvTabs) {
-            cvTabs.classList.toggle('cv-tabs--sticky-desktop', isScrolled);
-            cvTabs.classList.toggle('cv-tabs--fixed-below-mainNav-desktop', isScrolled);
-            cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
-            cvTabs.classList.remove('cv-tabs--sticky-mobile');
-            cvTabs.classList.remove('cv-tabs--fixed-mobile');
-            if (isScrolled) {
-                const navH = mainNav ? mainNav.offsetHeight : 0;
-                cvTabs.style.top = `${header.offsetHeight + navH}px`;
-            } else {
-                cvTabs.style.top = '';
-            }
-        }
-
-        if (isScrolled) {
-            const navH = mainNav ? mainNav.offsetHeight : 0;
-            const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
-            pageMain.style.paddingTop = `${header.offsetHeight + navH + tabsH}px`;
-        } else {
-            pageMain.style.paddingTop = '';
-        }
-    } else {
-        if (mainNav) {
-            mainNav.classList.remove('cv-nav--fixed-desktop');
-            mainNav.classList.remove('mainNav--fixed-top-desktop');
-            mainNav.style.top = '';
-        }
-
-        if (cvTabs) {
-            cvTabs.classList.toggle('cv-tabs--sticky-mobile', isScrolled);
-            cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
-            cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
-            cvTabs.classList.remove('cv-tabs--sticky-desktop');
-            cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
-            if (isScrolled) {
-                cvTabs.style.top = `${header.offsetHeight}px`;
-            } else {
-                cvTabs.style.top = '';
-            }
-        }
-
-        if (isScrolled) {
-            const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
-            pageMain.style.paddingTop = `${header.offsetHeight + tabsH}px`;
-        } else {
-            pageMain.style.paddingTop = '';
-        }
+    if (cvTabs) {
+      cvTabs.classList.toggle('cv-tabs--sticky-desktop', isScrolled);
+      // Remove old and maintain compatibility
+      cvTabs.classList.toggle('cv-tabs--fixed-below-mainNav-desktop', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
+      cvTabs.classList.remove('cv-tabs--sticky-mobile');
+      cvTabs.classList.remove('cv-tabs--fixed-mobile');
+      if (isScrolled) {
+        const navH = mainNav ? mainNav.offsetHeight : 0;
+        cvTabs.style.top = `${headerHeight + navH}px`;
+      } else {
+        cvTabs.style.top = '';
+      }
     }
-}
 
-function initHeaderObserver() {
-    const sentinel = document.getElementById('headerSentinel');
-    if (!sentinel) return;
+    if (isScrolled) {
+      const navH = mainNav ? mainNav.offsetHeight : 0;
+      const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
+      pageMain.style.paddingTop = `${headerHeight + navH + tabsH}px`;
+    } else {
+      pageMain.style.paddingTop = '';
+    }
+  } else {
+    if (mainNav) {
+      mainNav.classList.remove('cv-nav--fixed-desktop');
+      mainNav.classList.remove('mainNav--fixed-top-desktop');
+      mainNav.style.top = '';
+    }
 
-    const observer = new IntersectionObserver(entries => {
-        const entry = entries[0];
-        handleScrollEffectsV2(entry.isIntersecting);
-    });
+    if (cvTabs) {
+      cvTabs.classList.toggle('cv-tabs--sticky-mobile', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
+      cvTabs.classList.remove('cv-tabs--sticky-desktop');
+      cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
+      if (isScrolled) {
+        cvTabs.style.top = `${headerHeight}px`;
+      } else {
+        cvTabs.style.top = '';
+      }
+    }
 
-    observer.observe(sentinel);
+    if (isScrolled) {
+      const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
+      pageMain.style.paddingTop = `${headerHeight + tabsH}px`;
+    } else {
+      pageMain.style.paddingTop = '';
+    }
+  }
 }
 
 window.addEventListener('resize', () => {
-    const sentinel = document.getElementById('headerSentinel');
-    const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
-    handleScrollEffectsV2(visible);
+  updateHeaderVars();
+  const visible = window.scrollY <= 0;
+  handleScrollEffectsV2(visible);
 });
 
-window.addEventListener('scroll', () => {
-    const sentinel = document.getElementById('headerSentinel');
-    const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
+window.addEventListener(
+  'scroll',
+  () => {
+    const visible = window.scrollY <= 0;
     handleScrollEffectsV2(visible);
-}, { passive: true });
+  },
+  { passive: true }
+);
 
 document.addEventListener('DOMContentLoaded', () => {
-    initHeaderObserver();
-    const sentinel = document.getElementById('headerSentinel');
-    const visible = sentinel ? sentinel.getBoundingClientRect().top >= 0 : true;
-    handleScrollEffectsV2(visible);
-    setTimeout(() => handleScrollEffectsV2(visible), 100);
+  updateHeaderVars();
+  const visible = window.scrollY <= 0;
+  handleScrollEffectsV2(visible);
+  setTimeout(() => handleScrollEffectsV2(visible), 100);
 });
