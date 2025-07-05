@@ -184,7 +184,7 @@
     }
 }
 
-/* Estilos para header com scroll */
+/* Estilos do header */
 .cv-header {
     transition: min-height 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
