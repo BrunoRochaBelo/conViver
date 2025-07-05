@@ -91,7 +91,7 @@ export function showGlobalError(message) {
 
 /**
  * Container for global feedback messages.
- * Ensures messages are stacked and easily managed.
+ * Ensures messages are stacked and facilmente gerenciados.
  */
 let feedbackContainer = null;
 
@@ -121,7 +121,7 @@ export function showGlobalFeedback(message, type = 'info', duration) {
   feedbackElement.appendChild(messageSpan);
 
   const closeButton = document.createElement('button');
-  closeButton.innerHTML = '&times;'; // Using HTML entity for '×'
+  closeButton.innerHTML = '&times;'; // HTML entity para '×'
   closeButton.className = 'global-feedback-toast__close-btn';
   closeButton.setAttribute('aria-label', 'Fechar');
   closeButton.onclick = () => {
@@ -132,6 +132,7 @@ export function showGlobalFeedback(message, type = 'info', duration) {
 
   feedbackContainer.appendChild(feedbackElement);
 
+  // Dispara a animação
   setTimeout(() => {
     feedbackElement.classList.add('global-feedback-toast--visible');
   }, 10);
@@ -199,7 +200,7 @@ export function hideSkeleton(target) {
 
 /**
  * Mostra um pequeno spinner dentro do elemento fornecido e retorna
- * uma função que remove o spinner.
+ * uma função que remove o spinner criado.
  * @param {HTMLElement} element Elemento onde o spinner será exibido.
  * @returns {Function} Função para remover o spinner criado.
  */
@@ -238,6 +239,30 @@ export function closeModal(modal) {
 /**
  * Atualiza a variável CSS que representa a altura atual do header.
  */
+export function updateHeaderVars() {
+  const header = document.querySelector('.cv-header');
+  if (!header) return;
+
+  const isDesktop = window.innerWidth >= 992;
+  const isCompact = header.classList.contains('cv-header--scrolled') ||
+                    header.classList.contains('cv-header--sticky');
+
+  const rootStyles = getComputedStyle(document.documentElement);
+  const varName = isCompact
+    ? isDesktop
+      ? '--cv-header-height-scrolled-desktop'
+      : '--cv-header-height-scrolled-mobile'
+    : '--cv-header-height';
+
+  const height =
+    parseFloat(rootStyles.getPropertyValue(varName)) || header.offsetHeight;
+
+  document.documentElement.style.setProperty(
+    '--cv-header-height-current',
+    `${height}px`
+  );
+}
+
 debugLog('main.js carregado.');
 
 /**
@@ -268,13 +293,23 @@ export function createEmptyStateElement({ iconHTML, title, description, actionBu
 
   let buttonsMarkup = '<div class="cv-empty-state__actions">';
   if (actionButton && actionButton.text && typeof actionButton.onClick === 'function') {
-    const buttonClasses = ['cv-button', 'cv-empty-state__action', 'cv-empty-state__action--primary', ...(actionButton.classes || [])].join(' ');
+    const buttonClasses = [
+      'cv-button',
+      'cv-empty-state__action',
+      'cv-empty-state__action--primary',
+      ...(actionButton.classes || [])
+    ].join(' ');
     buttonsMarkup += `<button class="${buttonClasses}">${actionButton.text}</button>`;
   }
 
   // Adicionar botão de ação secundário, se existir na configuração
   if (config.secondaryActionButton && config.secondaryActionButton.text && typeof config.secondaryActionButton.onClick === 'function') {
-    const secondaryButtonClasses = ['cv-button', 'cv-empty-state__action', 'cv-empty-state__action--secondary', ...(config.secondaryActionButton.classes || [])].join(' ');
+    const secondaryButtonClasses = [
+      'cv-button',
+      'cv-empty-state__action',
+      'cv-empty-state__action--secondary',
+      ...(config.secondaryActionButton.classes || [])
+    ].join(' ');
     buttonsMarkup += `<button class="${secondaryButtonClasses}">${config.secondaryActionButton.text}</button>`;
   }
   buttonsMarkup += '</div>';
@@ -355,7 +390,6 @@ export function createErrorStateElement({ iconHTML, title = "Oops! Algo deu erra
 // Adicionado log opcional de carregamento do script
 debugLog('main.js com helpers de state e modal error carregado.');
 
-// --- Funções Auxiliares para Erro em Modal (Movidas de comunicacao.js) ---
 /**
  * Exibe uma mensagem de erro dentro de um elemento modal.
  * @param {HTMLElement} modalElement O elemento do modal.
@@ -364,7 +398,7 @@ debugLog('main.js com helpers de state e modal error carregado.');
 export function showModalError(modalElement, message) {
   if (!modalElement) {
     console.warn("showModalError: modalElement não fornecido.");
-    showGlobalFeedback(message, 'error'); // Fallback para global se o modal não for encontrado
+    showGlobalFeedback(message, 'error'); // Fallback se o modal não existir
     return;
   }
   let errorContainer = modalElement.querySelector('.cv-modal-error-message');
@@ -392,7 +426,7 @@ export function showModalError(modalElement, message) {
       }
     } else {
       modalElement.appendChild(errorContainer);
-      console.warn("showModalError: '.cv-modal-content' não encontrado. Mensagem de erro adicionada ao root do modal.", modalElement);
+      console.warn("showModalError: '.cv-modal-content' não encontrado. Mensagem adicionada ao root do modal.", modalElement);
     }
   }
   errorContainer.textContent = message;
@@ -415,3 +449,74 @@ export function clearModalError(modalElement) {
   }
 }
 
+/**
+ * Lógica de scroll para o header e tabs.
+ */
+function handleScrollEffectsV2() {
+  const header = document.querySelector('.cv-header');
+  const mainNav = document.getElementById('mainNav');
+  const cvTabs = document.querySelector('.cv-tabs');
+  const pageMain = document.getElementById('pageMain');
+  const scrollThreshold = 50;
+
+  if (!header || !pageMain) return;
+
+  const isDesktop = window.innerWidth >= 992;
+  const isScrolled = window.scrollY > scrollThreshold;
+
+  header.classList.toggle('cv-header--scrolled', isScrolled);
+
+  if (isDesktop) {
+    if (mainNav) {
+      mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
+      mainNav.style.top = isScrolled ? `${header.offsetHeight}px` : '';
+    }
+    if (cvTabs) {
+      cvTabs.classList.toggle('cv-tabs--fixed-below-mainNav-desktop', isScrolled);
+      cvTabs.classList.remove('cv-tabs--fixed-mobile');
+      if (isScrolled) {
+        const navH = mainNav ? mainNav.offsetHeight : 0;
+        cvTabs.style.top = `${header.offsetHeight + navH}px`;
+      } else {
+        cvTabs.style.top = '';
+      }
+    }
+    if (isScrolled) {
+      const navH = mainNav ? mainNav.offsetHeight : 0;
+      const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
+      pageMain.style.paddingTop = `${header.offsetHeight + navH + tabsH}px`;
+    } else {
+      pageMain.style.paddingTop = '';
+    }
+  } else {
+    if (mainNav) {
+      mainNav.classList.remove('mainNav--fixed-top-desktop');
+      mainNav.style.top = '';
+    }
+    if (cvTabs) {
+      cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
+      cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
+      if (isScrolled) {
+        cvTabs.style.top = `${header.offsetHeight}px`;
+      } else {
+        cvTabs.style.top = '';
+      }
+    }
+    if (isScrolled) {
+      const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
+      pageMain.style.paddingTop = `${header.offsetHeight + tabsH}px`;
+    } else {
+      pageMain.style.paddingTop = '';
+    }
+  }
+}
+
+// Debounce para otimizar performance no scroll
+const debouncedScrollHandler = debounce(handleScrollEffectsV2, 10);
+
+window.addEventListener('scroll', debouncedScrollHandler);
+window.addEventListener('resize', debouncedScrollHandler);
+document.addEventListener('DOMContentLoaded', () => {
+  handleScrollEffectsV2();
+  setTimeout(handleScrollEffectsV2, 100);
+});
