@@ -252,6 +252,7 @@ debugLog('main.js carregado.');
 
 // --- Scroll handling helpers ---
 const UNSTICK_THRESHOLD = 40; // px the user must scroll up before header unsticks
+const HEADER_SCROLL_THRESHOLD = 20; // px before header enters compact mode
 let lastScrollTop = window.scrollY || document.documentElement.scrollTop;
 let accumulatedUpScroll = 0;
 
@@ -542,24 +543,104 @@ function handleScrollEffectsV2(sentinelVisible = true) {
   }
 }
 
+/**
+ * Compacta ou expande o header de acordo com a rolagem atual.
+ */
+export function updateHeaderOnScroll() {
+  const header = document.querySelector('.cv-header');
+  const mainNav = document.getElementById('mainNav');
+  const cvTabs = document.querySelector('.cv-tabs');
+  const pageMain = document.getElementById('pageMain');
+
+  if (!header || !pageMain) return;
+
+  const threshold =
+    parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue(
+        '--cv-header-scroll-threshold'
+      )
+    ) || HEADER_SCROLL_THRESHOLD;
+  const isDesktop = window.innerWidth >= 992;
+  const isScrolled = window.scrollY > threshold;
+
+  header.classList.toggle('cv-header--sticky', isScrolled);
+  header.classList.toggle('cv-header--scrolled', isScrolled);
+
+  updateHeaderVars();
+  const headerHeight =
+    parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue(
+        '--cv-header-height-current'
+      )
+    ) || header.offsetHeight;
+
+  if (isDesktop) {
+    if (mainNav) {
+      mainNav.classList.toggle('cv-nav--fixed-desktop', isScrolled);
+      mainNav.classList.toggle('mainNav--fixed-top-desktop', isScrolled);
+      mainNav.classList.toggle('cv-nav--slide', isScrolled);
+      mainNav.style.top = isScrolled ? `${headerHeight}px` : '';
+    }
+
+    if (cvTabs) {
+      cvTabs.classList.toggle('cv-tabs--sticky-desktop', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--fixed-below-mainNav-desktop', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
+      cvTabs.classList.remove('cv-tabs--sticky-mobile');
+      cvTabs.classList.remove('cv-tabs--fixed-mobile');
+      if (isScrolled) {
+        const navH = mainNav ? mainNav.offsetHeight : 0;
+        cvTabs.style.top = `${headerHeight + navH}px`;
+      } else {
+        cvTabs.style.top = '';
+      }
+    }
+
+    if (isScrolled) {
+      const navH = mainNav ? mainNav.offsetHeight : 0;
+      const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
+      pageMain.style.paddingTop = `${headerHeight + navH + tabsH}px`;
+    } else {
+      pageMain.style.paddingTop = '';
+    }
+  } else {
+    if (mainNav) {
+      mainNav.classList.remove('cv-nav--fixed-desktop');
+      mainNav.classList.remove('mainNav--fixed-top-desktop');
+      mainNav.style.top = '';
+    }
+
+    if (cvTabs) {
+      cvTabs.classList.toggle('cv-tabs--sticky-mobile', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--fixed-mobile', isScrolled);
+      cvTabs.classList.toggle('cv-tabs--compact', isScrolled);
+      cvTabs.classList.remove('cv-tabs--sticky-desktop');
+      cvTabs.classList.remove('cv-tabs--fixed-below-mainNav-desktop');
+      if (isScrolled) {
+        cvTabs.style.top = `${headerHeight}px`;
+      } else {
+        cvTabs.style.top = '';
+      }
+    }
+
+    if (isScrolled) {
+      const tabsH = cvTabs ? cvTabs.offsetHeight : 0;
+      pageMain.style.paddingTop = `${headerHeight + tabsH}px`;
+    } else {
+      pageMain.style.paddingTop = '';
+    }
+  }
+}
+
 window.addEventListener('resize', () => {
   updateHeaderVars();
-  const visible = window.scrollY <= 0;
-  handleScrollEffectsV2(visible);
+  updateHeaderOnScroll();
 });
 
-window.addEventListener(
-  'scroll',
-  () => {
-    const visible = window.scrollY <= 0;
-    handleScrollEffectsV2(visible);
-  },
-  { passive: true }
-);
+window.addEventListener('scroll', updateHeaderOnScroll, { passive: true });
 
 document.addEventListener('DOMContentLoaded', () => {
   updateHeaderVars();
-  const visible = window.scrollY <= 0;
-  handleScrollEffectsV2(visible);
-  setTimeout(() => handleScrollEffectsV2(visible), 100);
+  updateHeaderOnScroll();
+  setTimeout(updateHeaderOnScroll, 100);
 });
