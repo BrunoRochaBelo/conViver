@@ -404,6 +404,7 @@ html[data-theme="dark"] .cv-button--borderless:hover {
     position: sticky; /* Make header sticky */
     top: 0;
     z-index: 1020; /* Ensure it's above other content but below modals */
+    transition: transform 0.3s ease-in-out;
 }
 .cv-header--hidden {
     transform: translateY(-100%);
