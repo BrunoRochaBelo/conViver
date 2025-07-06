@@ -890,7 +890,7 @@ main {
     right: 0;
     z-index: 1015;
     margin-top: 0;
-    padding: var(--cv-spacing-xs) 0;
+    padding: var(--cv-spacing-xs) var(--cv-spacing-md);
     backdrop-filter: blur(10px);
     background-color: rgba(255, 255, 255, 0.8);
 }
