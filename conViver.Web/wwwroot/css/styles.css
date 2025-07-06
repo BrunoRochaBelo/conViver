@@ -881,6 +881,19 @@ main {
     padding: var(--cv-spacing-xs) 0;
     border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
 }
+.cv-tabs--fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1015;
+    padding: calc(var(--cv-spacing-xs) / 2) 0;
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.8);
+}
+html[data-theme="dark"] .cv-tabs--fixed {
+    background-color: rgba(44, 44, 46, 0.75);
+}
 
 
 
