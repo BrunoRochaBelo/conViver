@@ -39,7 +39,7 @@
 /* Remover a borda padrão do FullCalendar se o nosso container já tem uma */
 .fc .fc-view-harness,
 .fc table { /* Afeta tabelas internas, como a do grid de dias */
-    border: none;
+    border: 1px solid var(--current-border-subtle, #e5e5e5);
 }
 
 /* Ajustes gerais de cor de texto e bordas dentro do calendário */

@@ -186,7 +186,8 @@
 
 /* Estilos do header */
 .cv-header {
-    transition: min-height 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    transition: min-height 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
+        transform 0.3s ease-in-out;
 }
 
 .cv-header__title {
@@ -880,6 +881,7 @@ main {
     margin-bottom: 20px;
     padding: var(--cv-spacing-xs) 0;
     border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
+    transition: margin-top 0.3s ease-in-out, padding 0.3s ease-in-out;
 }
 .cv-tabs--fixed {
     position: fixed;
@@ -887,7 +889,8 @@ main {
     left: 0;
     right: 0;
     z-index: 1015;
-    padding: calc(var(--cv-spacing-xs) / 2) 0;
+    margin-top: 0;
+    padding: var(--cv-spacing-xs) var(--cv-spacing-md);
     backdrop-filter: blur(10px);
     background-color: rgba(255, 255, 255, 0.8);
 }
