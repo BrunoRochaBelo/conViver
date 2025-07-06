@@ -1,3 +1,5 @@
+import { initHeaderTabsScroll } from './headerTabsScroll.js';
+
 export async function loadPage() {
     const params = new URLSearchParams(window.location.search);
     const page = params.get('page');
@@ -17,6 +19,7 @@ export async function loadPage() {
         } catch (err) {
             console.error('Erro ao carregar script da página', err);
         }
+        initHeaderTabsScroll();
     } catch (err) {
         console.error('Erro ao carregar conteúdo da página', err);
     }
