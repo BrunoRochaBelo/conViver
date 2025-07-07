@@ -884,55 +884,7 @@ main {
     border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
     transition: margin-top 0.3s ease-in-out, padding 0.3s ease-in-out;
 }
-
-/* New styles for header and tabs scrolling behavior */
-.cv-header--floating {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1020; /* Higher than tabs when both might be candidates for top */
-    background-color: var(--current-bg-white); /* Ensure it has a background */
-    box-shadow: var(--current-shadow-md); /* Add shadow for floating effect */
-    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-}
-
-.cv-header--hidden-on-scroll-up {
-    transform: translateY(-100%);
-    /* opacity: 0; */
-    /* pointer-events: none; */ /* Consider if opacity is used */
-}
-
-.cv-tabs--below-header {
-    position: fixed;
-    left: 0;
-    right: 0;
-    z-index: 1015; /* Below header */
-    background-color: var(--current-bg-white); /* Ensure it has a background */
-    box-shadow: var(--current-shadow-sm); /* Consistent shadow */
-    transition: top 0.3s ease-out;
-    /* top property will be set by JavaScript */
-}
-
-.cv-tabs--fixed-top { /* This might be similar or identical to the old .cv-tabs--fixed */
-    position: fixed;
-    top: 0; /* Explicitly ensure it's at the top */
-    left: 0;
-    right: 0;
-    z-index: 1015;
-    background-color: var(--current-bg-white);
-    box-shadow: var(--current-shadow-sm);
-    transition: top 0.3s ease-out;
-    /* This class is used when header is hidden, and tabs stick to the very top */
-}
-
-/* Styles for body/main content padding adjustment */
-#pageMain { /* Assuming #pageMain is the direct container after header/tabs */
-    transition: padding-top 0.3s ease-out;
-}
-/* End of new scroll styles */
-
-.cv-tabs--fixed { /* This is the OLD class, may need review or removal if fully replaced */
+.cv-tabs--fixed {
     position: fixed;
     top: 0;
     left: 0;
