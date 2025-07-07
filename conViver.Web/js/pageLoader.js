@@ -1,4 +1,4 @@
-import { initHeaderTabsScroll } from './headerTabsScroll.js';
+import { initReactiveHeader } from './headerTabsScroll.js';
 
 export async function loadPage() {
     const params = new URLSearchParams(window.location.search);
@@ -19,7 +19,7 @@ export async function loadPage() {
         } catch (err) {
             console.error('Erro ao carregar script da página', err);
         }
-        initHeaderTabsScroll();
+        initReactiveHeader();
     } catch (err) {
         console.error('Erro ao carregar conteúdo da página', err);
     }
