@@ -409,6 +409,11 @@ html[data-theme="dark"] .cv-button--borderless:hover {
 .cv-header--hidden {
     transform: translateY(-100%);
 }
+.cv-header--compact {
+    padding-top: calc(var(--cv-header-padding-y) / 2);
+    padding-bottom: calc(var(--cv-header-padding-y) / 2);
+    min-height: calc(var(--cv-header-height) - 0.5rem);
+}
 .cv-header__container {
     display: flex;
     align-items: center;
