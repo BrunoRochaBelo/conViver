@@ -8,7 +8,6 @@ export function initHeaderTabsScroll() {
   function attachListener(tabsEl, scrollContainer) {
     let lastScroll = scrollContainer === window ? window.scrollY : scrollContainer.scrollTop;
     let isHeaderHidden = false;
-    let areTabsFixed = false;
     const threshold = 10;
 
     function update() {
@@ -16,31 +15,16 @@ export function initHeaderTabsScroll() {
       const delta = current - lastScroll;
       if (Math.abs(delta) <= threshold) return;
 
-      if (current === 0) {
-        if (areTabsFixed) {
-          tabsEl.classList.remove('cv-tabs--fixed');
-          areTabsFixed = false;
-        }
-        if (isHeaderHidden) {
-          header.classList.remove('cv-header--hidden');
-          isHeaderHidden = false;
-        }
-      } else if (delta > 0) {
-        if (!areTabsFixed) {
-          tabsEl.classList.add('cv-tabs--fixed');
-          areTabsFixed = true;
-        }
+      if (delta > 0 && current > header.offsetHeight) {
         if (!isHeaderHidden) {
           header.classList.add('cv-header--hidden');
+          tabsEl.classList.add('cv-tabs--fixed');
           isHeaderHidden = true;
         }
-      } else if (delta < 0) {
-        if (!areTabsFixed) {
-          tabsEl.classList.add('cv-tabs--fixed');
-          areTabsFixed = true;
-        }
+      } else if (delta < 0 || current <= 0) {
         if (isHeaderHidden) {
           header.classList.remove('cv-header--hidden');
+          tabsEl.classList.remove('cv-tabs--fixed');
           isHeaderHidden = false;
         }
       }
