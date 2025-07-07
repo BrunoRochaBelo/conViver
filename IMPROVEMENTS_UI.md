@@ -130,7 +130,8 @@ Diversos ajustes foram realizados para melhorar a experiência em dispositivos m
 
 ## 9. Header/MainNav/Tab Scroll Reactivity
 
-O comportamento dinâmico de compactar o cabeçalho ou fixar as abas durante a rolagem foi removido. O conteúdo rola normalmente sem que `cv-header` ou `cv-tabs` sofram alterações via JavaScript. Os estilos e scripts responsáveis por essa lógica também foram eliminados do projeto.
+O cabeçalho voltou a reagir à rolagem para otimizar o espaço em telas menores. Ao deslizar para baixo, o cabeçalho é ocultado (`cv-header--hidden`) e as abas recebem a classe `cv-tabs--fixed`, permanecendo no topo. Ao rolar para cima (com a página já deslocada), o cabeçalho reaparece de forma mais enxuta (`cv-header--compact`) e as abas continuam fixas. Quando o usuário retorna ao início da página, todas as classes são removidas, restabelecendo o layout padrão. As transições utilizam `transform`/`opacity` com duração em torno de 300&nbsp;ms para suavidade.
+O código agora garante que esse retorno ao estado inicial ocorra mesmo em gestos rápidos de toque, usando um limiar menor, verificando o topo a cada evento e escutando o evento de rolagem como `passive` para maior desempenho em dispositivos móveis.
 
 ## Conclusão
 

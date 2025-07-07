@@ -8,24 +8,61 @@ export function initHeaderTabsScroll() {
   function attachListener(tabsEl, scrollContainer) {
     let lastScroll = scrollContainer === window ? window.scrollY : scrollContainer.scrollTop;
     let isHeaderHidden = false;
+    let areTabsFixed = false;
+    let isHeaderCompact = false;
     const threshold = 10;
 
-    function update() {
-      const current = scrollContainer === window ? window.scrollY : scrollContainer.scrollTop;
-      const delta = current - lastScroll;
-      if (Math.abs(delta) <= threshold) return;
+    function clearState() {
+      if (areTabsFixed) {
+        tabsEl.classList.remove('cv-tabs--fixed');
+        areTabsFixed = false;
+      }
+      if (isHeaderHidden) {
+        header.classList.remove('cv-header--hidden');
+        isHeaderHidden = false;
+      }
+      if (isHeaderCompact) {
+        header.classList.remove('cv-header--compact');
+        isHeaderCompact = false;
+      }
+    }
 
-      if (delta > 0 && current > header.offsetHeight) {
+    function update() {
+      const current = Math.max(0, scrollContainer === window ? window.scrollY : scrollContainer.scrollTop);
+      if (current <= threshold) {
+        clearState();
+      }
+      const delta = current - lastScroll;
+      if (Math.abs(delta) <= threshold) {
+        lastScroll = current;
+        return;
+      }
+
+      if (delta > 0) {
+        if (!areTabsFixed) {
+          tabsEl.classList.add('cv-tabs--fixed');
+          areTabsFixed = true;
+        }
         if (!isHeaderHidden) {
           header.classList.add('cv-header--hidden');
-          tabsEl.classList.add('cv-tabs--fixed');
           isHeaderHidden = true;
         }
-      } else if (delta < 0 || current <= 0) {
+        if (isHeaderCompact) {
+          header.classList.remove('cv-header--compact');
+          isHeaderCompact = false;
+        }
+      } else {
+        if (!areTabsFixed) {
+          tabsEl.classList.add('cv-tabs--fixed');
+          areTabsFixed = true;
+        }
         if (isHeaderHidden) {
           header.classList.remove('cv-header--hidden');
-          tabsEl.classList.remove('cv-tabs--fixed');
           isHeaderHidden = false;
+        }
+        if (!isHeaderCompact && current > threshold) {
+          header.classList.add('cv-header--compact');
+          isHeaderCompact = true;
         }
       }
       lastScroll = current;
@@ -40,7 +77,7 @@ export function initHeaderTabsScroll() {
         });
         ticking = true;
       }
-    });
+    }, { passive: true });
   }
 
   function tryInit() {
