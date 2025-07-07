@@ -11,27 +11,20 @@ export function initHeaderTabsScroll() {
     let areTabsFixed = false;
     const threshold = 10;
 
-    function clearState() {
-      if (areTabsFixed) {
-        tabsEl.classList.remove('cv-tabs--fixed');
-        areTabsFixed = false;
-      }
-      if (isHeaderHidden) {
-        header.classList.remove('cv-header--hidden');
-        isHeaderHidden = false;
-      }
-    }
-
     function update() {
-      const current = Math.max(0, scrollContainer === window ? window.scrollY : scrollContainer.scrollTop);
+      const current = scrollContainer === window ? window.scrollY : scrollContainer.scrollTop;
       const delta = current - lastScroll;
-      if (Math.abs(delta) <= threshold) {
-        lastScroll = current;
-        return;
-      }
+      if (Math.abs(delta) <= threshold) return;
 
-      if (current <= threshold) {
-        clearState();
+      if (current === 0) {
+        if (areTabsFixed) {
+          tabsEl.classList.remove('cv-tabs--fixed');
+          areTabsFixed = false;
+        }
+        if (isHeaderHidden) {
+          header.classList.remove('cv-header--hidden');
+          isHeaderHidden = false;
+        }
       } else if (delta > 0) {
         if (!areTabsFixed) {
           tabsEl.classList.add('cv-tabs--fixed');
@@ -41,7 +34,7 @@ export function initHeaderTabsScroll() {
           header.classList.add('cv-header--hidden');
           isHeaderHidden = true;
         }
-      } else {
+      } else if (delta < 0) {
         if (!areTabsFixed) {
           tabsEl.classList.add('cv-tabs--fixed');
           areTabsFixed = true;
@@ -63,7 +56,7 @@ export function initHeaderTabsScroll() {
         });
         ticking = true;
       }
-    }, { passive: true });
+    });
   }
 
   function tryInit() {
