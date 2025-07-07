@@ -195,13 +195,14 @@
 }
 
 
-/* Nav fills available space inside header */
+/* Navigation next to title */
 #mainNav {
-    flex-grow: 1;
+    /* no flex-grow so items don't stretch */
 }
 
-/* Ensure avatar remains above nav */
+/* Ensure avatar remains above nav and at far right */
 .cv-header .user-avatar {
+    margin-left: auto;
     position: relative;
     z-index: 1011;
 }
