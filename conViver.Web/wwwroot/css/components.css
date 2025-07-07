@@ -409,12 +409,6 @@ html[data-theme="dark"] .cv-button--borderless:hover {
 .cv-header--hidden {
     transform: translateY(-100%);
 }
-.cv-header--floating {
-    box-shadow: var(--current-shadow-sm);
-    position: sticky;
-    top: 0;
-    z-index: 1020;
-}
 .cv-header__container {
     display: flex;
     align-items: center;
