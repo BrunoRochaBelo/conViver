@@ -8,6 +8,7 @@ export function initHeaderTabsScroll() {
   function attachListener(tabsEl, scrollContainer) {
     let lastScroll = scrollContainer === window ? window.scrollY : scrollContainer.scrollTop;
     let isHeaderHidden = false;
+    let isFloating = false;
     const threshold = 10;
 
     function update() {
@@ -15,17 +16,32 @@ export function initHeaderTabsScroll() {
       const delta = current - lastScroll;
       if (Math.abs(delta) <= threshold) return;
 
-      if (delta > 0 && current > header.offsetHeight) {
-        if (!isHeaderHidden) {
-          header.classList.add('cv-header--hidden');
-          tabsEl.classList.add('cv-tabs--fixed');
-          isHeaderHidden = true;
+      if (current <= 0) {
+        if (isHeaderHidden || isFloating) {
+          header.classList.remove('cv-header--hidden', 'cv-header--floating');
+          tabsEl.classList.remove('cv-tabs--fixed');
+          isHeaderHidden = false;
+          isFloating = false;
         }
-      } else if (delta < 0 || current <= 0) {
+      } else if (delta > 0) {
+        // Scrolling down - show floating header
         if (isHeaderHidden) {
           header.classList.remove('cv-header--hidden');
           tabsEl.classList.remove('cv-tabs--fixed');
           isHeaderHidden = false;
+        }
+        if (!isFloating) {
+          header.classList.add('cv-header--floating');
+          isFloating = true;
+        }
+      } else if (delta < 0) {
+        // Scrolling up - hide header and fix tabs
+        if (!isHeaderHidden) {
+          header.classList.add('cv-header--hidden');
+          header.classList.remove('cv-header--floating');
+          tabsEl.classList.add('cv-tabs--fixed');
+          isHeaderHidden = true;
+          isFloating = false;
         }
       }
       lastScroll = current;
