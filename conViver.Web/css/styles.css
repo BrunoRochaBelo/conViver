@@ -187,8 +187,42 @@
 /* Estilos do header */
 .cv-header {
     transition: min-height 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
-        transform 0.3s ease-in-out;
+        transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
+    /* Adicionado background-color à transição */
+    position: relative; /* Para z-index funcionar corretamente no estado padrão */
+    z-index: 1010; /* Abaixo das tabs fixas e header flutuante */
+    background-color: var(--current-bg-white); /* Cor de fundo padrão */
 }
+
+.cv-header--hidden {
+    transform: translateY(-100%);
+    box-shadow: none;
+}
+
+.cv-header--floating {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1020; /* Acima do conteúdo e tabs normais, abaixo de modais */
+    box-shadow: var(--current-shadow-md);
+    /* A altura e padding são herdados do .cv-header, mas podem ser ajustados se necessário */
+    /* background-color: var(--current-bg-white); /* ou uma cor específica para o modo flutuante */
+    /* Se o header flutuante precisar de um fundo com transparência: */
+    /* background-color: rgba(255, 255, 255, 0.9); */
+    /* @supports (backdrop-filter: blur(10px)) { */
+    /*   background-color: rgba(255, 255, 255, 0.8); */
+    /*   backdrop-filter: blur(10px); */
+    /* } */
+    /* html[data-theme="dark"] & { */
+    /*   background-color: rgba(var(--cv-dark-gray-200-rgb), 0.9); /* Exemplo, se vars RGB estiverem disponíveis */
+    /*   @supports (backdrop-filter: blur(10px)) { */
+    /*     background-color: rgba(var(--cv-dark-gray-200-rgb), 0.8); */
+    /*     backdrop-filter: blur(10px); */
+    /*   } */
+    /* } */
+}
+
 
 .cv-header__title {
     transition: opacity 0.25s ease-in-out, visibility 0s linear 0.25s;
@@ -878,25 +912,50 @@ main {
 .cv-tabs {
     display: flex;
     align-items: center;
-    margin-top: var(--cv-spacing-lg, 20px);
+    margin-top: var(--cv-spacing-lg, 20px); /* Espaço original acima das tabs */
     margin-bottom: 20px;
-    padding: var(--cv-spacing-xs) 0;
+    padding: var(--cv-spacing-xs) 0; /* Padding original das tabs */
     border-bottom: 2px solid var(--current-border-subtle, #eee); /* Use variable or fallback */
-    transition: margin-top 0.3s ease-in-out, padding 0.3s ease-in-out;
+    transition: margin-top 0.3s ease-in-out, padding 0.3s ease-in-out, top 0.3s ease-in-out;
+    position: relative; /* Necessário para z-index e para que o padding-top funcione como esperado */
+    background-color: var(--current-bg-white); /* Garante fundo quando não fixo */
 }
+
 .cv-tabs--fixed {
     position: fixed;
-    top: 0;
+    /* top: 0;  Será definido por JS através de style.paddingTop no elemento .cv-tabs
+                 ou, se preferirmos, podemos usar uma variável CSS --tabs-top-offset
+                 e aplicá-la aqui. Por agora, o JS está aplicando paddingTop diretamente.
+                 Se o JS aplicar paddingTop ao invés de top, o top aqui deve ser 0.
+    */
+    top: 0; /* O JS vai adicionar paddingTop para empurrar o conteúdo das tabs para baixo */
     left: 0;
     right: 0;
-    z-index: 1015;
-    margin-top: 0;
-    padding: var(--cv-spacing-xs) var(--cv-spacing-md);
-    backdrop-filter: blur(10px);
-    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1015; /* Abaixo do header flutuante, mas acima do conteúdo da página */
+    margin-top: 0; /* Remove a margem superior quando fixo */
+     /* padding original + padding lateral para o modo fixo */
+    padding-left: var(--cv-spacing-md);
+    padding-right: var(--cv-spacing-md);
+    padding-top: var(--cv-spacing-xs); /* Padding vertical original */
+    padding-bottom: var(--cv-spacing-xs); /* Padding vertical original */
+
+    /* Efeito de vidro fosco */
+    /* A cor de fundo deve permitir que o backdrop-filter funcione */
+    background-color: rgba(255, 255, 255, 0.8); /* Light theme */
+    @supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.75); /* Ligeiramente mais transparente com blur */
+    }
 }
+
 html[data-theme="dark"] .cv-tabs--fixed {
-    background-color: rgba(44, 44, 46, 0.75);
+    background-color: rgba(44, 44, 46, 0.8); /* Dark theme (cor de --cv-dark-gray-200 com alpha) */
+    @supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        background-color: rgba(44, 44, 46, 0.75); /* Ligeiramente mais transparente com blur */
+    }
 }
 
 
