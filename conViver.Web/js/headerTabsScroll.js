@@ -15,17 +15,24 @@ export function initHeaderTabsScroll() {
       const delta = current - lastScroll;
       if (Math.abs(delta) <= threshold) return;
 
-      if (delta > 0 && current > header.offsetHeight) {
-        if (!isHeaderHidden) {
-          header.classList.add('cv-header--hidden');
-          tabsEl.classList.add('cv-tabs--fixed');
-          isHeaderHidden = true;
-        }
-      } else if (delta < 0 || current <= 0) {
+      if (current === 0) {
+        header.classList.remove('cv-header--floating');
+        header.classList.remove('cv-header--hidden');
+        tabsEl.classList.remove('cv-tabs--fixed');
+        isHeaderHidden = false;
+      } else if (delta > 0) {
+        header.classList.add('cv-header--floating');
         if (isHeaderHidden) {
           header.classList.remove('cv-header--hidden');
           tabsEl.classList.remove('cv-tabs--fixed');
           isHeaderHidden = false;
+        }
+      } else if (delta < 0) {
+        if (!isHeaderHidden) {
+          header.classList.add('cv-header--floating');
+          header.classList.add('cv-header--hidden');
+          tabsEl.classList.add('cv-tabs--fixed');
+          isHeaderHidden = true;
         }
       }
       lastScroll = current;
