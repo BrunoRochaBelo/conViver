@@ -40,20 +40,24 @@ export function initUserMenu() {
     function openModal() {
         if (modal) openModalFn(modal);
         if (modalHeader) {
-            const existingH2 = modalHeader.querySelector('h2.user-menu-username');
-            if (existingH2) existingH2.remove();
-            const existingEmail = modalHeader.querySelector('p.user-menu-email');
-            if (existingEmail) existingEmail.remove();
-            // Add display name to modal header
-            const displayNameH2 = document.createElement('h2');
-            displayNameH2.classList.add('user-menu-username');
-            displayNameH2.textContent = displayName;
-            modalHeader.insertBefore(displayNameH2, modalHeader.firstChild);
+            let infoDiv = modalHeader.querySelector('.user-menu-info');
+            if (!infoDiv) {
+                infoDiv = document.createElement('div');
+                infoDiv.classList.add('user-menu-info');
+                modalHeader.insertBefore(infoDiv, closeBtn);
+            } else {
+                infoDiv.innerHTML = '';
+            }
+
+            const nameH2 = document.createElement('h2');
+            nameH2.classList.add('user-menu-username');
+            nameH2.textContent = displayName;
+            infoDiv.appendChild(nameH2);
             if (userEmail) {
                 const emailP = document.createElement('p');
                 emailP.classList.add('user-menu-email');
                 emailP.textContent = userEmail;
-                modalHeader.insertBefore(emailP, closeBtn);
+                infoDiv.appendChild(emailP);
             }
         }
     }
