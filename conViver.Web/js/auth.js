@@ -9,6 +9,7 @@ export function requireAuth() {
 export function logout() {
     localStorage.removeItem('cv_token');
     localStorage.removeItem('cv_userName');
+    localStorage.removeItem('cv_userEmail');
     localStorage.removeItem('cv_userPhoto');
     const isInPagesDir = window.location.pathname.includes('/pages/');
     const prefix = isInPagesDir ? '../' : '';

@@ -60,12 +60,14 @@ if (loginForm) {
 
         try {
             const response = await apiClient.post('/auth/login', { Email: email, Senha: password });
-            setToken(response.accessToken);
-            if (response.usuario) {
-                localStorage.setItem('cv_userEmail', response.usuario.email || '');
-                localStorage.setItem('cv_userName', response.usuario.nome || '');
-                if (response.usuario.fotoUrl) {
-                    localStorage.setItem('cv_userPhoto', response.usuario.fotoUrl);
+            const token = response.accessToken || response.AccessToken;
+            if (token) setToken(token);
+            const userObj = response.usuario || response.Usuario;
+            if (userObj) {
+                localStorage.setItem('cv_userEmail', userObj.email || '');
+                localStorage.setItem('cv_userName', userObj.nome || '');
+                if (userObj.fotoUrl) {
+                    localStorage.setItem('cv_userPhoto', userObj.fotoUrl);
                 }
             }
 
