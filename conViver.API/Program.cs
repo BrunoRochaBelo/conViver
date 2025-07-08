@@ -107,7 +107,10 @@ using (var scope = app.Services.CreateScope())
     DataSeeder.Seed(db);
 }
 
-app.UsePathBase("/api/v1");
+// The controllers already include the /api/v1 prefix in their routes,
+// so using UsePathBase would duplicate it. Removing to avoid double
+// prefixing routes.
+// app.UsePathBase("/api/v1");
 
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
