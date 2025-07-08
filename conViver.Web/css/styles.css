@@ -1443,19 +1443,27 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:a
     transition: background-color 0.2s ease, transform 0.15s ease-out, opacity 0.2s ease;
 }
 
+
 .cv-modal-close:hover,
 .cv-modal-close:focus {
-    background-color: var(--cv-gray-600-alpha-50); /* Slightly darker on hover */
-    color: var(--cv-gray-900); /* Keep 'X' color */
+    background-color: var(--cv-gray-600-alpha-50);
+    color: var(--cv-gray-900);
     outline: none;
     text-decoration: none;
-    transform: scale(1.05); /* Subtle scale */
+    transform: scale(1.05);
+}
+.cv-modal-header .cv-modal-close:hover,
+.cv-modal-header .cv-modal-close:focus {
+    transform: translateY(-50%) scale(1.05);
 }
 
 .cv-modal-close:active {
-    transform: scale(0.95); /* Press down effect */
-    background-color: var(--cv-gray-300); /* More opaque / darker when pressed */
+    transform: scale(0.95);
+    background-color: var(--cv-gray-300);
     opacity: 0.8;
+}
+.cv-modal-header .cv-modal-close:active {
+    transform: translateY(-50%) scale(0.95);
 }
 
 html[data-theme="dark"] .cv-modal-close {
@@ -1469,11 +1477,18 @@ html[data-theme="dark"] .cv-modal-close:focus {
     color: var(--cv-dark-gray-900); /* Keep 'X' color */
     transform: scale(1.05);
 }
+html[data-theme="dark"] .cv-modal-header .cv-modal-close:hover,
+html[data-theme="dark"] .cv-modal-header .cv-modal-close:focus {
+    transform: translateY(-50%) scale(1.05);
+}
 
 html[data-theme="dark"] .cv-modal-close:active {
     transform: scale(0.95);
     background-color: var(--cv-dark-gray-400);
     opacity: 0.8;
+}
+html[data-theme="dark"] .cv-modal-header .cv-modal-close:active {
+    transform: translateY(-50%) scale(0.95);
 }
 
 

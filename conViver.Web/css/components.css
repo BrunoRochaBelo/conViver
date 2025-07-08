@@ -805,6 +805,12 @@ body.has-bottom-nav #mainNav {
     /* Adjust padding if close button is on the right via flex order */
     padding-right: calc(28px + var(--cv-spacing-sm) * 2); /* width of close button + its own right padding + desired gap */
 }
+.user-menu-modal .cv-modal-header p.user-menu-email {
+    font-size: var(--cv-font-size-sm);
+    color: var(--current-text-secondary);
+    margin: 0;
+    padding-right: calc(28px + var(--cv-spacing-sm) * 2);
+}
 
 .user-menu-modal .cv-modal-body {
     padding: var(--cv-spacing-sm); /* Add some padding around the list */
