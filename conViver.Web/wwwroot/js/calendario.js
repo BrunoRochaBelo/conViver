@@ -299,7 +299,12 @@ function setupTabs() {
         }
       }
       // Mostrar/ocultar seção admin se necessário (ex: se for uma aba separada)
-      adminEspacosSection.style.display = (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador")) ? "block" : "none";
+      if (adminEspacosSection) {
+        adminEspacosSection.style.display =
+          (currentUserRoles.includes("Sindico") || currentUserRoles.includes("Administrador"))
+            ? "block"
+            : "none";
+      }
     });
   });
 
