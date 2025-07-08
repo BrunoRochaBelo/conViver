@@ -801,14 +801,17 @@ body.has-bottom-nav #mainNav {
     font-size: var(--cv-font-size-md);
     text-align: left;
     margin: 0;
-    flex-grow: 1;
-    /* Adjust padding if close button is on the right via flex order */
-    padding-right: calc(28px + var(--cv-spacing-sm) * 2); /* width of close button + its own right padding + desired gap */
 }
 .user-menu-modal .cv-modal-header p.user-menu-email {
     font-size: var(--cv-font-size-sm);
     color: var(--current-text-secondary);
     margin: 0;
+}
+.user-menu-modal .user-menu-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-grow: 1;
     padding-right: calc(28px + var(--cv-spacing-sm) * 2);
 }
 
@@ -851,7 +854,11 @@ body.has-bottom-nav #mainNav {
 }
 .user-menu-list li.theme-buttons {
     display: flex;
-    gap: var(--cv-spacing-xs);
+    justify-content: center;
+    gap: var(--cv-spacing-sm);
+}
+.user-menu-list li.theme-buttons button {
+    width: auto;
 }
 .user-menu-list li.theme-buttons .cv-button.active {
     box-shadow: 0 0 0 2px var(--current-primary-blue);
