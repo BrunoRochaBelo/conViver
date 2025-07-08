@@ -849,6 +849,13 @@ body.has-bottom-nav #mainNav {
 .user-menu-list button {
     width: 100%;
 }
+.user-menu-list li.theme-buttons {
+    display: flex;
+    gap: var(--cv-spacing-xs);
+}
+.user-menu-list li.theme-buttons .cv-button.active {
+    box-shadow: 0 0 0 2px var(--current-primary-blue);
+}
 
 /* Skeleton Screen Components */
 .feed-skeleton-container {
