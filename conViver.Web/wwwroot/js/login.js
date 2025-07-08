@@ -61,6 +61,13 @@ if (loginForm) {
         try {
             const response = await apiClient.post('/auth/login', { Email: email, Senha: password });
             setToken(response.accessToken);
+            if (response.usuario) {
+                localStorage.setItem('cv_userEmail', response.usuario.email || '');
+                localStorage.setItem('cv_userName', response.usuario.nome || '');
+                if (response.usuario.fotoUrl) {
+                    localStorage.setItem('cv_userPhoto', response.usuario.fotoUrl);
+                }
+            }
 
             // showFeedback('Login bem-sucedido! Redirecionando...', 'success'); // Feedback might not be visible due to redirect
             // document.body.classList.remove('loading-active');
