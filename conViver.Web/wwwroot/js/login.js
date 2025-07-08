@@ -59,7 +59,7 @@ if (loginForm) {
         const password = passwordInput.value;
 
         try {
-            const response = await apiClient.post('/auth/login', { Email: email, Senha: password });
+            const response = await apiClient.post('/api/v1/auth/login', { Email: email, Senha: password });
             const token = response.accessToken || response.AccessToken;
             if (token) setToken(token);
             const userObj = response.usuario || response.Usuario;

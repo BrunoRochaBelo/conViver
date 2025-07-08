@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const removeSpinner = showInlineSpinner(submitButton);
 
         try {
-            await apiClient.post('/auth/signup', {
+            await apiClient.post('/api/v1/auth/signup', {
                 Nome: name,
                 Email: email,
                 Senha: password

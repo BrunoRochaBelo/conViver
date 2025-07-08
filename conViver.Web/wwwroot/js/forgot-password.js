@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitButton.textContent = 'Enviando...';
 
         try {
-            await apiClient.post('/auth/forgot-password', { Email: emailInput.value });
+            await apiClient.post('/api/v1/auth/forgot-password', { Email: emailInput.value });
             showFeedback('Se um e-mail com este endereço existir em nosso sistema, um link de recuperação foi enviado.', 'success');
             emailInput.value = ''; // Clear input on success
             // Optionally, disable the button permanently or redirect after a delay

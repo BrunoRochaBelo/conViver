@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const removeSpinner = showInlineSpinner(submitButton);
 
         try {
-            await apiClient.post('/auth/reset-password', {
+            await apiClient.post('/api/v1/auth/reset-password', {
                 ResetToken: token,
                 NovaSenha: newPassword
             });

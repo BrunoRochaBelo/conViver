@@ -298,7 +298,7 @@ async function handleRegistrarEncomendaSubmit(e) {
     };
 
     try {
-        await apiClient.post('/syndic/encomendas', data);
+        await apiClient.post('/api/v1/syndic/encomendas', data);
         showGlobalFeedback('Encomenda registrada com sucesso!', 'success', 2500);
         formNovaEncomendaModal.reset();
         closeRegistrarEncomendaModal();
@@ -390,7 +390,7 @@ async function fetchAndDisplayPortariaItems(page, append = false) {
         }
         if (currentPortariaFilters.unidadeId) params.unidadeId = currentPortariaFilters.unidadeId;
     } else {
-        endpoint = '/syndic/encomendas';
+        endpoint = '/api/v1/syndic/encomendas';
         if (currentPortariaFilters.unidadeIdEncomenda) params.unidadeId = currentPortariaFilters.unidadeIdEncomenda;
         if (currentPortariaFilters.statusEncomenda)    params.status    = currentPortariaFilters.statusEncomenda;
     }
@@ -531,7 +531,7 @@ function setupPortariaItemActionListeners() {
             try {
                 btn.disabled = true;
                 btn.innerHTML = '<span class="inline-spinner"></span> Confirmando...';
-                await apiClient.post(`/syndic/encomendas/${id}/retirar`, {});
+                await apiClient.post(`/api/v1/syndic/encomendas/${id}/retirar`, {});
                 showGlobalFeedback('Retirada da encomenda confirmada.', 'success');
                 loadInitialPortariaItems();
             } catch (err) {
