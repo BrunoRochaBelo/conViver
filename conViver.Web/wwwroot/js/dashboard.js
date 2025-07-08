@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             debugLog('Buscando dados do dashboard...');
             // apiClient.get pode ser modificado para não precisar passar o skeleton global se vamos controlar por seção
-            const dados = await apiClient.get('/dashboard/geral' /*, { showSkeleton: globalDashboardSkeleton } */);
+            const dados = await apiClient.get('/api/v1/dashboard/geral' /*, { showSkeleton: globalDashboardSkeleton } */);
             debugLog('Dados recebidos:', dados);
 
             if (dados) {

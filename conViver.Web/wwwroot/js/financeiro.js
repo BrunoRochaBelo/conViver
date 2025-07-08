@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const novaCobrancaDto = { UnidadeId: unidadeId, Valor: valor, DataVencimento: dataVencimento, Descricao: descricao };
 
         try {
-            const cobrancaCriada = await apiClient.post('/financeiro/cobrancas', novaCobrancaDto);
+        const cobrancaCriada = await apiClient.post('/api/v1/financeiro/cobrancas', novaCobrancaDto);
             closeModalCobranca();
             showGlobalFeedback("Cobrança emitida com sucesso!", "success", 2500);
 
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
-                const resultado = await apiClient.post('/financeiro/cobrancas/gerar-lote', requestBody);
+                const resultado = await apiClient.post('/api/v1/financeiro/cobrancas/gerar-lote', requestBody);
                 if (resultado.sucesso) {
                     showGlobalFeedback(resultado.mensagem || "Cobranças em lote geradas com sucesso!", "success", 3000);
                     fetchAndRenderCobrancas(filtroStatusEl ? filtroStatusEl.value : '');
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (target.classList.contains('js-btn-segunda-via')) {
                 target.disabled = true;
                 try {
-                    const response = await apiClient.get(`/financeiro/cobrancas/${cobrancaId}/segunda-via`);
+                    const response = await apiClient.get(`/api/v1/financeiro/cobrancas/${cobrancaId}/segunda-via`);
                     if (response && response.url) {
                         window.open(response.url, '_blank');
                     } else {
@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cobrancasSkeleton) showFeedSkeleton(cobrancasSkeleton);
         tbodyCobrancas.innerHTML = ''; // Limpar qualquer conteúdo anterior (como empty state) antes de mostrar skeleton e carregar
 
-        let apiUrl = '/financeiro/cobrancas';
+        let apiUrl = '/api/v1/financeiro/cobrancas';
         if (status) {
             apiUrl += `?status=${encodeURIComponent(status)}`;
         }
@@ -487,7 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (summaryPendentesSkeletonEl) showSkeleton(summaryPendentesSkeletonEl);
 
         try {
-            const dashboardData = await apiClient.get('/financeiro/cobrancas/dashboard');
+            const dashboardData = await apiClient.get('/api/v1/financeiro/cobrancas/dashboard');
             renderDashboardFinanceiro(dashboardData);
         } catch (error) {
             console.error('Erro ao buscar dados do dashboard financeiro:', error);
@@ -540,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
         despesasTableBody.innerHTML = ''; // Limpa conteúdo antigo da lista
 
         try {
-            const despesas = await apiClient.get('/financeiro/despesas');
+            const despesas = await apiClient.get('/api/v1/financeiro/despesas');
             despesasTableBody.innerHTML = '';
 
             if (despesas && despesas.length) {
@@ -617,7 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const dataInicio = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
             const dataFim = new Date().toISOString().split('T')[0];
-            const balancete = await apiClient.get(`/financeiro/relatorios/balancete?dataInicio=${dataInicio}&dataFim=${dataFim}`);
+            const balancete = await apiClient.get(`/api/v1/financeiro/relatorios/balancete?dataInicio=${dataInicio}&dataFim=${dataFim}`);
             if (balancete && (balancete.totalReceitas > 0 || balancete.totalDespesas > 0)) {
                 if (graficoBalanceteEl) graficoBalanceteEl.style.display = 'block';
                 renderBalanceteChart(balancete);
@@ -678,7 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (graficoOrcamentoEl) graficoOrcamentoEl.style.display = 'none';
 
         try {
-            const resumo = await apiClient.get('/financeiro/orcamento');
+            const resumo = await apiClient.get('/api/v1/financeiro/orcamento');
             if (resumo && resumo.itens && resumo.itens.length > 0) {
                 if (graficoOrcamentoEl) graficoOrcamentoEl.style.display = 'block';
                 renderOrcamentoChart(resumo);
@@ -736,7 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (graficoTendenciasEl) graficoTendenciasEl.style.display = 'none';
 
         try {
-            const dados = await apiClient.get('/financeiro/tendencias');
+            const dados = await apiClient.get('/api/v1/financeiro/tendencias');
             if (dados && dados.length > 0) {
                 if (graficoTendenciasEl) graficoTendenciasEl.style.display = 'block';
                 renderTendenciasChart(dados);

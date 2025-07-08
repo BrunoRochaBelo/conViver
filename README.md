@@ -151,7 +151,7 @@ dotnet build -t:Run -f net8.0-android
 | `USE_REDIS`                   | Quando `true`, a API usa Redis para cache HTTP. Defina `false` para cache em memória. | `true` |
 | `BASE_URL`                    | URL base pública da API, usada em contextos como geração de links em emails.                                                            | `https://sua-api.com/api/v1`                              |
 | `API_CORS_ALLOWED_ORIGINS`    | Define as origens permitidas para CORS na API. Valor em `conViver.API/appsettings.json` (ex: `CorsSettings:AllowedOrigins`).            | `http://localhost:3000;https://yourdomain.com`            |
-| `WEB_API_BASE_URL`            | Define a URL base da API para o cliente web. Valor em `conViver.Web/js/config.js` (ex: `window.APP_CONFIG.API_BASE_URL`).                | `http://localhost:5000/api/v1`                            |
+| `WEB_API_BASE_URL`            | Define a URL base da API para o cliente web. Valor em `conViver.Web/js/config.js` (ex: `window.APP_CONFIG.API_BASE_URL`).                | `http://localhost:5000`                            |
 
 `conViver.API/appsettings.Development.json` possui defaults seguros para desenvolvimento.
 > Usuários de exemplo: `admin@conviver.local` / `admin123` (Administrador), `sindico@conviver.local` / `sindico123` (Síndico), `teste@conviver.local` / `123456` (Morador) e `porteiro@conviver.local` / `porteiro123` (Porteiro). Verifique se ainda estão válidos após migrações e seeders.

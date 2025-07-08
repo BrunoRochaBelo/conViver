@@ -253,7 +253,7 @@ async function fetchCurrentUser() {
 
 async function loadCategorias() {
     try {
-        allCategories = await apiClient.get('/api/ocorrencias/categorias');
+        allCategories = await apiClient.get('/api/v1/ocorrencias/categorias');
         if (ocorrenciaCategoriaSelect) {
             ocorrenciaCategoriaSelect.innerHTML = '<option value="">Selecione...</option>'; // Default option
             allCategories.forEach(categoria => {
@@ -403,7 +403,7 @@ async function loadOcorrencias(page = 1, filter = currentFilter, append = false)
     let queryParams = `pagina=${page}&tamanhoPagina=${PAGE_SIZE}`;
 
     // Status mapping based on filter tabs (adjust if API expects enum keys directly)
-    // The API /api/ocorrencias endpoint uses OcorrenciaQueryParametersDto which has nullable OcorrenciaStatus and OcorrenciaCategoria.
+    // The API /api/v1/ocorrencias endpoint uses OcorrenciaQueryParametersDto which has nullable OcorrenciaStatus and OcorrenciaCategoria.
     // The API also has a 'Minha' boolean.
     switch (filter) {
         case 'minhas':
@@ -433,7 +433,7 @@ async function loadOcorrencias(page = 1, filter = currentFilter, append = false)
     }
 
     try {
-        const result = await apiClient.get(`/api/ocorrencias?${queryParams}`);
+        const result = await apiClient.get(`/api/v1/ocorrencias?${queryParams}`);
         renderOcorrencias(result.items, {
             totalCount: result.totalCount,
             pageNumber: result.pageNumber,
@@ -557,7 +557,7 @@ async function handleNovaOcorrenciaSubmit(event) {
     try {
         showProgress(novaOcorrenciaProgress, 0);
         showGlobalFeedback('Enviando...', 'info', 2000);
-        const result = await postWithFiles('/api/ocorrencias', formData, p => showProgress(novaOcorrenciaProgress, p));
+        const result = await postWithFiles('/api/v1/ocorrencias', formData, p => showProgress(novaOcorrenciaProgress, p));
         showProgress(novaOcorrenciaProgress, 100);
 
         debugLog('Nova ocorrência criada:', result);
@@ -679,11 +679,11 @@ async function handleAdicionarNovosAnexosSubmit() {
 
     try {
         showProgress(novosAnexosProgress, 0);
-        await postWithFiles(`/api/ocorrencias/${currentOcorrenciaId}/anexos`, formData, p => showProgress(novosAnexosProgress, p));
+        await postWithFiles(`/api/v1/ocorrencias/${currentOcorrenciaId}/anexos`, formData, p => showProgress(novosAnexosProgress, p));
         showProgress(novosAnexosProgress, 100); // Ensure it hits 100% on success
         showGlobalFeedback('Novos anexos adicionados com sucesso!', 'success', 4000);
         // Refresh the anexos section in the detail modal
-        const updatedOcorrencia = await apiClient.get(`/api/ocorrencias/${currentOcorrenciaId}`);
+        const updatedOcorrencia = await apiClient.get(`/api/v1/ocorrencias/${currentOcorrenciaId}`);
         renderAnexosDetalhe(updatedOcorrencia.anexos || []);
         detalheNovosAnexosInput.value = ''; // Clear file input
         novosAnexosPreviewContainer.innerHTML = ''; // Clear previews
@@ -800,7 +800,7 @@ async function openDetalheOcorrenciaModal(ocorrenciaId) {
     modalDetalheOcorrencia.style.display = 'flex'; // Show modal first, then load content
 
     try {
-        const ocorrencia = await apiClient.get(`/api/ocorrencias/${ocorrenciaId}`);
+        const ocorrencia = await apiClient.get(`/api/v1/ocorrencias/${ocorrenciaId}`);
 
         // Ensure elements are found before setting textContent
         if (detalheTituloEl) detalheTituloEl.textContent = ocorrencia.titulo;
@@ -910,10 +910,10 @@ async function handleAddComentario() {
     isLoading = true;
 
     try {
-        const novoComentario = await apiClient.post(`/api/ocorrencias/${currentOcorrenciaId}/comentarios`, { texto });
+        const novoComentario = await apiClient.post(`/api/v1/ocorrencias/${currentOcorrenciaId}/comentarios`, { texto });
         novoComentarioTextoInput.value = ''; // Clear textarea
         // Refresh comments section
-        const updatedOcorrencia = await apiClient.get(`/api/ocorrencias/${currentOcorrenciaId}`);
+        const updatedOcorrencia = await apiClient.get(`/api/v1/ocorrencias/${currentOcorrenciaId}`);
         renderComentariosDetalhe(updatedOcorrencia.comentarios || []);
         if (detalheDataAtualizacaoEl) detalheDataAtualizacaoEl.textContent = formatDate(updatedOcorrencia.dataAtualizacao); // Update last updated time
     } catch (error) {
@@ -992,10 +992,10 @@ async function handleAlterarStatusSubmit(event) {
     isLoading = true;
 
     try {
-        await apiClient.post(`/api/ocorrencias/${currentOcorrenciaId}/status`, { status: novoStatus });
+        await apiClient.post(`/api/v1/ocorrencias/${currentOcorrenciaId}/status`, { status: novoStatus });
         closeAlterarStatusModal();
         // Refresh detail modal and main list
-        const updatedOcorrencia = await apiClient.get(`/api/ocorrencias/${currentOcorrenciaId}`);
+        const updatedOcorrencia = await apiClient.get(`/api/v1/ocorrencias/${currentOcorrenciaId}`);
         if (detalheStatusEl) detalheStatusEl.innerHTML = renderStatusTag(updatedOcorrencia.status, updatedOcorrencia.status.replace(/_/g, ' '));
         if (detalheDataAtualizacaoEl) detalheDataAtualizacaoEl.textContent = formatDate(updatedOcorrencia.dataAtualizacao);
         renderHistoricoStatusDetalhe(updatedOcorrencia.historicoStatus || []); // Refresh history
@@ -1062,7 +1062,7 @@ async function handleDeleteOcorrencia() {
     // Removido o showInlineSpinner aqui, pois a UI do card já muda.
 
     try {
-        await apiClient.delete(`/api/ocorrencias/${currentOcorrenciaId}`);
+        await apiClient.delete(`/api/v1/ocorrencias/${currentOcorrenciaId}`);
 
         setTimeout(() => {
             if (card) card.remove();
