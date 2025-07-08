@@ -40,21 +40,29 @@ export function initUserMenu() {
     function openModal() {
         if (modal) openModalFn(modal);
         if (modalHeader) {
-            const existingH2 = modalHeader.querySelector('h2.user-menu-username');
-            if (existingH2) existingH2.remove();
-            const existingEmail = modalHeader.querySelector('p.user-menu-email');
-            if (existingEmail) existingEmail.remove();
-            // Add display name to modal header
-            const displayNameH2 = document.createElement('h2');
-            displayNameH2.classList.add('user-menu-username');
-            displayNameH2.textContent = displayName;
-            modalHeader.insertBefore(displayNameH2, modalHeader.firstChild);
-            if (userEmail) {
-                const emailP = document.createElement('p');
-                emailP.classList.add('user-menu-email');
-                emailP.textContent = userEmail;
-                modalHeader.insertBefore(emailP, closeBtn);
+            let headerTop = modalHeader.querySelector('.user-menu-header-top');
+            if (!headerTop) {
+                headerTop = document.createElement('div');
+                headerTop.classList.add('user-menu-header-top');
+                modalHeader.insertBefore(headerTop, modalHeader.firstChild);
+                headerTop.appendChild(closeBtn);
+            } else {
+                headerTop.innerHTML = '';
+                headerTop.appendChild(closeBtn);
             }
+
+            const nameH2 = document.createElement('h2');
+            nameH2.classList.add('user-menu-username');
+            nameH2.textContent = displayName;
+            headerTop.insertBefore(nameH2, closeBtn);
+
+            let emailP = modalHeader.querySelector('p.user-menu-email');
+            if (!emailP) {
+                emailP = document.createElement('p');
+                emailP.classList.add('user-menu-email');
+                modalHeader.appendChild(emailP);
+            }
+            emailP.textContent = userEmail || '';
         }
     }
     function closeModal() {

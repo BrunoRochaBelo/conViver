@@ -789,27 +789,29 @@ body.has-bottom-nav #mainNav {
 
 .user-menu-modal .cv-modal-header {
     padding: var(--cv-spacing-sm) var(--cv-spacing-md);
-    min-height: auto; /* No strict min-height */
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    border-bottom: 1px solid var(--current-border-subtle);
+}
+
+.user-menu-modal .user-menu-header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* position: relative; /* Not needed if close button is part of flex order and handled by .cv-modal-close general style */
-    border-bottom: 1px solid var(--current-border-subtle); /* Add separator if header is used */
 }
 
-.user-menu-modal .cv-modal-header h2.user-menu-username {
+.user-menu-modal .user-menu-header-top h2.user-menu-username {
     font-size: var(--cv-font-size-md);
-    text-align: left;
     margin: 0;
-    flex-grow: 1;
-    /* Adjust padding if close button is on the right via flex order */
-    padding-right: calc(28px + var(--cv-spacing-sm) * 2); /* width of close button + its own right padding + desired gap */
 }
+
 .user-menu-modal .cv-modal-header p.user-menu-email {
     font-size: var(--cv-font-size-sm);
     color: var(--current-text-secondary);
-    margin: 0;
-    padding-right: calc(28px + var(--cv-spacing-sm) * 2);
+    margin: var(--cv-spacing-xs) 0 0;
+    word-break: break-all;
 }
 
 .user-menu-modal .cv-modal-body {
@@ -851,7 +853,11 @@ body.has-bottom-nav #mainNav {
 }
 .user-menu-list li.theme-buttons {
     display: flex;
-    gap: var(--cv-spacing-xs);
+    justify-content: center;
+    gap: var(--cv-spacing-sm);
+}
+.user-menu-list li.theme-buttons button {
+    width: auto;
 }
 .user-menu-list li.theme-buttons .cv-button.active {
     box-shadow: 0 0 0 2px var(--current-primary-blue);
