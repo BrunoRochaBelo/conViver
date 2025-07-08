@@ -40,25 +40,29 @@ export function initUserMenu() {
     function openModal() {
         if (modal) openModalFn(modal);
         if (modalHeader) {
-            let infoDiv = modalHeader.querySelector('.user-menu-info');
-            if (!infoDiv) {
-                infoDiv = document.createElement('div');
-                infoDiv.classList.add('user-menu-info');
-                modalHeader.insertBefore(infoDiv, closeBtn);
+            let headerTop = modalHeader.querySelector('.user-menu-header-top');
+            if (!headerTop) {
+                headerTop = document.createElement('div');
+                headerTop.classList.add('user-menu-header-top');
+                modalHeader.insertBefore(headerTop, modalHeader.firstChild);
+                headerTop.appendChild(closeBtn);
             } else {
-                infoDiv.innerHTML = '';
+                headerTop.innerHTML = '';
+                headerTop.appendChild(closeBtn);
             }
 
             const nameH2 = document.createElement('h2');
             nameH2.classList.add('user-menu-username');
             nameH2.textContent = displayName;
-            infoDiv.appendChild(nameH2);
-            if (userEmail) {
-                const emailP = document.createElement('p');
+            headerTop.insertBefore(nameH2, closeBtn);
+
+            let emailP = modalHeader.querySelector('p.user-menu-email');
+            if (!emailP) {
+                emailP = document.createElement('p');
                 emailP.classList.add('user-menu-email');
-                emailP.textContent = userEmail;
-                infoDiv.appendChild(emailP);
+                modalHeader.appendChild(emailP);
             }
+            emailP.textContent = userEmail || '';
         }
     }
     function closeModal() {
