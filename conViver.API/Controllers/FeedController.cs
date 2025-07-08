@@ -12,7 +12,8 @@ namespace conViver.API.Controllers
 {
     [ApiController]
     [Route("/api/v1/feed")]
-    [Authorize(Roles = "Syndic,Resident,Tenant")] // Using roles consistent with other controllers
+    // Acesso restrito a moradores e síndicos
+    [Authorize(Roles = "Sindico,Morador")]
     public class FeedController : ControllerBase
     {
         private readonly FeedService _feedService;
