@@ -29,7 +29,7 @@ REDIS_CONNECTION=localhost:6379 # Ou a string de conexão do seu provedor Redis
 # URLs
 BASE_URL=https://api.conviver.app # URL pública da API (exemplo)
 FRONTEND_URL=https://www.conviver.app # URL pública do Frontend Web (exemplo)
-API_CORS_ALLOWED_ORIGINS=https://www.conviver.app;http://localhost:3000 # Origens permitidas para CORS
+CorsSettings__AllowedOrigins=https://www.conviver.app;http://localhost:3000 # Origens permitidas para CORS (use o formato "origem1;origem2")
 
 No Azure App Service, use Configuration > Application settings para cadastrar essas mesmas variáveis.
 
@@ -109,7 +109,7 @@ az webapp config appsettings set \
     DB_CONNECTION="Host=<seu-db-server>.postgres.database.azure.com;Port=5432;Username=<admin>;Password=<senha>;Database=conviver;" \
     REDIS_CONNECTION="<seu-redis>.redis.cache.windows.net:6380,password=<chave>,ssl=True,abortConnect=False" \
     JWT_SECRET="<seu-jwt-secret-super-longo-e-seguro>" \
-    API_CORS_ALLOWED_ORIGINS="https://www.conviver.app;https://outro-dominio-front.com" \
+    CorsSettings__AllowedOrigins="https://www.conviver.app;https://outro-dominio-front.com" \
     ASPNETCORE_ENVIRONMENT="Production" # Garante que a API rode em modo de Produção
 ```
 
