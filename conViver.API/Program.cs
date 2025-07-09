@@ -116,7 +116,6 @@ using (var scope = app.Services.CreateScope())
 // app.UsePathBase("/api/v1");
 
 // Enable CORS as early as possible in the pipeline
-app.UseCors(AllowDevOrigins);
 
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
