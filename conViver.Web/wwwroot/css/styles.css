@@ -1282,14 +1282,12 @@ html[data-theme="dark"] .cv-modal-header {
 /* If close button is always on right: */
 .cv-modal-header .cv-modal-close {
     position: absolute; /* Simpler to manage for true centering of title */
-    right: var(--cv-spacing-md);
-    top: 50%;
-    transform: translateY(-50%);
+    top: var(--cv-spacing-sm);
+    right: var(--cv-spacing-sm);
 }
 /* If title should be truly centered regardless of close button, and close is part of flex: */
 /* .cv-modal-header { justify-content: center; } */
 /* .cv-modal-header h2 { flex-grow: 0; } */
-/* .cv-modal-header .cv-modal-close { position: absolute; right: var(--cv-spacing-md); ... } */
 /* For this iteration, absolute positioning of close button is robust for title centering. */
 
 
@@ -1453,7 +1451,7 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:a
 }
 .cv-modal-header .cv-modal-close:hover,
 .cv-modal-header .cv-modal-close:focus {
-    transform: translateY(-50%) scale(1.05);
+    transform: scale(1.05);
 }
 
 .cv-modal-close:active {
@@ -1462,7 +1460,7 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:a
     opacity: 0.8;
 }
 .cv-modal-header .cv-modal-close:active {
-    transform: translateY(-50%) scale(0.95);
+    transform: scale(0.95);
 }
 
 html[data-theme="dark"] .cv-modal-close {
@@ -1478,7 +1476,7 @@ html[data-theme="dark"] .cv-modal-close:focus {
 }
 html[data-theme="dark"] .cv-modal-header .cv-modal-close:hover,
 html[data-theme="dark"] .cv-modal-header .cv-modal-close:focus {
-    transform: translateY(-50%) scale(1.05);
+    transform: scale(1.05);
 }
 
 html[data-theme="dark"] .cv-modal-close:active {
@@ -1487,7 +1485,7 @@ html[data-theme="dark"] .cv-modal-close:active {
     opacity: 0.8;
 }
 html[data-theme="dark"] .cv-modal-header .cv-modal-close:active {
-    transform: translateY(-50%) scale(0.95);
+    transform: scale(0.95);
 }
 
 
