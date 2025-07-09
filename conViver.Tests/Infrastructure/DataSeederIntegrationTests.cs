@@ -126,7 +126,7 @@ public class DataSeederIntegrationTests
 
         var unidadeId = db.Unidades.First().Id;
         var visitanteDto = new VisitanteInputDto { UnidadeId = unidadeId, Nome = "Visitante" };
-        var response = await client.PostAsJsonAsync("api/visitantes/registrar-entrada", visitanteDto);
+        var response = await client.PostAsJsonAsync("visitantes/registrar-entrada", visitanteDto);
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.Created);
     }
 }

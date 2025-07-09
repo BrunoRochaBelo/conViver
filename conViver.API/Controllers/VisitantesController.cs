@@ -14,7 +14,7 @@ using conViver.Core.Interfaces; // Added for IUsuarioService
 namespace conViver.API.Controllers;
 
 [ApiController]
-[Route("api/visitantes")] // Changed route to be more generic, specific roles will protect endpoints
+[Route("api/v1/visitantes")] // Updated route to include API version prefix
 // [Authorize(Roles = "Sindico")] // Removed default authorization, will be per-endpoint
 public class VisitantesController : ControllerBase
 {
