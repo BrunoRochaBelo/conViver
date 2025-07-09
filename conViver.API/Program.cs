@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using conViver.Application.Services; // Moved here
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,8 +21,19 @@ var AllowDevOrigins = "_allowDevOrigins";
 
 var allowedOriginsString = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Value;
 var origins = !string.IsNullOrWhiteSpace(allowedOriginsString)
-              ? allowedOriginsString.Split(';', StringSplitOptions.RemoveEmptyEntries)
+              ? allowedOriginsString.Split(';')
               : Array.Empty<string>();
+
+if (origins.Length == 0 || string.IsNullOrWhiteSpace(origins[0]))
+{
+    var envOrigins = Environment.GetEnvironmentVariable("API_CORS_ALLOWED_ORIGINS");
+    if (!string.IsNullOrWhiteSpace(envOrigins))
+    {
+        origins = envOrigins.Split(';');
+    }
+}
+
+origins = origins.Where(o => !string.IsNullOrWhiteSpace(o)).ToArray();
 
 builder.Services.AddCors(options =>
 {
