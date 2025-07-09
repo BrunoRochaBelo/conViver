@@ -788,7 +788,6 @@ body.has-bottom-nav #mainNav {
 
 
 .user-menu-modal .cv-modal-header {
-    padding: var(--cv-spacing-sm) var(--cv-spacing-md);
     min-height: auto;
     display: flex;
     flex-direction: column;
