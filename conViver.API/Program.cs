@@ -99,6 +99,9 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Enable CORS
+app.UseCors(AllowDevOrigins);
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ConViverDbContext>();
@@ -118,7 +121,6 @@ app.UseCors(AllowDevOrigins);
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<CachingMiddleware>();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
