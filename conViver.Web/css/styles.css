@@ -1460,6 +1460,7 @@ html[data-theme="dark"] .cv-modal-footer.cv-modal-footer--ios-alert .cv-button:a
     background-color: var(--cv-gray-300);
     opacity: 0.8;
 }
+
 .cv-modal-header .cv-modal-close:active {
     transform: scale(0.95);
 }
@@ -1475,6 +1476,7 @@ html[data-theme="dark"] .cv-modal-close:focus {
     color: var(--cv-dark-gray-900); /* Keep 'X' color */
     transform: scale(1.05);
 }
+
 html[data-theme="dark"] .cv-modal-header .cv-modal-close:hover,
 html[data-theme="dark"] .cv-modal-header .cv-modal-close:focus {
     transform: scale(1.05);
@@ -1485,9 +1487,11 @@ html[data-theme="dark"] .cv-modal-close:active {
     background-color: var(--cv-dark-gray-400);
     opacity: 0.8;
 }
+
 html[data-theme="dark"] .cv-modal-header .cv-modal-close:active {
     transform: scale(0.95);
 }
+
 
 
 /* Basic form layout */

@@ -820,24 +820,6 @@ body.has-bottom-nav #mainNav {
     display: none; /* User menus typically don't have a footer with OK/Cancel */
 }
 
-/* The .cv-modal-close inside .user-menu-modal will inherit the new global styles.
-   Its position is already absolute and top/right are relative to .cv-modal-content.
-   The new global .cv-modal-close uses var(--cv-spacing-sm) for top/right, which is 8px.
-   This should be fine for a popover-style menu.
-   No specific overrides for .user-menu-modal .cv-modal-close seem necessary
-   if the global styles are correctly applied and desired.
-   The parent .cv-modal-content has padding:0 now, so the close button will be
-   8px from the visual edge of the popover.
-*/
-/*
-.user-menu-modal .cv-modal-close {
-    position: absolute;
-    top: var(--cv-spacing-sm); // Should match global .cv-modal-close
-    right: var(--cv-spacing-sm); // Should match global .cv-modal-close
-    // width and height will be inherited from global .cv-modal-close (28px)
-    // font-size will be inherited (14px)
-}
-*/
 
 .user-menu-list {
     list-style: none;
