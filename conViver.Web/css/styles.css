@@ -1282,7 +1282,9 @@ html[data-theme="dark"] .cv-modal-header {
 /* If close button is always on right: */
 .cv-modal-header .cv-modal-close {
     position: absolute; /* Simpler to manage for true centering of title */
-    /* right: var(--cv-spacing-md); */    /* top: 50%; */    /* transform: translate(-50%); */
+    right: var(--cv-spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
 }
 /* If title should be truly centered regardless of close button, and close is part of flex: */
 /* .cv-modal-header { justify-content: center; } */
